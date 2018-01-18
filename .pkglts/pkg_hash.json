@@ -1,0 +1,38 @@
+{
+  "AUTHORS.rst": {
+    "doc.authors": "yfp/3DVN4phCiqAQx5G/I8OP1YkGdYVQ4XWgsWnnruwsvsEFAJMUtT/myZJ2Txb/Ww2tPTY1hUyOljsxl2c2RA==", 
+    "doc.contributors": "CsQZVW/GsCWv8QEyGySskSI6eWXB0nG1eNG+RQuJvXtcmalju8le+Kc3Q/GzFTwZtAsRYx39I1UQecOLvHdOTA=="
+  }, 
+  "CONTRIBUTING.rst": {}, 
+  "HISTORY.rst": {}, 
+  "LICENSE": {
+    "license": "21ExMhSzB2uXQuU1VoH7++nrb4u6TbesqGtJDpM39OLPWft9SJ2tJ956R6foYmkI9VuJay7SUrhFLPxxMEHLxg=="
+  }, 
+  "MANIFEST.in": {
+    "pysetup": "zb7K2ZaK4EZVrH9dm1/CbD1/mgTS96qnkDLCr1rQ3BzjhgzpvlcBIydiipGCuw+TrB65qh0UR/pliTpg3icDLA=="
+  }, 
+  "README.rst": {
+    "doc": "z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="
+  }, 
+  "doc/_static/nonempty.txt": {}, 
+  "dvlpt_requirements.txt": {
+    "pysetup": "/lgFRz5zOwwSIDuwxWxpQ4Qj6hCbg2DKDU2UU5mO4Ou60TQI7mqHtLIcUYpMkUxX7Mu0q6mqfn9vaG20dIkSLw=="
+  }, 
+  "requirements.txt": {
+    "pysetup": "/5djJXLbrvuFk7LIgtfgYR8RnQrY5BEmOB4zEd0PrKeswR/8sQkzj4yKy7Zl3LAdRzYjPDhWiRkS1oMCG4FX7Q=="
+  }, 
+  "setup.cfg": {
+    "pysetup": "rFiT1aXKTVa72LWfGtl0DzAd1yhXXlb64GW3GynO0SSSWT4F6LkV29pV+7xrnQsnrzS2kcOLJ6IvUjubSa4W9g=="
+  }, 
+  "setup.py": {
+    "pysetup.call": "2wHuP94SpWKZpqOzExkQGTxnhGPgBHK3qOdPn0Ncstj5FkZ7FBGGM/inqAXaI4QLKQtTNlOUYRGSkYUWAUcf1w==", 
+    "pysetup.kwds": "bHuhyomS0g0IQLYNCdXiMHv0G3f4M9kVcF6NnjKpq7Wugg5vO5+wxiCN9x3mxrEm9BgouiYjnzYDEF6iJvaZmw=="
+  }, 
+  "src/pycropml/__init__.py": {
+    "base": "gR33dW0qqYmsV9NSNB+DD8XmuxnC2t0mKjnMoU5728qh97fSER6MbX+3QKxpZDLByZToaAay4xhx8acxketJmA=="
+  }, 
+  "src/pycropml/version.py": {
+    "version": "8ctZIFyoVGdc/9vjyza7knO3i9WxdO7v3JghYkgSD69sffsTW/NfkYYp28XnIRnircbqlWrLZyx81lQcR1G53Q=="
+  }, 
+  "test/__init__.py": {}
+}

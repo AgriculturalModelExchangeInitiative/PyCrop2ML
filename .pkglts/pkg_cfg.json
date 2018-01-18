@@ -1,0 +1,52 @@
+{
+  "_pkglts": {
+    "auto_install": true, 
+    "install_front_end": "stdout", 
+    "use_prompts": false, 
+    "version": 11
+  }, 
+  "base": {
+    "authors": [
+      [
+        "moi", 
+        "moi@email.com"
+      ]
+    ], 
+    "namespace": null, 
+    "namespace_method": "pkg_util", 
+    "pkgname": "pycropml", 
+    "url": null
+  }, 
+  "data": {
+    "filetype": [
+      ".json", 
+      ".ini"
+    ], 
+    "use_ext_dir": false
+  }, 
+  "doc": {
+    "description": "belle petite description", 
+    "fmt": "rst", 
+    "keywords": []
+  }, 
+  "license": {
+    "name": "cecill-c", 
+    "organization": "organization", 
+    "project": "{{ base.pkgname }}", 
+    "year": 2017
+  }, 
+  "pysetup": {
+    "intended_versions": [
+      "36"
+    ], 
+    "require": []
+  }, 
+  "test": {
+    "suite_name": "pytest"
+  }, 
+  "version": {
+    "major": 0, 
+    "minor": 0, 
+    "post": 1
+  }
+}
