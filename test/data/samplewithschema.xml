@@ -1,0 +1,152 @@
+<?xml version="1.0" standalone="yes"?>
+<ModelUnitDeclarative>
+  <xs:schema id="ModelUnitDeclarative" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xs:element name="Attributes">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="Name" type="xs:string" minOccurs="1" />
+          <xs:element name="Description" type="xs:string" minOccurs="1" />
+          <xs:element name="MaxVal" type="xs:string" minOccurs="1" />
+          <xs:element name="MinVal" type="xs:string" minOccurs="1" />
+          <xs:element name="DefVal" type="xs:string" minOccurs="1" />
+          <xs:element name="Units" type="xs:string" minOccurs="1" />
+          <xs:element name="URL" type="xs:string" minOccurs="1" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="UnitTests">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="UT" type="xs:string" minOccurs="1" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="ModelUnit">
+      <xs:complexType>
+        <xs:sequence>
+          <xs:element name="Algorithm" type="xs:string" minOccurs="1" />
+          <xs:element name="Description" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Title" type="xs:string" minOccurs="1" />
+                <xs:element name="Author" type="xs:string" minOccurs="1" />
+                <xs:element name="Institution" type="xs:string" minOccurs="1" />
+                <xs:element name="Reference" type="xs:string" minOccurs="1" />
+                <xs:element name="Abstract" type="xs:string" minOccurs="1" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Inputs" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Input" minOccurs="1" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element ref="Attributes" minOccurs="1" maxOccurs="unbounded" />
+                      <xs:element ref="UnitTests" minOccurs="1" maxOccurs="unbounded" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Ouputs" minOccurs="1" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Output" minOccurs="0" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element ref="Attributes" minOccurs="1" maxOccurs="unbounded" />
+                      <xs:element ref="UnitTests" minOccurs="1" maxOccurs="unbounded" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="Parameters" minOccurs="0" maxOccurs="unbounded">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="Parameter" minOccurs="0" maxOccurs="unbounded">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:element ref="Attributes" minOccurs="1" maxOccurs="unbounded" />
+                      <xs:element ref="UnitTests" minOccurs="1" maxOccurs="unbounded" />
+                    </xs:sequence>
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+    <xs:element name="ModelUnitDeclarative" msdata:IsDataSet="true" msdata:UseCurrentLocale="true">
+      <xs:complexType>
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+          <xs:element ref="Attributes" />
+          <xs:element ref="UnitTests" />
+          <xs:element ref="ModelUnit" />
+        </xs:choice>
+      </xs:complexType>
+    </xs:element>
+  </xs:schema>
+  <ModelUnit>
+    <Algorithm />
+    <Description>
+      <Title />
+      <Author />
+      <Institution />
+      <Reference />
+      <Abstract />
+    </Description>
+    <Inputs>
+      <Input>
+        <Attributes>
+          <Name />
+          <Description />
+          <MaxVal />
+          <MinVal />
+          <DefVal />
+          <Units />
+          <URL />
+        </Attributes>
+        <UnitTests>
+          <UT />
+        </UnitTests>
+      </Input>
+    </Inputs>
+    <Ouputs>
+      <Output>
+        <Attributes>
+          <Name />
+          <Description />
+          <MaxVal />
+          <MinVal />
+          <DefVal />
+          <Units />
+          <URL />
+        </Attributes>
+        <UnitTests>
+          <UT />
+        </UnitTests>
+      </Output>
+    </Ouputs>
+    <Parameters>
+      <Parameter>
+        <Attributes>
+          <Name />
+          <Description />
+          <MaxVal />
+          <MinVal />
+          <DefVal />
+          <Units />
+          <URL />
+        </Attributes>
+        <UnitTests>
+          <UT />
+        </UnitTests>
+      </Parameter>
+    </Parameters>
+  </ModelUnit>
+</ModelUnitDeclarative>

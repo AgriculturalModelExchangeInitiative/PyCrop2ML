@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- created with XMLSpear -->
+<Tests>
+	<Test name="check wheat model" >
+	   <Run id="1">
+	      <input name="MinTemp">12</input>
+	      <input name="AvalableWater">45</input>
+	      <output name="PlantGrowth">3.2</output>
+	    </Run>
+	    <Run id="2">
+	      <input name="MinTemp">10</input>
+	      <input name="AvalableWater">25</input>
+	      <output name="PlantGrowth" format="yyyyMMdd">0.2</output>
+	    </Run>
+	 </Test>
+</Tests>

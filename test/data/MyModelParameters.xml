@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- created with XMLSpear -->
+<parametersets>
+   <parameterset name="wheat">
+        <param name="BaseTemp">5</param>
+   </parameterset>
+   <parameterset name="wheat.cv1">
+        <param name="GrowthRate">0.02</param>
+   </parameterset>
+   <parameterset name="soil">
+        <param name="PlantAvailableWater">0.6</param>
+   </parameterset>
+    <parameterset name="sorghum">
+        <param name="BaseTemp">10</param>
+   </parameterset>
+</parametersets>
