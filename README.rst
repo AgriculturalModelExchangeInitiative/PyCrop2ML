@@ -6,5 +6,4 @@ pycropml
 
 .. #}
 
-belle petite description
-
+A Python library to generate components from CropML declarative language
