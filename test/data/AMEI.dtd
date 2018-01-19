@@ -13,8 +13,8 @@
 <!ATTLIST Inputs
   xmlns CDATA #FIXED ''>
 
-<!ELEMENT Ouputs (Output)>
-<!ATTLIST Ouputs
+<!ELEMENT Outputs (Output)>
+<!ATTLIST Outputs
   xmlns CDATA #FIXED ''>
 
 <!ELEMENT Algorithm (#PCDATA)>
