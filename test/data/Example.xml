@@ -30,7 +30,7 @@
      </Algorithm>
      <Parametersets>
         <Parameterset name="wheat" description="some values in there" uri="file://MyModelParameters.xml"/>
-       <Parameterset name="wheat.cv1" description="some values in there" uri="file://MyModelParameters.xml"/>
+        <Parameterset name="wheat.cv1" description="some values in there" uri="file://MyModelParameters.xml"/>
         <Parameterset name="soil" description="some values in there" uri="file://MyModelParameters.xml"/>
         <Parameterset name="crop" description="some values in there">
            <param name="DrougtSensitivity">0.75</param>

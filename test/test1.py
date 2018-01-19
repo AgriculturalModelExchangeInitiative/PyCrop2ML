@@ -21,7 +21,7 @@ class ModelUnit(object):
         self.description = None
         self.inputs = []
         self.outputs = []
-        self.parametersets = []
+        self.parametersets = {}
         self.algorithm = None
         self.tests = []
 
@@ -71,12 +71,38 @@ class Output(InputOutput):
     """
 
 
+class Parameterset(object):
+    """ Parameter set """
+ 
+    def __init__(self, name, description, uri=None):
+        self.name = name
+        self.description = description
+        self.uri = uri
+        self.params = {}
+        
+    def _load_from_uri(self):
+        pass
+    
+
 class Test(object):
     """ Test """
+    def __init__(self, name, description, uri=None):
+        self.name = name
+        self.description = description
+        self.uri = uri
+        self.paramsets = []
 
 class Algorithm(object):
     """ Algorithm """
 
+def parameterset(model, name, kwds):
+    if not kwds:
+        # look at the parameters in the parametersets and return it
+        return model.parametersets.get(name)
+    else:
+        return Parameterset(name, **kwds)
+    
+    
 ##############################################################################
 # Parser representation
 
@@ -99,10 +125,10 @@ class Parser(object):
         return self.models
 
     def dispatch(self, elt):
-        try:
-            return self.__getattribute__(elt.tag)(elt)
-        except Exception, e:
-            print e
+        #try:
+        return self.__getattribute__(elt.tag)(elt)
+        #except Exception, e:
+        #    print e
             #raise Exception("Unvalid element %s" % elt.tag)
 
     def ModelUnit(self, elts):
@@ -126,7 +152,7 @@ class Parser(object):
         desc = Description()
 
         for elt in list(elts):
-            name = desc.__setattr__(elt.tag, elt.text)
+            self.name = desc.__setattr__(elt.tag, elt.text)
 
         self._model.add_description(desc)
 
@@ -162,7 +188,41 @@ class Parser(object):
         properties = elts.attrib
         _output = Output(properties)
         self._model.outputs.append(_output)
+        
+    def Parametersets(self, elts):
+        """ Parametersets (Parameterset)
+        """
+        print('Parametersets')
 
+        for elt in list(elts):
+            self.Parameterset(elt)
+
+    def Parameterset(self, elts):
+        """ Parameterset
+        """
+        print('Parameterset: ')
+        properties = elts.attrib
+        name = properties.pop('name')
+
+        _parameterset = parameterset(self._model, name, properties)
+
+        for elt in list(elts):
+            self.param(_parameterset, elt)
+        
+        name = _parameterset.name
+        self._model.parametersets[name] = _parameterset
+        
+            
+    def param(self, pset, elt):
+        """ Param
+        """
+        print('Param: ', elt.attrib, elt.text)
+        properties = elt.attrib
+        
+        name = properties['name']
+        pset.params[name] = elt.text
+       
+    
     def Algorithm(self, elt):
         """ Algorithm
         """
@@ -170,25 +230,19 @@ class Parser(object):
 
         self._model.algorithm = elt.text
 
-    def Parametersets(self, elts):
-        """ Parametersets (Parameterset)+
-        """
-        print('Parametersets')
-
-        for elt in list(elts):
-            # todo
-            # self.dispatch(elt)
-            pass
+  
 
     def Tests(self, elts):
         """ Tests (Test)
         """
         print('Tests')
-
         for elt in list(elts):
             # todo
-            # self.dispatch(elt)
-            pass
+            t = Test(**(elt.attrib))
+            for ps in list(elt):
+                name = ps.attrib['name']
+                t.paramsets.append(name)
+            self._model.tests.append(t)
 
 
 ##############################################################################
