@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 21 13:53:04 2018
 
-@author: midingoy
-"""
 import xml.etree.ElementTree as xml
 import modelunit as m
 import description as d
