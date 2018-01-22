@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 21 13:28:08 2018
-
-@author: midingoy
-"""
 
 class Parameterset(object):
     """ Parameter set """
