@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 21 13:24:30 2018
-
-@author: midingoy
-"""
 
 class Description(object):
     """ Model Unit Description.
