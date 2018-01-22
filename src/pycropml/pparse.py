@@ -2,10 +2,9 @@
 import xml.etree.ElementTree as xml
 import modelunit as m
 import description as d
-import input as imp
-import output as ou
+import inout
 import parameterset as pa
-import test as tt
+import checking as tt
 
 
 class Parser(object):
@@ -70,7 +69,7 @@ class Parser(object):
         """
         print('Input: ')
         properties = elts.attrib
-        _input = imp.Input(properties)
+        _input = inout.Input(properties)
         self._model.inputs.append(_input)
 
     def Outputs(self, elts):
@@ -87,7 +86,7 @@ class Parser(object):
         print('Output: ')
 
         properties = elts.attrib
-        _output = ou.Output(properties)
+        _output = inout.Output(properties)
         self._model.outputs.append(_output)
         
     def Parametersets(self, elts):
@@ -144,4 +143,5 @@ class Parser(object):
                 name = ps.attrib['name']
                 t.paramsets.append(name)
             self._model.tests.append(t)
+
 
