@@ -1,9 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Sun Jan 21 13:25:51 2018
-
-@author: midingoy
-"""
 
 class InputOutput(object):
     """
