@@ -1,10 +1,10 @@
 
 import xml.etree.ElementTree as xml
-from pycropml import modelunit as m
-from pycropml import description as d
-from pycropml import inout
-from pycropml import parameterset as pa
-from pycropml import checking as tt
+from . import modelunit as munit
+from . import description as desc
+from . import inout
+from . import parameterset as pset
+from . import checking
 
 
 class Parser(object):
@@ -37,7 +37,7 @@ class Parser(object):
         """
         print('ModelUnit')
 
-        self._model = m.ModelUnit()
+        self._model = munit.ModelUnit()
         self.models.append(self._model)
 
         for elt in list(elts):
@@ -49,7 +49,7 @@ class Parser(object):
         """
         print('Description')
 
-        desc = d.Description()
+        desc = desc.Description()
 
         for elt in list(elts):
             self.name = desc.__setattr__(elt.tag, elt.text)
@@ -104,7 +104,7 @@ class Parser(object):
         properties = elts.attrib
         name = properties.pop('name')
 
-        _parameterset = pa.parameterset(self._model, name, properties)
+        _parameterset = pset.parameterset(self._model, name, properties)
 
         for elt in list(elts):
             self.param(_parameterset, elt)
@@ -138,7 +138,7 @@ class Parser(object):
         print('Tests')
         for elt in list(elts):
             # todo
-            t = tt.Test(**(elt.attrib))
+            t = checking.Test(**(elt.attrib))
             for ps in list(elt):
                 name = ps.attrib['name']
                 t.paramsets.append(name)
