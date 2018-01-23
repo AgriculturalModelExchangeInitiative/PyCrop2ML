@@ -1,7 +1,7 @@
 
 import xml.etree.ElementTree as xml
 from . import modelunit as munit
-from . import description as desc
+from . import description
 from . import inout
 from . import parameterset as pset
 from . import checking
@@ -49,7 +49,7 @@ class Parser(object):
         """
         print('Description')
 
-        desc = desc.Description()
+        desc = description.Description()
 
         for elt in list(elts):
             self.name = desc.__setattr__(elt.tag, elt.text)
