@@ -88,7 +88,7 @@ class Parser(object):
         properties = elts.attrib
         _output = inout.Output(properties)
         self._model.outputs.append(_output)
-        
+
     def Parametersets(self, elts):
         """ Parametersets (Parameterset)
         """
@@ -108,21 +108,21 @@ class Parser(object):
 
         for elt in list(elts):
             self.param(_parameterset, elt)
-        
+
         name = _parameterset.name
         self._model.parametersets[name] = _parameterset
-        
-            
+
+
     def param(self, pset, elt):
         """ Param
         """
         print('Param: ', elt.attrib, elt.text)
         properties = elt.attrib
-        
+
         name = properties['name']
         pset.params[name] = elt.text
-       
-    
+
+
     def Algorithm(self, elt):
         """ Algorithm
         """
@@ -130,7 +130,7 @@ class Parser(object):
 
         self._model.algorithm = elt.text
 
-  
+
 
     def Tests(self, elts):
         """ Tests (Test)
@@ -144,4 +144,8 @@ class Parser(object):
                 t.paramsets.append(name)
             self._model.tests.append(t)
 
-
+def parse(fn):
+    """ Parse a set of models as xml files and return the models.
+    """
+    parser = Parser()
+    return parser.parse(fn)
