@@ -1,10 +1,10 @@
 
 import xml.etree.ElementTree as xml
-import modelunit as m
-import description as d
-import inout
-import parameterset as pa
-import checking as tt
+from pycropml import modelunit as m
+from pycropml import description as d
+from pycropml import inout
+from pycropml import parameterset as pa
+from pycropml import checking as tt
 
 
 class Parser(object):

@@ -1,8 +1,8 @@
 
 
 from path import Path
-import pparse as pp
-data = Path('data')
+from pycropml import pparse as pp
+data = Path('test/data')
 xmls = data.glob('*.xml')
 
 def example():
