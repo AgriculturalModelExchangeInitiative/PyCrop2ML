@@ -1,5 +1,6 @@
 # {# pkglts, pysetup
-pytest  # pip install pytest
-pytest-mock  # pip install pytest-mock
+mock  # pip install mock
+nose  # pip install nose
+sphinx  # pip install sphinx
 
 # #}

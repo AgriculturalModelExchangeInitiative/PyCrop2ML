@@ -8,14 +8,18 @@
   "base": {
     "authors": [
       [
-        "moi", 
-        "moi@email.com"
+        "Cyrille Ahmed Midingoyi", 
+        "cyrille.midingoyi@inra.fr"
+      ], 
+      [
+        "Christophe Pradal", 
+        "christophe.pradal@cirad.fr"
       ]
     ], 
     "namespace": null, 
     "namespace_method": "pkg_util", 
     "pkgname": "pycropml", 
-    "url": null
+    "url": "https://github.com/AgriculturalModelExchangeInitiative/PyCropML"
   }, 
   "data": {
     "filetype": [
@@ -25,7 +29,7 @@
     "use_ext_dir": false
   }, 
   "doc": {
-    "description": "belle petite description", 
+    "description": "A Python library to generate components from CropML declarative language", 
     "fmt": "rst", 
     "keywords": []
   }, 
@@ -37,16 +41,21 @@
   }, 
   "pysetup": {
     "intended_versions": [
-      "36"
+      "27"
     ], 
     "require": []
   }, 
+  "sphinx": {
+    "autodoc_dvlpt": true, 
+    "build_dir": "build/sphinx", 
+    "theme": "default"
+  }, 
   "test": {
-    "suite_name": "pytest"
+    "suite_name": "nose"
   }, 
   "version": {
     "major": 0, 
     "minor": 0, 
-    "post": 1
+    "post": 2
   }
 }
