@@ -11,7 +11,7 @@ from os.path import join as pj
 from setuptools import setup, find_packages
 
 
-short_descr = "belle petite description"
+short_descr = "A Python library to generate components from CropML declarative language"
 readme = open('README.rst').read()
 history = open('HISTORY.rst').read()
 
@@ -43,9 +43,9 @@ setup_kwds = dict(
     version=version["__version__"],
     description=short_descr,
     long_description=readme + '\n\n' + history,
-    author="moi",
-    author_email="moi@email.com",
-    url='',
+    author="Cyrille Ahmed Midingoyi",
+    author_email="cyrille.midingoyi@inra.fr",
+    url='https://github.com/AgriculturalModelExchangeInitiative/PyCropML',
     license='cecill-c',
     zip_safe=False,
 
@@ -55,16 +55,18 @@ setup_kwds = dict(
     
     package_data=pkg_data,
     setup_requires=[
-        "pytest-runner",
         ],
     install_requires=[
         ],
     tests_require=[
-        "pytest",
-        "pytest-mock",
+        "mock",
+        "nose",
+        "sphinx",
         ],
     entry_points={},
     keywords='',
+    
+    test_suite='nose.collector',
     )
 # #}
 # change setup_kwds below before the next pkglts tag

@@ -6,7 +6,8 @@ Development Lead
 ----------------
 
 .. {# pkglts, doc.authors
-* moi, <moi@email.com>
+* Cyrille Ahmed Midingoyi, <cyrille.midingoyi@inra.fr>
+* Christophe Pradal, <christophe.pradal@cirad.fr>
 
 .. #}
 
