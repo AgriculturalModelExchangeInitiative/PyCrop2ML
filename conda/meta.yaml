@@ -1,0 +1,31 @@
+{% set version = "0.0.1" %}
+
+package:
+  name: pycropml
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  preserve_egg_dir: True
+  number: 0
+  script: python setup.py install
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - six
+  run:
+    - path.py
+    - six
+
+test:
+  imports:
+    - pycropml
+
+about:
+  home: https://github.com/AgriculturalModelExchangeInitiative/pycropml
+  license: BSD License
+  summary: Python library for the CropML modelling language.
