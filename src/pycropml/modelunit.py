@@ -6,8 +6,8 @@ class ModelUnit(object):
         self.description = None
         self.inputs = []
         self.outputs = []
-        self.parametersets = {}
         self.algorithm = None
+        self.parametersets = {}
         self.tests = []
 
     def add_description(self, description):
