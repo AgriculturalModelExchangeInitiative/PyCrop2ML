@@ -89,10 +89,10 @@ class Model2Package(object):
 
         # documentation
         _doc = '''
-    """ %s
+    """ %s \n \n Author: %s \n Reference: %s \n Instituton: %s \n Abstract: %s
 
     """
-'''%(desc.Title)
+'''%(desc.Title, desc.Author, desc.Reference, desc.Institution, desc.Abstract)
 
         code += '\n'
         code += _doc

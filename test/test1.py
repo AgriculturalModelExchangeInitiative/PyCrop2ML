@@ -37,11 +37,11 @@ def test1():
     lines = [l for l in model.algorithm.split('\n') if l.strip()]
     assert len(lines) == 3
 
-    assert len(model.inputs) == 10
+    assert len(model.inputs) == 9
 
     name_input = ['BaseTemp', 'MinTemp', 'GrowthRate', 'GrowthRateResponse',
                   'PlantAvailableWater', 'DrougtSensitivity', 'AvailableWater',
-                  'BoltzmannConstant', 'AvailableWater', 'AtmosphericEmisivity']
+                  'BoltzmannConstant', 'AtmosphericEmisivity']
 
     for l, k in enumerate(name_input):
         assert k == model.inputs[l].name
