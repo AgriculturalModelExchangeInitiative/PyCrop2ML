@@ -40,7 +40,7 @@ def test1():
     assert len(model.inputs) == 9
 
     name_input = ['BaseTemp', 'MinTemp', 'GrowthRate', 'GrowthRateResponse',
-                  'PlantAvailableWater', 'DrougtSensitivity', 'AvailableWater',
+                  'PlantAvailableWater', 'DroughtSensitivity', 'AvailableWater',
                   'BoltzmannConstant', 'AtmosphericEmisivity']
 
     for l, k in enumerate(name_input):
