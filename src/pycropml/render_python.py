@@ -7,7 +7,8 @@ Problems:
 - name of a model unit?
 """
 from __future__ import print_function
-
+import os
+from path import Path
 
 class Model2Package(object):
     """ TODO
@@ -39,6 +40,18 @@ class Model2Package(object):
         for model in self.models:
             self.generate_component(model)
 
+        # Create a directory (mymodel)
+        cwd = Path.getcwd()
+        directory=cwd/'mymodel'
+        if (directory).isdir() :
+            self.dir = directory
+        else:
+            self.dir = os.mkdir("mymodel")
+        # In the directory mymodel/model.py
+        # Generate a mymodel/test.py
+        mon_code = open("mymodel/model.py", "w")
+        mon_code.write(self.code)
+        mon_code.close()
         return self.code
 
     def generate_component(self, model_unit):
@@ -89,8 +102,12 @@ class Model2Package(object):
 
         # documentation
         _doc = '''
-    """ %s \n \n Author: %s \n Reference: %s \n Instituton: %s \n Abstract: %s
-
+    """ %s 
+    
+    Author: %s 
+    Reference: %s
+    Instituton: %s 
+    Abstract: %s
     """
 '''%(desc.Title, desc.Author, desc.Reference, desc.Institution, desc.Abstract)
 
@@ -113,6 +130,8 @@ class Model2Package(object):
         print(code)
 
         self.code = code
+        
+        
 
     def generate_function_signature(model_unit):
         pass
@@ -122,3 +141,4 @@ class Model2Package(object):
 
     def generate_algorithm(model_unit):
         pass
+
