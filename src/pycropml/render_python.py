@@ -49,9 +49,8 @@ class Model2Package(object):
             self.dir = os.mkdir("mymodel")
         # In the directory mymodel/model.py
         # Generate a mymodel/test.py
-        mon_code = open("mymodel/model.py", "w")
-        mon_code.write(self.code)
-        mon_code.close()
+        with open(self.dir/"model.py", "w") as python_file:
+            python_file.write(self.code)
         return self.code
 
     def generate_component(self, model_unit):
