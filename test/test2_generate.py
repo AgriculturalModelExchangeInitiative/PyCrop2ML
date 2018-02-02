@@ -21,4 +21,8 @@ def test1():
     code = m2p.code
     exec(code)
 
+    mymodel = Path('mymodel')
+    if mymodel.exists():
+        mymodel.rmtree()
+
     return models

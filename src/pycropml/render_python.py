@@ -21,14 +21,19 @@ class Model2Package(object):
     DATATYPE['string'] = str
 
     def __init__(self, models, dir=None):
+        """TODO.
+
+        """
         self.models = models
         self.dir = dir
 
     def run(self):
+        """TODO.
+        """
         self.generate_package()
 
     def generate_package(self):
-        """ Generate a Python package equivalent to the xml definition.
+        """Generate a Python package equivalent to the xml definition.
 
         Args:
         - models : a list of model
@@ -46,12 +51,13 @@ class Model2Package(object):
         if (directory).isdir() :
             self.dir = directory
         else:
-            self.dir = os.mkdir("mymodel")
+            self.dir = directory.mkdir()
         # In the directory mymodel/model.py
         # Generate a mymodel/test.py
         with open(self.dir/"model.py", "w") as python_file:
             python_file.write(self.code)
         return self.code
+
 
     def generate_component(self, model_unit):
         """ Todo
@@ -101,11 +107,11 @@ class Model2Package(object):
 
         # documentation
         _doc = '''
-    """ %s 
-    
-    Author: %s 
+    """ %s
+
+    Author: %s
     Reference: %s
-    Instituton: %s 
+    Instituton: %s
     Abstract: %s
     """
 '''%(desc.Title, desc.Author, desc.Reference, desc.Institution, desc.Abstract)
@@ -129,8 +135,8 @@ class Model2Package(object):
         print(code)
 
         self.code = code
-        
-        
+
+
 
     def generate_function_signature(model_unit):
         pass
