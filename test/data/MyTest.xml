@@ -13,4 +13,11 @@
 	      <output name="PlantGrowth">0.2</output>
 	    </Run>
 	 </Test>
+	<Test name="check wheat model2" >
+	   <Run id="1">
+	      <input name="MinTemp">12</input>
+	      <input name="AvalableWater">45</input>
+	      <output name="PlantGrowth">3.2</output>
+	    </Run>
+	 </Test>
 </Tests>

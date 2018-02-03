@@ -26,7 +26,6 @@ class ModelParser(Parser):
     """
 
     def parse(self, fn):
-        self.trash = []
         self.models = []
 
         # Current proxy node for managing properties
@@ -162,9 +161,37 @@ class ModelParser(Parser):
 class ParametersParser(ModelParser):
 
     def parse(self, fn, model):
-        self.trash = []
         self._model = model
         self.parametersets = {}
+
+        # Current proxy node for managing properties
+
+        doc = xml.parse(fn)
+        root = doc.getroot()
+
+        self.dispatch(root)
+
+        return self.parametersets
+
+    def Parameterset(self, elts):
+        """ Parameterset
+        """
+        print('Parameterset: ')
+        properties = elts.attrib
+        name = properties.pop('name')
+
+        _parameterset = pset.parameterset(self._model, name, properties)
+
+        for elt in list(elts):
+            self.param(_parameterset, elt)
+
+        self.parametersets[name] = _parameterset
+
+class TestParser(ModelParser):
+
+    def parse(self, fn, model):
+        self._model = model
+        self.tests = {}
 
         # Current proxy node for managing properties
 
@@ -201,3 +228,6 @@ def pset_parser(fn, model):
     """
     parser = ParametersParser()
     return parser.parse(fn, model)
+
+def test_parser(fn, model):
+    """ TODO. """
