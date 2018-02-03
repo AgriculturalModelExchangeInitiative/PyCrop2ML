@@ -9,8 +9,19 @@ from . import inout
 from . import parameterset as pset
 from . import checking
 
-
 class Parser(object):
+    """ Read an XML file and transform it in our object model.
+    """
+
+    def parse(self, fn):
+        raise Exception('Not Implemented')
+
+
+    def dispatch(self, elt):
+        return self.__getattribute__(elt.tag)(elt)
+
+
+class ModelParser(Parser):
     """ Read an XML file and transform it in our object model.
     """
 
@@ -147,8 +158,46 @@ class Parser(object):
                 t.paramsets.append(name)
             self._model.tests.append(t)
 
-def parse(fn):
+
+class ParametersParser(ModelParser):
+
+    def parse(self, fn, model):
+        self.trash = []
+        self._model = model
+        self.parametersets = {}
+
+        # Current proxy node for managing properties
+
+        doc = xml.parse(fn)
+        root = doc.getroot()
+
+        self.dispatch(root)
+
+        return self.parametersets
+
+    def Parameterset(self, elts):
+        """ Parameterset
+        """
+        print('Parameterset: ')
+        properties = elts.attrib
+        name = properties.pop('name')
+
+        _parameterset = pset.parameterset(self._model, name, properties)
+
+        for elt in list(elts):
+            self.param(_parameterset, elt)
+
+        self.parametersets[name] = _parameterset
+
+
+def model_parser(fn):
     """ Parse a set of models as xml files and return the models.
     """
-    parser = Parser()
+    parser = ModelParser()
     return parser.parse(fn)
+
+def pset_parser(fn, model):
+    """ Parse a set of parameter as xml files and return the parameters.
+    """
+    parser = ParametersParser()
+    return parser.parse(fn, model)
