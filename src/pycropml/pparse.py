@@ -186,7 +186,8 @@ class ParametersParser(ModelParser):
             self.param(_parameterset, elt)
 
         self.parametersets[name] = _parameterset
-
+        
+    
 class TestParser(ModelParser):
 
     def parse(self, fn, model):
@@ -200,21 +201,28 @@ class TestParser(ModelParser):
 
         self.dispatch(root)
 
-        return self.parametersets
+        #return self.parametersets
+        return self.tests
 
-    def Parameterset(self, elts):
-        """ Parameterset
+     
+    def Tests(self, elts):
+        """ Tests (Test)
         """
-        print('Parameterset: ')
-        properties = elts.attrib
-        name = properties.pop('name')
-
-        _parameterset = pset.parameterset(self._model, name, properties)
-
+        print('Tests')
+                
+        #h=[]
         for elt in list(elts):
-            self.param(_parameterset, elt)
-
-        self.parametersets[name] = _parameterset
+            # todo
+            t = elt.attrib["name"]
+            g=[]        
+            for ps in list(elt):
+                id = ps.attrib['id']                
+                for ts in list(ps):
+                    z={t:{id:{ts.tag:{ts.attrib["name"]:ts.text}}}}
+                    print z
+                    g.append(z)
+                    self.tests=g
+                    self._model.tests.append(z)
 
 
 def model_parser(fn):
@@ -230,4 +238,9 @@ def pset_parser(fn, model):
     return parser.parse(fn, model)
 
 def test_parser(fn, model):
+    parser = TestParser()
+    return parser.parse(fn, model)
     """ TODO. """
+
+  
+    
