@@ -184,10 +184,10 @@ class ParametersParser(ModelParser):
 
         for elt in list(elts):
             self.param(_parameterset, elt)
-            
+
         self.parametersets[name] = _parameterset
-        
-    
+
+
 class TestParser(ModelParser):
 
     def parse(self, fn, model):
@@ -204,16 +204,16 @@ class TestParser(ModelParser):
         #return self.parametersets
         return self.tests
 
-     
+
     def Tests(self, elts):
         """ Tests (Test)
         """
         print('Tests')
-        
-        self._model.tests = [] 
+
+        self._model.tests = {}
         """ m.tests had two elements. the problem is that now we cannot
         access the parameters of the model tests"""
-                        
+
         for elt in list(elts):
             t = elt.attrib["name"] # name test in mytext.xml
             for ps in list(elt):  # different run
@@ -230,13 +230,15 @@ class TestParser(ModelParser):
                 param_test = {"inputs":input_run, "outputs":output_run}
                 z={t:{run:param_test}} # parameters of each test and each run
                 print z
-                self._model.tests.append(z)
-        
-######## 
-                    
+                self._model.tests.setdefault(t, []).append({run:param_test})
 
-                        
-        
+        self.tests = self._model.tests
+
+########
+
+
+
+
 def model_parser(fn):
     """ Parse a set of models as xml files and return the models.
     """
@@ -252,7 +254,6 @@ def pset_parser(fn, model):
 def test_parser(fn, model):
     parser = TestParser()
     return parser.parse(fn, model)
-    """ TODO. """
 
-  
-    
+
+

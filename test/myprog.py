@@ -17,6 +17,15 @@ t1, t2 = m.tests
 file_psets = {}
 file_tsets = {}
 
+# Compute the name of the model
+# TODO save the name in the model
+name = m.description.Title
+name.strip()
+name = name.replace(' ', '_').lower()
+model_name = name
+##
+
+
 psets = m.parametersets
 # Compute for each parameter set the set of parameters.
 # A parameter set is a dict of parameter_name and values.
@@ -51,15 +60,55 @@ for test in (t1, t2):
     if parse_res.scheme == 'file':
         filename = parse_res.netloc
         _filename = data/filename
-        print _filename
+
         if _filename.isfile():
             if filename not in file_tsets:
                 file_tsets[filename] = pparse.test_parser(_filename, m)
-            #else:
-                #assert 0, ('The file '+ filename+ ' do not exists')
-
-        # parse tests
 
         # Build the content of the test with the run
         # Generate the Python code
 
+    # Print the set of test parameters
+    test_codes = []
+    if test.name in m.tests:
+        test_runs = m.tests[test.name]
+
+        # map the paramsets
+        params = {}
+        for pname in test.paramsets:
+            if pname not in psets:
+                print('Unknow parameter %s'%pname)
+            else:
+                params.update(psets[pname].params)
+
+        # make a function that transforms a title into a function name
+        tname = test.name.replace(' ', '_')
+        tname = tname.replace('-', '_')
+        for tr in test_runs:
+            (run, inouts) = tr.items()[0]
+            ins = inouts['inputs']
+            outs = inouts['outputs']
+
+            code = '\n'
+            test_codes.append(code)
+
+            code = "def test_%s_run%s():"%(tname, run)
+            test_codes.append(code)
+            code = "    params= %s("%model_name
+            test_codes.append(code)
+
+            run_param = params.copy()
+            run_param.update(ins)
+
+            for k, v in run_param.iteritems():
+                code = "    %s = %s,"%(k,v)
+                test_codes.append(code)
+            code = "     )"
+            test_codes.append(code)
+
+            # Get from the params the different values
+
+            # Then, assert that the values are equal to the outs.
+
+            the_code = '\n'.join(test_codes)
+            print the_code
