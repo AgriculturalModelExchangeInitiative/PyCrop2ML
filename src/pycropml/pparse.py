@@ -184,7 +184,7 @@ class ParametersParser(ModelParser):
 
         for elt in list(elts):
             self.param(_parameterset, elt)
-
+            
         self.parametersets[name] = _parameterset
         
     
@@ -209,22 +209,34 @@ class TestParser(ModelParser):
         """ Tests (Test)
         """
         print('Tests')
-                
-        #h=[]
+        
+        self._model.tests = [] 
+        """ m.tests had two elements. the problem is that now we cannot
+        access the parameters of the model tests"""
+                        
         for elt in list(elts):
-            # todo
-            t = elt.attrib["name"]
-            g=[]        
-            for ps in list(elt):
-                id = ps.attrib['id']                
-                for ts in list(ps):
-                    z={t:{id:{ts.tag:{ts.attrib["name"]:ts.text}}}}
-                    print z
-                    g.append(z)
-                    self.tests=g
-                    self._model.tests.append(z)
+            t = elt.attrib["name"] # name test in mytext.xml
+            for ps in list(elt):  # different run
+                run = ps.attrib['id'] # value of run
+                input_run={}
+                output_run={}
+                param_test={}
+                for j in ps.findall("input"):  # all inputs
+                    name = j.attrib["name"]
+                    input_run[name]=j.text
+                for j in ps.findall("output"):  # all outputs
+                    name = j.attrib["name"]
+                    output_run[name]=j.text
+                param_test = {"inputs":input_run, "outputs":output_run}
+                z={t:{run:param_test}} # parameters of each test and each run
+                print z
+                self._model.tests.append(z)
+        
+######## 
+                    
 
-
+                        
+        
 def model_parser(fn):
     """ Parse a set of models as xml files and return the models.
     """
