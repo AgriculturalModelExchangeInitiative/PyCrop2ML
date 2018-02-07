@@ -209,30 +209,45 @@ class TestParser(ModelParser):
         """ Tests (Test)
         """
         print('Tests')
-
+        modeltest_copy = self._model.tests
         self._model.tests = {}
         """ m.tests had two elements. the problem is that now we cannot
         access the parameters of the model tests"""
-
+        
+        
         for elt in list(elts):
-            t = elt.attrib["name"] # name test in mytext.xml
-            for ps in list(elt):  # different run
-                run = ps.attrib['id'] # value of run
-                input_run={}
-                output_run={}
-                param_test={}
-                for j in ps.findall("input"):  # all inputs
-                    name = j.attrib["name"]
-                    input_run[name]=j.text
-                for j in ps.findall("output"):  # all outputs
-                    name = j.attrib["name"]
-                    output_run[name]=j.text
-                param_test = {"inputs":input_run, "outputs":output_run}
-                z={t:{run:param_test}} # parameters of each test and each run
-                print z
-                self._model.tests.setdefault(t, []).append({run:param_test})
+            for mod in modeltest_copy:
 
-        self.tests = self._model.tests
+                t = elt.attrib["name"] # name test in mytext.xml
+                if t == mod.name :  #
+                    name = mod.name
+                    uri = mod.uri
+                    description = mod.description
+                    
+                    # create Test object with the test name
+                    _test = checking.Test(name, description, uri)
+                    _test.paramsets = mod.paramsets
+            
+                    for ps in list(elt):  # different run
+                        run = ps.attrib['id'] # value of run
+                        input_run={}
+                        output_run={}
+                        param_test={}
+                        for j in ps.findall("input"):  # all inputs
+                            name = j.attrib["name"]
+                            input_run[name]=j.text
+                        for j in ps.findall("output"):  # all outputs
+                            name = j.attrib["name"]
+                            output_run[name]=j.text
+                        param_test = {"inputs":input_run, "outputs":output_run}
+                        #z={t:{run:param_test}} # parameters of each test and each run
+                        #print z
+                        _test.run.append({run:param_test})
+                    
+                        #self._model.tests.setdefault(t, []).append({run:param_test})
+                    self._model.tests.setdefault(t, []).append(_test)
+
+                self.tests = self._model.tests
 
 ########
 
