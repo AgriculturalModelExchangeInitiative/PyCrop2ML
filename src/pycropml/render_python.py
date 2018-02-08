@@ -30,6 +30,7 @@ class Model2Package(object):
         """TODO.
         """
         self.generate_package()
+        self.generate_testgeneration()
 
     def generate_package(self):
         """Generate a Python package equivalent to the xml definition.
@@ -62,19 +63,15 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
-                
-        code1 = self.generate_function_signature(model_unit) 
+         
+        self.code = self.generate_function_signature(model_unit) 
 
-        code2 = self.generate_function_doc(model_unit)
+        self.code += self.generate_function_doc(model_unit)
                 
-        code3 = self.generate_algorithm(model_unit)
-
-     
-        code = code1+code2+code3
+        self.code += self.generate_algorithm(model_unit)
+             
+        print (self.code)
         
-        print (code)
-
-        self.code = code
         return self.code
 
 
@@ -160,5 +157,95 @@ class Model2Package(object):
         code+= '):'
         
         return code
+    
+    def generate_test(self, model_unit):
+        
+        m = model_unit
+        name = m.description.Title
+        name.strip()
+        name = name.replace(' ', '_').lower()
+        model_name = name
+        psets = m.parametersets
+        self.codetest = "'Test generation'"
+        
+        for v_tests in m.tests.values():
+    
+            test_name = v_tests[0].name  # name of tests
+            test_runs = v_tests[0].run  # different run in the thest
+            test_paramsets = v_tests[0].paramsets  # name of paramsets
+    
+        # map the paramsets
+            params = {}
+            for pname in test_paramsets:
+                if pname not in psets:
+                    print('Unknow parameter %s'%pname)
+                else:
+                    params.update(psets[pname].params)
+    
+            for each_run in test_runs :
+                test_codes = []
+        
+            # make a function that transforms a title into a function name
+                tname = test_name.replace(' ', '_')
+                tname = tname.replace('-', '_')
+       
+               
+                (run, inouts) = each_run.items()[0]
+    
+                ins = inouts['inputs']
+                outs = inouts['outputs']
+        
+                code = '\n'
+                test_codes.append(code)
+
+                code = "def test_%s_run%s():"%(tname, run)
+                test_codes.append(code)
+                code = "    params= %s("%model_name
+                test_codes.append(code)
+
+                run_param = params.copy()
+                run_param.update(ins)
+        
+                for k, v in run_param.iteritems():
+                    code = "    %s = %s,"%(k,v)
+                    test_codes.append(code)
+                code = "     )"
+                test_codes.append(code)
+                
+                code = "    params = round(params, 2)"
+                test_codes.append(code)
+                
+                code = "    out_computed = {}".format( float(outs.values()[0]))
+                
+                test_codes.append(code)
+        
+                code = "    return {'params': params, 'out_computed': out_computed} "
+      
+     
+                test_codes.append(code)
+                
+                func = 'test_%s_run%s()'%(tname, run)
+                
+                code = "assert  "+ func+'["params"]=='+func+'["out_computed"]'
+                
+                test_codes.append(code)
+                
+                code = '\n'.join(test_codes)
+        
+                print (code)    
+                          
+                self.codetest += code
+       
+        return self.codetest
+    
+    def generate_testgeneration(self):
+        
+        for model in self.models:
+            self.generate_test(model)
+       
+        with open(self.dir/"testrun.py", "w") as python_file:
+            python_file.write(self.codetest)
+        return self.codetest
+        
 
 
