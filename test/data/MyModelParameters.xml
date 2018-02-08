@@ -2,15 +2,15 @@
 <!-- created with XMLSpear -->
 <Parametersets>
    <Parameterset name="wheat">
-        <param name="BaseTemp">5</param>
+        <param name="BaseTemp">5.0</param>
    </Parameterset>
    <Parameterset name="wheat.cv1">
         <param name="GrowthRate">0.02</param>
    </Parameterset>
    <Parameterset name="soil">
-        <param name="PlantAvailableWater">0.6</param>
+        <param name="PlantAvailableWater">65.0</param>
    </Parameterset>
     <Parameterset name="sorghum">
-        <param name="BaseTemp">10</param>
+        <param name="BaseTemp">5.0</param>
    </Parameterset>
 </Parametersets>
