@@ -1,7 +1,8 @@
 """ License, Header
 
 """
-
+from copy import copy
+from urlparse import urlparse
 import xml.etree.ElementTree as xml
 from . import modelunit as munit
 from . import description
@@ -209,7 +210,7 @@ class TestParser(ModelParser):
         """ Tests (Test)
         """
         print('Tests')
-        modeltest_copy = self._model.tests
+        modeltest_copy = copy(self._model.tests)
         self._model.tests = {}
         """ m.tests had two elements. the problem is that now we cannot
         access the parameters of the model tests"""
@@ -240,19 +241,13 @@ class TestParser(ModelParser):
                             name = j.attrib["name"]
                             output_run[name]=j.text
                         param_test = {"inputs":input_run, "outputs":output_run}
-                        #z={t:{run:param_test}} # parameters of each test and each run
-                        #print z
                         _test.run.append({run:param_test})
                     
-                        #self._model.tests.setdefault(t, []).append({run:param_test})
                     self._model.tests.setdefault(t, []).append(_test)
 
                 self.tests = self._model.tests
 
 ########
-
-
-
 
 def model_parser(fn):
     """ Parse a set of models as xml files and return the models.
@@ -269,6 +264,48 @@ def pset_parser(fn, model):
 def test_parser(fn, model):
     parser = TestParser()
     return parser.parse(fn, model)
+
+def parse_parameter_uri(data, model):
+    file_psets = {}
+    psets = model.parametersets
+# Compute for each parameter set the set of parameters.
+# A parameter set is a dict of parameter_name and values.
+    for name in psets:
+        ps = psets[name]
+        if not ps.params:
+        # compute the params from the uri
+        # define a function that may do the job
+            uri = ps.uri
+            parse_res = urlparse(uri)
+            if parse_res.scheme == 'file':
+                filename = parse_res.netloc
+                _filename = data/filename
+                if _filename.isfile():
+                # read the file and fill the params
+                    if filename not in file_psets:
+                        file_psets[filename] = pset_parser(_filename, model)
+                else:
+                    assert 0, ('The file '+ filename+ ' do not exists')
+
+def parse_tests_uri(data, model):
+    file_tsets = {}
+    for test in model.tests:
+        print 'Test: ',test.name
+        print test.paramsets
+        uri = test.uri
+        print uri
+        parse_res = urlparse(uri)
+        if parse_res.scheme == 'file':
+            filename = parse_res.netloc
+            _filename = data/filename
+            if _filename.isfile():
+                if filename not in file_tsets:
+                    file_tsets[filename] = test_parser(_filename, model)
+            else:
+                assert 0, ('The file '+ filename+ ' do not exists')
+    
+
+                   
 
 
 
