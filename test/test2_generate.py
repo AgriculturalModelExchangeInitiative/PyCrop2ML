@@ -1,6 +1,7 @@
 """ Generate a Python/OpenAlea package from an xml component.
 
 """
+from __future__ import absolute_import
 from path import Path
 from urlparse import urlparse
 
@@ -18,36 +19,30 @@ from test import totalparse
 def test1():
     models = totalparse.totalexample()
     assert len(models)
-    
-    
+
+
     m2p = render_python.Model2Package(models);
     m2p.run()
 
     code = m2p.code
     exec(code)
-    
+
     codetest = m2p.codetest
     exec(codetest)
-    
+
     mymodel = Path('mymodel')
-    if mymodel.exists():
-        mymodel.rmtree()
+    #if mymodel.exists():
+    #    mymodel.rmtree()
 
     return models
 
 
-models = totalparse.totalexample()
-assert len(models)
-m2p = render_python.Model2Package(models);
-m2p.run()
-code = m2p.code
-exec(code)
-codetest = m2p.codetest
-exec(codetest)
-
-
-
-
-    
-
-
+if __name__ == '__main__':
+    models = totalparse.totalexample()
+    assert len(models)
+    m2p = render_python.Model2Package(models);
+    m2p.run()
+    code = m2p.code
+    exec(code)
+    codetest = m2p.codetest
+    exec(codetest)
