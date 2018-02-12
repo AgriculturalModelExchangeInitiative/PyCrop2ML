@@ -6,3 +6,4 @@ class Test(object):
         self.description = description
         self.uri = uri
         self.paramsets = []
+        self.run = []

@@ -24,7 +24,7 @@ xmls = data.glob('*.xml')
 def example():
     fn = data.glob('Example*.xml')[0]
 
-    models = pparse.parse(fn)
+    models = pparse.model_parser(fn)
     return models
 
 def test1():
