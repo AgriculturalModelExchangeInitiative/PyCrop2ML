@@ -30,7 +30,7 @@ class Model2Package(object):
         """TODO.
         """
         self.generate_package()
-        self.generate_testgeneration()
+        self.write_tests()
 
     def generate_package(self):
         """Generate a Python package equivalent to the xml definition.
@@ -63,45 +63,46 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
-         
-        self.code = self.generate_function_signature(model_unit) 
+
+        self.code = self.generate_function_signature(model_unit)
 
         self.code += self.generate_function_doc(model_unit)
-                
+
         self.code += self.generate_algorithm(model_unit)
-             
+
         print (self.code)
-        
+
         return self.code
 
 
 
     def generate_algorithm(self, model_unit):
-                
+
         code ="\n"
         outputs = model_unit.outputs
-        algo = model_unit.algorithm        
-        
+        algo = model_unit.algorithm
+
+        code = ''
         tab = ' '*4
-        code += tab+"try:" + "\n"
+        #code += tab+"try:" + "\n"
         lines = [l.strip() for l in algo.split('\n') if l.strip()]
         for line in lines:
-            code += 2*tab+line+'\n'
+            code += tab+line+'\n'
 
         # Outputs
-        code += 2*tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
-        
-        code += tab + "except ValueError :" + '\n'
-        
-        code += 2*tab + 'return' + "'  No Real Solution'"
+        code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
+
+        #code += tab + "except ValueError :" + '\n'
+
+        #code += 2*tab + 'return' + "'  No Real Solution'"
 
         self.code = code
-        
+
         return self.code
 
     # documentation
     def generate_function_doc(self, model_unit):
-        
+
         desc = model_unit.description
         _doc = '''
     """ %s
@@ -115,16 +116,16 @@ class Model2Package(object):
 
         code = '\n'
         code += _doc
-        
+
         return code
 
 
 
     def generate_function_signature(self, model_unit):
-        
+
         desc = model_unit.description
         inputs = model_unit.inputs
-        
+
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         name = desc.Title
@@ -132,14 +133,14 @@ class Model2Package(object):
         name = name.replace(' ', '_').lower()
 
         func_name = name
- 
+
         code = 'def %s('%(func_name,)
 
         code_size = len(code)
 
         _input_names = [inp.name.lower() for inp in inputs]
-        
-        
+
+
         def my_input(_input):
             name = _input.name
             _type = _input.datatype
@@ -155,25 +156,28 @@ class Model2Package(object):
         code += separator.join(ins)
         #print (inputs)
         code+= '):'
-        
+
         return code
-    
+
     def generate_test(self, model_unit):
-        
+
+        tab = ' '*4
         m = model_unit
         name = m.description.Title
         name.strip()
         name = name.replace(' ', '_').lower()
         model_name = name
         psets = m.parametersets
-        self.codetest = "'Test generation'"
-        
+        self.codetest = "'Test generation'\n\n"
+
+        self.codetest += "from model import *\n\n"
+
         for v_tests in m.tests.values():
-    
+
             test_name = v_tests[0].name  # name of tests
             test_runs = v_tests[0].run  # different run in the thest
             test_paramsets = v_tests[0].paramsets  # name of paramsets
-    
+
         # map the paramsets
             params = {}
             for pname in test_paramsets:
@@ -181,20 +185,20 @@ class Model2Package(object):
                     print('Unknow parameter %s'%pname)
                 else:
                     params.update(psets[pname].params)
-    
+
             for each_run in test_runs :
                 test_codes = []
-        
+
             # make a function that transforms a title into a function name
                 tname = test_name.replace(' ', '_')
                 tname = tname.replace('-', '_')
-       
-               
+
+
                 (run, inouts) = each_run.items()[0]
-    
+
                 ins = inouts['inputs']
                 outs = inouts['outputs']
-        
+
                 code = '\n'
                 test_codes.append(code)
 
@@ -205,47 +209,59 @@ class Model2Package(object):
 
                 run_param = params.copy()
                 run_param.update(ins)
-        
+
                 for k, v in run_param.iteritems():
                     code = "    %s = %s,"%(k,v)
                     test_codes.append(code)
                 code = "     )"
                 test_codes.append(code)
-                
-                code = "    params = round(params, 2)"
-                test_codes.append(code)
-                
-                code = "    out_computed = {}".format( float(outs.values()[0]))
-                
-                test_codes.append(code)
-        
-                code = "    return {'params': params, 'out_computed': out_computed} "
-      
-     
-                test_codes.append(code)
-                
-                func = 'test_%s_run%s()'%(tname, run)
-                
-                code = "assert  "+ func+'["params"]=='+func+'["out_computed"]'
-                
-                test_codes.append(code)
-                
+
+                if len(outs) <= 1:
+                    code = tab + "params = round(params, 2)"
+                    test_codes.append(code)
+
+                    code = tab + "out_computed = {}".format( float(outs.values()[0]))
+                    test_codes.append(code)
+
+                    code = tab + "assert params == out_computed"
+                    test_codes.append(code)
+                else:
+                    code = tab + "params = [round(p, 2) for p in params]"
+                    test_codes.append(code)
+
+                    code = tab + "out_computed = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
+                    test_codes.append(code)
+
+                    code = tab + "assert params == out_computed"
+                    test_codes.append(code)
+
+
+                #func = 'test_%s_run%s()'%(tname, run)
+                #code = "assert  "+ func+'["params"]=='+func+'["out_computed"]'
+                #test_codes.append(code)
+
                 code = '\n'.join(test_codes)
-        
-                print (code)    
-                          
+
+                print (code)
+
                 self.codetest += code
-       
+
         return self.codetest
-    
-    def generate_testgeneration(self):
-        
+
+    def write_tests(self):
+        """ TODO: Manage several models rather tha just one.
+        """
+        files = []
+        count = 0
         for model in self.models:
-            self.generate_test(model)
-       
-        with open(self.dir/"testrun.py", "w") as python_file:
-            python_file.write(self.codetest)
-        return self.codetest
-        
+            codetest = self.generate_test(model)
+            ext = '' if count == 0 else str(count)
+            filename = self.dir/"testrun%s.py"%ext
+            with open(filename, "w") as python_file:
+                python_file.write(codetest)
+                files.append(filename)
+            count +=1
+        return files
+
 
 
