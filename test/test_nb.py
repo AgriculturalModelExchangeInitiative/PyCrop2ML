@@ -12,6 +12,7 @@ from .test1 import example, cwd, xmls
 
 from test import totalparse
 
+REMOVE = True
 
 ##############################################################################
 # Test on Example
@@ -24,6 +25,10 @@ def test1():
 
     m2p = render_notebook.Model2Nb(models, dir='.');
     m2p.run()
+
+    nb=Path('notebook')
+    if nb.exists() and nb.isdir():
+        nb.rmtree()
 
     return models
 
