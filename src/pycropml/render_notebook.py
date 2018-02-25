@@ -25,15 +25,16 @@ class Model2Nb(rp.Model2Package):
 
         """
         super(Model2Nb, self).__init__(models, dir=dir)
+        self.with_import = False
 
 
     def run(self):
         """TODO.
         """
-        self.generate_package()
+        self.generate_notebook()
 
 
-    def generate_package(self):
+    def generate_notebook(self):
         """Generate a Python package equivalent to the xml definition.
 
         Args:
@@ -56,18 +57,34 @@ class Model2Nb(rp.Model2Package):
 
 
         # In the directory notebook/model.py
+        # TODO: The code need to be generated locally in different methods.
+
         nb = nbf.v4.new_notebook()
 
         text = """\
 # Automatic generation of Notebook using PyCropML
 This notebook implements a crop model."""
-        nb['cells'] = [nbf.v4.new_markdown_cell(text),
+        _cells = nb['cells'] = [nbf.v4.new_markdown_cell(text),
                        nbf.v4.new_code_cell(self.code)]
+
+
+        # Generate the tests
+        text_test = """\
+## Run the model with a set of parameters.
+Each run will be defined in its own cell."""
+        _cells.append(nbf.v4.new_markdown_cell(text_test))
+
+        for model in self.models:
+            code_tests = self.generate_test(model)
+            for code in code_tests:
+                _cells.append(nbf.v4.new_code_cell(code))
+
 
         fname = _dir/'test.ipynb'
         with open(fname, "w") as f:
             nbf.write(nb, f)
         return self.code
+
 
     def generate_test(self, model_unit):
 
@@ -78,9 +95,11 @@ This notebook implements a crop model."""
         name = name.replace(' ', '_').lower()
         model_name = name
         psets = m.parametersets
-        self.codetest = "'Test generation'\n\n"
+        # self.codetest = "'Test generation'\n\n"
+        # if self.with_import:
+        #     self.codetest += "from model import *\n\n"
 
-        self.codetest += "from model import *\n\n"
+        code_test = []
 
         for v_tests in m.tests.values():
 
@@ -109,40 +128,39 @@ This notebook implements a crop model."""
                 ins = inouts['inputs']
                 outs = inouts['outputs']
 
-                code = '\n'
-                test_codes.append(code)
+                #code = '\n'
+                #test_codes.append(code)
 
-                code = "def test_%s_run%s():"%(tname, run)
-                test_codes.append(code)
-                code = "    params= %s("%model_name
+                #code = "def test_%s_run%s():"%(tname, run)
+                #test_codes.append(code)
+                code = "params= %s("%model_name
                 test_codes.append(code)
 
                 run_param = params.copy()
                 run_param.update(ins)
 
                 for k, v in run_param.iteritems():
-                    code = "    %s = %s,"%(k,v)
+                    code = tab + "%s = %s,"%(k,v)
                     test_codes.append(code)
-                code = "     )"
+                code = tab + ")"
                 test_codes.append(code)
 
+
                 if len(outs) <= 1:
-                    code = tab + "params = round(params, 2)"
+                    code = "print(round(params, 2))"
                     test_codes.append(code)
 
-                    code = tab + "out_computed = {}".format( float(outs.values()[0]))
+                    code = "\n"
                     test_codes.append(code)
 
-                    code = tab + "assert params == out_computed"
+                    code = "# output = {}".format( float(outs.values()[0]))
                     test_codes.append(code)
+
                 else:
-                    code = tab + "params = [round(p, 2) for p in params]"
+                    code = "print([round(p, 2) for p in params])"
                     test_codes.append(code)
 
-                    code = tab + "out_computed = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
-                    test_codes.append(code)
-
-                    code = tab + "assert params == out_computed"
+                    code = "\n" + "# outputs = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
                     test_codes.append(code)
 
 
@@ -151,27 +169,6 @@ This notebook implements a crop model."""
                 #test_codes.append(code)
 
                 code = '\n'.join(test_codes)
+                code_test.append(code)
 
-                print (code)
-
-                self.codetest += code
-
-        return self.codetest
-
-    def write_tests(self):
-        """ TODO: Manage several models rather tha just one.
-        """
-        files = []
-        count = 0
-        for model in self.models:
-            codetest = self.generate_test(model)
-            ext = '' if count == 0 else str(count)
-            filename = self.dir/"testrun%s.py"%ext
-            with open(filename, "w") as python_file:
-                python_file.write(codetest)
-                files.append(filename)
-            count +=1
-        return files
-
-
-
+        return code_test
