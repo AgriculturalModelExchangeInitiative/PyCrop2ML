@@ -26,6 +26,8 @@ class Model2Package(object):
         self.models = models
         self.dir = dir
 
+        self.with_import = True
+
     def run(self):
         """TODO.
         """
@@ -169,8 +171,8 @@ class Model2Package(object):
         model_name = name
         psets = m.parametersets
         self.codetest = "'Test generation'\n\n"
-
-        self.codetest += "from model import *\n\n"
+        if self.with_import:
+            self.codetest += "from model import *\n\n"
 
         for v_tests in m.tests.values():
 
