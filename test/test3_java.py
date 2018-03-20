@@ -4,6 +4,7 @@
 from path import Path
 
 from pycropml import pparse
+import javalang
 
 # Fix pb in tlocal path
 cwd = Path.getcwd()
@@ -72,3 +73,7 @@ public class Main {
 }
     """
 
+def test1():
+    code = java_algorithm()
+    tree = javalang.parse.parse(code)
+    return tree
