@@ -90,85 +90,79 @@ Each run will be defined in its own cell."""
 
         tab = ' '*4
         m = model_unit
-        name = m.description.Title
+        #name = m.description.Title
+        name = m.name
         name.strip()
         name = name.replace(' ', '_').lower()
         model_name = name
         psets = m.parametersets
-        # self.codetest = "'Test generation'\n\n"
-        # if self.with_import:
-        #     self.codetest += "from model import *\n\n"
+        code_test=[]
 
-        code_test = []
+        for v_tests in m.testsets:
 
-        for v_tests in m.tests.values():
-
-            test_name = v_tests[0].name  # name of tests
-            test_runs = v_tests[0].run  # different run in the thest
-            test_paramsets = v_tests[0].paramsets  # name of paramsets
+            test_name = v_tests.name  # name of tests
+            test_runs = v_tests.test  # different run in the thest
+            test_paramsets = v_tests.parameterset  # name of paramsets
 
         # map the paramsets
             params = {}
-            for pname in test_paramsets:
-                if pname not in psets:
-                    print('Unknow parameter %s'%pname)
-                else:
-                    params.update(psets[pname].params)
+            
+            if   test_paramsets not in psets.keys():
+                print('Unknow parameter %s'%test_paramsets)
+            else:
+                params.update(psets[test_paramsets].params)
+                     
+                for each_run in test_runs :
+                    test_codes = []
 
-            for each_run in test_runs :
-                test_codes = []
-
-            # make a function that transforms a title into a function name
-                tname = test_name.replace(' ', '_')
-                tname = tname.replace('-', '_')
-
-
-                (run, inouts) = each_run.items()[0]
-
-                ins = inouts['inputs']
-                outs = inouts['outputs']
-
-                #code = '\n'
-                #test_codes.append(code)
-
-                #code = "def test_%s_run%s():"%(tname, run)
-                #test_codes.append(code)
-                code = "params= %s("%model_name
-                test_codes.append(code)
-
-                run_param = params.copy()
-                run_param.update(ins)
-
-                for k, v in run_param.iteritems():
-                    code = tab + "%s = %s,"%(k,v)
-                    test_codes.append(code)
-                code = tab + ")"
-                test_codes.append(code)
+                    # make a function that transforms a title into a function name
+                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = tname.replace('-', '_')
 
 
-                if len(outs) <= 1:
-                    code = "print(round(params, 2))"
+                    (run, inouts) = each_run.items()[0]
+
+                    ins = inouts['inputs']
+                    outs = inouts['outputs']
+                    
+                    code = "    params= %s("%model_name
                     test_codes.append(code)
 
-                    code = "\n"
+                    run_param = params.copy()
+                    run_param.update(ins)
+
+                    for k, v in run_param.iteritems():
+                        code = "    %s = %s,"%(k,v)
+                        test_codes.append(code)
+                    code = "     )"
                     test_codes.append(code)
 
-                    code = "# output = {}".format( float(outs.values()[0]))
-                    test_codes.append(code)
 
-                else:
-                    code = "print([round(p, 2) for p in params])"
-                    test_codes.append(code)
+                    if len(outs) <= 1:
+                        decimal = outs.values()[0][1]
+                        code = "print np.around(params, {})".format(decimal)
+                        test_codes.append(code)
 
-                    code = "\n" + "# outputs = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
-                    test_codes.append(code)
+                        code = "\n"
+                        test_codes.append(code)
+
+                        code = "# output = {}".format((outs.values()[0][0]))
+                        test_codes.append(code)
+
+                    else:
+                        decimal = outs.values()[0][1]
+                        code = "print([np.around(p, decimal) for p in params])"
+                        test_codes.append(code)
+
+                        code = "\n" + "# outputs = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
+                        test_codes.append(code)
 
 
                 #func = 'test_%s_run%s()'%(tname, run)
                 #code = "assert  "+ func+'["params"]=='+func+'["out_computed"]'
                 #test_codes.append(code)
 
-                code = '\n'.join(test_codes)
-                code_test.append(code)
+                    code = '\n'.join(test_codes)
+                    code_test.append(code)
 
         return code_test

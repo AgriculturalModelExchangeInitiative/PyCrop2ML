@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "http://simplace.net/dtd/ModelUnit.dtd">
-<ModelUnit >
+<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.github.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<ModelUnit uniqueid="1" name="soiltemp" unit="°C" timestep="1">
     <Description>
         <Title>My First Plant Growth Model</Title>
-        <Author>AMEI Workshop Participants</Author>
+        <Authors>AMEI Workshop Participants</Authors>
         <Institution>INRA Paris</Institution>
         <Reference>absolutely non</Reference>
         <Abstract>Extremely complex value calculator</Abstract>
@@ -22,7 +22,7 @@
     <Outputs>
         <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="real" min="0" max="5" default="0" unit="mm" url="some url"/>
     </Outputs>
-    <Algorithm>
+    <Algorithm language="C">
        FW = ( ( ( PlantAvailableWater - AvailableWater ) / PlantAvailableWater ) **  DroughtSensitivity )
        FNLW = BoltzmannConstant * AtmosphericEmisivity *  MinTemp ** 4
        PlantGrowth = GrowthRate * ( BaseTemp - MinTemp ) * FW * FNLW
@@ -37,7 +37,7 @@
         </Parameterset>
         <Parameterset name="sorghum" description="some values in there" uri="file://MyModelParameters.xml"/>
      </Parametersets>
-     <Tests>
+     <Testsets>
         <Test name="check wheat model" description="some values in there" uri="file://MyTest.xml">
            <Parameterset name="wheat"/>
            <Parameterset name="wheat.cv1"/>

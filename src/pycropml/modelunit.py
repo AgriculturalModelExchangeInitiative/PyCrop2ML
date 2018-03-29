@@ -1,14 +1,26 @@
+class ModelDefinition(object):
+    """
+    """
+    def __init__(self, kwds):
+        self._attributes = kwds
+        for k, v in kwds.iteritems():
+            self.__setattr__(k,v)
 
-class ModelUnit(object):
+    def __repr__(self):
+        return str(self._attributes)
+    
+    
+class ModelUnit(ModelDefinition):
     """ Formal description of a Model Unit. """
 
-    def __init__(self):
+    def __init__(self, kwds):
+        ModelDefinition.__init__(self, kwds)
         self.description = None
         self.inputs = []
         self.outputs = []
         self.algorithm = None
         self.parametersets = {}
-        self.tests = []
+        self.testsets = []
 
     def add_description(self, description):
         """ TODO """

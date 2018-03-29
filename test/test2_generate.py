@@ -4,13 +4,13 @@
 from __future__ import absolute_import
 import os
 from path import Path
-from urlparse import urlparse
+#from urlparse import urlparse
 
 from pycropml import pparse, render_python
 
 from .test1 import example, cwd, xmls
 
-from test import totalparse
+from test import test1
 
 
 ##############################################################################
@@ -18,7 +18,7 @@ from test import totalparse
 
 
 def test1():
-    models = totalparse.totalexample()
+    models = example()
     assert len(models)
 
 
@@ -35,14 +35,14 @@ def test1():
     os.system('nosetests')
 
     Path('..').chdir()
-    if mymodel.exists():
-        mymodel.rmtree()
+    """if mymodel.exists():
+        mymodel.rmtree()"""
 
     return models
 
 
 if __name__ == '__main__':
-    models = totalparse.totalexample()
+    models = example()
     assert len(models)
     m2p = render_python.Model2Package(models);
     m2p.run()

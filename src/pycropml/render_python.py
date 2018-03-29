@@ -8,6 +8,8 @@ Problems:
 """
 from __future__ import print_function
 from path import Path
+from numpy import double
+from numpy import array
 
 class Model2Package(object):
     """ TODO
@@ -18,6 +20,10 @@ class Model2Package(object):
     DATATYPE['real'] = float
     DATATYPE['int'] = int
     DATATYPE['string'] = str
+    DATATYPE['Double'] = double
+    DATATYPE['DOUBLEARRAY'] = array
+    
+    
 
     def __init__(self, models, dir=None):
         """TODO.
@@ -57,7 +63,7 @@ class Model2Package(object):
         # In the directory mymodel/model.py
         # Generate a mymodel/test.py
         with open(self.dir/"model.py", "w") as python_file:
-            python_file.write(self.code)
+            python_file.write(self.code.encode('utf-8','ignore'))
         return self.code
 
 
@@ -65,8 +71,9 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
+        self.code= "import numpy as np \n" + "from copy import copy\n\n"
 
-        self.code = self.generate_function_signature(model_unit)
+        self.code += self.generate_function_signature(model_unit)
 
         self.code += self.generate_function_doc(model_unit)
 
@@ -79,18 +86,42 @@ class Model2Package(object):
 
 
     def generate_algorithm(self, model_unit):
+        
 
-        code ="\n"
+
+        #code ="\n"
         outputs = model_unit.outputs
         algo = model_unit.algorithm
 
-        code = ''
+        #code = ''
         tab = ' '*4
         #code += tab+"try:" + "\n"
         lines = [l.strip() for l in algo.split('\n') if l.strip()]
-        for line in lines:
-            code += tab+line+'\n'
-
+        #lines = [l for l in algo.split('\n')]
+        #for line in lines:
+        #   code += tab+line+'\n'
+        def indentation(lines):
+            code=''
+            z=' '*4
+            tab=' '*4
+            i=1        
+            for line in lines:
+                pline = line
+                if line =="{":
+                    pline = line.strip('{')
+                    i = i+1
+                    tab = z*i
+                if line =="}":
+                    pline = line.strip('}')    
+                    i = i-1
+                    tab = z*i
+                code+=tab+pline+"\n"
+            return code
+        
+        code = indentation(lines)            
+        
+        #code = algo +'\n'
+        
         # Outputs
         code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
 
@@ -130,7 +161,8 @@ class Model2Package(object):
 
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
-        name = desc.Title
+        #name = desc.Title
+        name = model_unit.name
         name.strip()
         name = name.replace(' ', '_').lower()
 
@@ -150,7 +182,7 @@ class Model2Package(object):
             if _type in self.DATATYPE:
                 default = self.DATATYPE[_type](default)
 
-            return '%s=%s'%(name, str(default))
+            return '%s=%s'%(name, default)
 
 
         ins = [ my_input(inp) for inp in inputs]
@@ -165,93 +197,92 @@ class Model2Package(object):
 
         tab = ' '*4
         m = model_unit
-        name = m.description.Title
+        #name = m.description.Title
+        name = m.name
         name.strip()
         name = name.replace(' ', '_').lower()
         model_name = name
         psets = m.parametersets
         self.codetest = "'Test generation'\n\n"
         if self.with_import:
-            self.codetest += "from model import *\n\n"
+            self.codetest += "from model import *\n"+"import numpy as np\n\n"
 
-        for v_tests in m.tests.values():
+        for v_tests in m.testsets:
 
-            test_name = v_tests[0].name  # name of tests
-            test_runs = v_tests[0].run  # different run in the thest
-            test_paramsets = v_tests[0].paramsets  # name of paramsets
+            test_name = v_tests.name  # name of tests
+            test_runs = v_tests.test  # different run in the thest
+            test_paramsets = v_tests.parameterset  # name of paramsets
 
         # map the paramsets
             params = {}
-            for pname in test_paramsets:
-                if pname not in psets:
-                    print('Unknow parameter %s'%pname)
-                else:
-                    params.update(psets[pname].params)
+            
+            if   test_paramsets not in psets.keys():
+                print('Unknow parameter %s'%test_paramsets)
+            else:
+                params.update(psets[test_paramsets].params)
+                     
+                for each_run in test_runs :
+                    test_codes = []
 
-            for each_run in test_runs :
-                test_codes = []
-
-            # make a function that transforms a title into a function name
-                tname = test_name.replace(' ', '_')
-                tname = tname.replace('-', '_')
+                    # make a function that transforms a title into a function name
+                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = tname.replace('-', '_')
 
 
-                (run, inouts) = each_run.items()[0]
+                    (run, inouts) = each_run.items()[0]
 
-                ins = inouts['inputs']
-                outs = inouts['outputs']
+                    ins = inouts['inputs']
+                    outs = inouts['outputs']
 
-                code = '\n'
-                test_codes.append(code)
-
-                code = "def test_%s_run%s():"%(tname, run)
-                test_codes.append(code)
-                code = "    params= %s("%model_name
-                test_codes.append(code)
-
-                run_param = params.copy()
-                run_param.update(ins)
-
-                for k, v in run_param.iteritems():
-                    code = "    %s = %s,"%(k,v)
-                    test_codes.append(code)
-                code = "     )"
-                test_codes.append(code)
-
-                if len(outs) <= 1:
-                    code = tab + "params = round(params, 2)"
+                    code = '\n'
                     test_codes.append(code)
 
-                    code = tab + "out_computed = {}".format( float(outs.values()[0]))
+                    code = "def test_%s():"%(tname)
+                    test_codes.append(code)
+                    code = "    params= %s("%model_name
                     test_codes.append(code)
 
-                    code = tab + "assert params == out_computed"
-                    test_codes.append(code)
-                else:
-                    code = tab + "params = [round(p, 2) for p in params]"
-                    test_codes.append(code)
+                    run_param = params.copy()
+                    run_param.update(ins)
 
-                    code = tab + "out_computed = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
-                    test_codes.append(code)
-
-                    code = tab + "assert params == out_computed"
+                    for k, v in run_param.iteritems():
+                        code = "    %s = %s,"%(k,v)
+                        test_codes.append(code)
+                    code = "     )"
                     test_codes.append(code)
 
+                    if len(outs) <= 1:
+                        decimal = outs.values()[0][1]
+                        code = tab + "params = np.around(params, {})".format(decimal)
+                        test_codes.append(code)
 
-                #func = 'test_%s_run%s()'%(tname, run)
-                #code = "assert  "+ func+'["params"]=='+func+'["out_computed"]'
-                #test_codes.append(code)
+                        code = tab + "out_computed = {}".format((outs.values()[0][0]))
+                        test_codes.append(code)
 
-                code = '\n'.join(test_codes)
+                        code = tab + "assert np.all(params == out_computed)"
+                        test_codes.append(code)
+                    else:
+                        decimal = outs.values()[0][1]
+                        code = tab + "params = [np.around(p, {}) for p in params]".format(decimal)
+                        test_codes.append(code)
 
-                print (code)
+                        code = tab + "out_computed = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
+                        test_codes.append(code)
 
-                self.codetest += code
+                        code = tab + "assert np.all(params== out_computed)"
+                        test_codes.append(code)
+
+
+                    code = '\n'.join(test_codes)
+
+                    print (code)
+
+                    self.codetest += code
 
         return self.codetest
 
     def write_tests(self):
-        """ TODO: Manage several models rather tha just one.
+        """ TODO: Manage several models rather than just one.
         """
         files = []
         count = 0
@@ -264,6 +295,5 @@ class Model2Package(object):
                 files.append(filename)
             count +=1
         return files
-
 
 
