@@ -20,7 +20,7 @@
 	<Outputs>
 		<Output name="SoilTempArray" datatype="DOUBLEARRAY" min="" max="" unit="" description=""/>
 	</Outputs>
-	<Algorithm language="java"><![CDATA[ 
+	<Algorithm language="Pyhton_ext"><![CDATA[ 
 			Z = copy(cSoilLayerDepth)
 			firstDayMeanTemp = cFirstDayMeanTemp
 			_profiledepth = Z[len(Z) - 1]
