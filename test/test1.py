@@ -32,9 +32,9 @@ def test1():
     assert len(models) == 1
 
     model = models[0]
-    assert model.algorithm
+    assert model.algorithm.development
 
-    lines = [l for l in model.algorithm.split('\n') if l.strip()]
+    lines = [l for l in model.algorithm.development.split('\n') if l.strip()]
     assert len(lines) == 40
 
     assert len(model.inputs) == 7
