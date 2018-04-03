@@ -11,6 +11,10 @@ pycropml
 .. #}
 
 A Python library to generate components from CropML declarative language.
-Documentation hosted here (http://cropml.readthedocs.io/en/latest/)
+
+For more information, refer to the `the documentation`__.
+
+.. __: http://cropml.readthedocs.io/en/latest/
+
 
 
