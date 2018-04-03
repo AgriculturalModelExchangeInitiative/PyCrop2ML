@@ -91,7 +91,7 @@ class Model2Package(object):
 
         #code ="\n"
         outputs = model_unit.outputs
-        algo = model_unit.algorithm
+        algo = model_unit.algorithm.development
 
         #code = ''
         tab = ' '*4
