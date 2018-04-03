@@ -1,89 +1,100 @@
-<?xml encoding="UTF-8"?>
-
-<!ELEMENT ModelUnit (Description,Inputs,Ouputs,Algorithm,Parametersets,
-                     Tests)>
+<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Algorithm+,Parametersets,
+                     Testsets)>
 <!ATTLIST ModelUnit
-  xmlns CDATA #FIXED ''>
+  uniqueid CDATA #REQUIRED
+  name CDATA #REQUIRED
+  timestep CDATA #IMPLIED
+  unit CDATA #IMPLIED>
 
-<!ELEMENT Description (Title,Author,Institution,Reference,Abstract)>
-<!ATTLIST Description
-  xmlns CDATA #FIXED ''>
+<!ELEMENT Description (Title,Authors,Institution,URI?,Reference?,Abstract)>
+<!ATTLIST Description>
 
 <!ELEMENT Inputs (Input)+>
-<!ATTLIST Inputs
-  xmlns CDATA #FIXED ''>
+<!ATTLIST Inputs>
 
-<!ELEMENT Ouputs (Output)>
-<!ATTLIST Ouputs
-  xmlns CDATA #FIXED ''>
+<!ELEMENT Outputs (Output*)>
+<!ATTLIST Outputs>
 
 <!ELEMENT Algorithm (#PCDATA)>
 <!ATTLIST Algorithm
-  xmlns CDATA #FIXED ''>
+  language CDATA #REQUIRED>
 
-<!ELEMENT Parametersets (Parameterset)+>
-<!ATTLIST Parametersets
-  xmlns CDATA #FIXED ''>
+<!ELEMENT Parametersets (Parameterset+)>
+<!ATTLIST Parametersets>
 
-<!ELEMENT Tests (Test)>
-<!ATTLIST Tests
-  xmlns CDATA #FIXED ''>
+<!ELEMENT Testsets (Testset+)>
+<!ATTLIST Testsets>
 
 <!ELEMENT Title (#PCDATA)>
-<!ATTLIST Title
-  xmlns CDATA #FIXED ''>
+<!ATTLIST Title>
 
-<!ELEMENT Author (#PCDATA)>
-<!ATTLIST Author
-  xmlns CDATA #FIXED ''>
+<!ELEMENT Authors (#PCDATA)>
+<!ATTLIST Authors>
 
 <!ELEMENT Institution (#PCDATA)>
-<!ATTLIST Institution
-  xmlns CDATA #FIXED ''>
+<!ATTLIST Institution>
+
+<!ELEMENT URI (#PCDATA)>
+<!ATTLIST URI>
 
 <!ELEMENT Reference (#PCDATA)>
-<!ATTLIST Reference
-  xmlns CDATA #FIXED ''>
+<!ATTLIST Reference>
 
 <!ELEMENT Abstract (#PCDATA)>
-<!ATTLIST Abstract
-  xmlns CDATA #FIXED ''>
+<!ATTLIST Abstract>
 
 <!ELEMENT Input EMPTY>
 <!ATTLIST Input
-  xmlns CDATA #FIXED ''
-  datatype NMTOKEN #REQUIRED
-  default CDATA #IMPLIED
-  description CDATA #REQUIRED
-  max CDATA #REQUIRED
-  min CDATA #REQUIRED
   name NMTOKEN #REQUIRED
-  type NMTOKEN #REQUIRED
+  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN) #REQUIRED 
+  description CDATA #REQUIRED
+  default CDATA #IMPLIED
+  max CDATA #IMPLIED
+  min CDATA #IMPLIED
+  inputtype (parameter|variable) #REQUIRED
+  parametertype (constant|species|genotypic|soil) #IMPLIED
+  variabletype (state|rate) #IMPLIED
   unit CDATA #REQUIRED
-  url CDATA #REQUIRED>
+  uri CDATA #IMPLIED>
 
 <!ELEMENT Output EMPTY>
 <!ATTLIST Output
-  xmlns CDATA #FIXED ''
-  datatype NMTOKEN #REQUIRED
+  name NMTOKEN #REQUIRED
+  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN) #REQUIRED 
   description CDATA #REQUIRED
   max CDATA #REQUIRED
   min CDATA #REQUIRED
-  name NMTOKEN #REQUIRED
+  variabletype (state|rate) #IMPLIED
   unit CDATA #REQUIRED
-  url CDATA #REQUIRED>
+  uri CDATA #IMPLIED>
 
-<!ELEMENT Parameterset EMPTY>
+<!ELEMENT Parameterset (Param*)>
 <!ATTLIST Parameterset
-  xmlns CDATA #FIXED ''
   description CDATA #REQUIRED
   name NMTOKEN #REQUIRED
-  uri CDATA #REQUIRED>
+  uri CDATA #IMPLIED>
 
-<!ELEMENT Test EMPTY>
-<!ATTLIST Test
-  xmlns CDATA #FIXED ''
+<!ELEMENT Testset (Test+)>
+<!ATTLIST Testset
   description CDATA #REQUIRED
   name CDATA #REQUIRED
   parameterset NMTOKEN #REQUIRED
-  uri CDATA #REQUIRED>
+  uri CDATA #IMPLIED>
+
+<!ELEMENT Test (InputValue*, OutputValue+)>
+<!ATTLIST Test
+  description CDATA #IMPLIED
+  name CDATA #REQUIRED
+  uri CDATA #IMPLIED>
+
+<!ELEMENT Param (#PCDATA) >
+<!ATTLIST Param name CDATA #REQUIRED >
+
+<!ELEMENT InputValue (#PCDATA) >
+<!ATTLIST InputValue name CDATA #REQUIRED >
+
+<!ELEMENT OutputValue (#PCDATA) >
+<!ATTLIST OutputValue name CDATA #REQUIRED >
+<!ATTLIST OutputValue description CDATA #IMPLIED >
+<!ATTLIST OutputValue precision CDATA #IMPLIED >
+
