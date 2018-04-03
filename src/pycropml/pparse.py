@@ -8,6 +8,7 @@ from . import description
 from . import inout
 from . import parameterset as pset
 from . import checking
+from . import algorithm
 
 class Parser(object):
     """ Read an XML file and transform it in our object model.
@@ -101,6 +102,18 @@ class ModelParser(Parser):
         properties = elts.attrib
         _output = inout.Output(properties)
         self._model.outputs.append(_output)
+    
+    def Algorithm(self, elt):
+        """ Algorithm
+        """
+        print('Algorithm')
+        
+        language=elt.attrib["language"]
+        development = elt.text
+        
+        algo = algorithm.Algorithm(language, development)
+        
+        self._model.algorithm= algo
 
     def Parametersets(self, elts):
         """ Parametersets (Parameterset)
@@ -136,12 +149,6 @@ class ModelParser(Parser):
         pset.params[name] = elt.text
 
 
-    def Algorithm(self, elt):
-        """ Algorithm
-        """
-        print('Algorithm', elt.text)
-
-        self._model.algorithm = elt.text
 
     def Testsets(self, elts):
         """ Testsets (Testset)
@@ -182,36 +189,6 @@ class ModelParser(Parser):
                     
             #self._model.testsets.setdefault(name, []).append(_testset)
         self._model.testsets.append(_testset)
-
-
-class ParametersParser(ModelParser):
-
-    def parse(self, fn, model):
-        self._model = model
-        self.parametersets = {}
-
-        # Current proxy node for managing properties
-
-        doc = xml.parse(fn)
-        root = doc.getroot()
-
-        self.dispatch(root)
-
-        return self.parametersets
-
-    def Parameterset(self, elts):
-        """ Parameterset
-        """
-        print('Parameterset: ')
-        properties = elts.attrib
-        name = properties.pop('name')
-
-        _parameterset = pset.parameterset(self._model, name, properties)
-
-        for elt in list(elts):
-            self.param(_parameterset, elt)
-
-        self.parametersets[name] = _parameterset
 
 
 def model_parser(fn):
