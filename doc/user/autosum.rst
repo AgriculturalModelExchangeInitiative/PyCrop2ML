@@ -10,6 +10,7 @@ Class Inheritance diagram
 .. .. inheritance-diagram:: pycropml.render_notebook
 .. .. inheritance-diagram:: pycropml.checking
 .. .. inheritance-diagram:: pycropml.description
+.. .. inheritance-diagram:: pycropml.algorithm
 .. .. inheritance-diagram:: pycropml.inout
 .. .. inheritance-diagram:: pycropml.modelunit
 .. .. inheritance-diagram:: pycropml.parameterset
