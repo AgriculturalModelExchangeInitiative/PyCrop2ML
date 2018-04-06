@@ -1,0 +1,103 @@
+<!ELEMENT ModelComposition (Description,Inputs?,Outputs?,Composition,Algorithm*,Parametersets,
+                     Testsets)>
+<!ATTLIST ModelComposition
+  uniqueid CDATA #REQUIRED
+  name CDATA #REQUIRED
+  timestep CDATA #IMPLIED
+  unit CDATA #IMPLIED>
+
+<!ELEMENT Description (Title,Authors,Institution,URI?,Reference?,Abstract)>
+<!ATTLIST Description>
+
+<!ELEMENT Inputs (Input)+>
+<!ATTLIST Inputs>
+
+<!ELEMENT Outputs (Output*)>
+<!ATTLIST Outputs>
+
+<!ELEMENT Composition (Model+)>
+<!ATTLIST Composition
+  language CDATA #REQUIRED>
+
+<!ELEMENT Model (Link*)>
+<!ATTLIST Model
+  uniqueid CDATA #REQUIRED
+  name CDATA #REQUIRED
+  displayx CDATA #IMPLIED
+  displayy CDATA #IMPLIED>
+
+<!ELEMENT Link EMPTY>
+<!ATTLIST Link
+  targetinputname CDATA #REQUIRED
+  conversion CDATA #IMPLIED
+  sourcemodelid CDATA #REQUIRED
+  sourceoutputname CDATA #REQUIRED>
+
+<!ELEMENT Algorithm (#PCDATA)>
+<!ATTLIST Algorithm
+  language CDATA #REQUIRED>
+
+<!ELEMENT Parametersets (Parameterset+)>
+<!ATTLIST Parametersets>
+
+<!ELEMENT Testsets (Testset+)>
+<!ATTLIST Testsets>
+
+<!ELEMENT Title (#PCDATA)>
+<!ATTLIST Title>
+
+<!ELEMENT Authors (#PCDATA)>
+<!ATTLIST Authors>
+
+<!ELEMENT Institution (#PCDATA)>
+<!ATTLIST Institution>
+
+<!ELEMENT URI (#PCDATA)>
+<!ATTLIST URI>
+
+<!ELEMENT Reference (#PCDATA)>
+<!ATTLIST Reference>
+
+<!ELEMENT Abstract (#PCDATA)>
+<!ATTLIST Abstract>
+
+<!ELEMENT Input EMPTY>
+<!ATTLIST Input
+  targetmodelid NMTOKEN #REQUIRED
+  targetinputname NMTOKEN #REQUIRED>
+
+<!ELEMENT Output EMPTY>
+<!ATTLIST Output
+  sourcemodelid NMTOKEN #REQUIRED
+  sourceoutputname NMTOKEN #REQUIRED>
+
+<!ELEMENT Parameterset (Param*)>
+<!ATTLIST Parameterset
+  description CDATA #REQUIRED
+  name NMTOKEN #REQUIRED
+  uri CDATA #IMPLIED>
+
+<!ELEMENT Testset (Test+)>
+<!ATTLIST Testset
+  description CDATA #REQUIRED
+  name CDATA #REQUIRED
+  parameterset NMTOKEN #REQUIRED
+  uri CDATA #IMPLIED>
+
+<!ELEMENT Test (InputValue*, OutputValue+)>
+<!ATTLIST Test
+  description CDATA #IMPLIED
+  name CDATA #REQUIRED
+  uri CDATA #IMPLIED>
+
+<!ELEMENT Param (#PCDATA) >
+<!ATTLIST Param name CDATA #REQUIRED >
+
+<!ELEMENT InputValue (#PCDATA) >
+<!ATTLIST InputValue name CDATA #REQUIRED >
+
+<!ELEMENT OutputValue (#PCDATA) >
+<!ATTLIST OutputValue name CDATA #REQUIRED >
+<!ATTLIST OutputValue description CDATA #IMPLIED >
+<!ATTLIST OutputValue precision CDATA #IMPLIED >
+
