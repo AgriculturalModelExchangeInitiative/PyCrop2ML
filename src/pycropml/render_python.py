@@ -23,7 +23,7 @@ class Model2Package(object):
     DATATYPE['Double'] = double
     DATATYPE['DOUBLEARRAY'] = array
     
-    
+    num = 0
 
     def __init__(self, models, dir=None):
         """TODO.
@@ -50,9 +50,6 @@ class Model2Package(object):
         Returns:
         - None or status
         """
-        for model in self.models:
-            self.generate_component(model)
-
         # Create a directory (mymodel)
         cwd = Path.getcwd()
         directory=cwd/'mymodel'
@@ -60,11 +57,22 @@ class Model2Package(object):
             self.dir = directory
         else:
             self.dir = directory.mkdir()
-        # In the directory mymodel/model.py
-        # Generate a mymodel/test.py
-        with open(self.dir/"model.py", "w") as python_file:
-            python_file.write(self.code.encode('utf-8','ignore'))
-        return self.code
+        
+        files = []
+        count = 0
+            
+           
+        for model in self.models:
+            
+            self.generate_component(model)
+            ext = '' if count == 0 else str(count)
+            filename = self.dir/"model%s.py"%ext
+            
+            with open(filename, "w") as python_file:
+                python_file.write(self.code.encode('utf-8','ignore'))
+                files.append(filename)
+            count +=1
+        return files
 
 
 
@@ -192,7 +200,7 @@ class Model2Package(object):
         code+= '):'
 
         return code
-
+    
     def generate_test(self, model_unit):
 
         tab = ' '*4
@@ -203,9 +211,10 @@ class Model2Package(object):
         name = name.replace(' ', '_').lower()
         model_name = name
         psets = m.parametersets
-        self.codetest = "'Test generation'\n\n"
-        if self.with_import:
+        self.codetest = ""
+        """if self.with_import:
             self.codetest += "from model import *\n"+"import numpy as np\n\n"
+        """
 
         for v_tests in m.testsets:
 
@@ -290,6 +299,9 @@ class Model2Package(object):
             codetest = self.generate_test(model)
             ext = '' if count == 0 else str(count)
             filename = self.dir/"testrun%s.py"%ext
+            
+            codetest = "'Test generation'\n\n"+"from model%s"%ext + " import *\n"+"import numpy as np\n\n" + codetest
+
             with open(filename, "w") as python_file:
                 python_file.write(codetest)
                 files.append(filename)

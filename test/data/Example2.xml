@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
-<ModelUnit uniqueid="1" timestep="1" name ="SoilTemp" unit="°C">
+<ModelUnit uniqueid="1" timestep="1" name ="SoilTemp2" unit="°C">
 	<Description>
 		<Title>STMPsimCalculator</Title>
 		<Authors>Andreas Enders</Authors>
@@ -84,7 +84,7 @@
 			<Param name="cAVT">30</Param>
 			<Param name="cABD">3.12</Param>
 			<Param name="cDampingDepth">5.75</Param>
-			</Parameterset>
+		</Parameterset>
 	</Parametersets>
 	<Testsets>
 		<Testset name="check soil temp1" parameterset="cold" description="some values in there">

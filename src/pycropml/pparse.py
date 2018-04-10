@@ -28,15 +28,17 @@ class ModelParser(Parser):
 
     def parse(self, fn):
         self.models = []
-
+        
+        for f in fn:
+            
         # Current proxy node for managing properties
+            doc = xml.parse(f)
+            root = doc.getroot()
 
-        doc = xml.parse(fn)
-        root = doc.getroot()
-
-        self.dispatch(root)
-
+            self.dispatch(root)
         return self.models
+           
+            
     
     def dispatch(self, elt):
         #try:
@@ -193,7 +195,10 @@ class ModelParser(Parser):
 
 def model_parser(fn):
     """ Parse a set of models as xml files and return the models.
+    
+    Returns ModelUnit object of the CropML Model.
     """
+
     parser = ModelParser()
     return parser.parse(fn)
 

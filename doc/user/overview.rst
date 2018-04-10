@@ -1,0 +1,40 @@
+What is PyCropML?
+=================
+| **PyCropML** is a free, open-source library for defining
+	and exchanging CropML models.It is used to generate components
+	of modeling and simulation platforms from the CropML specification and 
+	allow component exchange between different platform.
+| It allows to parse the models described in CropML format 
+	and automatically generate the equivalent executable Python, java, C#, C++ components
+	and packages usable from existing crop simulation platform.
+
+What is CropML ?
+----------------
+| **CropML** is a language based on XML format that allows 
+	to represent different biological processes involved
+	in the crop models.
+ 
+| CropML project is intented to provide
+	a common framework for defining and exchanging descriptions 
+	of crop growth models between crop simulation frameworks. 
+
+Objectives
+----------
+Our main objectives are:
+
+* define a **declarative language** to describe either an atomic model or a composition of models
+* add semantic dimension to CropML language by annotation of the models to allow the composition of components of different platforms by using the standards of the semantic web
+* develop a library to allow the transformation and the exchange of CropML model between different Crop modelling and simulation platform 
+* provide a **web repository** enabling registration, search and discovery of CropML Models
+* facilitate Agricultural Model Exchange Initiative
+
+
+Motivation
+----------
+| Nowadays, we observe the emergence of plant growth models which are built 
+	in differents  platforms. Although standard platform development initiatives
+	are emerged, there is a lack of  transparency, reusability, and exchange 
+	code between platforms due to the high diversity of modeling languages 
+	leading to a lack of benchmarking between the different platforms.
+| This project aims to gather developers and plant growth modellers 
+	to define a standard framework based on the development of declarative language and libraries to improve exchange model components between platforms.

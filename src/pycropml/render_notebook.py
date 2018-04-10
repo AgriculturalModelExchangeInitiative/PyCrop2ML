@@ -44,9 +44,6 @@ class Model2Nb(rp.Model2Package):
         Returns:
         - None or status
         """
-        for model in self.models:
-            self.generate_component(model)
-
         # Create a directory (mymodel)
         cwd = Path(self.dir)
         directory=cwd/'notebook'
@@ -54,36 +51,45 @@ class Model2Nb(rp.Model2Package):
             _dir = directory
         else:
             _dir = directory.mkdir()
-
-
+        
+        count = 0
+        files=[]
+        for model in self.models:
+            self.generate_component(model)
         # In the directory notebook/model.py
         # TODO: The code need to be generated locally in different methods.
 
-        nb = nbf.v4.new_notebook()
+            nb = nbf.v4.new_notebook()
 
-        text = """\
+            text = """\
 # Automatic generation of Notebook using PyCropML
 This notebook implements a crop model."""
-        _cells = nb['cells'] = [nbf.v4.new_markdown_cell(text),
-                       nbf.v4.new_code_cell(self.code)]
+            _cells = nb['cells'] = [nbf.v4.new_markdown_cell(text),
+                                nbf.v4.new_code_cell(self.code)]
 
 
-        # Generate the tests
-        text_test = """\
+            # Generate the tests
+            text_test = """\
 ## Run the model with a set of parameters.
 Each run will be defined in its own cell."""
-        _cells.append(nbf.v4.new_markdown_cell(text_test))
-
-        for model in self.models:
+            _cells.append(nbf.v4.new_markdown_cell(text_test))
+        
+        
+            #for model in self.models:
             code_tests = self.generate_test(model)
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
 
-        fname = _dir/'test.ipynb'
-        with open(fname, "w") as f:
-            nbf.write(nb, f)
-        return self.code
+            ext = '' if count == 0 else str(count)
+            fname =_dir/"test%s.ipynb"%ext        
+        
+        #fname = _dir/'test.ipynb'
+            with open(fname, "w") as f:
+                nbf.write(nb, f)
+                files.append(fname)
+            count +=1
+        return files
 
 
     def generate_test(self, model_unit):
