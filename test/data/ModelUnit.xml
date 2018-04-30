@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit SYSTEM "ModelUnit.dtd" >
+<ModelUnit name="" uniqueid="">
+  <Description>
+    <Title>Title</Title>
+    <Authors>Authors</Authors>
+    <Institution>Institution</Institution>
+    <Abstract>Abstract</Abstract>
+  </Description>
+  <Algorithm language="">Algorithm</Algorithm>
+  <Parametersets>
+    <Parameterset/>
+  </Parametersets>
+  <Testsets>
+    <Testset/>
+  </Testsets>
+</ModelUnit>

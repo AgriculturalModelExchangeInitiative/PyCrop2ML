@@ -9,11 +9,11 @@
 		<Abstract>Calculates the soil temperature in n layers depending on climate and soil conditions.</Abstract>
 	</Description>
 	<Inputs>
-		<Input name="cSoilLayerDepth" datatype="DOUBLEARRAY" inputtype="parameter" parametertype="constant" min="" max="" default="([0.1,0.2,0.4,0.6,0.9,1.1,1.3,1.5,1.7,1.9,2.1,2.3])" unit="" description="" />
-		<Input name="cFirstDayMeanTemp" datatype="DOUBLE" inputtype="parameter" parametertype="constant" min="" max="" default="10" unit="" description=""/>
-		<Input name="cAVT" datatype="DOUBLE" inputtype="parameter" parametertype="constant" min="" max="" default="100" unit="" description=""/>
-		<Input name="cABD" datatype="DOUBLE" inputtype="parameter" parametertype="constant" min="" max="" default="3.12" unit="" description=""/>
-		<Input name="cDampingDepth" datatype="DOUBLE" inputtype="parameter" parametertype="constant" min="" max="" default="3" unit="" description=""/>
+		<Input name="cSoilLayerDepth" datatype="DOUBLEARRAY" inputtype="parameter" parametercategory="constant" min="" max="" default="([0.1,0.2,0.4,0.6,0.9,1.1,1.3,1.5,1.7,1.9,2.1,2.3])" unit="" description="" />
+		<Input name="cFirstDayMeanTemp" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="" max="" default="10" unit="" description=""/>
+		<Input name="cAVT" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="" max="" default="100" unit="" description=""/>
+		<Input name="cABD" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="" max="" default="3.12" unit="" description=""/>
+		<Input name="cDampingDepth" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="" max="" default="3" unit="" description=""/>
 		<Input name="iSoilSurfaceTemperature" datatype="DOUBLE" inputtype="variable" min="" max="" default="10" unit="" description=""/>
 		<Input name="iSoilWaterContent" datatype="DOUBLE" inputtype="variable" min="" max="" default="15" unit="" description=""/>
 	</Inputs>
