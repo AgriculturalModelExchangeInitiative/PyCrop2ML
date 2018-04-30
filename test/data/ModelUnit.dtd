@@ -1,10 +1,10 @@
-<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Algorithm+,Parametersets,
+<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Algorithm,Parametersets,
                      Testsets)>
 <!ATTLIST ModelUnit
-  uniqueid CDATA #REQUIRED
+  modelid CDATA #REQUIRED
   name CDATA #REQUIRED
   timestep CDATA #IMPLIED
-  unit CDATA #IMPLIED>
+  version CDATA #REQUIRED
 
 <!ELEMENT Description (Title,Authors,Institution,URI?,Reference?,Abstract)>
 <!ATTLIST Description>
@@ -51,9 +51,9 @@
   default CDATA #IMPLIED
   max CDATA #IMPLIED
   min CDATA #IMPLIED
-  inputtype (parameter|variable) #REQUIRED
-  parametertype (constant|species|genotypic|soil) #IMPLIED
-  variabletype (state|rate) #IMPLIED
+  inputtype (variable|parameter) #REQUIRED
+  parametercategory (constant|species|genotypic|soil) #IMPLIED
+  variablecategory (state|rate|auxillary) #IMPLIED
   unit CDATA #REQUIRED
   uri CDATA #IMPLIED>
 
@@ -64,7 +64,7 @@
   description CDATA #REQUIRED
   max CDATA #REQUIRED
   min CDATA #REQUIRED
-  variabletype (state|rate) #IMPLIED
+  variablecategory (state|rate|auxiliary) #IMPLIED
   unit CDATA #REQUIRED
   uri CDATA #IMPLIED>
 
