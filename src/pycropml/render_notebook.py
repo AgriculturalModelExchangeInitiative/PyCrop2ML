@@ -131,7 +131,7 @@ Each run will be defined in its own cell."""
                     ins = inouts['inputs']
                     outs = inouts['outputs']
                     
-                    code = "    params= %s("%model_name
+                    code = "params= %s("%model_name
                     test_codes.append(code)
 
                     run_param = params.copy()
@@ -145,8 +145,8 @@ Each run will be defined in its own cell."""
 
 
                     if len(outs) <= 1:
-                        decimal = outs.values()[0][1]
-                        code = "print np.around(params, {})".format(decimal)
+                        precision = outs.values()[0][1]
+                        code = "print np.around(params, {})".format(precision)
                         test_codes.append(code)
 
                         code = "\n"
@@ -156,11 +156,11 @@ Each run will be defined in its own cell."""
                         test_codes.append(code)
 
                     else:
-                        decimal = outs.values()[0][1]
-                        code = "print([np.around(p, decimal) for p in params])"
+                        precision = outs.values()[0][1]
+                        code = "print([np.around(p, {}) for p in params])".format(precision)
                         test_codes.append(code)
 
-                        code = "\n" + "# outputs = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
+                        code = "\n" + "# outputs = ["+ ', '.join([outs[o.name][0] for o in m.outputs]) + "]"
                         test_codes.append(code)
 
 
