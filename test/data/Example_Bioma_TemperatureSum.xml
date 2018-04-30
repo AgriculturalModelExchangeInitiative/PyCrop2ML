@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
-<ModelUnit uniqueid="TemperatureSum" timestep="1" name="Example">
+<ModelUnit modelid="1" timestep="1" name="TemperatureSum" version="1.0">
 	<Description>
 		<Title>TemperatureSum</Title>
 		<Authors>various</Authors>

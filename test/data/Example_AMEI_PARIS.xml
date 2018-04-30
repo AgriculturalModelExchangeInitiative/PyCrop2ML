@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.github.com/AgriculturalModelExchangeInitiative/PyCropML/version2/test/data/ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
 <ModelUnit modelid="1" name="Plant_Growth" timestep="1" version="1.0">
     <Description>
         <Title>My First Plant Growth Model</Title>
@@ -20,7 +20,7 @@
         <Input name="AtmosphericEmisivity" description="Emission of the atmosphere" parametercategory="constant" datatype="float" default="0.5" unit="-" uri="some url" inputtype="parameter"/>
     </Inputs>
     <Outputs>
-        <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="real" min="0" max="5"  unit="mm" uri="some url"/>
+        <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="float" min="0" max="5"  unit="mm" uri="some url"/>
     </Outputs>
     <Algorithm language="C"><![CDATA[
        FW = ( ( ( PlantAvailableWater - AvailableWater ) / PlantAvailableWater ) **  DroughtSensitivity )
