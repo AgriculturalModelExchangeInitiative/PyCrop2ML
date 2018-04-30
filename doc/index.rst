@@ -57,8 +57,8 @@
 .. figure:: images/siriusquality.png
    :target: http://www1.clermont.inra.fr/siriusquality/
    :width: 15%
-   :figclass: align-center
+   :figclass: align-left
 .. figure:: images/simplace.png
    :target: http://www.simplace.net/Joomla/
    :width: 15%
-   :figclass: align-center
+   :figclass: align-right
