@@ -20,7 +20,7 @@ class Model2Package(object):
     DATATYPE['real'] = float
     DATATYPE['int'] = int
     DATATYPE['string'] = str
-    DATATYPE['Double'] = double
+    DATATYPE['Double'] = float
     DATATYPE['DOUBLEARRAY'] = array
     
     num = 0
@@ -271,11 +271,11 @@ class Model2Package(object):
                         code = tab + "assert np.all(params == out_computed)"
                         test_codes.append(code)
                     else:
-                        decimal = outs.values()[0][1]
-                        code = tab + "params = [np.around(p, {}) for p in params]".format(decimal)
+                        precision = outs.values()[0][1]
+                        code = tab + "params = [np.around(p, {}) for p in params]".format(precision)
                         test_codes.append(code)
 
-                        code = tab + "out_computed = ["+ ', '.join([outs[o] for o in m.outputs]) + "]"
+                        code = tab + "out_computed = ["+ ', '.join([outs[o.name][0] for o in m.outputs]) + "]"
                         test_codes.append(code)
 
                         code = tab + "assert np.all(params== out_computed)"
@@ -303,7 +303,7 @@ class Model2Package(object):
             codetest = "'Test generation'\n\n"+"from model%s"%ext + " import *\n"+"import numpy as np\n\n" + codetest
 
             with open(filename, "w") as python_file:
-                python_file.write(codetest)
+                python_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1
         return files
