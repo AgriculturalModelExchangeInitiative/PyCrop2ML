@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
 <ModelUnit modelid="1" timestep="1" name="Photoperiod" version="1">
-	<Description>
+<Description>
 		<Title>Photoperiod</Title>
 		<Authors>various</Authors>
 		<Institution>JRC - CREA</Institution>
