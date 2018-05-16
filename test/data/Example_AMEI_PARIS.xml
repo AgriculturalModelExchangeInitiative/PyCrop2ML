@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.github.com/AgriculturalModelExchangeInitiative/PyCropML/version2/test/data/ModelUnit.dtd">
 <ModelUnit modelid="1" name="Plant_Growth" timestep="1" version="1.0">
     <Description>
         <Title>My First Plant Growth Model</Title>
@@ -36,7 +36,6 @@
         	<Param name="DroughtSensitivity">0.75</Param>
             <Param name="GrowthRateResponse">0.12</Param>
         </Parameterset>
-
         <Parameterset name="sorghum" description="some values in there" >
            <Param name="BaseTemp">5.0</Param>
            <Param name="GrowthRate">0.02</Param>
@@ -49,9 +48,8 @@
         <Testset name="check wheat model1" parameterset = "wheat" description="some values in there" >
         	<Test name ="test_wheat1">
         		<InputValue name="MinTemp">4</InputValue>
-				<InputValue name="AvailableWater">45</InputValue>
-				<OutputValue name="PlantGrowth" precision ="2">2.63</OutputValue>
-        	
+				    <InputValue name="AvailableWater">45</InputValue>
+				    <OutputValue name="PlantGrowth" precision ="2">2.63</OutputValue>
         	</Test>
         	<Test name ="test_wheat2">
         		<InputValue name="MinTemp">3</InputValue>
