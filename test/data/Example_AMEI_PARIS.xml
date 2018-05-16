@@ -20,9 +20,9 @@
         <Input name="AtmosphericEmisivity" description="Emission of the atmosphere" parametercategory="constant" datatype="float" default="0.5" unit="-" uri="some url" inputtype="parameter"/>
     </Inputs>
     <Outputs>
-        <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="real" min="0" max="5"  unit="mm" uri="some url"/>
+        <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="float" min="0" max="5"  unit="mm" uri="some url"/>
     </Outputs>
-    <Algorithm language="C"><![CDATA[
+    <Algorithm language="Python-ext"><![CDATA[
        FW = ( ( ( PlantAvailableWater - AvailableWater ) / PlantAvailableWater ) **  DroughtSensitivity )
        FNLW = BoltzmannConstant * AtmosphericEmisivity *  MinTemp ** 4
        PlantGrowth = GrowthRate * ( BaseTemp - MinTemp ) * FW * FNLW
@@ -36,7 +36,6 @@
         	<Param name="DroughtSensitivity">0.75</Param>
             <Param name="GrowthRateResponse">0.12</Param>
         </Parameterset>
-
         <Parameterset name="sorghum" description="some values in there" >
            <Param name="BaseTemp">5.0</Param>
            <Param name="GrowthRate">0.02</Param>
@@ -49,9 +48,8 @@
         <Testset name="check wheat model1" parameterset = "wheat" description="some values in there" >
         	<Test name ="test_wheat1">
         		<InputValue name="MinTemp">4</InputValue>
-				<InputValue name="AvailableWater">45</InputValue>
-				<OutputValue name="PlantGrowth" precision ="2">2.63</OutputValue>
-        	
+				    <InputValue name="AvailableWater">45</InputValue>
+				    <OutputValue name="PlantGrowth" precision ="2">2.63</OutputValue>
         	</Test>
         	<Test name ="test_wheat2">
         		<InputValue name="MinTemp">3</InputValue>
