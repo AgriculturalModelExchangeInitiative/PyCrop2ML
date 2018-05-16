@@ -10,8 +10,6 @@ from pycropml import pparse, render_notebook
 
 from .test1 import example, cwd, xmls
 
-from test import totalparse
-
 REMOVE = True
 
 ##############################################################################
@@ -19,22 +17,22 @@ REMOVE = True
 
 
 def test1():
-    models = totalparse.totalexample()
-    assert len(models)
+    models = example()
+    #assert len(models)
 
 
     m2p = render_notebook.Model2Nb(models, dir='.');
     m2p.run()
 
     nb=Path('notebook')
-    if nb.exists() and nb.isdir():
-        nb.rmtree()
+    """if nb.exists() and nb.isdir():
+        nb.rmtree()"""
 
     return models
 
 
 if __name__ == '__main__':
-    models = totalparse.totalexample()
+    models = example()
     assert len(models)
     m2p = render_notebook.Model2Nb(models);
     m2p.run()

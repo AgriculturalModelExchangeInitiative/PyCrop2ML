@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.github.com/AgriculturalModelExchangeInitiative/PyCropML/version2/test/data/ModelUnit.dtd">
+<ModelUnit modelid="1" name="Plant_Growth" timestep="1" version="1.0">
+    <Description>
+        <Title>My First Plant Growth Model</Title>
+        <Authors>AMEI Workshop Participants</Authors>
+        <Institution>INRA Paris</Institution>
+        <Reference>absolutely non</Reference>
+        <Abstract>Extremely complex value calculator</Abstract>
+    </Description>
+    <Inputs>
+        <Input name="BaseTemp" description="Base of the plant growth model" parametercategory="species" datatype="float" min="-40" max="70" default="0" unit="°C" uri="some url" inputtype="parameter"/>
+        <Input name="MinTemp" description="Minimum Temperature above ground (2m)" parametercategory="species" inputtype ="variable" datatype="float" min="-40" max="70" default="0" unit="°C" uri="some url"/>
+        <Input name="GrowthRate" description="Rate of growth depending on the temperature" parametercategory="genotypic" datatype="float" min="0" max="0.05" default="0.01" unit="-" uri="some url" inputtype = "parameter"/>
+        <Input name="GrowthRateResponse" description="Growth rate response to soil" parametercategory="genotypic" datatype="float" min="0" max="0.125" default="0.1" unit="-" uri="some url" inputtype = "parameter"/>
+        <Input name="PlantAvailableWater" description="Potential volumetric water content available for the plant" parametercategory="soil" datatype="real" min="0.15" max="0.85" default="0.35" unit="-" uri="some url" inputtype = "parameter"/>
+        <Input name="DroughtSensitivity" description="Sensitivity of the plant to droght stress" parametercategory="genotypic" datatype="float" min="0.3" max="0.8" default="0.35" unit="-" uri="some url" inputtype = "parameter"/>
+        <Input name="AvailableWater" description="Volumetric water content available for the plant" parametercategory="genotypic" inputtype="variable" datatype="float" min="0.15" max="0.85" default="0.35" unit="-" uri="some url"/>
+        <Input name="BoltzmannConstant" description="Boltzmann constant for longwave emission" parametercategory="constant" datatype="float" default="2.4903" unit="-" uri="some url" inputtype="parameter"/>
+        <Input name="AtmosphericEmisivity" description="Emission of the atmosphere" parametercategory="constant" datatype="float" default="0.5" unit="-" uri="some url" inputtype="parameter"/>
+    </Inputs>
+    <Outputs>
+        <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="float" min="0" max="5"  unit="mm" uri="some url"/>
+    </Outputs>
+    <Algorithm language="Python-ext"><![CDATA[
+       FW = ( ( ( PlantAvailableWater - AvailableWater ) / PlantAvailableWater ) **  DroughtSensitivity )
+       FNLW = BoltzmannConstant * AtmosphericEmisivity *  MinTemp ** 4
+       PlantGrowth = GrowthRate * ( BaseTemp - MinTemp ) * FW * FNLW
+       ]]>
+     </Algorithm>
+     <Parametersets>
+        <Parameterset name="wheat" description="some values in there" >
+        	<Param name="BaseTemp">5.0</Param>
+        	<Param name="GrowthRate">0.02</Param>
+        	<Param name="PlantAvailableWater">65.0</Param>
+        	<Param name="DroughtSensitivity">0.75</Param>
+            <Param name="GrowthRateResponse">0.12</Param>
+        </Parameterset>
+        <Parameterset name="sorghum" description="some values in there" >
+           <Param name="BaseTemp">5.0</Param>
+           <Param name="GrowthRate">0.02</Param>
+           <Param name="DroughtSensitivity">0.75</Param>
+           <Param name="GrowthRateResponse">0.12</Param>
+           <Param name="PlantAvailableWater">65.0</Param>
+        </Parameterset>
+     </Parametersets>
+     <Testsets>
+        <Testset name="check wheat model1" parameterset = "wheat" description="some values in there" >
+        	<Test name ="test_wheat1">
+        		<InputValue name="MinTemp">4</InputValue>
+				    <InputValue name="AvailableWater">45</InputValue>
+				    <OutputValue name="PlantGrowth" precision ="2">2.63</OutputValue>
+        	</Test>
+        	<Test name ="test_wheat2">
+        		<InputValue name="MinTemp">3</InputValue>
+				<InputValue name="AvailableWater">35.0</InputValue>
+				<OutputValue name="PlantGrowth" precision ="2">2.26</OutputValue>
+        	</Test>
+        </Testset>
+        <Testset name="check wheat model2" parameterset = "sorghum" description="some values in there" >
+        	<Test name ="test_sorghum">
+        		<InputValue name="MinTemp">4</InputValue>
+				<InputValue name="AvailableWater">45</InputValue>
+				<OutputValue name="PlantGrowth" precision ="2">2.63</OutputValue>
+        	</Test>
+        </Testset>
+      </Testsets>
+ 	
+</ModelUnit>

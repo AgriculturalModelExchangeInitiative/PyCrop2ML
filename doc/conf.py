@@ -17,6 +17,8 @@
 import sys
 import os
 
+
+
 # If extensions (or modules to document with autodoc) are in another
 # directory, add these directories to sys.path here. If the directory is
 # relative to the documentation root, use os.path.abspath to make it
@@ -53,8 +55,9 @@ extensions = [
     'sphinx.ext.napoleon',
     'sphinx.ext.todo',
     'sphinx.ext.viewcode'
-]
+	]
 
+   
 # try to add more extensions which are not default
 # but still useful
 # based on the fact that the extension is installed on the system
@@ -249,6 +252,8 @@ latex_documents = [
      u'pycropml Documentation',
      u'Cyrille Ahmed Midingoyi', 'manual'),
 ]
+
+
 
 # The name of an image file (relative to this directory) to place at
 # the top of the title page.

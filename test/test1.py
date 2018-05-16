@@ -22,26 +22,27 @@ xmls = data.glob('*.xml')
 # Test on Example
 
 def example():
-    fn = data.glob('Example*.xml')[0]
-
+        
+    fn = data.glob('Example*.xml')
+    
     models = pparse.model_parser(fn)
     return models
-
+"""
 def test1():
     models = example()
     assert len(models) == 1
 
     model = models[0]
-    assert model.algorithm
+    assert model.algorithm.development
 
-    lines = [l for l in model.algorithm.split('\n') if l.strip()]
-    assert len(lines) == 3
+    lines = [l for l in model.algorithm.development.split('\n') if l.strip()]
+    assert len(lines) == 40
 
-    assert len(model.inputs) == 9
+    assert len(model.inputs) == 7
 
-    name_input = ['BaseTemp', 'MinTemp', 'GrowthRate', 'GrowthRateResponse',
-                  'PlantAvailableWater', 'DroughtSensitivity', 'AvailableWater',
-                  'BoltzmannConstant', 'AtmosphericEmisivity']
+    name_input = ['cSoilLayerDepth', 'cFirstDayMeanTemp', 'cAVT',
+                  'cABD', 'cDampingDepth', 'iSoilSurfaceTemperature',
+                  'iSoilWaterContent']
 
     for l, k in enumerate(name_input):
         assert k == model.inputs[l].name
@@ -50,7 +51,7 @@ def test1():
 
     # TODO Check the output
     # we can add other outputs. we have just one with our example
-    name_output=['PlantGrowth']
+    name_output=['SoilTempArray[i]']
 
 
     algo_name = [l.split()[0] for l in lines]    #extract algorithm functions names
@@ -61,27 +62,31 @@ def test1():
     # TODO
     assert model.description
     # Check ParameterSets
-    assert len(model.parametersets) == 5
-    v = ['soil', 'sorghum', 'wheat', 'wheat.cv1', 'crop']
+    assert len(model.parametersets) == 3
+    v = ['cold', 'hot', 'dry']
     for k in v:
         assert k in model.parametersets.keys()
 
     # Check each parameterset: TODO
-    for k in v[:-1]:
-        assert len(model.parametersets[k].params) == 0
-    assert len(model.parametersets["crop"].params) == 2
+    for k in v:
+        assert len(model.parametersets[k].params) == 5
+    
 
     # Check tests: TODO
-    assert len(model.tests) == 2
-    v = ['check wheat model', 'check wheat model2']
+    assert len(model.testsets) == 3
+    v = ['check soil temp1', 'check soil temp2', 'check soil temp3']
+    
+    v1 = ['cold_and_colder1', 'cold_and_colder2']
+    v2 = ['hot_and_hotter']
+    v3 = ['dry_test']
     for j, k in enumerate(v):
-        assert k == model.tests[j].name
-
-    v1 = ['soil', 'wheat', 'wheat.cv1', 'crop']
-    v2 = ['soil', 'sorghum', 'wheat.cv1', 'crop']
-
-    for k in v1:
-        assert k in model.tests[0].paramsets
-    for k in v2:
-        assert k in model.tests[1].paramsets
-
+        assert k == model.testsets[j].name
+        
+    for z,k in enumerate(v1):
+        assert k in model.testsets[0].test[z]
+        
+    for z,k in enumerate(v2):
+        assert k in model.testsets[1].test[z]
+    
+    for z,k in enumerate(v3):
+        assert k in model.testsets[2].test[z]"""

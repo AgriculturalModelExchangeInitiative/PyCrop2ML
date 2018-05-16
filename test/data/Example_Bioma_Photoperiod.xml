@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<ModelUnit modelid="1" timestep="1" name="Photoperiod" version="1">
+<Description>
+		<Title>Photoperiod</Title>
+		<Authors>various</Authors>
+		<Institution>JRC - CREA</Institution>
+		<URI></URI>
+		<Abstract><![CDATA[
+			Photoperiod effect on development - Stockle, C.O., Donatelli, M., Nelson, R., 2003. 
+			CropSyst, a cropping systems simulation model. European Journal of Agronomy, 18, 289-307
+			]]></Abstract>
+	</Description>
+	<Inputs>
+		<Input name="PhotoInhibition" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="1" max="24" default="14" unit="hour" description="Daylenght to inhibit flowering" />
+		<Input name="PhotoInsensitivity" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="1" max="24" default="6" unit="hour" description="Daylenght for insensitivity of photoperiod" />		
+		<Input name="DayLenght" datatype="DOUBLE" inputtype="variable" min="0" max="24" default="12" unit="hour" description="Day lenght"/>		
+		
+	</Inputs>
+	<Outputs>
+		<Output name="PhotoPeriodFactor" datatype="DOUBLE" min="0" max="1"  unit="unitless" description="Photoperiod factor"/>
+		
+	</Outputs>
+	<Algorithm language="python-ext">
+		<![CDATA[ 
+				Dl = float(DayLenght)              
+                DlIns = float(PhotoInsensitivity)
+                DlInb = float(PhotoInhibition)
+                PhotoPeriodFactor = (DlInb - Dl) / (DlInb - DlIns)
+                if (DlIns > DlInb):
+                {
+                    PhotoPeriodFactor = (Dl - DlInb) / (DlIns - DlInb)
+                }
+                if (PhotoPeriodFactor < 0):
+                {
+                    PhotoPeriodFactor = 0
+                }
+                if (PhotoPeriodFactor > 1):
+                {
+                    PhotoPeriodFactor = 1
+                }                
+		]]>
+	</Algorithm>
+	<Parametersets>
+		<Parameterset name="default" description="default values">
+			<Param name="PhotoInhibition">14</Param>
+			<Param name="PhotoInsensitivity">6</Param>			
+		</Parameterset>		
+	</Parametersets>
+	<Testsets>
+		<Testset name="check 1" parameterset="default" description="some test values">
+			<Test name="check 1 1">
+				<InputValue name="DayLenght">16</InputValue>				
+				<OutputValue name="PhotoPeriodFactor" precision="2">0</OutputValue>				
+			</Test>
+			<Test name="check 1 2">
+				<InputValue name="DayLenght">12</InputValue>				
+				<OutputValue name="PhotoPeriodFactor" precision="2">0.25</OutputValue>		
+			</Test>			
+		</Testset>		
+	</Testsets>
+</ModelUnit>

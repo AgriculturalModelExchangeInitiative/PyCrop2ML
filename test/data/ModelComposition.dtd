@@ -1,10 +1,11 @@
-<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Algorithm+,Parametersets,
+<!ELEMENT ModelComposition (Description,Inputs?,Outputs?,Composition,Algorithm,Parametersets,
                      Testsets)>
-<!ATTLIST ModelUnit
+<!ATTLIST ModelComposition
   modelid CDATA #REQUIRED
   name CDATA #REQUIRED
   timestep CDATA #IMPLIED
-  version CDATA #REQUIRED
+  version CDATA #IMPLIED
+
 
 <!ELEMENT Description (Title,Authors,Institution,URI?,Reference?,Abstract)>
 <!ATTLIST Description>
@@ -14,6 +15,24 @@
 
 <!ELEMENT Outputs (Output*)>
 <!ATTLIST Outputs>
+
+<!ELEMENT Composition (Model+)>
+<!ATTLIST Composition
+  language CDATA #REQUIRED>
+
+<!ELEMENT Model (Link*)>
+<!ATTLIST Model
+  uniqueid CDATA #REQUIRED
+  name CDATA #REQUIRED
+  displayx CDATA #IMPLIED
+  displayy CDATA #IMPLIED>
+
+<!ELEMENT Link EMPTY>
+<!ATTLIST Link
+  targetinputname CDATA #REQUIRED
+  conversion CDATA #IMPLIED
+  sourcemodelid CDATA #REQUIRED
+  sourceoutputname CDATA #REQUIRED>
 
 <!ELEMENT Algorithm (#PCDATA)>
 <!ATTLIST Algorithm
@@ -45,28 +64,13 @@
 
 <!ELEMENT Input EMPTY>
 <!ATTLIST Input
-  name NMTOKEN #REQUIRED
-  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|FLOAT|) #REQUIRED 
-  description CDATA #REQUIRED
-  default CDATA #IMPLIED
-  max CDATA #IMPLIED
-  min CDATA #IMPLIED
-  inputtype (variable|parameter) #REQUIRED
-  parametercategory (constant|species|genotypic|soil) #IMPLIED
-  variablecategory (state|rate|auxillary) #IMPLIED
-  unit CDATA #REQUIRED
-  uri CDATA #IMPLIED>
+  targetmodelid NMTOKEN #REQUIRED
+  targetinputname NMTOKEN #REQUIRED>
 
 <!ELEMENT Output EMPTY>
 <!ATTLIST Output
-  name NMTOKEN #REQUIRED
-  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|FLOAT) #REQUIRED 
-  description CDATA #REQUIRED
-  max CDATA #REQUIRED
-  min CDATA #REQUIRED
-  variablecategory (state|rate|auxiliary) #IMPLIED
-  unit CDATA #REQUIRED
-  uri CDATA #IMPLIED>
+  sourcemodelid NMTOKEN #REQUIRED
+  sourceoutputname NMTOKEN #REQUIRED>
 
 <!ELEMENT Parameterset (Param*)>
 <!ATTLIST Parameterset

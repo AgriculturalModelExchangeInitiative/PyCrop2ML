@@ -2,17 +2,19 @@
 Credits
 =======
 
-Development Lead
-----------------
+**1. Development Lead**
+
 
 .. {# pkglts, doc.authors
+
 * Cyrille Ahmed Midingoyi, <cyrille.midingoyi@inra.fr>
+
 * Christophe Pradal, <christophe.pradal@cirad.fr>
 
 .. #}
 
-Contributors
-------------
+**2. Contributors**
+
 
 .. {# pkglts, doc.contributors
 
