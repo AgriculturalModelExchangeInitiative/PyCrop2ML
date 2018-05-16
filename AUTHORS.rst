@@ -6,7 +6,9 @@ Credits
 
 
 .. {# pkglts, doc.authors
+
 * Cyrille Ahmed Midingoyi, <cyrille.midingoyi@inra.fr>
+
 * Christophe Pradal, <christophe.pradal@cirad.fr>
 
 .. #}
