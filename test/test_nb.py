@@ -34,7 +34,7 @@ def test1():
 if __name__ == '__main__':
     models = example()
     assert len(models)
-    m2p = render_notebook.Model2Nb(models);
+    m2p = render_notebook.Model2Nb(models)
     m2p.run()
     code = m2p.code
     exec(code)

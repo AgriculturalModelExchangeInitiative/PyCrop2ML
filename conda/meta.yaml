@@ -20,6 +20,8 @@ requirements:
   run:
     - path.py
     - six
+    - nbformat
+    - notebook
 
 test:
   imports:
