@@ -1,17 +1,18 @@
+
 =====================================
 **Welcome to PyCropML Documentation**
 =====================================
 
 **Contents**
-============
-.. sidebar:: Summary
+.. _pycropml:
 
-    :Version: |version|
-    :Release: |release|
-    :Date: |today|
-    :Author: See `authors`_ section
-    :ChangeLog: See `changelog`_ section
-	
+.. module:: pycropml
+
+CropML documentation
+###########################
+
+Module description
+==================
 	
 .. toctree::
    :maxdepth: 1
@@ -26,8 +27,21 @@
 	Publication <user/Publication.rst>
 	Glossary <user/glossary.rst>
 
+.. topic:: Overview
 
-.. include:: ../AUTHORS.rst
+    .. include:: user/overview.txt
+
+Documentation
+=============
+
+.. toctree::
+    :maxdepth: 1
+
+    User Guide<user/index.rst>
+    Reference Guide<_dvlpt/modules.rst>
+
+- A `PDF <../latex/main.pdf>`_ version of |core| documentation is
+  available.
 
 .. include:: ../HISTORY.rst	
 
@@ -35,9 +49,33 @@
 **Indices and tables**
 ======================
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+.. include:: ../HISTORY.rst
+
+License
+=======
+
+|pycropml| is released under a MIT License.
+
+
+.. |pycropml| replace:: PyCropML
+
+Welcome to CropML's documentation!
+=========================================
+
+Contents:
+
+.. toctree::
+   :maxdepth: 2
+
+   readme
+   installation
+   usage
+   contributing
+   authors
+   history
+
+Indices and tables
+==================
 
 **Supported by:**
 =================
@@ -62,3 +100,4 @@
    :target: http://www.simplace.net/Joomla/
    :width: 15%
    :figclass: align-right
+
