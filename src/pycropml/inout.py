@@ -3,6 +3,8 @@ class InputOutput(object):
     """
     """
     def __init__(self, kwds):
+        self.min = None
+        self.max = None
         self._attributes = kwds
         for k, v in kwds.iteritems():
             self.__setattr__(k,v)
@@ -14,7 +16,7 @@ class InputOutput(object):
 
 class Input(InputOutput):
     """ Input """
-    
+
 
 class Output(InputOutput):
     """ Output

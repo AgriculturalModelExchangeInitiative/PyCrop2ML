@@ -1,3 +1,6 @@
+""" Model Description and Model Unit.
+
+"""
 class ModelDefinition(object):
     """
     """
@@ -8,8 +11,8 @@ class ModelDefinition(object):
 
     def __repr__(self):
         return str(self._attributes)
-    
-    
+
+
 class ModelUnit(ModelDefinition):
     """ Formal description of a Model Unit. """
 

@@ -1,15 +1,19 @@
-""" License, Header
+"""Add License, Header.
 
 Use pkglts
 
-
 Problems:
 - name of a model unit?
+
 """
 from __future__ import print_function
 from path import Path
-from numpy import double
-from numpy import array
+import numpy
+
+from openalea.core import package
+from openalea.core import node
+from openalea.core import interface as inter
+
 
 class Model2Package(object):
     """ TODO
@@ -17,28 +21,27 @@ class Model2Package(object):
     """
 
     DATATYPE = {}
-    DATATYPE['real'] = float
+    DATATYPE['float'] = float
     DATATYPE['int'] = int
     DATATYPE['string'] = str
     DATATYPE['Double'] = float
-    DATATYPE['DOUBLEARRAY'] = array
-    
+    DATATYPE['DOUBLEARRAY'] = numpy.array
+
     num = 0
 
     def __init__(self, models, dir=None):
-        """TODO.
-
-        """
+        """TODO."""
         self.models = models
         self.dir = dir
 
         self.with_import = True
 
     def run(self):
-        """TODO.
-        """
+        """TODO."""
         self.generate_package()
+        self.generate_wralea()
         self.write_tests()
+
 
     def generate_package(self):
         """Generate a Python package equivalent to the xml definition.
@@ -50,6 +53,7 @@ class Model2Package(object):
         Returns:
         - None or status
         """
+
         # Create a directory (mymodel)
         cwd = Path.getcwd()
         directory=cwd/'mymodel'
@@ -57,24 +61,78 @@ class Model2Package(object):
             self.dir = directory
         else:
             self.dir = directory.mkdir()
-        
+
         files = []
         count = 0
-            
-           
+
         for model in self.models:
-            
+
             self.generate_component(model)
             ext = '' if count == 0 else str(count)
             filename = self.dir/"model%s.py"%ext
-            
+
             with open(filename, "w") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
                 files.append(filename)
-            count +=1
+
+                model.module_name = str(Path(filename).namebase)
+
+            count += 1
+
         return files
 
 
+    def generate_wralea(self):
+        """Generate wralea factories from the meta-information of the the model units."""
+
+        # TODO
+        metainfo = {'version': '0.0.1',
+                    'license': 'CECILL-C',
+                    'authors': 'OpenAlea Consortium',
+                    'institutes': 'INRA/CIRAD',
+                    'description': 'CropML Model library.',
+                    'url': 'http://pycropml.rtfd.org',
+                    'icon': ''}
+
+        _package = package.UserPackage("CropModel", metainfo, self.dir)
+
+        for model in self.models:
+            _factory = self.generate_factory(model)
+            _package.add_factory(_factory)
+
+        _package.write()
+
+
+    def generate_factory(self, model):
+        """Create a Node Factory from CropML model unit."""
+
+        inputs = []
+        for input in model.inputs:
+            name = input.name
+            dtype = input.datatype
+            interface = openalea_interface(input)
+            value = eval(input.default) if dtype != 'string' else input.default
+
+            _in = dict(name=name, interface=interface, value=value)
+            inputs.append(_in)
+
+        outputs = []
+        for output in model.outputs:
+            name = output.name
+            dtype = output.datatype
+            interface = openalea_interface(output)
+
+            _out = dict(name=name, interface=interface)
+            outputs.append(_out)
+
+        _factory = node.Factory(name=model.name,
+                                description=model.description.Abstract,
+                                nodemodule=model.module_name,
+                                nodeclass=signature(model),
+                                inputs=inputs,
+                                outputs=outputs,
+                                )
+        return _factory
 
     def generate_component(self, model_unit):
         """ Todo
@@ -87,14 +145,14 @@ class Model2Package(object):
 
         self.code += self.generate_algorithm(model_unit)
 
-        print (self.code)
+        # print (self.code)
 
         return self.code
 
 
 
     def generate_algorithm(self, model_unit):
-        
+
 
 
         #code ="\n"
@@ -112,7 +170,7 @@ class Model2Package(object):
             code=''
             z=' '*4
             tab=' '*4
-            i=1        
+            i=1
             for line in lines:
                 pline = line
                 if line =="{":
@@ -120,16 +178,16 @@ class Model2Package(object):
                     i = i+1
                     tab = z*i
                 if line =="}":
-                    pline = line.strip('}')    
+                    pline = line.strip('}')
                     i = i-1
                     tab = z*i
                 code+=tab+pline+"\n"
             return code
-        
-        code = indentation(lines)            
-        
+
+        code = indentation(lines)
+
         #code = algo +'\n'
-        
+
         # Outputs
         code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
 
@@ -170,11 +228,7 @@ class Model2Package(object):
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         #name = desc.Title
-        name = model_unit.name
-        name.strip()
-        name = name.replace(' ', '_').lower()
-
-        func_name = name
+        func_name = name = signature(model_unit)
 
         code = 'def %s('%(func_name,)
 
@@ -200,16 +254,14 @@ class Model2Package(object):
         code+= '):'
 
         return code
-    
+
     def generate_test(self, model_unit):
 
         tab = ' '*4
         m = model_unit
-        #name = m.description.Title
-        name = m.name
-        name.strip()
-        name = name.replace(' ', '_').lower()
-        model_name = name
+
+        model_name = name = signature(m)
+
         psets = m.parametersets
         self.codetest = ""
         """if self.with_import:
@@ -224,12 +276,12 @@ class Model2Package(object):
 
         # map the paramsets
             params = {}
-            
+
             if   test_paramsets not in psets.keys():
                 print('Unknow parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
-                     
+
                 for each_run in test_runs :
                     test_codes = []
 
@@ -299,7 +351,7 @@ class Model2Package(object):
             codetest = self.generate_test(model)
             ext = '' if count == 0 else str(count)
             filename = self.dir/"testrun%s.py"%ext
-            
+
             codetest = "'Test generation'\n\n"+"from model%s"%ext + " import *\n"+"import numpy as np\n\n" + codetest
 
             with open(filename, "w") as python_file:
@@ -308,4 +360,38 @@ class Model2Package(object):
             count +=1
         return files
 
+
+def signature(model):
+    name = model.name
+    name = name.strip()
+    name = name.replace(' ', '_').lower()
+
+    return name
+
+def openalea_interface(inout):
+    dtype = inout.datatype.lower()
+    interface = None
+
+    kwds = {}
+    if inout.min:
+        kwds['min'] = inout.min
+    if inout.max:
+        kwds['max'] = inout.max
+
+    if dtype in ('int', 'float', 'double') :
+        interface =inter.IInt if dtype == 'int' else inter.IFloat
+        if ('min' in kwds) and ('max' in kwds):
+            interface = interface(min=eval(inout.min), max=eval(inout.max))
+        elif 'min' in kwds:
+            interface = interface (min=eval(inout.min))
+        elif 'max' in kwds:
+            interface = interface(max=eval(inout.max))
+
+    elif dtype == 'string':
+        interface = inter.IStr
+
+    elif 'array' in dtype:
+        interface = inter.ISequence
+
+    return interface
 
