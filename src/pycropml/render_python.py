@@ -26,6 +26,8 @@ class Model2Package(object):
     DATATYPE['string'] = str
     DATATYPE['Double'] = float
     DATATYPE['DOUBLEARRAY'] = numpy.array
+    DATATYPE['BOOLEAN'] = bool
+    DATATYPE['DATE'] = str
 
     num = 0
 
@@ -157,47 +159,52 @@ class Model2Package(object):
 
         #code ="\n"
         outputs = model_unit.outputs
-        algo = model_unit.algorithm.development
+        
+        for num_algo in range(0, len(model_unit.algorithms)):
+            
+            if (model_unit.algorithms[num_algo].language=="python_ext"):
+               
+                algo = model_unit.algorithms[num_algo].development
 
         #code = ''
-        tab = ' '*4
+                tab = ' '*4
         #code += tab+"try:" + "\n"
-        lines = [l.strip() for l in algo.split('\n') if l.strip()]
+                lines = [l.strip() for l in algo.split('\n') if l.strip()]
         #lines = [l for l in algo.split('\n')]
         #for line in lines:
         #   code += tab+line+'\n'
-        def indentation(lines):
-            code=''
-            z=' '*4
-            tab=' '*4
-            i=1
-            for line in lines:
-                pline = line
-                if line =="{":
-                    pline = line.strip('{')
-                    i = i+1
-                    tab = z*i
-                if line =="}":
-                    pline = line.strip('}')
-                    i = i-1
-                    tab = z*i
-                code+=tab+pline+"\n"
-            return code
+                def indentation(lines):
+                    code=''
+                    z=' '*4
+                    tab=' '*4
+                    i=1
+                    for line in lines:
+                        pline = line
+                        if line =="{":
+                            pline = line.strip('{')
+                            i = i+1
+                            tab = z*i
+                        if line =="}":
+                            pline = line.strip('}')
+                            i = i-1
+                            tab = z*i
+                        code+=tab+pline+"\n"
+                    return code
 
-        code = indentation(lines)
+                code = indentation(lines)
 
         #code = algo +'\n'
 
         # Outputs
-        code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
+                code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
 
         #code += tab + "except ValueError :" + '\n'
 
         #code += 2*tab + 'return' + "'  No Real Solution'"
 
-        self.code = code
+                self.code = code
 
-        return self.code
+                return self.code
 
     # documentation
     def generate_function_doc(self, model_unit):
@@ -392,6 +399,10 @@ def openalea_interface(inout):
 
     elif 'array' in dtype:
         interface = inter.ISequence
+    
+    elif 'bool' in dtype:
+        interface = inter.IBool
+
 
     return interface
 
