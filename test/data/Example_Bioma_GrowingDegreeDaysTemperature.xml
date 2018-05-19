@@ -22,7 +22,7 @@
 		<Output name="GrowingDegreeDaysTemperature" datatype="DOUBLE" min="0" max="8000"  unit="°C" description="Potential growing degree days calculated on temperature"/>
 		<Output name="GrowingDegreeDaysTemperatureRate" datatype="DOUBLE" min="0" max="50"  unit="°C" description="Potential daily rate of growing degree days accumulation based on temperature"/>		
 	</Outputs>
-	<Algorithm language="Pyhton_ext">
+	<Algorithm language="python_ext" platform="OpenAlea">
 		<![CDATA[ 
 				Tavg = float(AirTemperatureAverage)
 

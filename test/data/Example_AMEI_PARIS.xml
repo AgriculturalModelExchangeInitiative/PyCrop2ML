@@ -22,7 +22,7 @@
     <Outputs>
         <Output name="PlantGrowth" description="Growth of plant in hight (rate)" datatype="float" min="0" max="5"  unit="mm" uri="some url"/>
     </Outputs>
-    <Algorithm language="Python-ext"><![CDATA[
+    <Algorithm language="python_ext" platform = "OpenAlea"><![CDATA[
        FW = ( ( ( PlantAvailableWater - AvailableWater ) / PlantAvailableWater ) **  DroughtSensitivity )
        FNLW = BoltzmannConstant * AtmosphericEmisivity *  MinTemp ** 4
        PlantGrowth = GrowthRate * ( BaseTemp - MinTemp ) * FW * FNLW

@@ -28,7 +28,7 @@
         <Output name="Ntip" description="Maize number of tip" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
   	
     </Outputs>
-    <Algorithm language="Python_ext"><![CDATA[
+    <Algorithm language="python_ext" platform="OpenAlea"><![CDATA[
 		LeafNumber1 = LeafNumber
 		if (HasFlagLeafLiguleAppeared==0):
 		{        
