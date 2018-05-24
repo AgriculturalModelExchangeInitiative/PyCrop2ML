@@ -118,8 +118,8 @@ class ModelParser(Parser):
     
     
     def ModelComposition(self, elts):
-        """ ModelComposition (Description,Inputs,Outputs,Algorithm,Parametersets,
-                     Testsets)
+        
+        """ ModelComposition (Description,Inputlink,Outputlink,externallink)                   Testsets)
         """
         print('ModelComposition')
         kwds = elts.attrib
@@ -173,20 +173,20 @@ class ModelParser(Parser):
         
         inputs = elt.findall("InputLink")
         outputs = elt.findall("OutputLink")
-        internal = elt.findall("OutputLink")
+        internals = elt.findall("InternalLink")
         
-        for j in range(0, len(inputs)):
-            inp = inputs[j].attrib
+        for input in inputs:
+            inp = input.attrib
             self._modelcompo.inputlink.append(inp)
         
-        for k in range(0, len(outputs)): 
+        for output in outputs: 
             
-            out = outputs[k].attrib        
+            out = output.attrib        
             self._modelcompo.outputlink.append(out)
         
-        for z in range(0, len(internal)): 
+        for internal in internals : 
             
-            inter = internal[z].attrib  
+            inter = internal.attrib  
             self._modelcompo.internallink.append(inter)     
         
             
