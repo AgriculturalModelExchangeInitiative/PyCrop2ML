@@ -119,7 +119,7 @@ class ModelParser(Parser):
     
     def ModelComposition(self, elts):
         
-        """ ModelComposition (Description,Inputlink,Outputlink,externallink)                   Testsets)
+        """ ModelComposition (Description, Models, Inputlink,Outputlink,externallink)                 
         """
         print('ModelComposition')
         kwds = elts.attrib
