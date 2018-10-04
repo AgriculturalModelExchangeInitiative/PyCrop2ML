@@ -1,10 +1,9 @@
-<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Algorithm+,Parametersets,
-                     Testsets)>
-<!ATTLIST ModelUnit
-  modelid CDATA #REQUIRED
+<!ELEMENT Model (Description,Inputs?,Outputs?,Initialization*,Function*, Algorithm+,Parametersets,Testsets)>
+<!ATTLIST Model
   name CDATA #REQUIRED
+  id CDATA #REQUIRED
   timestep CDATA #IMPLIED
-  version CDATA #REQUIRED
+  version CDATA #REQUIRED>
 
 <!ELEMENT Description (Title,Authors,Institution,URI?,Reference?,Abstract)>
 <!ATTLIST Description>
@@ -17,13 +16,30 @@
 
 <!ELEMENT Algorithm (#PCDATA)>
 <!ATTLIST Algorithm
-  language CDATA #REQUIRED>
+  language CDATA #REQUIRED
+  platform CDATA #REQUIRED
+  filename CDATA #REQUIRED
+  function CDATA #REQUIRED>
 
 <!ELEMENT Parametersets (Parameterset+)>
 <!ATTLIST Parametersets>
 
 <!ELEMENT Testsets (Testset+)>
 <!ATTLIST Testsets>
+
+<!ELEMENT Function (#PCDATA)>
+<!ATTLIST Function
+	name CDATA #REQUIRED
+	language CDATA #REQUIRED
+	filename CDATA #REQUIRED
+	type (internal|external) #REQUIRED
+	description CDATA #IMPLIED>
+
+<!ELEMENT Initialization (#PCDATA)>
+<!ATTLIST Initialization
+	name CDATA #REQUIRED
+	language CDATA #REQUIRED
+	filename CDATA #REQUIRED>	
 
 <!ELEMENT Title (#PCDATA)>
 <!ATTLIST Title>
@@ -46,13 +62,13 @@
 <!ELEMENT Input EMPTY>
 <!ATTLIST Input
   name NMTOKEN #REQUIRED
-  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|FLOAT|) #REQUIRED 
+  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|DICTIONARY|STRING) #REQUIRED 
   description CDATA #REQUIRED
   default CDATA #IMPLIED
   max CDATA #IMPLIED
   min CDATA #IMPLIED
   inputtype (variable|parameter) #REQUIRED
-  parametercategory (constant|species|genotypic|soil) #IMPLIED
+  parametercategory (constant|species|genotypic|soil|private) #IMPLIED
   variablecategory (state|rate|auxillary) #IMPLIED
   unit CDATA #REQUIRED
   uri CDATA #IMPLIED>
@@ -60,7 +76,7 @@
 <!ELEMENT Output EMPTY>
 <!ATTLIST Output
   name NMTOKEN #REQUIRED
-  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|FLOAT) #REQUIRED 
+  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|DICTIONARY|STRING) #REQUIRED 
   description CDATA #REQUIRED
   max CDATA #REQUIRED
   min CDATA #REQUIRED
