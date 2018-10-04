@@ -54,7 +54,7 @@
 
      ]]>
     </Algorithm>
-    <Algorithm language="python_ext" platform=" "><![CDATA[
+    <Algorithm language="python_ext" platform="OpenAlea"><![CDATA[
     FractionStems=0
     FractionStorageOrgans=0
     FractionLeaves=0

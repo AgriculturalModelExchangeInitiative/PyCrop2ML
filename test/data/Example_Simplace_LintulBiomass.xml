@@ -155,7 +155,7 @@
 	PARINT.setValue(PARINT_Neu, this);</Algorithm>
     ]]>
     </Algorithm>
-    <Algorithm language="python_ext" platform=" " ><![CDATA[
+    <Algorithm language="python_ext" platform="OpenAlea" ><![CDATA[
     rDLAI=0; rRWRT=0; rDeadStems=0; sWLV=0; sWLVG =0; rRWLVG=0
     sWLVD=0; PARINT=0; sWRT=0; sDaysSinceSowing=0
     sLAI=0; GTOTAL=0; sWSO=0; rDeadLeaves=0; sWST=0; AboveGroundBiomass=0

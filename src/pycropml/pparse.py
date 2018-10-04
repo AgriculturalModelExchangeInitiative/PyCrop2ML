@@ -36,6 +36,7 @@ class ModelParser(Parser):
             root = doc.getroot()
 
             self.dispatch(root)
+            
         return self.models
            
             
@@ -111,11 +112,12 @@ class ModelParser(Parser):
         print('Algorithm')
         
         language=elt.attrib["language"]
+        platform=elt.attrib["platform"]
         development = elt.text
         
-        algo = algorithm.Algorithm(language, development)
+        algo = algorithm.Algorithm(language, development, platform)
         
-        self._model.algorithm= algo
+        self._model.algorithms.append(algo)
 
     def Parametersets(self, elts):
         """ Parametersets (Parameterset)

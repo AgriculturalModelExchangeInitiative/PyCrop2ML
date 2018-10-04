@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
- <ModelUnit modelid="1" timestep="1" name="LintulPhenology" version="1.0">
+<ModelUnit modelid="1" timestep="1" name="LintulPhenology" version="1.0">
     <Description>
       <Title>LintulPhenology</Title>
       <Authors>Gunther Krauss, gk@uni-bonn.de</Authors>
@@ -105,7 +105,7 @@
     
     </Algorithm>
     
-    <Algorithm language="python_ext" platform="" ><![CDATA[
+    <Algorithm language="python_ext" platform="OpenAlea" ><![CDATA[
     
 	MilkripenessDate=1
       EmergenceDOY=1

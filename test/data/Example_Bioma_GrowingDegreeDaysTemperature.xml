@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<?xml version="1.0" ?>
+<!DOCTYPE ModelUnit SYSTEM "ModelUnit.dtd">
 <ModelUnit modelid="1" timestep="1" name="Bioma_GrowingDegreeDaysTemperature" version="1.0">
 	<Description>
 		<Title>GrowingDegreeDaysTemperature</Title>
@@ -22,7 +22,7 @@
 		<Output name="GrowingDegreeDaysTemperature" datatype="DOUBLE" min="0" max="8000"  unit="°C" description="Potential growing degree days calculated on temperature"/>
 		<Output name="GrowingDegreeDaysTemperatureRate" datatype="DOUBLE" min="0" max="50"  unit="°C" description="Potential daily rate of growing degree days accumulation based on temperature"/>		
 	</Outputs>
-	<Algorithm language="Pyhton_ext">
+	<Algorithm language="python_ext" platform=" ">
 		<![CDATA[ 
 				Tavg = float(AirTemperatureAverage)
 

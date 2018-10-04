@@ -30,7 +30,7 @@
       ]]>
     </Algorithm>
     
-     <Algorithm language="python_ext" platform="" ><![CDATA[
+     <Algorithm language="python_ext" platform=" " ><![CDATA[
 
                 PhotoPeriodFactor = ((iPhotoInhibition - iDayLength) /60)/ (iPhotoInhibition - iPhotoInsensitivity)
                 if (iPhotoInsensitivity > iPhotoInhibition):

@@ -26,6 +26,8 @@ class Model2Package(object):
     DATATYPE['string'] = str
     DATATYPE['Double'] = float
     DATATYPE['DOUBLEARRAY'] = numpy.array
+    DATATYPE['BOOLEAN'] = bool
+    DATATYPE['DATE'] = str
 
     num = 0
 
@@ -66,8 +68,10 @@ class Model2Package(object):
         count = 0
 
         for model in self.models:
+            
 
             self.generate_component(model)
+            
             ext = '' if count == 0 else str(count)
             filename = self.dir/"model%s.py"%ext
 
@@ -97,6 +101,7 @@ class Model2Package(object):
         _package = package.UserPackage("CropModel", metainfo, self.dir)
 
         for model in self.models:
+            
             _factory = self.generate_factory(model)
             _package.add_factory(_factory)
 
@@ -137,7 +142,7 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
-        self.code= "import numpy as np \n" + "from copy import copy\n\n"
+        self.code= "import numpy as np \n" + "from copy import copy\n" + "from math import *\n\n"
 
         self.code += self.generate_function_signature(model_unit)
 
@@ -154,55 +159,61 @@ class Model2Package(object):
     def generate_algorithm(self, model_unit):
 
 
-
+        print(model_unit.name)
         #code ="\n"
         outputs = model_unit.outputs
-        algo = model_unit.algorithm.development
+        
+        for num_algo in range(0, len(model_unit.algorithms)):
+            
+            if (model_unit.algorithms[num_algo].language=="python_ext")|(model_unit.algorithms[num_algo].language==" "):
+               
+                algo = model_unit.algorithms[num_algo].development
 
         #code = ''
-        tab = ' '*4
+                tab = ' '*4
         #code += tab+"try:" + "\n"
-        lines = [l.strip() for l in algo.split('\n') if l.strip()]
+                lines = [l.strip() for l in algo.split('\n') if l.strip()]
         #lines = [l for l in algo.split('\n')]
         #for line in lines:
         #   code += tab+line+'\n'
-        def indentation(lines):
-            code=''
-            z=' '*4
-            tab=' '*4
-            i=1
-            for line in lines:
-                pline = line
-                if line =="{":
-                    pline = line.strip('{')
-                    i = i+1
-                    tab = z*i
-                if line =="}":
-                    pline = line.strip('}')
-                    i = i-1
-                    tab = z*i
-                code+=tab+pline+"\n"
-            return code
+                def indentation(lines):
+                    code=''
+                    z=' '*4
+                    tab=' '*4
+                    i=1
+                    for line in lines:
+                        pline = line
+                        if line =="{":
+                            pline = line.strip('{')
+                            i = i+1
+                            tab = z*i
+                        if line =="}":
+                            pline = line.strip('}')
+                            i = i-1
+                            tab = z*i
+                        code+=tab+pline+"\n"
+                    return code
 
-        code = indentation(lines)
+                code = indentation(lines)
 
         #code = algo +'\n'
 
         # Outputs
-        code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
+                code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
 
         #code += tab + "except ValueError :" + '\n'
 
         #code += 2*tab + 'return' + "'  No Real Solution'"
 
-        self.code = code
+                self.code = code
 
-        return self.code
+                return self.code
 
     # documentation
     def generate_function_doc(self, model_unit):
 
         desc = model_unit.description
+        
         _doc = '''
     """ %s
 
@@ -265,7 +276,7 @@ class Model2Package(object):
         psets = m.parametersets
         self.codetest = ""
         """if self.with_import:
-            self.codetest += "from model import *\n"+"import numpy as np\n\n"
+            self.codetest += "from model import *\n"+"import numpy as np\n"+"import numpy\n\n
         """
 
         for v_tests in m.testsets:
@@ -352,7 +363,7 @@ class Model2Package(object):
             ext = '' if count == 0 else str(count)
             filename = self.dir/"testrun%s.py"%ext
 
-            codetest = "'Test generation'\n\n"+"from model%s"%ext + " import *\n"+"import numpy as np\n\n" + codetest
+            codetest = "'Test generation'\n\n"+"from model%s"%ext + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
             with open(filename, "w") as python_file:
                 python_file.write(codetest.encode('utf-8'))
@@ -392,6 +403,10 @@ def openalea_interface(inout):
 
     elif 'array' in dtype:
         interface = inter.ISequence
+    
+    elif 'bool' in dtype:
+        interface = inter.IBool
+
 
     return interface
 

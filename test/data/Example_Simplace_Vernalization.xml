@@ -68,7 +68,7 @@
    
    ]]>
   </Algorithm>
-  <Algorithm language="python_ext" platform=" "><![CDATA[
+  <Algorithm language="python_ext" platform="OpenAlea"><![CDATA[
       
     VernalisationFactor=0
     RTSUM=0

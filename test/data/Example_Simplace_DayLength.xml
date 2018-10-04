@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Model PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
-<Model id="1" timestep="1" name ="DayLength" version="1.0">
+<?xml version="1.0" ?>
+<!DOCTYPE ModelUnit PUBLIC "" "https://raw.githubusercontent.com/cyrillemidingoyi/xml_representation/usecase/ModelUnit.dtd">
+<ModelUnit modelid="1" timestep="1" name ="DayLength" version="1.0">
 	<Description>
 		<Title>STMPsimCalculator</Title>
 		<Authors>Andreas Enders</Authors>
@@ -9,9 +9,9 @@
 		<Abstract>Calculates the DayLength.</Abstract>
 	</Description>
 	<Inputs>
-		<Input name="pDaylength" datatype="floatARRAY" inputtype="parameter" parametercategory="constant" min="0" max="1441" default="0" unit="d" description="" />
+		<Input name="pDaylength" datatype="DOUBLEARRAY" inputtype="parameter" parametercategory="constant" min="0" max="1441" default="0" unit="d" description="" />
 		<Input name="cLatitude"  description="Latitude of the simulated location" datatype="float" inputtype="parameter" parametercategory="constant" min="0" max="90" default="60" unit="" />
-		<Input name="iDayOfYear" description="Day Of Year" datatype="float" inputtype="Variable" parametercategory="constant" min="" max="" default="100" unit="" />
+		<Input name="iDayOfYear" description="Day Of Year" datatype="float" inputtype="variable" parametercategory="constant" min="" max="" default="100" unit="" />
 
 	</Inputs>
 	<Outputs>
@@ -46,7 +46,7 @@
 	]]>
 	</Algorithm>
 	
-	<Algorithm language="python_ext" platform=""><![CDATA[
+	<Algorithm language="python_ext" platform=" "><![CDATA[
 	
 		dayLengthArray = np.arange(370)
 		
@@ -91,4 +91,4 @@
 			</Test>
 		</Testset>
 	</Testsets>
-</Model>
+</ModelUnit>
