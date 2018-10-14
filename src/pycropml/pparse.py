@@ -115,7 +115,12 @@ class ModelParser(Parser):
         platform=elt.attrib["platform"]
         development = elt.text
         
-        algo = algorithm.Algorithm(language, development, platform)
+        if "function" in elt.attrib.keys(): 
+            function=elt.attrib["function"]
+            filename=elt.attrib["filename"]
+            algo = algorithm.Algorithm(language, development, platform, function, filename)
+        else: 
+            algo = algorithm.Algorithm(language, development, platform)
         
         self._model.algorithms.append(algo)
 
