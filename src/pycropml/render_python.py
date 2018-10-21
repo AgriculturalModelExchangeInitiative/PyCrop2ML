@@ -8,7 +8,7 @@ Problems:
 """
 from __future__ import print_function
 from path import Path
-import numpy
+import numpy 
 
 from openalea.core import package
 from openalea.core import node
@@ -57,8 +57,8 @@ class Model2Package(object):
         """
 
         # Create a directory (mymodel)
-        cwd = Path.getcwd()
-        directory=cwd/'mymodel'
+        cwd = Path(self.dir)
+        directory=cwd/'python_model'
         if (directory).isdir() :
             self.dir = directory
         else:
@@ -73,7 +73,8 @@ class Model2Package(object):
             self.generate_component(model)
             
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"model%s.py"%ext
+            #filename = self.dir/"model%s.py"%ext
+            filename = self.dir/"model_%s.py"%signature(model)
 
             with open(filename, "w") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
@@ -149,65 +150,53 @@ class Model2Package(object):
         self.code += self.generate_function_doc(model_unit)
 
         self.code += self.generate_algorithm(model_unit)
-
-        # print (self.code)
-
+        
         return self.code
 
 
 
     def generate_algorithm(self, model_unit):
 
-
-        print(model_unit.name)
-        #code ="\n"
         outputs = model_unit.outputs
         
-        for num_algo in range(0, len(model_unit.algorithms)):
-            
-            if (model_unit.algorithms[num_algo].language=="python_ext")|(model_unit.algorithms[num_algo].language==" "):
-               
-                algo = model_unit.algorithms[num_algo].development
+        for algorithm in model_unit.algorithms:                                  
+            if (algorithm.language=="python_ext")|(algorithm.language==" "):
+                algo = algorithm
+                break
+                       
+        if algo.function==None:
+            development = algo.development
+            tab = ' '*4
+            lines = [l.strip() for l in development.split('\n') if l.strip()]
 
-        #code = ''
-                tab = ' '*4
-        #code += tab+"try:" + "\n"
-                lines = [l.strip() for l in algo.split('\n') if l.strip()]
-        #lines = [l for l in algo.split('\n')]
-        #for line in lines:
-        #   code += tab+line+'\n'
-                def indentation(lines):
-                    code=''
-                    z=' '*4
-                    tab=' '*4
-                    i=1
-                    for line in lines:
-                        pline = line
-                        if line =="{":
-                            pline = line.strip('{')
-                            i = i+1
-                            tab = z*i
-                        if line =="}":
-                            pline = line.strip('}')
-                            i = i-1
-                            tab = z*i
-                        code+=tab+pline+"\n"
-                    return code
+            def indentation(lines):
+                code=''
+                z=' '*4
+                tab=' '*4
+                i=1
+                for line in lines:
+                    pline = line
+                    if line =="{":
+                        pline = line.strip('{')
+                        i = i+1
+                        tab = z*i
+                    if line =="}":
+                        pline = line.strip('}')
+                        i = i-1
+                        tab = z*i
+                    code+=tab+pline+"\n"
+                return code
 
-                code = indentation(lines)
-
-        #code = algo +'\n'
-
+            code = indentation(lines)         
         # Outputs
-                code += tab + 'return ' + ', '.join([o.name for o in outputs]) + '\n'
+            code += tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
+ 
+        else:
+            code += tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
 
-        #code += tab + "except ValueError :" + '\n'
+        self.code = code
 
-        #code += 2*tab + 'return' + "'  No Real Solution'"
-
-                self.code = code
-
-                return self.code
+        return self.code
 
     # documentation
     def generate_function_doc(self, model_unit):
@@ -261,7 +250,6 @@ class Model2Package(object):
         ins = [ my_input(inp) for inp in inputs]
         separator = ',\n'+ code_size*' '
         code += separator.join(ins)
-        #print (inputs)
         code+= '):'
 
         return code
@@ -275,10 +263,6 @@ class Model2Package(object):
 
         psets = m.parametersets
         self.codetest = ""
-        """if self.with_import:
-            self.codetest += "from model import *\n"+"import numpy as np\n"+"import numpy\n\n
-        """
-
         for v_tests in m.testsets:
 
             test_name = v_tests.name  # name of tests
@@ -289,7 +273,7 @@ class Model2Package(object):
             params = {}
 
             if   test_paramsets not in psets.keys():
-                print('Unknow parameter %s'%test_paramsets)
+                print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
 
@@ -322,10 +306,10 @@ class Model2Package(object):
                         test_codes.append(code)
                     code = "     )"
                     test_codes.append(code)
-
+  
                     if len(outs) <= 1:
-                        decimal = outs.values()[0][1]
-                        code = tab + "params = np.around(params, {})".format(decimal)
+                        precision = outs.values()[0][1]
+                        code = tab + "params = np.around(params, {})".format(precision)
                         test_codes.append(code)
 
                         code = tab + "out_computed = {}".format((outs.values()[0][0]))
@@ -343,15 +327,16 @@ class Model2Package(object):
 
                         code = tab + "assert np.all(params== out_computed)"
                         test_codes.append(code)
-
+                    
 
                     code = '\n'.join(test_codes)
-
-                    print (code)
 
                     self.codetest += code
 
         return self.codetest
+    
+    def generate_func_test(self, model_unit):
+        pass
 
     def write_tests(self):
         """ TODO: Manage several models rather than just one.
@@ -361,9 +346,9 @@ class Model2Package(object):
         for model in self.models:
             codetest = self.generate_test(model)
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"testrun%s.py"%ext
+            filename = self.dir/"test_%s.py"%signature(model)
 
-            codetest = "'Test generation'\n\n"+"from model%s"%ext + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
+            codetest = "'Test generation'\n\n"+"from model_%s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
             with open(filename, "w") as python_file:
                 python_file.write(codetest.encode('utf-8'))
