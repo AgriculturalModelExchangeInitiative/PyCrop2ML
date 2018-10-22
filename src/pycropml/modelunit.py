@@ -21,7 +21,7 @@ class ModelUnit(ModelDefinition):
         self.description = None
         self.inputs = []
         self.outputs = []
-        self.algorithm = None
+        self.algorithms = []
         self.parametersets = {}
         self.testsets = []
 

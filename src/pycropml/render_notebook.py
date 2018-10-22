@@ -55,6 +55,7 @@ class Model2Nb(rp.Model2Package):
         count = 0
         files=[]
         for model in self.models:
+            print(model.name)
             self.generate_component(model)
         # In the directory notebook/model.py
         # TODO: The code need to be generated locally in different methods.

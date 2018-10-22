@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE ModelUnit PUBLIC "-//SIMPLACE/DTD SOL 1.0//EN" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC "" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
 <ModelUnit modelid="1" timestep="1" name="TemperatureSum" version="1.0">
 	<Description>
 		<Title>TemperatureSum</Title>
@@ -26,7 +26,7 @@
 		<Output name="GrowingDegreeDaysTemperatureRate" datatype="DOUBLE" min="0" max="50"  unit="°C-day" description="Potential daily rate of growing degree days accumulation based on temperature"/>
 		
 	</Outputs>
-	<Algorithm language="python-ext">
+	<Algorithm language="python_ext" platform=" ">
 		<![CDATA[ 
 				Tavg = AirTemperatureAverage
 				if(Tavg<=DailyIncreaseTempSumFunctionOfAverageT_DTSMTB_X1):
@@ -59,8 +59,8 @@
 			<Test name="check 1 1">
 				<InputValue name="AirTemperatureAverage">16</InputValue>				
 				<InputValue name="GrowingDegreeDaysTemperature">1</InputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">13</OutputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">12</OutputValue>				
+				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">17</OutputValue>				
+				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">16</OutputValue>				
 			</Test>
 			<Test name="check 1 2">
 				<InputValue name="AirTemperatureAverage">3</InputValue>				

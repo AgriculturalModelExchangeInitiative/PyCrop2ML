@@ -20,7 +20,7 @@
 	<Outputs>
 		<Output name="SoilTempArray" datatype="DOUBLEARRAY" min="" max="" unit="" description=""/>
 	</Outputs>
-	<Algorithm language="Pyhton_ext"><![CDATA[ 
+	<Algorithm language="python_ext" platform="OpenAlea"><![CDATA[ 
 			Z = copy(cSoilLayerDepth)
 			firstDayMeanTemp = cFirstDayMeanTemp
 			_profiledepth = Z[len(Z) - 1]
