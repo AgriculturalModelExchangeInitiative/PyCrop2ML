@@ -1,11 +1,12 @@
 <?xml version="1.0" ?>
-<!DOCTYPE ModelUnit SYSTEM "ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC "" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
 <ModelUnit modelid="1" timestep="1" name="Bioma_GrowingDegreeDaysTemperature" version="1.0">
 	<Description>
 		<Title>GrowingDegreeDaysTemperature</Title>
 		<Authors>various</Authors>
-		<Institution>JRC-CREA</Institution>
+		<Institution></Institution>
 		<URI></URI>
+		<Reference>absolutely non</Reference>
 		<Abstract><![CDATA[
 			Growing degree days based on temperature -Confalonieri, R., Gusberti, D., Acutis, M., 2006.
 		  	Comparison of WOFOST, CropSyst and WARM for simulating rice growth

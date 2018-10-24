@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE ModelUnit PUBLIC "" "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
 <ModelUnit modelid="1" timestep="1" name="TemperatureSum" version="1.0">
 	<Description>
 		<Title>TemperatureSum</Title>
@@ -19,10 +19,10 @@
 		<Input name="DailyIncreaseTempSumFunctionOfAverageT_DTSMTB_Y1" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="-10" max="50" default="0" unit="unitless" description="Daily increase of temperature sum function on average temperature - increase1" />
 		<Input name="DailyIncreaseTempSumFunctionOfAverageT_DTSMTB_Y2" datatype="DOUBLE" inputtype="parameter" parametercategory="constant" min="-10" max="50" default="31" unit="unitless" description="Daily increase of temperature sum function on average temperature - increase2" />
 		<Input name="AirTemperatureAverage" datatype="DOUBLE" inputtype="variable"  min="-25" max="50" default="10" unit="°C" description="Daily average of air temperature"/>		
-		<Input name="GrowingDegreeDaysTemperature" datatype="DOUBLE" inputtype="variable" min="0" max="8000" default="100" unit="°C-day" description="Potential growing degree days calculated on temperature, of previous day"/>		
+		<Input name="GrowingDegreeDaysTemperature" datatype="DOUBLE" inputtype="variable" min="0" max="8000" default="100" unit="°C-day" description="Potential growing degree days calculated on temperature of previous day"/>		
 	</Inputs>
 	<Outputs>
-		<Output name="GrowingDegreeDaysTemperature" datatype="DOUBLE"  min="0" max="8000"  unit="°C-day" description="Potential growing degree days calculated on temperature, of current day"/>		
+		<Output name="GrowingDegreeDaysTemperature" datatype="DOUBLE"  min="0" max="8000"  unit="°C-day" description="Potential growing degree days calculated on temperature of current day"/>		
 		<Output name="GrowingDegreeDaysTemperatureRate" datatype="DOUBLE" min="0" max="50"  unit="°C-day" description="Potential daily rate of growing degree days accumulation based on temperature"/>
 		
 	</Outputs>
@@ -59,20 +59,20 @@
 			<Test name="check 1 1">
 				<InputValue name="AirTemperatureAverage">16</InputValue>				
 				<InputValue name="GrowingDegreeDaysTemperature">1</InputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">17</OutputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">16</OutputValue>				
+				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">17.0</OutputValue>				
+				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">16.0</OutputValue>				
 			</Test>
 			<Test name="check 1 2">
 				<InputValue name="AirTemperatureAverage">3</InputValue>				
 				<InputValue name="GrowingDegreeDaysTemperature">1</InputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">1</OutputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">0</OutputValue>					
+				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">1.0</OutputValue>				
+				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">0.0</OutputValue>					
 			</Test>			
 			<Test name="check 1 2">
 				<InputValue name="AirTemperatureAverage">50</InputValue>				
 				<InputValue name="GrowingDegreeDaysTemperature">1</InputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">32</OutputValue>				
-				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">31</OutputValue>					
+				<OutputValue name="GrowingDegreeDaysTemperature" precision = "3">32.0</OutputValue>				
+				<OutputValue name="GrowingDegreeDaysTemperatureRate" precision = "3">31.0</OutputValue>					
 			</Test>			
 		</Testset>		
 	</Testsets>

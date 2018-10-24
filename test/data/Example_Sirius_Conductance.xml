@@ -16,7 +16,7 @@
         <Input name="zh" description="roughness length governing transfer of heat and vapour, FAO" parametercategory="constant" inputtype="parameter" datatype="DOUBLE" min="0" max="1" default="0.013" unit="" uri="some url"/>
         <Input name="d" description="corresponding to 2/3. This is multiplied to the crop heigth for calculating the zero plane displacement height, FAO" parametercategory="constant" datatype="DOUBLE" default="0.67" min="0" max="1" unit="" uri="some url" inputtype="variable"/>
         <Input name="plantHeight" description="" parametercategory="species" datatype="DOUBLE" default="0" min="0" max="1000" unit="mm" uri="some url" inputtype="variable"/>
-        <Input name="wind" description="" parametercategory="species" datatype="DOUBLE" default="124000" min="0" max="1000000" unit="m/d" uri="some url" inputtype="variable"/>
+        <Input name="wind" description="" datatype="DOUBLE" default="124000" min="0" max="1000000" unit="m/d" uri="some url" inputtype="variable"/>
   
     </Inputs>
     <Outputs>
