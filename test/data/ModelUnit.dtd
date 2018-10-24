@@ -1,7 +1,7 @@
-<!ELEMENT Model (Description,Inputs?,Outputs?,Initialization?,Function*, Algorithm+,Parametersets,Testsets)>
-<!ATTLIST Model
+<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Initialization?,Function*, Algorithm+,Parametersets,Testsets)>
+<!ATTLIST ModelUnit
   name CDATA #REQUIRED
-  id CDATA #REQUIRED
+  modelid CDATA #REQUIRED
   timestep CDATA #IMPLIED
   version CDATA #REQUIRED>
 
