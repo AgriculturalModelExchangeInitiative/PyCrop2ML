@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/cyrillemidingoyi/PyCropML/render_csharp/test/data/ModelUnit.dtd">
+<ModelUnit modelid="1" name="CalculateLeafNumber" timestep="1" version="1.0">
+    <Description>
+        <Title>CalculateLeafNumber Model</Title>
+        <Authors>Pierre MARTRE</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <Reference>absolutely non</Reference>
+        <Abstract>calculate leaf number. LeafNumber increase is capted at one more leaf per day</Abstract>
+    </Description>
+    <Inputs>
+        <Input name="DeltaTT" description="daily delta TT " datatype="DOUBLE" min="-20" max="100" default="23.5895677277199" unit="°Cd" uri="some url" inputtype="variable"/>
+        <Input name="Phyllochron" description="phyllochron" parametercategory="species" inputtype ="variable" datatype="DOUBLE" min="0" max="25" default="0" unit="°Cd/leaf" uri="some url"/>
+        <Input name="HasFlagLeafLiguleAppeared" description="true if flag leaf has appeared (leafnumber reached finalLeafNumber)" parametercategory="species" datatype="INT" min="0" max="1" default="0" unit="unitless" uri="some url" inputtype = "variable"/>
+        <Input name="SwitchMaize" description="true if maize" parametercategory="constant" datatype="INT" min="0" max="1" default="0" unit="unitless" uri="some url" inputtype = "parameter"/>
+        <Input name="atip" description="slope of leaf initiation" parametercategory="species" datatype="DOUBLE" min="0" max="1000" default="10" unit="leaf/°Cday²" uri="some url" inputtype = "parameter"/>
+        <Input name="Leaf_tip_emerg" description="parameter for maize number of tip emerged" parametercategory="species" datatype="DOUBLE" min="0" max="1000" default="10" unit="unitless" uri="some url" inputtype = "parameter"/>
+        <Input name="k_bl" description="" parametercategory="constant" inputtype="parameter" datatype="DOUBLE" min="0" max="100" default="1.412" unit="unitless" uri="some url"/>
+        <Input name="Nlim" description="" parametercategory="constant" datatype="DOUBLE" default="6.617" min="0" max="1000" unit="unitless" uri="some url" inputtype="parameter"/>
+        <Input name="LeafNumber" description=" Actual number of phytomers" datatype="DOUBLE" min="0" max="25" default="0"  unit="leaf" uri="some url" inputtype="variable"/>
+        <Input name="cumulTTPhenoMaizeAtEmergence" description="cumulTTPhenoMaizeAtEmergence" datatype="DOUBLE" min="0" max="10000" default="300"  unit="°C" uri="some url" inputtype="variable"/>
+        <Input name="cumulTT" description="cumul thermal times at current time " datatype="DOUBLE" min="0" max="10000"  unit="°C" default="402.042720581446" uri="some url" inputtype="variable"/>
+        <Input name="phaseValue" description=" the name of the phase" datatype="DOUBLE" min="0" max="7" default = "1" unit="unitless" uri="some url" inputtype="variable"/>
+        
+    
+    </Inputs>
+    <Outputs>
+        <Output name="LeafNumber" description="Actual number of phytomers" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
+        <Output name="Ntip" description="Maize number of tip" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
+    </Outputs>
+    
+    <Algorithm  language="C#" platform="" filename="LeafNumberModule.cs" function="CalculateLeafNumber"/>
+    <Algorithm  language="python_ext" platform="" filename="LeafNumberModule.py" function="CalculateLeafNumber"/>
+	<Algorithm  language="Java" platform="" filename="LeafNumberModule.java" function="CalculateLeafNumber"/>
+
+    <Parametersets>
+        <Parameterset name="ParamWheat" description="some values in there" >
+        	<Param name="SwitchMaize">0</Param>
+        	<Param name="Leaf_tip_emerg">10</Param>
+        </Parameterset>
+     </Parametersets>
+     <Testsets>
+        <Testset name="check wheat model1" parameterset = "ParamWheat" description="some values in there" >
+        	<Test name ="test_wheat1">
+        		<InputValue name="LeafNumber">5.147163833893262</InputValue>
+        		<InputValue name="phase">3</InputValue>
+        		<InputValue name="Phyllochron">91.2</InputValue>
+        		<OutputValue name="Ntip" precision ="2">0</OutputValue>
+				<OutputValue name="LeafNumber" precision ="2">5.41</OutputValue>
+ 	
+        	</Test>
+        </Testset>
+      </Testsets>
+ 	
+</ModelUnit>

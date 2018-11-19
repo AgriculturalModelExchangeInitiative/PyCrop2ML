@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/cyrillemidingoyi/PyCropML/render_csharp/test/data/ModelUnit.dtd">
+<ModelUnit modelid="1" name="EnergyBalance" timestep="1" version="1.0">
+    <Description>
+        <Title>Energy Balance Model</Title>
+        <Authors>Pierre Martre</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <Reference>absolutely non</Reference>
+        <Abstract>Calculate Energy Balance </Abstract>
+    </Description>
+    
+     
+    <Inputs>
+        <Input name="minTair" description="minimal temperature" datatype="DOUBLE" min="0" max="25" default="0.7" unit="°C" uri="some url" inputtype = "variable"/>
+        <Input name="maxTair" description="maximal Temperature" datatype="DOUBLE" min="0" max="30" default="7.2" unit="°C" uri="some url" inputtype = "variable"/>
+        <Input name="albedoCoefficient" description="albedo Coefficient" parametercategory="constant" datatype="DOUBLE" default="0.23" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="stefanBoltzman" description="stefanBoltzman coeficient" parametercategory="constant" datatype="DOUBLE" default="4.903E-09" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="elevation" description="elevation" datatype="DOUBLE" default="0" min="-500" max="10000" unit="m" uri="some url" inputtype="parameter"/>
+        <Input name="solarRadiation" description="solar Radiation" datatype="DOUBLE" default="3" min="0" max="1000" unit="MJ/m²/d" uri="some url" inputtype="variable"/>
+        <Input name="vaporPressure" description="vapor Pressure" datatype="DOUBLE" default="6.1" min="0" max="1000" unit="hPa" uri="some url" inputtype="variable"/>
+        <Input name="extraSolarRadiation" description="extra Solar Radiation"  datatype="DOUBLE" default="11.7" min="0" max="1000" unit="MJ/m²/d" uri="some url" inputtype="variable"/>
+        <Input name="lambdaV" description="latent heat of vaporization of water" parametercategory="constant" datatype="DOUBLE" default="2.454" min="0" max="10" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="hslope" description="" parametercategory="constant" datatype="DOUBLE" default="0.584" min="0" max="1000" unit="hPa/°C" uri="some url" inputtype="variable"/>
+        <Input name="psychrometricConstant" description="psychrometric constant" parametercategory="constant" datatype="DOUBLE" default="0.66" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="Alpha" description="Priestley-Taylor evapotranspiration proportionality constant" parametercategory="constant" datatype="DOUBLE" default="1.5" min="0" max="100" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="vonKarman" description="von Karman constant" datatype="DOUBLE" min="0" max="1" default="0.42" unit="" uri="some url" inputtype = "parameter"/>
+        <Input name="heightWeatherMeasurements" description="reference height of wind and humidity measurements" datatype="DOUBLE" min="0" max="10" default="2" unit="m" uri="some url" inputtype = "parameter"/>
+        <Input name="zm" description="roughness length governing momentum transfer, FAO" parametercategory="constant" inputtype="parameter" datatype="DOUBLE" min="0" max="1" default="0.13" unit="" uri="some url"/>
+        <Input name="zh" description="roughness length governing transfer of heat and vapour, FAO" parametercategory="constant" inputtype="parameter" datatype="DOUBLE" min="0" max="1" default="0.013" unit="" uri="some url"/>
+        <Input name="d" description="corresponding to 2/3. This is multiplied to the crop heigth for calculating the zero plane displacement height, FAO" parametercategory="constant" datatype="DOUBLE" default="0.67" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="plantHeight" description="plant height" datatype="DOUBLE" default="0" min="0" max="1000" unit="mm" uri="some url" inputtype="variable"/>
+        <Input name="wind" description="wind" datatype="DOUBLE" default="124000" min="0" max="1000000" unit="m/d" uri="some url" inputtype="variable"/>
+        <Input name="deficitOnTopLayers" description=""  datatype="DOUBLE" default="5341" min="0" max="10000" unit="g/m²d" uri="some url" inputtype="variable"/>
+        <Input name="soilDiffusionConstant" description="soil Diffusion Constant" parametercategory="soil" datatype="DOUBLE" default="4.2" min="0" max="10" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="VPDair" description="Vapour Pressure density" datatype="DOUBLE" default="2.19" min="0" max="1000" unit="hPa" uri="some url" inputtype="variable"/>
+        <Input name="rhoDensityAir" description="Density of air" parametercategory="constant" datatype="DOUBLE" default="1.225" min="0" max="10" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="specificHeatCapacityAir" description="Specific heat capacity of dry air" parametercategory="constant" datatype="DOUBLE" default="0.00101" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="tau" description="plant cover factor" parametercategory="constant" datatype="DOUBLE" default="0.9983" min="0" max="100" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="tauAlpha" description="Fraction of the total net radiation exchanged at the soil surface when AlpaE = 1" parametercategory="soil" datatype="DOUBLE" default="0.3" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="isWindVpDefined" description="if wind and Vapour pressure density are defined" parametercategory="constant" datatype="DOUBLE" default="1" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+	</Inputs>
+    
+    <Outputs>
+        <Output name="netRadiation" description=" net radiation " datatype="DOUBLE" min="0" max="8000"  unit="g/m²d" uri="some url"/>
+        <Output name="netOutGoingLongWaveRadiation" description="net OutGoing Long Wave Radiation " datatype="DOUBLE" min="0" max="8000"  unit="g/m²d" uri="some url"/>
+        <Output name="netRadiationEquivalentEvaporation" description=" net Radiation Equivalent Evaporation" datatype="DOUBLE" min="0" max="5"  unit="g/m²d" uri="some url"/>
+        <Output name="conductance" description=" conductance" datatype="DOUBLE" min="0" max="5000"  unit="m/d" uri="some url"/>
+        <Output name="diffusionLimitedEvaporation" description="diffusion Limited Evaporation " datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="evapoTranspirationPriestlyTaylor" description="evapoTranspiration of Priestly Taylor " datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="evapoTranspirationPenman" description=" evapoTranspiration of Penman Monteith" datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="potentialTranspiration" description="potential Transpiration " datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="energyLimitedEvaporation" description="energy Limited Evaporation " datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="soilEvaporation" description="soil Evaporation " datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="soilHeatFlux" description=" soil Heat Flux" datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="cropHeatFlux" description=" crop Heat Flux" datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        <Output name="minCanopyTemperature" description="min Canopy Temperatur  " datatype="DOUBLE" min="-20" max="20"  unit="C" uri="some url"/>
+        <Output name="maxCanopyTemperature" description=" max Canopy Temperature" datatype="DOUBLE" min="-20" max="5"  unit="C" uri="some url"/>
+        <Output name="evapoTranspiration" description=" evapoTranspiration" datatype="DOUBLE" min="0" max="5000"  unit="g/m²d" uri="some url"/>
+        
+    </Outputs>
+    
+    <Algorithm language="C#" platform="" filename="EnergyBalance.cs" function="EnergyBalance">
+    </Algorithm>  
+    <Algorithm language="Java" platform="" filename="EnergyBalance.java" function="EnergyBalance">
+    </Algorithm> 
+    <Algorithm language="cython" platform="" filename="EnergyBalance.pyx" function="EnergyBalance">
+    </Algorithm> 
+    <Algorithm language="C++" platform="" filename="EnergyBalance.cpp" function="EnergyBalance">
+    </Algorithm>
+    <Algorithm language="Fortran" platform="" filename="EnergyBalance.f" function="EnergyBalance">
+    </Algorithm>
+    <Algorithm language="R" platform="" filename="EnergyBalance.r" function="EnergyBalance">
+    </Algorithm> 
+    <Algorithm language="python_ext" platform="" filename="EnergyBalance.py" function="EnergyBalance">
+    </Algorithm> 
+    
+
+    <Parametersets>
+        <Parameterset name="set1" description="some values in there" >
+        	<Param name="rhoDensityAir">1.225</Param>
+        	<Param name="d">0.67</Param>
+        	<Param name="zh">0.013</Param>
+        	<Param name="zm">0.13</Param>
+        	<Param name="soilDiffusionConstant">4.2</Param>
+        	<Param name="isWindVpDefined">1</Param>
+        	<Param name="Alpha">1.5</Param>
+        	<Param name="lambdaV">2.454</Param>
+        	<Param name="tau">0.9983</Param>
+        	<Param name="elevation">0</Param>
+       </Parameterset>
+
+     </Parametersets>
+     <Testsets>
+        <Testset name="first" parameterset = "set1" description="some values in there" >
+        	<Test name ="test1">
+        		<InputValue name="minTair">0.7</InputValue>
+        		<InputValue name="maxTair">7.2</InputValue>
+        		<InputValue name="wind">124000</InputValue>
+        		<InputValue name="plantHeight">0</InputValue>
+        		<InputValue name="deficitOnTopLayers">5341</InputValue>
+        		<InputValue name="hslope">0.584</InputValue>
+        		<InputValue name="VPDair">2.19</InputValue>
+        		<InputValue name="solarRadiation">3</InputValue>
+				<InputValue name="vaporPressure">6.1</InputValue>
+				<OutputValue name="netRadiation" precision ="3">1.566</OutputValue>
+				<OutputValue name="netOutGoingLongWaveRadiation" precision ="3">0.744</OutputValue>        		
+        		<OutputValue name="netRadiationEquivalentEvaporation" precision ="3">638.142</OutputValue>
+				<OutputValue name="diffusionLimitedEvaporation" precision ="3"> 6605.505</OutputValue>     		
+ 				<OutputValue name="cropHeatFlux" precision ="3"> 447.912</OutputValue>        		
+ 				<OutputValue name="conductance" precision ="3">598.685</OutputValue>        		
+ 				<OutputValue name="minCanopyTemperature" precision ="3">2.184</OutputValue>
+				<OutputValue name="maxCanopyTemperature" precision ="3">8.684</OutputValue>
+				<OutputValue name="evapoTranspiration" precision ="3">830.957</OutputValue>
+				<OutputValue name="evapoTranspirationPenman" precision ="3">830.958</OutputValue>
+				<OutputValue name="potentialTranspiration" precision ="3">1.413</OutputValue>
+				<OutputValue name="evapoTranspirationPriestlyTaylor" precision ="3">449.367</OutputValue>
+				<OutputValue name="energyLimitedEvaporation" precision ="3">448.240</OutputValue>
+				<OutputValue name="soilEvaporation" precision ="3">448.240</OutputValue>
+				<OutputValue name="soilHeatFlux" precision ="3">188.817</OutputValue>
+        	
+        	</Test>
+
+        </Testset>
+      </Testsets>
+ 	
+</ModelUnit>
