@@ -3,14 +3,14 @@
 """
 from path import Path
 
-from pycropml import pparse
+from pycropml import pparse, render_java
 
-# Fix pb in local path
+# Fix pb in tlocal path
 cwd = Path.getcwd()
-if (cwd/'data').isdir():
-    data = cwd/'data'
-elif (cwd/'test'/'data').isdir():
-    data = cwd/'test'/'data'
+if (cwd/'data'/'exo').isdir():
+    data = cwd/'data'/'exo'
+elif (cwd/'test'/'data'/'exo').isdir():
+    data = cwd/'test'/'data'/'exo'
 else:
     print('Data directory not found')
 
@@ -28,6 +28,7 @@ def example():
     
     models = pparse.model_parser(fn)
     return models
+
 
 """
 def test1():

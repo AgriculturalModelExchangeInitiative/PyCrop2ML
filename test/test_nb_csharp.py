@@ -6,9 +6,9 @@ import os
 from path import Path
 from urlparse import urlparse
 
-from pycropml import pparse, render_notebook
+from pycropml import pparse, render_notebook_csharp
 
-from .test1 import example, cwd, xmls
+from .test1bis import example, cwd, xmls
 
 REMOVE = True
 
@@ -19,12 +19,9 @@ REMOVE = True
 def test1():
     models = example()
     #assert len(models)
-
-
-    m2p = render_notebook.Model2Nb(models, dir='.');
+    m2p = render_notebook_csharp.Model2Nb(models, dir='.');
     m2p.run()
 
-    nb=Path('python_notebook')
     """if nb.exists() and nb.isdir():
         nb.rmtree()"""
 
@@ -34,7 +31,7 @@ def test1():
 if __name__ == '__main__':
     models = example()
     assert len(models)
-    m2p = render_notebook.Model2Nb(models)
+    m2p = render_notebook_csharp.Model2Nb(models)
     m2p.run()
     code = m2p.code
     exec(code)

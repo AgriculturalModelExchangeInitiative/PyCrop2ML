@@ -31,12 +31,15 @@ class Model2Package(object):
 
     num = 0
 
-    def __init__(self, models, dir=None):
+    def __init__(self, models, dir=None, pkg_name=None):
         """TODO."""
         self.models = models
         self.dir = dir
 
         self.with_import = True
+        if pkg_name is None:
+            self.pkg_name = "CropModel"
+        else: self.pkg_name = pkg_name
 
     def run(self):
         """TODO."""
@@ -99,7 +102,7 @@ class Model2Package(object):
                     'url': 'http://pycropml.rtfd.org',
                     'icon': ''}
 
-        _package = package.UserPackage("CropModel", metainfo, self.dir)
+        _package = package.UserPackage(self.pkg_name, metainfo, self.dir)
 
         for model in self.models:
             
@@ -159,6 +162,7 @@ class Model2Package(object):
 
         outputs = model_unit.outputs
         
+        
         for algorithm in model_unit.algorithms:                                  
             if (algorithm.language=="python_ext")|(algorithm.language==" "):
                 algo = algorithm
@@ -200,23 +204,11 @@ class Model2Package(object):
 
     # documentation
     def generate_function_doc(self, model_unit):
-
-        desc = model_unit.description
-        
-        _doc = '''
-    """ %s
-
-    Author: %s
-    Reference: %s
-    Instituton: %s
-    Abstract: %s
+        doc='''
+    """%s
     """
-'''%(desc.Title, desc.Author, desc.Reference, desc.Institution, desc.Abstract)
-
-        code = '\n'
-        code += _doc
-
-        return code
+'''%generate_doc(model_unit)
+        return doc
 
 
 
@@ -363,6 +355,26 @@ def signature(model):
     name = name.replace(' ', '_').lower()
 
     return name
+
+
+
+
+def generate_doc(model):
+    desc = model.description
+        
+    _doc = """
+
+    %s
+    Author: %s
+    Reference: %s
+    Institution: %s
+    Abstract: %s
+""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+
+    code = '\n'
+    code += _doc
+
+    return code
 
 def openalea_interface(inout):
     dtype = inout.datatype.lower()

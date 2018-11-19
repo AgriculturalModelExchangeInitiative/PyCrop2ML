@@ -2,7 +2,6 @@
 
 Use pkglts
 
-
 Problems:
 - name of a model unit?
 """
@@ -46,7 +45,7 @@ class Model2Nb(rp.Model2Package):
         """
         # Create a directory (mymodel)
         cwd = Path(self.dir)
-        directory=cwd/'notebook'
+        directory=cwd/'python_notebook'
         if (directory).isdir() :
             _dir = directory
         else:
@@ -55,7 +54,7 @@ class Model2Nb(rp.Model2Package):
         count = 0
         files=[]
         for model in self.models:
-            print(model.name)
+
             self.generate_component(model)
         # In the directory notebook/model.py
         # TODO: The code need to be generated locally in different methods.
@@ -144,7 +143,9 @@ Each run will be defined in its own cell."""
                     code = "     )"
                     test_codes.append(code)
 
-
+                    
+                    
+                    
                     if len(outs) <= 1:
                         precision = outs.values()[0][1]
                         code = "print np.around(params, {})".format(precision)
@@ -163,11 +164,6 @@ Each run will be defined in its own cell."""
 
                         code = "\n" + "# outputs = ["+ ', '.join([outs[o.name][0] for o in m.outputs]) + "]"
                         test_codes.append(code)
-
-
-                #func = 'test_%s_run%s()'%(tname, run)
-                #code = "assert  "+ func+'["params"]=='+func+'["out_computed"]'
-                #test_codes.append(code)
 
                     code = '\n'.join(test_codes)
                     code_test.append(code)

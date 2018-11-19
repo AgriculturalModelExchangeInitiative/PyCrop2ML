@@ -28,14 +28,18 @@ class ModelParser(Parser):
 
     def parse(self, fn):
         self.models = []
-        
-        for f in fn:
+        try:
+            for f in fn:
             
         # Current proxy node for managing properties
-            doc = xml.parse(f)
-            root = doc.getroot()
+            
+                doc = xml.parse(f)
+                root = doc.getroot()
 
-            self.dispatch(root)
+                self.dispatch(root)
+                
+        except Exception, e:
+            print "%s is NOT in CropML Format ! %s" % (f, e)
             
         return self.models
            
@@ -52,7 +56,7 @@ class ModelParser(Parser):
         """ ModelUnit (Description,Inputs,Outputs,Algorithm,Parametersets,
                      Testsets)
         """
-        print('ModelUnit')
+        #print('ModelUnit')
         kwds = elts.attrib
         self._model = munit.ModelUnit(kwds)
         self.models.append(self._model)
@@ -64,7 +68,7 @@ class ModelParser(Parser):
     def Description(self, elts):
         """ Description (Title,Author,Institution,Reference,Abstract)
         """
-        print('Description')
+        #print('Description')
 
         desc = description.Description()
 
@@ -76,7 +80,7 @@ class ModelParser(Parser):
     def Inputs(self, elts):
         """ Inputs (Input)
         """
-        print('Inputs')
+        #print('Inputs')
 
         for elt in list(elts):
             self.dispatch(elt)
@@ -84,7 +88,7 @@ class ModelParser(Parser):
     def Input(self, elts):
         """ Input
         """
-        print('Input: ')
+        #print('Input: ')
         properties = elts.attrib
         _input = inout.Input(properties)
         self._model.inputs.append(_input)
@@ -92,7 +96,7 @@ class ModelParser(Parser):
     def Outputs(self, elts):
         """ Ouputs (Output)
         """
-        print('Outputs')
+        #print('Outputs')
 
         for elt in list(elts):
             self.dispatch(elt)
@@ -100,7 +104,7 @@ class ModelParser(Parser):
     def Output(self, elts):
         """ Output
         """
-        print('Output: ')
+        #print('Output: ')
 
         properties = elts.attrib
         _output = inout.Output(properties)
@@ -109,7 +113,7 @@ class ModelParser(Parser):
     def Algorithm(self, elt):
         """ Algorithm
         """
-        print('Algorithm')
+        #print('Algorithm')
         
         language=elt.attrib["language"]
         platform=elt.attrib["platform"]
@@ -127,7 +131,7 @@ class ModelParser(Parser):
     def Parametersets(self, elts):
         """ Parametersets (Parameterset)
         """
-        print('Parametersets')
+        #print('Parametersets')
 
         for elt in list(elts):
             self.Parameterset(elt)
@@ -135,7 +139,7 @@ class ModelParser(Parser):
     def Parameterset(self, elts):
         """ Parameterset
         """
-        print('Parameterset: ')
+        #print('Parameterset: ')
         properties = elts.attrib
         name = properties.pop('name')
 
@@ -151,7 +155,7 @@ class ModelParser(Parser):
     def param(self, pset, elt):
         """ Param
         """
-        print('Param: ', elt.attrib, elt.text)
+        #print('Param: ', elt.attrib, elt.text)
         properties = elt.attrib
 
         name = properties['name']
@@ -162,7 +166,7 @@ class ModelParser(Parser):
     def Testsets(self, elts):
         """ Testsets (Testset)
         """
-        print('Testsets')
+        #print('Testsets')
 
         for elt in list(elts):
             self.Testset(elt)
@@ -172,17 +176,17 @@ class ModelParser(Parser):
     def Testset(self, elts):
         """ Testset(Test)
         """
-        print('Testset')
+        #print('Testset')
         properties = elts.attrib
         name = properties.pop('name')
-        print name
+        #print name
 
         _testset = checking.testset(self._model, name, properties)
 
         for elt in list(elts):
-            print elt        
+            #print elt        
             testname = elt.attrib['name'] # name of test
-            print(testname)
+            #print(testname)
             input_test={}
             output_test={}
             param_test={}

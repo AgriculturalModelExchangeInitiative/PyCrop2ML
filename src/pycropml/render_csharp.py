@@ -119,6 +119,7 @@ class Model2Package(object):
         tab = ' '*4
         list_inputs=[]
         
+        
         """ we  declare all outputs which are not in inputs"""
         
         for inp in inputs:
