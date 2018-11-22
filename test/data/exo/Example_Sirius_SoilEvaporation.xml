@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Model PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/cyrillemidingoyi/PyCropML/render_csharp/test/data/ModelUnit.dtd">
 <ModelUnit modelid="1" name="SoilEvaporation" timestep="1" version="1.0">
     <Description>
         <Title>SoilEvaporation Model</Title>
@@ -46,6 +46,13 @@
      	soilEvaporation = MIN(diffusionLimitedEvaporation, energyLimitedEvaporation)
      
        ]]>
+     </Algorithm>
+     
+     <Algorithm language="python_ext" platform=""><![CDATA[
+           soilEvaporation = min(diffusionLimitedEvaporation, energyLimitedEvaporation)
+ 
+
+      ]]>
      </Algorithm>
     <Parametersets>
         <Parameterset name="set1" description="some values in there" >

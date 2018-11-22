@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Model PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
-<ModelUnit id="1" name="EnergyBalance" timestep="1" version="1.0">
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/cyrillemidingoyi/PyCropML/render_csharp/test/data/ModelUnit.dtd">
+<ModelUnit modelid="1" name="EnergyBalance" timestep="1" version="1.0">
     <Description>
         <Title>Energy Balance Model</Title>
         <Authors>Pierre Martre</Authors>
@@ -8,9 +8,9 @@
         <Reference>absolutely non</Reference>
         <Abstract>Calculate Energy Balance </Abstract>
     </Description>
-    <Inputs>
+    
      
-    </Inputs>
+    <Inputs>
         <Input name="minTair" description="minimal temperature" datatype="DOUBLE" min="0" max="25" default="0.7" unit="°C" uri="some url" inputtype = "variable"/>
         <Input name="maxTair" description="maximal Temperature" datatype="DOUBLE" min="0" max="30" default="7.2" unit="°C" uri="some url" inputtype = "variable"/>
         <Input name="albedoCoefficient" description="albedo Coefficient" parametercategory="constant" datatype="DOUBLE" default="0.23" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
@@ -38,7 +38,7 @@
         <Input name="tau" description="plant cover factor" parametercategory="constant" datatype="DOUBLE" default="0.9983" min="0" max="100" unit="" uri="some url" inputtype="parameter"/>
         <Input name="tauAlpha" description="Fraction of the total net radiation exchanged at the soil surface when AlpaE = 1" parametercategory="soil" datatype="DOUBLE" default="0.3" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
         <Input name="isWindVpDefined" description="if wind and Vapour pressure density are defined" parametercategory="constant" datatype="DOUBLE" default="1" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
-
+	</Inputs>
     
     <Outputs>
         <Output name="netRadiation" description=" net radiation " datatype="DOUBLE" min="0" max="8000"  unit="g/m²d" uri="some url"/>
@@ -70,7 +70,9 @@
     <Algorithm language="Fortran" platform="" filename="EnergyBalance.f" function="EnergyBalance">
     </Algorithm>
     <Algorithm language="R" platform="" filename="EnergyBalance.r" function="EnergyBalance">
-    </Algorithm>    
+    </Algorithm> 
+    <Algorithm language="python_ext" platform="" filename="EnergyBalance.py" function="EnergyBalance">
+    </Algorithm> 
     
 
     <Parametersets>
@@ -85,11 +87,9 @@
         	<Param name="lambdaV">2.454</Param>
         	<Param name="tau">0.9983</Param>
         	<Param name="elevation">0</Param>
-        	
+       </Parameterset>
 
-        </Parameterset>
-
-     +</Parametersets>
+     </Parametersets>
      <Testsets>
         <Testset name="first" parameterset = "set1" description="some values in there" >
         	<Test name ="test1">

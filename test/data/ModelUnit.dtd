@@ -1,7 +1,7 @@
-<!ELEMENT Model (Description,Inputs?,Outputs?,Initialization*,Function*, Algorithm+,Parametersets,Testsets)>
-<!ATTLIST Model
+<!ELEMENT ModelUnit (Description,Inputs?,Outputs?,Initialization?,Function*, Algorithm+,Parametersets,Testsets)>
+<!ATTLIST ModelUnit
   name CDATA #REQUIRED
-  id CDATA #REQUIRED
+  modelid CDATA #REQUIRED
   timestep CDATA #IMPLIED
   version CDATA #REQUIRED>
 
@@ -17,9 +17,9 @@
 <!ELEMENT Algorithm (#PCDATA)>
 <!ATTLIST Algorithm
   language CDATA #REQUIRED
-  platform CDATA #REQUIRED
-  filename CDATA #REQUIRED
-  function CDATA #REQUIRED>
+  platform CDATA #IMPLIED
+  filename CDATA #IMPLIED
+  function CDATA #IMPLIED>
 
 <!ELEMENT Parametersets (Parameterset+)>
 <!ATTLIST Parametersets>
@@ -31,7 +31,7 @@
 <!ATTLIST Function
 	name CDATA #REQUIRED
 	language CDATA #REQUIRED
-	filename CDATA #REQUIRED
+	filename CDATA #IMPLIED
 	type (internal|external) #REQUIRED
 	description CDATA #IMPLIED>
 
@@ -39,7 +39,7 @@
 <!ATTLIST Initialization
 	name CDATA #REQUIRED
 	language CDATA #REQUIRED
-	filename CDATA #REQUIRED>	
+	filename CDATA #IMPLIED>	
 
 <!ELEMENT Title (#PCDATA)>
 <!ATTLIST Title>
@@ -62,7 +62,7 @@
 <!ELEMENT Input EMPTY>
 <!ATTLIST Input
   name NMTOKEN #REQUIRED
-  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|DICTIONARY|STRING) #REQUIRED 
+  datatype (STRING|DATE|DOUBLE|LIST|STRINGARRAY|DOUBLEARRAY|INTARRAY|STRINGLIST|INTLIST|DOUBLELIST|INT|BOOLEAN|BOOLEANARRAY|BOOLEANLIST|DATELIST|DATEARRAY) #REQUIRED 
   description CDATA #REQUIRED
   default CDATA #IMPLIED
   max CDATA #IMPLIED
@@ -70,18 +70,18 @@
   inputtype (variable|parameter) #REQUIRED
   parametercategory (constant|species|genotypic|soil|private) #IMPLIED
   variablecategory (state|rate|auxillary) #IMPLIED
-  unit CDATA #REQUIRED
+  unit CDATA #IMPLIED
   uri CDATA #IMPLIED>
 
 <!ELEMENT Output EMPTY>
 <!ATTLIST Output
   name NMTOKEN #REQUIRED
-  datatype (CHAR|CHARARRAY|CHARLIST|DATE|DATELIST|DOUBLE|DOUBLEARRAY|DOUBLELIST|DOUBLEARRAY2D|INT|INTARRAY|INTLIST|BOOLEAN|DICTIONARY|STRING) #REQUIRED 
+  datatype (STRING|DATE|DOUBLE|LIST|STRINGARRAY|DOUBLEARRAY|INTARRAY|STRINGLIST|INTLIST|DOUBLELIST|INT|BOOLEAN|BOOLEANARRAY|BOOLEANLIST|DATELIST|DATEARRAY) #REQUIRED 
   description CDATA #REQUIRED
   max CDATA #REQUIRED
   min CDATA #REQUIRED
   variablecategory (state|rate|auxiliary) #IMPLIED
-  unit CDATA #REQUIRED
+  unit CDATA #IMPLIED
   uri CDATA #IMPLIED>
 
 <!ELEMENT Parameterset (Param*)>

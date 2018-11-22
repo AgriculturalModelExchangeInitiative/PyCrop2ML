@@ -10,7 +10,7 @@
     </Description>
     <Inputs>
 
-        <Input name="isWindVpDefined" description="" parametercategory="species" datatype="DOUBLE" default="1" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
+        <Input name="isWindVpDefined" description="" parametercategory="species" datatype="INT" default="1" min="0" max="1" unit="" uri="some url" inputtype="parameter"/>
         <Input name="evapoTranspirationPriestlyTaylor" description=" " default ="449.367" datatype="DOUBLE" min="0" max="5"  unit="mm" uri="some url" inputtype="variable"/>
         <Input name="evapoTranspirationPenman" description=" " datatype="DOUBLE" default="830.958" min="0" max="5"  unit="mm" uri="some url" inputtype="variable"/>
      

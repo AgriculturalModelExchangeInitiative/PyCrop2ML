@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Model PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/cyrillemidingoyi/PyCropML/render_csharp/test/data/ModelUnit.dtd">
 <ModelUnit modelid="1" name="PtSoil" timestep="1" version="1.0">
     <Description>
         <Title>PtSoil EnergyLimitedEvaporation Model</Title>
@@ -89,6 +89,21 @@
      
        ]]>
      </Algorithm>
+     
+         <Algorithm language="python_ext" platform=""><![CDATA[
+    	 if (tau < tauAlpha):
+         {
+        	AlphaE = 1 
+        }  
+        else :
+        {
+        	AlphaE = Alpha - ((Alpha - 1.0) * (1.0 - tau) / (1.0 - tauAlpha))
+        }
+        energyLimitedEvaporation= (evapoTranspirationPriestlyTaylor / Alpha) * AlphaE * tau
+ 
+      ]]>
+     </Algorithm>
+     
     <Parametersets>
         <Parameterset name="set1" description="some values in there" >
         	<Param name="tau">0.9983</Param>

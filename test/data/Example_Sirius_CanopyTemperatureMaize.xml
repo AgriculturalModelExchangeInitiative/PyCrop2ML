@@ -82,14 +82,14 @@
 
      </Parametersets>
      <Testsets>
-        <Testset name="first" parameterset = "wheat" description="some values in there" >
+        <Testset name="first" parameterset = "set1" description="some values in there" >
         	<Test name ="test1">
         		<InputValue name="hourlyTemp">[1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0, 5.0, 6.0, 7.0, 7.0, 7.0, 7.0, 6.0, 5.0, 4.0, 3.0, 2.0, 2.0, 2.0, 1.0]</InputValue>
         		<InputValue name="hourlyVPDair">[0.09,0.08,0.07,0.07,0.07,0.07,0.06,0.06,0.1,0.1,0.2,0.3,0.4,0.4,0.4,0.4,0.3,0.2,0.2,0.1,0.1,0.1,0.1,0.1]</InputValue>
         		<InputValue name="hourlySolarRadiation">[0,0,0,0,0,0,0,0,0.1,0.5,1.0,1.4,1.4,1.0,0.5,0.08,0,0,0,0,0,0,0,0]</InputValue>
         		<InputValue name="wc3cm">2.19</InputValue>
         		<InputValue name="Ntip">0</InputValue>
-        		<OutputValue name="hourlyCanopyTemperature" precision ="1">4[6.8,6.8, 6.8, 6.8, 6.8, 6.8, 6.8, 6.8, 7.5, 8.1, 9.4, 10.0, 10.7, 10.9, 11.2, 11.4, 10.6, 9.9, 9.1, 8.3, 7.5, 7.5, 7.5, 6.8]</OutputValue>
+        		<OutputValue name="hourlyCanopyTemperature" precision ="1">[6.8,6.8, 6.8, 6.8, 6.8, 6.8, 6.8, 6.8, 7.5, 8.1, 9.4, 10.0, 10.7, 10.9, 11.2, 11.4, 10.6, 9.9, 9.1, 8.3, 7.5, 7.5, 7.5, 6.8]</OutputValue>
 	
         	</Test>
 

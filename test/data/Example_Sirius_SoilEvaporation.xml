@@ -43,7 +43,7 @@
         		<InputValue name="diffusionLimitedEvaporation">6605.505</InputValue>
         		<InputValue name="energyLimitedEvaporation">448.240</InputValue>
         		
- 				<OutputValue name=" soilEvaporation" precision ="3">448.240</OutputValue>
+ 				<OutputValue name="soilEvaporation" precision ="3">448.240</OutputValue>
 	
         	</Test>
 

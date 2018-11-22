@@ -18,9 +18,9 @@ class Model2Package(object):
 
     DATATYPE = {}
     DATATYPE['INT'] = "int"
-    DATATYPE['STRING'] = "string"
+    DATATYPE['STRING'] = "String"
     DATATYPE['DOUBLE'] = "double"
-    DATATYPE['BOOLEAN'] = "bool"
+    DATATYPE['BOOLEAN'] = "boolean"
     DATATYPE['DATE'] = "Date"
 
     num = 0
@@ -39,7 +39,7 @@ class Model2Package(object):
     
     
     def generate_package(self):
-        """Generate a csharp package equivalent to the xml definition.
+        """Generate a java package equivalent to the xml definition.
 
         Args:
         - models : a list of model
@@ -51,7 +51,7 @@ class Model2Package(object):
 
         # Create a directory (mymodel)
         cwd = Path(self.dir)
-        directory=cwd/'csharp_model'
+        directory=cwd/'java_model'
         if (directory).isdir() :
             self.dir = directory
         else:
@@ -66,7 +66,7 @@ class Model2Package(object):
             self.generate_component(model)
             
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"model_%s.cs"%signature(model)
+            filename = self.dir/"model_%s.java"%signature(model)
 
             with open(filename, "w") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
@@ -90,7 +90,7 @@ class Model2Package(object):
         self.code += self.generate_algorithm(model_unit) + '\n'
 
         return self.code
-
+# documentation
     def generate_function_doc(self, model_unit):
 
         desc = model_unit.description
@@ -118,10 +118,6 @@ class Model2Package(object):
         output_declaration = ""
         tab = ' '*4
         list_inputs=[]
-        
-        
-        """ we  declare all outputs which are not in inputs"""
-        
         for inp in inputs:
             list_inputs.append(inp.name)
         for out in outputs:
@@ -129,10 +125,8 @@ class Model2Package(object):
             if out.name not in list_inputs:
                 output_declaration += tab*2+self.DATATYPE[out.datatype]+" "+out.name+";\n"
         
-        """ we select the algorithm if the language is specified or not"""
-        
         for algorithm in model_unit.algorithms:                                  
-            if (algorithm.language=="C#")|(algorithm.language==" "):
+            if (algorithm.language=="Java")|(algorithm.language==" "):
                 algo = algorithm
                 break
                 
@@ -146,34 +140,37 @@ class Model2Package(object):
                 if (line[len(line)-1] !=";")and(algo.language==" "): line = line+";"
                 code += tab*2+line+'\n'
                 
-            code += tab*2+ 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
+            code += tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
                 
-            code+=tab+'}\n'
-            code+='}\n'
+            code+=tab+'}\n}\n'
                 
         else: 
-            #print(Path.getcwd()/algo.filename) I will improve it to import code part
+            print(Path.getcwd()/algo.filename)
             code=output_declaration+"\n"
             code += tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
                 
-            code+=tab+'}\n'  
-            code+='}\n'        
-                                                  
+            code+=tab+'}\n\n}'          
+                                    
+                   
  
         self.code = code
 
         return self.code
 
-    # documentation
+    
     
     def generate_public_class(self, model_unit):
         
         outputs = model_unit.outputs
         
         tab=' '*4
-
-        code ="public class " + signature(model_unit) +'\n{\n'
-
+        paro='{'
+        parc = '}'
+        
+        code ="public class " + signature(model_unit) +'\n'
+    
+        code+=paro+'\n'
+        
         for out in outputs:
             code+=tab+"public"+" "+self.DATATYPE[out.datatype]+" "+out.name + ';\n'
         
@@ -182,12 +179,12 @@ class Model2Package(object):
         for out in outputs:
             sig+= self.DATATYPE[out.datatype]+" "+"_"+out.name+","
             
-        code+=sig[:-1]+')\n'+tab+'{\n'
-
+        code+=sig[:-1]+')\n'
+        code+=tab*1+paro+'\n'
         for out in outputs:
-            code+=tab*2+out.name+"="+ "_"+out.name+';\n'
+            code+=tab*2+"this." + out.name+"="+ "_"+out.name+';\n'
         
-        code+=tab+'}\n}'
+        code+=tab+parc+'\n'+parc
         
         self.code = code
         return self.code
@@ -198,22 +195,23 @@ class Model2Package(object):
         inputs = model_unit.inputs
         
         tab=' '*4
-
-        code ="public static class Estimation_" + signature(model_unit) +'\n{\n'
-      
+        paro="{"
+        parc="}"
+        code ="public static class Estimation_" + signature(model_unit) +'\n'
+    
+        code+=paro+'\n'
+        
         
         code+=tab+"public static "+ model_unit.name+ " Calculate"+signature(model_unit)+"("
         sig = ""
                 
-        for inp in inputs:            
-            if "default" not in inp.__dict__:
-                sig+= self.DATATYPE[inp.datatype]+" "+inp.name+"," 
         for inp in inputs:
-            if "default" in inp.__dict__:
-                sig+= self.DATATYPE[inp.datatype]+" "+inp.name+ "="+inp.default+","
-               
-                    
-        code+=sig[:-1]+')\n'+tab+'{\n'
+            sig+= self.DATATYPE[inp.datatype]+" "+inp.name+"," 
+                
+        code+=sig[:-1]+')\n'
+        
+        code+=tab+paro+'\n'
+      
         self.code = code
         
         return self.code    
@@ -231,13 +229,13 @@ class Model2Package(object):
       
         psets = m.parametersets
         self.codetest = ""
- 
-        code = "public static class Test\n{\n"   
+        
+        code = "public static class Test\n{\n"
         
         for inp in inputs:            
-            sig+= tab+self.DATATYPE[inp.datatype]+" "+inp.name+";\n" 
-        
-        #code+=sig+"\n"
+            sig+= inp.name+"," 
+   
+    
         for v_tests in m.testsets:
 
             test_name = v_tests.name  # name of tests
@@ -248,22 +246,20 @@ class Model2Package(object):
 
         # map the paramsets
             params = {}
-            
+
             if   test_paramsets not in psets.keys():
-                print('Unknow parameter %s'%test_paramsets)
+                print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
-                               
+               
                 for each_run in test_runs :
-                    
-
+       
                     des = ""
-                    
-                    # make a function that transforms a title into a function name
+                
                     tname = each_run.keys()[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
                     
-                    code +=tab+"//%s"%tname+"\n"
+                    code +=tab+"//%s"%tname+");\n"
                     
                     code +="\n"+tab+"public static void %s()"%tname + "\n"+tab+ "{\n"
 
@@ -272,46 +268,44 @@ class Model2Package(object):
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
-                           
+                    
                     run_param = params.copy()
+ 
+
                     run_param.update(ins)
                     
+                    declaration=""
                     for testinp in inputs:
                         if testinp.name not in run_param.keys():
                             run_param[testinp.name]=testinp.default
-                    
-                    vartest = ""
-                    for k, v in run_param.iteritems():
-                        vartest += "%s:%s,"%(k,v)
-                        
-                    code+=tab*2+signature(m)+" res%s = Estimation_%s.Calculate"%(num,signature(m))+signature(m)+"("+vartest[:-1]+");\n\n"
+                        declaration+= tab*2+self.DATATYPE[testinp.datatype]+" "+testinp.name + " = "+ run_param[testinp.name]+";\n"
+
+                    code += declaration +"\n"    
+                    code += tab*2+signature(m)+" res%s = Estimation_%s.Calculate"%(num,signature(m))+signature(m)+"("+sig[:-1]+");\n"
                     
                     
-                    code+=tab*2+"Console.WriteLine("
-                    for l in range (0, len(outputs)):
-                        des += "{"+str(l)+r"}\n"
-                    des = '"'+des[:-2]+'"'+","
+                    code+=tab*2+"System.out.println("
+
                     for out in outputs:
-                        des+='"%s: "'%out.name+ "+"+"res%s."%num+out.name+","
+                        des+='" %s: "'%out.name+ "+"+"res%s."%num+out.name+"+"
                     
                     code+=des[:-1]+");\n\n"                    
                     
                     
                     for k, v in outs.iteritems():
                         if len(v)==2:
-                            code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+"+Math.Round("+v[0] +","+v[1]+")+"+'";"' +"+Math.Round(res%s."%num+k+","+v[1]+")+"+'") "' + "+Equals(Math.Round("+v[0] +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
-                        else: code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+ v[0]+ '";"' +"res%s."%num+k+")+"+'") "'+"+Equals("+v[0]+"," +"res%s."%num+k+"));\n"
-                    
-                    code+=tab+"}\n"
+                            code+=tab*2+ "System.out.println(((new BigDecimal(res%s.%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)).equals((new BigDecimal(%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)));\n"%(num,k,v[1],v[0],v[1])
+                        else: code+=tab*2+"System.out.println((new BigDecimal(res%s.%s)).equals(new BigDecimal(%s)));\n"%num%k%v[0]
+
                     num = num+1                  
-   
+                    code+=tab+"}\n"    
+                              
         code+="}\n"
-        
        
         self.codetest= code
         return self.codetest
-    
-    
+
+
     def write_tests(self):
         """ TODO: Manage several models rather than just one.
         """
@@ -320,16 +314,17 @@ class Model2Package(object):
         for model in self.models:
             codetest = self.generate_test(model)
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"test_%s.cs"%signature(model)
+            filename = self.dir/"test_%s.java"%signature(model)
 
-            codetest = "'Test generation'\n\n" + codetest
+            codetest = "//Test generation'\n\n" +"import java.math.BigDecimal;\n"+ codetest
 
-            with open(filename, "w") as csharp_file:
-                csharp_file.write(codetest.encode('utf-8'))
+            with open(filename, "w") as java_file:
+                java_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1
         return files
     
+        
 def signature(model):
     name = model.name
     name = name.strip()

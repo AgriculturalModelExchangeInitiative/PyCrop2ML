@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE Model PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/xml_representation/master/ModelUnit.dtd">
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/cyrillemidingoyi/PyCropML/render_csharp/test/data/ModelUnit.dtd">
 <ModelUnit modelid="1" name="Conductance" timestep="1" version="1.0">
     <Description>
         <Title>Conductance Model</Title>
@@ -24,7 +24,7 @@
 
     </Outputs>
     
-    <Algorithm language="C#" platform=""><![CDATA[
+    <Algorithm language="C#" platform="" ><![CDATA[
 
         double h;
         h = Math.Max(10, plantHeight) / 100;  

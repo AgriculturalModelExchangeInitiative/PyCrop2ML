@@ -5,12 +5,12 @@
     <Title>EnergyBalance</Title>
     <Authors>Pierre MARTRE</Authors>
     <Institution>INRA</Institution>
-    <Reference>Modelling energy balance in the wheat crop model SiriusQuality2: Evapotranspiration and canopy and soil temperature calculations</Reference>
+    <Reference> Modelling energy balance in the wheat crop model SiriusQuality2: Evapotranspiration and canopy and soil temperature calculations </Reference>
     <Abstract>see documentation</Abstract>
   </Description>
   <Composition>
     <Model name="NetRadiation" id="NetRadiation.EnergyBalance" filename="Example_Sirius_NetRadiation.xml" />
-    <Model name="NetRadiationEquivalent" id="NetRadiationEquivalent.EnergyBalance" filename="Example_Sirius_NetRadiationEquivalent.xml" />
+    <Model name="NetRadiationEquivalentEvaporation" id="NetRadiationEquivalentEvaporation.EnergyBalance" filename="Example_Sirius_NetRadiationEquivalent.xml" />
     <Model name="PriestlyTaylor" id="PriestlyTaylor.EnergyBalance" filename="Example_Sirius_PriestlyTaylor.xml" />
     <Model name="Conductance" id="Conductance.EnergyBalance" filename="Example_Sirius_Conductance.xml" />
     <Model name="DiffusionLimitedEvaporation" id="DiffusionLimitedEvaporation.EnergyBalance" filename="Example_Sirius_DiffusionLimitedEvaporation.xml" />
@@ -32,7 +32,7 @@
       <InputLink target="NetRadiation.solarRadiation" source="solarRadiation" />
       <InputLink target="NetRadiation.vaporPressure" source="vaporPressure" />
       <InputLink target="NetRadiation.extraSolarRadiation" source="extraSolarRadiation" />      
-      <InputLink target="NetRadiationEquivalent.lambdaV" source="lambdaV" />            
+      <InputLink target="NetRadiationEquivalentEvaporation.lambdaV" source="lambdaV" />            
       <InputLink target="PriestlyTaylor.hslope" source="hslope" />
       <InputLink target="PriestlyTaylor.psychrometricConstant" source="psychrometricConstant" />
       <InputLink target="PriestlyTaylor.Alpha" source="Alpha" />           
@@ -65,10 +65,10 @@
       <InputLink target="CanopyTemperature.specificHeatCapacityAir" source="specificHeatCapacityAir" />
             
 
-      <InternalLink target="NetRadiationEquivalent.netRadiation" source="NetRadiation.netRadiation" />      
-      <InternalLink target="PriestlyTaylor.netRadiationEquivalentEvaporation" source="NetRadiationEquivalent.netRadiationEquivalentEvaporation" />
-      <InternalLink target="SoilHeatFlux.netRadiationEquivalentEvaporation" source="NetRadiationEquivalent.netRadiationEquivalentEvaporation" />
-      <InternalLink target="CropHeatFlux.netRadiationEquivalentEvaporation" source="NetRadiationEquivalent.netRadiationEquivalentEvaporation" />
+      <InternalLink target="NetRadiationEquivalentEvaporation.netRadiation" source="NetRadiation.netRadiation" />      
+      <InternalLink target="PriestlyTaylor.netRadiationEquivalentEvaporation" source="NetRadiationEquivalentEvaporation.netRadiationEquivalentEvaporation" />
+      <InternalLink target="SoilHeatFlux.netRadiationEquivalentEvaporation" source="NetRadiationEquivalentEvaporation.netRadiationEquivalentEvaporation" />
+      <InternalLink target="CropHeatFlux.netRadiationEquivalentEvaporation" source="NetRadiationEquivalentEvaporation.netRadiationEquivalentEvaporation" />
       <InternalLink target="PtSoil.evapoTranspirationPriestlyTaylor" source="PriestlyTaylor.evapoTranspirationPriestlyTaylor" />
       <InternalLink target="Penman.evapoTranspirationPriestlyTaylor" source="PriestlyTaylor.evapoTranspirationPriestlyTaylor" />
       <InternalLink target="EvapoTranspiration.evapoTranspirationPriestlyTaylor" source="PriestlyTaylor.evapoTranspirationPriestlyTaylor" />
@@ -86,7 +86,7 @@
          
       <OutputLink source="NetRadiation.netRadiation" target="netRadiation" />
       <OutputLink source="NetRadiation.netOutGoingLongWaveRadiation" target="netOutGoingLongWaveRadiation" />
-      <OutputLink source="NetRadiationEquivalent.netRadiationEquivalentEvaporation" target="netRadiationEquivalentEvaporation" />
+      <OutputLink source="NetRadiationEquivalentEvaporation.netRadiationEquivalentEvaporation" target="netRadiationEquivalentEvaporation" />
       <OutputLink source="PriestlyTaylor.evapoTranspirationPriestlyTaylor" target="evapoTranspirationPriestlyTaylor" />
       <OutputLink source="DiffusionLimitedEvaporation.diffusionLimitedEvaporation" target="diffusionLimitedEvaporation" />
       <OutputLink source="PtSoil.energyLimitedEvaporation" target="energyLimitedEvaporation" />
@@ -98,7 +98,7 @@
       <OutputLink source="SoilHeatFlux.soilHeatFlux" target="soilHeatFlux" />
       <OutputLink source="CropHeatFlux.cropHeatFlux" target="cropHeatFlux" />
       <OutputLink source="CanopyTemperature.minCanopyTemperature" target="minCanopyTemperature" />
-      <OutputLink source="CanopyTemperature.cropHeatFlux" target="maxCanopyTemperature" />
+      <OutputLink source="CanopyTemperature.maxCanopyTemperature" target="maxCanopyTemperature" />
    
     </Links>
   </Composition>

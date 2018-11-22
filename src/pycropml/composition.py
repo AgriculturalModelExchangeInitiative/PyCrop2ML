@@ -4,33 +4,9 @@
 from path import Path
 import xml.etree.ElementTree as xml
 
-# Fix pb in tlocal path
-cwd = Path.getcwd()
-if (cwd/'data'/'usecase').isdir():
-    data = cwd/'data'/'usecase'
-elif (cwd/'test'/'data'/'usecase').isdir():
-    data = cwd/'test'/'data'/'usecase'
-else:
-    print('Data directory not found')
-
-xmls = data.glob('*.xml')
-
-
-##############################################################################
-# Test on Example
-
-def example():
-
-    composition = data.glob("composition*.xml")[0]
-    
-    models = model_parser(composition)
-    return models
-    
-################################################################################
-
-
 class ModelDefinition(object):
     """
+    Model name, id, version and step
     """
     def __init__(self, kwds):
         self._attributes = kwds
@@ -42,7 +18,7 @@ class ModelDefinition(object):
 
 
 class ModelComposition(ModelDefinition):
-    """ Formal description of a Model Unit. """
+    """ Formal description of a Model Composite. """
 
     def __init__(self, kwds):
         ModelDefinition.__init__(self, kwds)  
@@ -199,14 +175,5 @@ def model_parser(fn):
     parser = ModelParser()
     return parser.parse(fn)
     
-    
-    
-####### test
-"""
-from test import composition
-m, = composition.example()
-"""
 
-#############   
-    
     
