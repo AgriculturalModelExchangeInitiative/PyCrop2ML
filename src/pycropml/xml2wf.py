@@ -70,28 +70,51 @@ class XmlToWf(object):
         # some models can have the same inputs. These inputs must have the same interfaces        
         for name in names:
             links_sameName = [link for link in self.inputLinks if link["source"]==name]
-        
+            #print(links_sameName)
             if len(links_sameName)!=1:
                 interfaces=[]
                 try:
                     for j in links_sameName:
                         model= j["target"].split('.')[0]
+                        #print(j)
+                        #print(model)
+                        #print(self.pkg[model])
                         inputs = self.pkg[model].inputs
+                        #print(inputs)
                         interface=[inp["interface"] for inp in inputs if inp["name"]==name]
+                        #print(interface)
                         interfaces.append(interface[0])
-                    assert self.compareInterface(interfaces)== True
+                    
+                    #assert self.compareInterface(interfaces)== True
                 except AssertionError:
                     print("inequal interface: %s %s"% (interfaces, links_sameName))
-                value = [inp["value"] for inp in inputs if inp["name"]==name]
-                din=dict(name=name, interface = interfaces[0], value=value[0])
+                for inp in inputs:
+                    if inp["name"]==name and "value" in inp:
+                        value=inp["value"] 
+                        break
+                
+                if value:
+                    din=dict(name=name, interface = interfaces[0], value=value)
+                else:
+                    din=dict(name=name, interface = interfaces[0])
                 ins.append(din)
         
             else:
+                value=None
                 model= links_sameName[0]["target"].split('.')[0]
+                print(model)
                 inputs = self.pkg[model].inputs
+                #print(inputs)
                 interface=[inp["interface"] for inp in inputs if inp["name"]==name]
-                value = [inp["value"] for inp in inputs if inp["name"]==name]
-                din=dict(name=name, interface = interface[0], value=value[0])
+                #print(interface)
+                for inp in inputs:
+                    if inp["name"]==name and "value" in inp:
+                        value=inp["value"] 
+                        break
+                if value:
+                    din=dict(name=name, interface = interface[0], value=value)
+                else:
+                    din=dict(name=name, interface = interface[0])
                 ins.append(din)
         self.inputs_wf = ins        
 
@@ -102,7 +125,9 @@ class XmlToWf(object):
         outs=[]
         # model units outputs must be unique. So model composite output is targeted by an unique output link 
         for link in self.outputLinks:
-            name =  link["target"] 
+            print("out %s"%link)
+            name =  link["target"]
+            print(name) 
             model_src, out_src= link["source"].split('.')
             outputs = self.pkg[model_src].outputs
             interface=[out["interface"] for out in outputs if out["name"]==name]

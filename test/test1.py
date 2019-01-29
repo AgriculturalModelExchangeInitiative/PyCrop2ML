@@ -23,10 +23,10 @@ xmls = data.glob('*.xml')
 
 def example():
         
-    fn = data.glob('Example*.xml')
-    print (fn)
+    #fn = data.glob('Example*.xml')
+    #print (fn)
     
-    models = pparse.model_parser(fn)
+    models = pparse.model_parser(data)
     return models
 
 """

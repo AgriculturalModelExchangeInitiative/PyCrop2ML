@@ -171,7 +171,7 @@ Each run will be defined in its own cell."""
                     for k, v in outs.iteritems():
                         if len(v)==2:
                             code+=tab*2+ "System.out.println(((new BigDecimal(res%s.%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)).equals((new BigDecimal(%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)));\n"%(num,k,v[1],v[0],v[1])
-                        else: code+=tab*2+"System.out.println((new BigDecimal(res%s.%s)).equals(new BigDecimal(%s)));\n"%num%k%v[0]
+                        else: code+=tab*2+"System.out.println((new BigDecimal(res%s.%s)).equals(new BigDecimal(%s)));\n"%(num,k,v[0])
 
                     num = num+1                  
                     code_test.append(code)  

@@ -101,6 +101,20 @@ class TestCookieSetup(object):
             'src/features',
             'src/models',
             'src/visualization',
+			'src/py',
+			'src/cy',
+			'src/cpp',
+			'src/cs',
+			'src/f90',
+			'src/openalea',
+			'src/bioma',
+			'src/record',
+			'src/simplace',
+			'tests',
+			'data'
+			'crop2ml'
+			'docs'
+			
         ]
 
         ignored_dirs = [

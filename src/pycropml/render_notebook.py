@@ -145,26 +145,49 @@ Each run will be defined in its own cell."""
 
                     
                     
-                    
-                    if len(outs) <= 1:
-                        precision = outs.values()[0][1]
-                        code = "print np.around(params, {})".format(precision)
-                        test_codes.append(code)
+                    for j, k in enumerate(m.outputs):
+                        if  k.datatype in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
+                            code = "print('%s_estimated =')"%k.name
+                            test_codes.append(code) 
+                            code = "print(params[%s])"%(j) if len(m.outputs)>1 else "print(params)"%k.name                           
+                            test_codes.append(code)
+                            code = "# %s_computed = %s"%(k.name,outs[k.name][0])
+                            test_codes.append(code)
+                                                   
+                        if k.datatype in ("STRING", "BOOL", "INT", "DATE"):
+                            code = "print('%s_estimated =')"%k.name
+                            test_codes.append(code)
+                            code = "print(params[%s])"%(j) if len(m.outputs)>1 else "print(params)"
+                            test_codes.append(code)                       
+                            code = "# %s_computed = %s"%(k.name,outs[k.name][0])
+                            test_codes.append(code)
+                       
+                           
+                        if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):
+                            code = "print('%s_estimated =')"%k.name
+                            test_codes.append(code) 
+                            code = "print(np.around(params[%s], %s))"%(j,outs[k.name][1]) if len(m.outputs)>1 else  "print(np.around(params, %s))"%outs[k.name][1]
+                            test_codes.append(code)
+                            code = "# %s_computed = %s"%(k.name,outs[k.name][0])
+                            test_codes.append(code)
+ 
+                           
+                        if k.datatype in ("INTLIST", "INTARRAY"):
+                            code = "print('%s_estimated =')"%k.name
+                            test_codes.append(code)                             
+                            code = "print(params[%s])"%(j) if len(m.outputs)>1 else "print(params)"
+                            test_codes.append(code)
+                            code = "# %s_computed = %s"%(k.name,outs[k.name][0])
+                            test_codes.append(code)
 
-                        code = "\n"
-                        test_codes.append(code)
-
-                        code = "# output = {}".format((outs.values()[0][0]))
-                        test_codes.append(code)
-
-                    else:
-                        precision = outs.values()[0][1]
-                        code = "print([np.around(p, {}) for p in params])".format(precision)
-                        test_codes.append(code)
-
-                        code = "\n" + "# outputs = ["+ ', '.join([outs[o.name][0] for o in m.outputs]) + "]"
-                        test_codes.append(code)
-
+                        if k.datatype == "DOUBLE":
+                            code = "print('%s_estimated =')"%k.name
+                            test_codes.append(code)                             
+                            code = "print(round(params[%s], %s))"%(j,outs[k.name][1]) if len(m.outputs)>1 else "print(round(params, %s))"%outs[k.name][1]
+                            test_codes.append(code)                         
+                            code = "# %s_computed = %s"%(k.name,outs[k.name][0])
+                            test_codes.append(code)
+ 
                     code = '\n'.join(test_codes)
                     code_test.append(code)
 

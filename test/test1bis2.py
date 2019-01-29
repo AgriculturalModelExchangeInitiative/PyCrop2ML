@@ -7,10 +7,10 @@ from pycropml import pparse, render_java
 
 # Fix pb in tlocal path
 cwd = Path.getcwd()
-if (cwd/'data'/'exo').isdir():
-    data = cwd/'data'/'exo'
-elif (cwd/'test'/'data'/'exo').isdir():
-    data = cwd/'test'/'data'/'exo'
+if (cwd/'data').isdir():
+    data = cwd/'data'
+elif (cwd/'test'/'data').isdir():
+    data = cwd/'test'/'data'
 else:
     print('Data directory not found')
 
@@ -23,10 +23,10 @@ xmls = data.glob('*.xml')
 
 def example():
         
-    fn = data.glob('Example*.xml')
-    print (fn)
+    #fn = data.glob('Example*.xml')
+    #print (fn)
     
-    models = pparse.model_parser(fn)
+    models = pparse.model_parser(data)
     return models
 
 

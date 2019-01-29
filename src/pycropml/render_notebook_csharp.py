@@ -13,6 +13,8 @@ from path import Path
 import nbformat as nbf
 
 from . import render_csharp as rp
+from sympy.codegen.fnodes import elemental
+
 
 
 
@@ -64,7 +66,7 @@ class Model2Nb(rp.Model2Package):
             nb = nbf.v4.new_notebook()
 
             text = """\
-# Automatic generation of Notebook using PyCropML
+# Automatic generation of Notebook using PyCropML (C# models)
 This notebook implements a crop model."""
             _cells = nb['cells'] = [nbf.v4.new_markdown_cell(text),
                                 nbf.v4.new_code_cell(self.code)]
@@ -150,7 +152,9 @@ Each run will be defined in its own cell."""
                     
                     vartest = ""
                     for k, v in run_param.iteritems():
-                        vartest += "%s:%s,"%(k,v)
+                        type_v = [inp.datatype for inp in inputs if inp.name==k]
+                        vartest+= "%s: %s,"%(k,transf(self.DATATYPE[type_v[0]], v))
+                        #vartest += "%s:%s,"%(k,v)
                         
                     testcode =signature(m)+" res%s = "%num+"Estimation_%s.Calculate"%signature(m)+signature(m)+"("+vartest[:-1]+");\n"
                     
@@ -166,9 +170,11 @@ Each run will be defined in its own cell."""
                     
                     
                     for k, v in outs.iteritems():
+                        type_v=[out.datatype for out in outputs if out.name==k]
+                        val = transfDouble(type_v,v[0]) if type_v[0]=="DOUBLE" else v[0]
                         if len(v)==2:
-                            testcode+="Console.WriteLine("+'"%s Comparison: ("'%k+"+Math.Round("+v[0] +","+v[1]+")+"+'";"' +"+Math.Round(res%s."%num+k+","+v[1]+")+"+'")  "' + "+Equals(Math.Round("+v[0] +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
-                        else: testcode+="Console.WriteLine("+'"%s Comparison: ("'%k+ v[0]+ '";"' +"res%s."%num+k+")+"+'")  "'+"+Equals("+v[0]+"," +"res%s."%num+k+"));\n"
+                            testcode+="Console.WriteLine("+'"%s Comparison: ("'%k+"+Math.Round("+val +","+v[1]+")+"+'";"' +"+Math.Round(res%s."%num+k+","+v[1]+")+"+'")  "' + "+Math.Equals(Math.Round("+val +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
+                        else: testcode+="Console.WriteLine("+'"%s Comparison: ("+'%k+ val+ '+";"' +"+res%s."%num+k+"+"+'")  "'+"+Math.Equals("+val+"," +"res%s."%num+k+"));\n"
                     
                     num = num+1                  
                     code_test.append(testcode)   
@@ -181,3 +187,39 @@ def signature(model):
     name = name.replace(' ', '_')
 
     return name
+def transfSDIList(type,elem): #String, Double, Int List
+    return "new %s %s"%(type,str(elem).replace("[", "{").replace("]", "}"))
+
+def transfDouble(type,elem):
+    return str(elem)+'D'
+
+def transfDate(type, elem):
+    ser = elem.split("/")
+    year, month, day = ser[2], ser[1], ser[0]
+    return "new %s (%s, %s, %s) "%(type, year, month, day)
+    
+def transfString(type, elem): 
+    return '"%s"'%elem
+
+def transfDateList(type, elem):
+    res=""
+    for date in elem:
+        print(date)
+        t = transfDate("DateTime",date)
+        res+=t+","
+    return "new %s {%s}"%(type,res[:-1])
+
+def transf(type, elem):
+    if type=="double":
+        return transfDouble(type, elem)
+    elif type =="string":
+        return transfString(type, elem)
+    elif type=="int":
+        return elem
+    elif type=="List<DateTime>": 
+        print(elem)
+        return transfDateList(type, eval(elem))
+    elif type in ("List<string>","List<double>","List<int>"):
+        return transfSDIList(type,elem)
+    elif type =="DateTime":
+        return transfDate(type, elem)

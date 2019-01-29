@@ -9,12 +9,14 @@ from . import inout
 from . import parameterset as pset
 from . import checking
 from . import algorithm
-
+from . import function
+import os.path
+from pycropml import initialization
 class Parser(object):
     """ Read an XML file and transform it in our object model.
     """
 
-    def parse(self, fn):
+    def parse(self, crop2ml_dir):
         raise Exception('Not Implemented')
 
 
@@ -26,8 +28,13 @@ class ModelParser(Parser):
     """ Read an XML file and transform it in our object model.
     """
 
-    def parse(self, fn):
+    def parse(self, crop2ml_dir):
         self.models = []
+        self.crop2ml_dir = crop2ml_dir
+        xmlrep = self.crop2ml_dir/'crop2ml'
+        self.algorep = self.crop2ml_dir/'src'
+        
+        fn = xmlrep.glob('unit*.xml')
         try:
             for f in fn:
             
@@ -110,6 +117,26 @@ class ModelParser(Parser):
         _output = inout.Output(properties)
         self._model.outputs.append(_output)
     
+    def Initialization(self, elt):
+        language=elt.attrib["language"]
+        name=elt.attrib["name"]
+        filename=elt.attrib["filename"]
+        file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
+        with open(file, 'r') as f:
+            development = f.read()
+        code = initialization.Initialization(name,language, development, filename)
+        self._model.initialization.append(code)
+        
+        
+    def Function(self, elt):
+        language=elt.attrib["language"]
+        name=elt.attrib["name"]
+        filename=elt.attrib["filename"]
+        type=elt.attrib["type"]
+        description =elt.attrib["description"]        
+        code = function.Function(name, language, filename, type, description)    
+        self._model.function.append(code)
+        
     def Algorithm(self, elt):
         """ Algorithm
         """
@@ -117,13 +144,19 @@ class ModelParser(Parser):
         
         language=elt.attrib["language"]
         platform=elt.attrib["platform"]
-        development = elt.text
         
-        if "function" in elt.attrib: 
-            function=elt.attrib["function"]
+        
+        
+        if "filename" in elt.attrib:
             filename=elt.attrib["filename"]
-            algo = algorithm.Algorithm(language, development, platform, function, filename)
-        else: 
+            file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
+            with open(file, 'r') as f:
+                development = f.read()
+            algo = algorithm.Algorithm(language, development, platform, filename)
+            
+        else:
+            
+            development = elt.text
             algo = algorithm.Algorithm(language, development, platform)
         
         self._model.algorithms.append(algo)
@@ -196,7 +229,9 @@ class ModelParser(Parser):
                 input_test[name]=j.text
             for j in elt.findall("OutputValue"):  # all outputs
                 name = j.attrib["name"]
-                output_test[name]=[j.text,j.attrib["precision"]]
+                if len(j.attrib)==2:
+                    output_test[name]=[j.text,j.attrib["precision"]]
+                else: output_test[name]=[j.text]
                 param_test = {"inputs":input_test, "outputs":output_test}
             _testset.test.append({testname:param_test})
                     
@@ -204,12 +239,14 @@ class ModelParser(Parser):
         self._model.testsets.append(_testset)
 
 
-def model_parser(fn):
-    """ Parse a set of models as xml files and return the models.
+def model_parser(crop2ml_dir):
+    """ Parse a set of models as xml files contained in crop2ml directory
+        and algorithm in src directory
+        This function returns models as python object.
     
-    Returns ModelUnit object of the CropML Model.
+    Returns ModelUnit object of the Crop2ML Model.
     """
-
+    
     parser = ModelParser()
-    return parser.parse(fn)
+    return parser.parse(crop2ml_dir)
 

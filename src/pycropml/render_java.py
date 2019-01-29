@@ -20,8 +20,12 @@ class Model2Package(object):
     DATATYPE['INT'] = "int"
     DATATYPE['STRING'] = "String"
     DATATYPE['DOUBLE'] = "double"
+    DATATYPE['DOUBLELIST'] = "List<Double>"
+    DATATYPE['STRINGLIST'] = "List<String>"
+    DATATYPE['INTLIST'] = "List<Integer>"
     DATATYPE['BOOLEAN'] = "boolean"
     DATATYPE['DATE'] = "Date"
+    DATATYPE['DATELIST'] = "List<Date>"
 
     num = 0
 
@@ -29,6 +33,7 @@ class Model2Package(object):
         """TODO."""
         self.models = models
         self.dir = dir
+        self.alg=""
 
         self.with_import = True
     
@@ -58,7 +63,10 @@ class Model2Package(object):
             self.dir = directory.mkdir()
 
         files = []
+        files2 = []        
         count = 0
+        
+        dir2= cwd/'java'
 
         for model in self.models:
             
@@ -66,15 +74,15 @@ class Model2Package(object):
             self.generate_component(model)
             
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"model_%s.java"%signature(model)
+            filename = self.dir/"%s.java"%signature(model)           
 
             with open(filename, "w") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
                 files.append(filename)
 
                 model.module_name = str(Path(filename).namebase)
+                
 
-            count += 1
 
         return files
 
@@ -83,7 +91,8 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
-        self.code = self.generate_public_class(model_unit)+'\n\n'
+        self.code = "import java.util.List;\nimport java.util.ArrayList;\nimport java.math.BigDecimal;\n"
+        self.code += self.generate_public_class(model_unit)+'\n\n'
         self.code += self.generate_estimation(model_unit)+'\n'
         self.code +=self.generate_function_doc(model_unit)+'\n'
 
@@ -129,8 +138,8 @@ class Model2Package(object):
             if (algorithm.language=="Java")|(algorithm.language==" "):
                 algo = algorithm
                 break
-                
-        if algo.function==None:
+        development = algo.development    
+        if algo.filename==None:
             development = algo.development
 
             code = output_declaration
@@ -139,15 +148,18 @@ class Model2Package(object):
             for line in lines:
                 if (line[len(line)-1] !=";")and(algo.language==" "): line = line+";"
                 code += tab*2+line+'\n'
-                
+            
+            self.alg = code    
             code += tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
                 
             code+=tab+'}\n}\n'
-                
-        else: 
-            print(Path.getcwd()/algo.filename)
+        
+                    
+        else:
             code=output_declaration+"\n"
-            code += tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
+            lines = [tab*2+l for l in development.split('\n') if l.split()]
+            code += '\n'.join(lines)               
+            code += '\n'+tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
                 
             code+=tab+'}\n\n}'          
                                     
@@ -172,12 +184,12 @@ class Model2Package(object):
         code+=paro+'\n'
         
         for out in outputs:
-            code+=tab+"public"+" "+self.DATATYPE[out.datatype]+" "+out.name + ';\n'
+            code+=tab+"public"+" "+self.DATATYPE[out.datatype.strip()]+" "+out.name + ';\n'
         
         code+=tab+"public" +" "+model_unit.name+"("
         sig = ""
         for out in outputs:
-            sig+= self.DATATYPE[out.datatype]+" "+"_"+out.name+","
+            sig+= self.DATATYPE[out.datatype.strip()]+" "+"_"+out.name+","
             
         code+=sig[:-1]+')\n'
         code+=tab*1+paro+'\n'
@@ -197,7 +209,7 @@ class Model2Package(object):
         tab=' '*4
         paro="{"
         parc="}"
-        code ="public static class Estimation_" + signature(model_unit) +'\n'
+        code ="class Estimation_" + signature(model_unit) +'\n'
     
         code+=paro+'\n'
         
@@ -293,10 +305,13 @@ class Model2Package(object):
                     
                     
                     for k, v in outs.iteritems():
+                        type_v=[out.datatype for out in outputs if out.name==k]
                         if len(v)==2:
+                            print(k)
                             code+=tab*2+ "System.out.println(((new BigDecimal(res%s.%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)).equals((new BigDecimal(%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)));\n"%(num,k,v[1],v[0],v[1])
-                        else: code+=tab*2+"System.out.println((new BigDecimal(res%s.%s)).equals(new BigDecimal(%s)));\n"%num%k%v[0]
+                        else: code+=tab*2+"System.out.println((new BigDecimal(res%s.%s)).equals(new BigDecimal(%s)));\n"%(num,k,v[0])
 
+         
                     num = num+1                  
                     code+=tab+"}\n"    
                               
