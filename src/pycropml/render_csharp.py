@@ -21,7 +21,11 @@ class Model2Package(object):
     DATATYPE['STRING'] = "string"
     DATATYPE['DOUBLE'] = "double"
     DATATYPE['BOOLEAN'] = "bool"
-    DATATYPE['DATE'] = "Date"
+    DATATYPE['DATE'] = "DateTime"
+    DATATYPE['STRINGLIST'] = "List<string>"
+    DATATYPE['DOUBLELIST'] = "List<double>"
+    DATATYPE['INTLIST'] = "List<int>"
+    DATATYPE['DATELIST']="List<DateTime>"
 
     num = 0
 
@@ -66,7 +70,7 @@ class Model2Package(object):
             self.generate_component(model)
             
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"model_%s.cs"%signature(model)
+            filename = self.dir/"%s.cs"%signature(model)
 
             with open(filename, "w") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
@@ -131,13 +135,15 @@ class Model2Package(object):
         
         """ we select the algorithm if the language is specified or not"""
         
-        for algorithm in model_unit.algorithms:                                  
-            if (algorithm.language=="C#")|(algorithm.language==" "):
+        for algorithm in model_unit.algorithms: 
+                                
+            if (algorithm.language =="C#")or(algorithm.language==" "):
                 algo = algorithm
                 break
-                
-        if algo.function==None:
-            development = algo.development
+        development = algo.development 
+          
+        if algo.filename==None:
+       
 
             code = output_declaration
                 
@@ -154,7 +160,9 @@ class Model2Package(object):
         else: 
             #print(Path.getcwd()/algo.filename) I will improve it to import code part
             code=output_declaration+"\n"
-            code += tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
+            lines = [tab*2+l for l in development.split('\n') if l.split()]
+            code += '\n'.join(lines)            
+            code += '\n'+tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
                 
             code+=tab+'}\n'  
             code+='}\n'        
@@ -175,12 +183,12 @@ class Model2Package(object):
         code ="public class " + signature(model_unit) +'\n{\n'
 
         for out in outputs:
-            code+=tab+"public"+" "+self.DATATYPE[out.datatype]+" "+out.name + ';\n'
+            code+=tab+"public"+" "+self.DATATYPE[out.datatype.strip()]+" "+out.name + ';\n'
         
         code+=tab+"public" +" "+model_unit.name+"("
         sig = ""
         for out in outputs:
-            sig+= self.DATATYPE[out.datatype]+" "+"_"+out.name+","
+            sig+= self.DATATYPE[out.datatype.strip()]+" "+"_"+out.name+","
             
         code+=sig[:-1]+')\n'+tab+'{\n'
 
@@ -205,13 +213,16 @@ class Model2Package(object):
         code+=tab+"public static "+ model_unit.name+ " Calculate"+signature(model_unit)+"("
         sig = ""
                 
-        for inp in inputs:            
+        for inp in inputs:
+            
+            sig+= self.DATATYPE[inp.datatype]+" "+inp.name+","
+        """            
             if "default" not in inp.__dict__:
                 sig+= self.DATATYPE[inp.datatype]+" "+inp.name+"," 
         for inp in inputs:
             if "default" in inp.__dict__:
-                sig+= self.DATATYPE[inp.datatype]+" "+inp.name+ "="+inp.default+","
-               
+                sig+= self.DATATYPE[inp.datatype]+" "+inp.name+ ","
+        """      
                     
         code+=sig[:-1]+')\n'+tab+'{\n'
         self.code = code
@@ -278,11 +289,14 @@ class Model2Package(object):
                     
                     for testinp in inputs:
                         if testinp.name not in run_param.keys():
-                            run_param[testinp.name]=testinp.default
+                            run_param[testinp.name]=[testinp.default] 
+                            
                     
                     vartest = ""
                     for k, v in run_param.iteritems():
-                        vartest += "%s:%s,"%(k,v)
+                        type_v = [inp.datatype for inp in inputs if inp.name==k]
+                        vartest+= "%s: new %s %s,"%(k,self.DATATYPE[type_v[0]], transfList(v)) if type_v[0] in ("DATE","STRINGLIST","DOUBLELIST","INTLIST", "DATELIST") else "%s:%s,"%(k,v)
+                        #vartest += "%s:%s,"%(k,v)
                         
                     code+=tab*2+signature(m)+" res%s = Estimation_%s.Calculate"%(num,signature(m))+signature(m)+"("+vartest[:-1]+");\n\n"
                     
@@ -298,9 +312,11 @@ class Model2Package(object):
                     
                     
                     for k, v in outs.iteritems():
+                        type_v=[out.datatype for out in outputs if out.name==k]
+                        val = transfDouble(v[0]) if type_v[0]=="DOUBLE" else v[0]
                         if len(v)==2:
-                            code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+"+Math.Round("+v[0] +","+v[1]+")+"+'";"' +"+Math.Round(res%s."%num+k+","+v[1]+")+"+'") "' + "+Equals(Math.Round("+v[0] +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
-                        else: code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+ v[0]+ '";"' +"res%s."%num+k+")+"+'") "'+"+Equals("+v[0]+"," +"res%s."%num+k+"));\n"
+                            code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+"+Math.Round("+val +","+v[1]+")+"+'";"' +"+Math.Round(res%s."%num+k+","+v[1]+")+"+'") "' + "+Equals(Math.Round("+val +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
+                        else: code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+ val+ '";"' +"res%s."%num+k+")+"+'") "'+"+Equals("+val+"," +"res%s."%num+k+"));\n"
                     
                     code+=tab+"}\n"
                     num = num+1                  
@@ -337,4 +353,8 @@ def signature(model):
 
     return name
 
-
+def transfList(elem):
+    return str(elem).replace("[", "{").replace("]", "}")
+  
+def transfDouble(elem):
+    return str(elem)+'D'

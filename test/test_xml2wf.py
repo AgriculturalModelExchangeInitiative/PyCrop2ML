@@ -17,22 +17,24 @@ else:
 
 def testXmlwf():
     
-    model_units = data.glob('Example*.xml')
+    #model_units = data.glob('unit*.xml')
     
-    models = pparse.model_parser(model_units)
+    models = pparse.model_parser(data)
     
     # translate cropml model units to python functions and openalea in python_model repository
-    render_python.Model2Package(models, dir='.',pkg_name="EnergyBalance2").run()
+    render_python.Model2Package(models, dir='.',pkg_name="Phenology").run()
     
     # repository of python models generated  with wralea
     dir = cwd/'python_model'
-
+    
+    rep_composite= data/'crop2ml'
     # composite file
-    compositionFile = data.glob("composition_EnergyBalance.xml")[0]
+    #print(rep_composite.glob("composition*.xml")[0])
+    compositionFile = rep_composite.glob("composition*.xml")[0]
     
     xmlwf,= composition.model_parser(compositionFile)
 
-    XmlToWf(xmlwf, dir, "EnergyBalance2").run()
+    XmlToWf(xmlwf, dir, "Phenology").run()
     
 if __name__=='__main__':
     testXmlwf()
