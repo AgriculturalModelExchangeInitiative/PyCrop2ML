@@ -2,7 +2,6 @@ import os
 from Cython.Compiler import Scanning
 from Cython.Compiler import Main
 
-
 options_defaults = dict(
     show_version = 0,
     use_listing_file = 0,
@@ -38,8 +37,37 @@ class opt:
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
 
-      
+
+    
 def parser(filename):
+    
+    """ Read, parse a Cython code and generate an abstract syntaxique tree.
+    
+    Context: Compilation context: contains every pxd ever loaded, path information and the data related to the compilation.
+    Class where it is implemented Cython parse method.
+    
+    options: To set Compilation Options as 
+                language_level:     The source language level to use,
+                formal_grammar:     to define if it will be used to Parse the file
+                evaluate_tree_assertions:   evaluate parse tree
+                show_version :  Display version number
+                use_listing_file:  Generate a .lis file
+                errors_to_stderr:   Echo errors to stderr when using .lis
+                include_path:    Directories to search for include files
+                output_file:     Name of generated .c file
+                generate_pxi:   generate .pxi file for public declarations
+                capi_reexport_cincludes:   Add cincluded headers to any auto-generated  header files.
+                timestamps:   Only compile changed source files  
+                verbose : Always print source names being compiled
+                compiler_directives:    Overrides for pragma options (see Options.py)
+                embedded_metadata:      Metadata to embed in the C file as json.
+                evaluate_tree_assertions:  Test support: evaluate parse tree assertions
+                cplus :     Compile as c++ code                
+    
+    Here default options were used except language level
+    
+    Scanning.FileSourceDescriptor: Represents a code source. Only file sources for Cython code supported
+    """
     options = opt(**options_defaults)
     context = Main.Context([os.path.dirname(filename)], {}, cpp=False, language_level=3, options=options)
     scope = context.find_submodule(filename)
