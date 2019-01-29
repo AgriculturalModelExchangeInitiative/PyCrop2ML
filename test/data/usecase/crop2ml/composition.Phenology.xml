@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/Crop2ML/master/ModelComposition.dtd">
+<ModelComposition name="Phenology" id="SQ.WheatPhenology" version="001" timestep = "1">
+  <Description>
+    <Title>Phenology</Title>
+    <Authors>Pierre MARTRE</Authors>
+    <Institution>INRA/LEPSE</Institution>
+    <Reference>Modeling development phase in the 
+                Wheat Simulation Model SiriusQuality.
+                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427</Reference>
+    <Abstract>see documentation</Abstract>
+  </Description>
+  <Composition>
+    <Model name="Phyllochron" id="SQ.WheatPhenology.Phyllochron" filename="unit.Phyllochron.xml" />
+    <Model name="PhylSowingDateCorrection" id="SQ.WheatPhenology.PhylSowingDateCorrection" filename="unit.PhylSowingDateCorrection.xml" />
+    <Model name="ShootNumber" id="SQ.WheatPhenology.ShootNumber" filename="unit.ShootNumber.xml" />
+    <Model name="UpdateLeafFlag" id="SQ.WheatPhenology.UpdateLeafFlag" filename="unit.UpdateLeafFlag.xml" />
+    <Model name="UpdatePhase" id="SQ.WheatPhenology.UpdatePhase" filename="unit.UpdatePhase.xml" />
+    <Model name="LeafNumber" id="SQ.WheatPhenology.LeafNumber" filename="unit.LeafNumber.xml" />
+    <Model name="VernalizationProgress" id="SQ.WheatPhenology.VernalizationProgress" filename="unit.VernalizationProgress.xml" />
+    <Model name="IsMomentRegistredZC_39" id="SQ.WheatPhenology.IsMomentRegistredZC_39" filename="unit.Is_FlagLeafLiguleJustVisible_Registred.xml" />
+ 	 <Model name="CumulTTFrom" id="SQ.WheatPhenology.CumulTTFrom" filename="unit.CumulTTFrom.xml" />
+  	<Model name="UpdateCalendar" id="SQ.WheatPhenology.UpdateCalendar" filename="unit.UpdateCalendar.xml" />
+  	<Model name="RegisterZadok" id="SQ.WheatPhenology.RegisterZadok" filename="unit.RegisterZadokStage.xml" />
+
+  <Links>
+      <InputLink target="Phyllochron.LeafNumber" source="LeafNumber" />
+      <InputLink target="Phyllochron.Lincr" source="Lincr" />
+      <InputLink target="Phyllochron.Ldecr" source="Ldecr" />
+      <InputLink target="Phyllochron.Pdecr" source="Pdecr" />
+      <InputLink target="Phyllochron.Pincr" source="Pincr" />
+      <InputLink target="Phyllochron.LAI" source="LAI" />
+      <InputLink target="Phyllochron.PTQ" source="PTQ" />      
+      <InputLink target="Phyllochron.GAI" source="GAI" />            
+      <InputLink target="Phyllochron.pastMaxAI" source="pastMaxAI" />
+      <InputLink target="Phyllochron.Kl" source="Kl" />
+      <InputLink target="Phyllochron.aPTQ" source="aPTQ" />           
+      <InputLink target="Phyllochron.PhylPTQ1" source="PhylPTQ1" />
+      <InputLink target="Phyllochron.P" source="P" />
+      <InputLink target="Phyllochron.choosePhyllUse" source="choosePhyllUse" />
+      <InputLink target="IsMomentRegistredZC_39.calendarMoments" source="calendarMoments" />
+      <InputLink target="PhylSowingDateCorrection.SowingDay" source="SowingDay" />
+      <InputLink target="PhylSowingDateCorrection.SDsa_sh" source="SDsa_sh" />
+      <InputLink target="PhylSowingDateCorrection.P" source="P" />      
+      <InputLink target="PhylSowingDateCorrection.SDws" source="SDws" />
+      <InputLink target="PhylSowingDateCorrection.SDsa_nh" source="SDsa_nh" />      
+      <InputLink target="PhylSowingDateCorrection.Rp" source="Rp" />
+      <InputLink target="CumulTTFrom.calendarMoments" source="calendarMoments" />
+      <InputLink target="CumulTTFrom.calendarCumuls" source="calendarCumuls" />
+      <InputLink target="CumulTTFrom.SwitchMaize" source="SwitchMaize" />
+      <InputLink target="CumulTTFrom.cumulTT" source="cumulTT" />
+      <InputLink target="VernalizationProgress.IsVernalizable" source="IsVernalizable" />
+      <InputLink target="VernalizationProgress.Vernaprog" source="Vernaprog" />      
+      <InputLink target="VernalizationProgress.DeltaTT" source="DeltaTT" />
+      <InputLink target="VernalizationProgress.MinTvern" source="MinTvern" />   
+      <InputLink target="VernalizationProgress.IntTvern" source="IntTvern" />      
+      <InputLink target="VernalizationProgress.VAI" source="VAI" />      
+      <InputLink target="VernalizationProgress.VBEE" source="VBEE" />      
+      <InputLink target="VernalizationProgress.MinDL" source="MinDL" />
+      <InputLink target="VernalizationProgress.MaxDL" source="MaxDL" />
+      <InputLink target="VernalizationProgress.DayLength" source="DayLength" />
+      <InputLink target="VernalizationProgress.MaxTvern" source="MaxTvern" />
+      <InputLink target="VernalizationProgress.LeafNumber" source="LeafNumber" />
+      <InputLink target="VernalizationProgress.PNini" source="PNini" />
+      <InputLink target="VernalizationProgress.MinFinalNumber" source="MinFinalNumber" />
+      <InputLink target="VernalizationProgress.AMXLFNO" source="AMXLFNO" />
+	  <InputLink target="VernalizationProgress.currentdate" source="currentdate" />
+      <InputLink target="VernalizationProgress.cumulTT" source="cumulTT" />
+      <InputLink target="VernalizationProgress.calendarMoments" source="calendarMoments" />
+      <InputLink target="VernalizationProgress.calendarDates" source="calendarDates" />
+      <InputLink target="VernalizationProgress.calendarCumuls" source="calendarCumuls" />
+      
+      <InputLink target="UpdatePhase.Dse" source="Dse" />
+      <InputLink target="UpdatePhase.IsVernalizable" source="IsVernalizable" />
+      <InputLink target="UpdatePhase.PFLLAnth" source="PFLLAnth" />
+      <InputLink target="UpdatePhase.Dcd" source="Dcd" />
+      <InputLink target="UpdatePhase.Dgf" source="Dgf" />
+      <InputLink target="UpdatePhase.Degfm" source="Degfm" />
+      <InputLink target="UpdatePhase.MaxDL" source="MaxDL" />
+      <InputLink target="UpdatePhase.IgnoreGrainMaturation" source="IgnoreGrainMaturation" />
+      <InputLink target="UpdatePhase.PHEADANTH" source="PHEADANTH" />
+      <InputLink target="UpdatePhase.SwitchMaize" source="SwitchMaize" />
+      <InputLink target="UpdatePhase.choosePhyllUse" source="choosePhyllUse" />
+      <InputLink target="UpdatePhase.P" source="P" />
+      <InputLink target="UpdatePhase.DayLength" source="DayLength" />
+      <InputLink target="UpdatePhase.SLDL" source="SLDL" />
+      <InputLink target="UpdatePhase.cumulTT" source="cumulTT" />
+      <InputLink target="UpdatePhase.LeafNumber" source="LeafNumber" />
+      <InputLink target="UpdatePhase.GrainCumulTT" source="GrainCumulTT" />
+      <InputLink target="UpdatePhase.GAI" source="GAI" />
+      <InputLink target="UpdatePhase.phase" source="phase" />
+      <InputLink target="UpdatePhase.hasLastPrimordiumAppeared" source="hasLastPrimordiumAppeared" />
+      <InputLink target="UpdatePhase.FinalLeafNumber" source="FinalLeafNumber" />
+      <InputLink target="LeafNumber.LeafNumber" source="LeafNumber" />
+      <InputLink target="LeafNumber.HasFlagLeafLiguleAppeared" source="HasFlagLeafLiguleAppeared" />
+      <InputLink target="LeafNumber.SwitchMaize" source="SwitchMaize" />
+      <InputLink target="LeafNumber.DeltaTT" source="DeltaTT" />
+      <InputLink target="LeafNumber.Leaf_tip_emerg" source="Leaf_tip_emerg" />
+      <InputLink target="LeafNumber.atip" source="atip" />
+      <InputLink target="LeafNumber.Nlim" source="Nlim" />
+      <InputLink target="LeafNumber.k_bl" source="k_bl" />
+      <InputLink target="LeafNumber.cumulTTPhenoMaizeAtEmergence" source="cumulTTPhenoMaizeAtEmergence" />
+      <InputLink target="LeafNumber.cumulTT" source="cumulTT" />
+      <InputLink target="UpdateLeafFlag.HasFlagLeafLiguleAppeared" source="HasFlagLeafLiguleAppeared" />
+      <InputLink target="UpdateLeafFlag.currentdate" source="currentdate" />
+      <InputLink target="UpdateLeafFlag.cumulTT" source="cumulTT" />
+      <InputLink target="UpdateCalendar.currentdate" source="currentdate" />
+      <InputLink target="UpdateCalendar.cumulTT" source="cumulTT" />
+      <InputLink target="ShootNumber.CanopyShootNumber" source="CanopyShootNumber" />
+      <InputLink target="ShootNumber.SowingDensity" source="SowingDensity" />
+      <InputLink target="ShootNumber.TargetFertileShoot" source="TargetFertileShoot" />
+      <InputLink target="ShootNumber.tilleringProfile" source="tilleringProfile" />
+      <InputLink target="ShootNumber.leafTillerNumberArray" source="leafTillerNumberArray" />
+      <InputLink target="ShootNumber.TillerNumber" source="TillerNumber" /> 
+
+      <InputLink target="RegisterZadok.currentdate" source="currentdate" />
+      <InputLink target="RegisterZadok.cumulTT" source="cumulTT" />
+      <InputLink target="RegisterZadok.slopeTSFLN" source="slopeTSFLN" />
+      <InputLink target="RegisterZadok.TSFLN" source="TSFLN" />
+      <InputLink target="RegisterZadok.Der" source="Der" />
+      <InputLink target="RegisterZadok.currentZadokStage" source="currentZadokStage" />           
+
+      <InternalLink target="Phyllochron.FixPhyll" source="PhylSowingDateCorrection.FixPhyll" />      
+      <InternalLink target="UpdatePhase.Vernaprog" source="VernalizationProgress.Vernaprog" />
+      <InternalLink target="UpdatePhase.MinFinalNumber" source="VernalizationProgress.MinFinalNumber" />
+      <InternalLink target="UpdatePhase.isMomentRegistredZC_39" source="IsMomentRegistredZC_39.isMomentRegistredZC_39" />
+      <InternalLink target="UpdatePhase.cumulTTFromZC_39" source="CumulTTFrom.cumulTTFromZC_39" />
+      <InternalLink target="UpdatePhase.cumulTTFromZC_91" source="CumulTTFrom.cumulTTFromZC_91" />
+      <InternalLink target="UpdatePhase.FixPhyll" source="PhylSowingDateCorrection.FixPhyll" />
+      <InternalLink target="UpdatePhase.Phyllochron" source="Phyllochron.Phyllochron" />
+      <InternalLink target="LeafNumber.Phyllochron" source="Phyllochron.Phyllochron" />
+      <InternalLink target="LeafNumber.phase" source="UpdatePhase.phase" />
+      <InternalLink target="UpdateLeafFlag.LeafNumber" source="LeafNumber.LeafNumber" />
+      <InternalLink target="UpdateLeafFlag.FinalLeafNumber" source="UpdatePhase.FinalLeafNumber" />
+      <InternalLink target="UpdateLeafFlag.calendarMoments" source="VernalizationProgress.calendarMoments" />
+      <InternalLink target="UpdateLeafFlag.calendarDates" source="VernalizationProgress.calendarDates" />
+      <InternalLink target="UpdateLeafFlag.calendarCumuls" source="VernalizationProgress.calendarCumuls" />
+      <InternalLink target="UpdateLeafFlag.phase" source="UpdatePhase.phase"/>
+      <InternalLink target="UpdateCalendar.phase" source="UpdatePhase.phase" />
+      <InternalLink target="ShootNumber.LeafNumber" source="LeafNumber.LeafNumber" />
+      <InternalLink target="UpdateCalendar.calendarMoments" source="RegisterZadok.calendarMoments" />
+      <InternalLink target="UpdateCalendar.calendarDates" source="RegisterZadok.calendarDates" />
+      <InternalLink target="UpdateCalendar.calendarCumuls" source="RegisterZadok.calendarCumuls" />
+
+      <InternalLink target="RegisterZadok.FinalLeafNumber" source="UpdatePhase.FinalLeafNumber" />
+      <InternalLink target="RegisterZadok.LeafNumber" source="LeafNumber.LeafNumber" />
+      <InternalLink target="RegisterZadok.calendarMoments" source="UpdateLeafFlag.calendarMoments" />
+      <InternalLink target="RegisterZadok.calendarDates" source="UpdateLeafFlag.calendarDates" />
+      <InternalLink target="RegisterZadok.calendarCumuls" source="UpdateLeafFlag.calendarCumuls" />
+      <InternalLink target="RegisterZadok.phase" source="UpdatePhase.phase" />
+      <InternalLink target="RegisterZadok.cumulTTFromZC_65" source="CumulTTFrom.cumulTTFromZC_65" />
+
+        
+      <OutputLink source="RegisterZadok.currentZadokStage" target="currentZadokStage" />  
+      <OutputLink source="Phyllochron.Phyllochron" target="Phyllochron" />
+      <OutputLink source="Phyllochron.pastMaxAI" target="pastMaxAI" />
+      <OutputLink source="UpdateCalendar.calendarMoments" target="calendarMoments" />
+      <OutputLink source="UpdateCalendar.calendarDates" target="calendarDates" />
+      <OutputLink source="UpdateCalendar.calendarCumuls" target="calendarCumuls" />           
+      <OutputLink source="VernalizationProgress.Vernaprog" target="Vernaprog" />
+      <OutputLink source="ShootNumber.CanopyShootNumber" target="CanopyShootNumber" />
+      <OutputLink source="LeafNumber.LeafNumber" target="LeafNumber" />
+      <OutputLink source="UpdatePhase.phase" target="phase" />
+      <OutputLink source="ShootNumber.TillerNumber" target="TillerNumber" />
+      <OutputLink source="ShootNumber.tilleringProfile" target="tilleringProfile" />
+      <OutputLink source="ShootNumber.leafTillerNumberArray" target="leafTillerNumberArray" />
+      <OutputLink source="ShootNumber.AverageShootNumberPerPlant" target="AverageShootNumberPerPlant" />
+      <OutputLink source="VernalizationProgress.MinFinalNumber" target="MinFinalNumber" />
+      <OutputLink source="UpdatePhase.FinalLeafNumber" target="FinalLeafNumber" />
+      <OutputLink source="UpdateLeafFlag.HasFlagLeafLiguleAppeared" target="HasFlagLeafLiguleAppeared" />
+      <OutputLink source="UpdatePhase.hasLastPrimordiumAppeared" target="hasLastPrimordiumAppeared" />
+      <OutputLink source="LeafNumber.Ntip" target="Ntip" />
+   
+    </Links>
+  </Composition>
+</ModelComposition>
