@@ -1,0 +1,232 @@
+<ModuleNode (0x2bd8e7bfbe0)
+  doc: None
+  body: <DefNode (0x2bd8e7bfda0)
+    name: 'diffusionlimitedevaporation'
+    args: [<CArgDeclNode (0x2bd8e7bfcc0)
+      base_type: <CSimpleBaseTypeNode (0x2bd8e7bfc50)
+        name: 'float'
+        module_path: []
+        is_basic_c_type: 1
+        signed: 1
+        complex: 0
+        longness: 0
+        is_self_arg: 0
+        templates: None
+      >
+      declarator: <CNameDeclaratorNode (0x2bd8e7bfc88)
+        name: 'deficitOnTopLayers'
+        cname: None
+        default: None
+        calling_convention: ''
+      >
+      not_none: 0
+      or_none: 0
+      default: None
+      annotation: None
+      kw_only: 0
+    >, <CArgDeclNode (0x2bd8e7bfd68)
+      base_type: <CSimpleBaseTypeNode (0x2bd8e7bfcf8)
+        name: 'float'
+        module_path: []
+        is_basic_c_type: 1
+        signed: 1
+        complex: 0
+        longness: 0
+        is_self_arg: 0
+        templates: None
+      >
+      declarator: <CNameDeclaratorNode (0x2bd8e7bfd30)
+        name: 'soilDiffusionConstant'
+        cname: None
+        default: None
+        calling_convention: ''
+      >
+      not_none: 0
+      or_none: 0
+      default: None
+      annotation: None
+      kw_only: 0
+    >]
+    star_arg: None
+    starstar_arg: None
+    doc: None
+    body: <StatListNode (0x2bd8def39e8)
+      stats: [<CVarDefNode (0x2bd8e7bfe80)
+        visibility: 'private'
+        base_type: <CSimpleBaseTypeNode (0x2bd8e7bfe10)
+          name: 'float'
+          module_path: []
+          is_basic_c_type: 1
+          signed: 1
+          complex: 0
+          longness: 0
+          is_self_arg: 0
+          templates: None
+        >
+        declarators: [<CNameDeclaratorNode (0x2bd8e7bfeb8)
+          name: 'diffusionLimitedEvaporation'
+          cname: None
+          default: None
+          calling_convention: ''
+          overridable: 0
+        >]
+        in_pxd: False
+        doc: None
+        api: 0
+        modifiers: []
+        overridable: 0
+      >, <IfStatNode (0x2bd8b9b6748)
+        if_clauses: [<IfClauseNode (0x2bd8e7be240)
+          condition: <PrimaryCmpNode (0x2bd8e7be080)
+            operator: '<='
+            operand1: <DivNode (0x2bd8e7bffd0)
+              operator: '/'
+              operand1: <NameNode (0x2bd8e7bfe48)
+                name: 'deficitOnTopLayers'
+              >
+              operand2: <FloatNode (0x2bd8e7bff98)
+                value: '1000.0'
+              >
+              inplace: False
+              truedivision: True
+            >
+            operand2: <IntNode (0x2bd8e7be048)
+              is_c_literal: None
+              value: '0'
+              unsigned: ''
+              longness: ''
+              constant_result: 0
+              type: <CNumericType long>
+            >
+          >
+          body: <SingleAssignmentNode (0x2bd8e7be208)
+            lhs: <NameNode (0x2bd8e7be0b8)
+              name: 'diffusionLimitedEvaporation'
+            >
+            rhs: <MulNode (0x2bd8e7be1d0)
+              operator: '*'
+              operand1: <FloatNode (0x2bd8e7be128)
+                value: '8.3'
+              >
+              operand2: <IntNode (0x2bd8e7be198)
+                is_c_literal: None
+                value: '1000'
+                unsigned: ''
+                longness: ''
+                constant_result: 1000
+                type: <CNumericType long>
+              >
+              inplace: False
+            >
+          >
+        >]
+        else_clause: <IfStatNode (0x2bd8b9b6f28)
+          if_clauses: [<IfClauseNode (0x2bd8e5d3e48)
+            condition: <PrimaryCmpNode (0x2bd8e7be390)
+              operator: '<'
+              operand1: <DivNode (0x2bd8e7be2e8)
+                operator: '/'
+                operand1: <NameNode (0x2bd8b9bf630)
+                  name: 'deficitOnTopLayers'
+                >
+                operand2: <IntNode (0x2bd8e7be2b0)
+                  is_c_literal: None
+                  value: '1000'
+                  unsigned: ''
+                  longness: ''
+                  constant_result: 1000
+                  type: <CNumericType long>
+                >
+                inplace: False
+                truedivision: True
+              >
+              operand2: <IntNode (0x2bd8e7be358)
+                is_c_literal: None
+                value: '25'
+                unsigned: ''
+                longness: ''
+                constant_result: 25
+                type: <CNumericType long>
+              >
+            >
+            body: <SingleAssignmentNode (0x2bd8e5d3f98)
+              lhs: <NameNode (0x2bd8e7be3c8)
+                name: 'diffusionLimitedEvaporation'
+              >
+              rhs: <MulNode (0x2bd8e5d3b38)
+                operator: '*'
+                operand1: <DivNode (0x2bd8e4b6278)
+                  operator: '/'
+                  operand1: <MulNode (0x2bd8e7be4e0)
+                    operator: '*'
+                    operand1: <MulNode (0x2bd8e7be470)
+                      operator: '*'
+                      operand1: <IntNode (0x2bd8e7be400)
+                        is_c_literal: None
+                        value: '2'
+                        unsigned: ''
+                        longness: ''
+                        constant_result: 2
+                        type: <CNumericType long>
+                      >
+                      operand2: <NameNode (0x2bd8e7be438)
+                        name: 'soilDiffusionConstant'
+                      >
+                      inplace: False
+                    >
+                    operand2: <NameNode (0x2bd8e7be4a8)
+                      name: 'soilDiffusionConstant'
+                    >
+                    inplace: False
+                  >
+                  operand2: <DivNode (0x2bd8e4b6048)
+                    operator: '/'
+                    operand1: <NameNode (0x2bd8e4c76a0)
+                      name: 'deficitOnTopLayers'
+                    >
+                    operand2: <FloatNode (0x2bd8e4b6390)
+                      value: '1000.0'
+                    >
+                    inplace: False
+                    truedivision: True
+                  >
+                  inplace: False
+                  truedivision: True
+                >
+                operand2: <FloatNode (0x2bd8e5d3c88)
+                  value: '1000.0'
+                >
+                inplace: False
+              >
+            >
+          >]
+          else_clause: <SingleAssignmentNode (0x2bd8b9b6b70)
+            lhs: <NameNode (0x2bd8e5d3e80)
+              name: 'diffusionLimitedEvaporation'
+            >
+            rhs: <IntNode (0x2bd8e5d3da0)
+              is_c_literal: None
+              value: '0'
+              unsigned: ''
+              longness: ''
+              constant_result: 0
+              type: <CNumericType long>
+            >
+          >
+        >
+      >, <ReturnStatNode (0x2bd8def3d30)
+        value: <NameNode (0x2bd8b9b6dd8)
+          name: 'diffusionLimitedEvaporation'
+        >
+      >]
+    >
+    decorators: None
+    is_async_def: False
+    return_type_annotation: None
+    num_kwonly_args: 0
+    num_required_kw_args: 0
+    num_required_args: 2
+  >
+  full_module_name: Path('C:\\Users\\midingoy\\Documents\\THESE\\pycropml_pheno\\tests_transpiler\\data\\example1.pyx')
+  directive_comments: {}
+>
