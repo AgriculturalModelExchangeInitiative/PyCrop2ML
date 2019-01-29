@@ -1,8 +1,0 @@
-{
-    "project_name": "AgriculturalModelExchangeInitiative",	
-    "repo_name": "{{ cookiecutter.project_name.lower().replace(' ', '_') }}",
-    "author_name": "Your name (or your organization/company/team)",
-    "description": "A short description of the project.",
-    "open_source_license": ["MIT", "BSD-3-Clause", "No license file"],
-    "python_interpreter": ["python3", "python"]
-}
