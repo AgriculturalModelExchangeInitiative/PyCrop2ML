@@ -1,6 +1,8 @@
+# coding: utf8
 import os
 from Cython.Compiler import Scanning
 from Cython.Compiler import Main
+from path import Path
 
 options_defaults = dict(
     show_version = 0,
@@ -22,7 +24,7 @@ options_defaults = dict(
     emit_linenums = False,
     relative_path_in_code_position_comments = True,
     c_line_in_traceback = True,
-    language_level = 3,  # warn but default to 2
+    language_level = 2,  # warn but default to 2
     formal_grammar = False,
     gdb_debug = False,
     compile_time_env = None,
@@ -39,7 +41,7 @@ class opt:
 
 
     
-def parser(filename):
+def parser(module):
     
     """ Read, parse a Cython code and generate an abstract syntaxique tree.
     
@@ -49,13 +51,13 @@ def parser(filename):
     options: To set Compilation Options as 
                 language_level:     The source language level to use,
                 formal_grammar:     to define if it will be used to Parse the file
-                evaluate_tree_assertions:   evaluate parse tree
-                show_version :  Display version number
+                evaluate_tree_assertions:   To evaluate parse tree
+                show_version :  To display version number
                 use_listing_file:  Generate a .lis file
                 errors_to_stderr:   Echo errors to stderr when using .lis
                 include_path:    Directories to search for include files
                 output_file:     Name of generated .c file
-                generate_pxi:   generate .pxi file for public declarations
+                generate_pxi:   Generate .pxi file for public declarations
                 capi_reexport_cincludes:   Add cincluded headers to any auto-generated  header files.
                 timestamps:   Only compile changed source files  
                 verbose : Always print source names being compiled
@@ -69,10 +71,14 @@ def parser(filename):
     Scanning.FileSourceDescriptor: Represents a code source. Only file sources for Cython code supported
     """
     options = opt(**options_defaults)
-    context = Main.Context([os.path.dirname(filename)], {}, cpp=False, language_level=3, options=options)
-    scope = context.find_submodule(filename)
-    with open(filename.encode('utf-8'), 'r') as f:
-        source = f.read()
-    source_desc = Scanning.FileSourceDescriptor(filename, source)
-    tree = context.parse(source_desc, scope, pxd=None, full_module_name=filename)
+    if isinstance(module, Path):
+        context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
+        scope = context.find_submodule(module)
+        with open(module.encode('utf-8'), 'r') as f:
+            source = f.read()
+        source_desc = Scanning.FileSourceDescriptor(module, source)
+        tree = context.parse(source_desc, scope, pxd=None, full_module_name=module)
+    else:
+        from Cython.Compiler.TreeFragment import parse_from_strings
+        tree = parse_from_strings("module",module)
     return tree
