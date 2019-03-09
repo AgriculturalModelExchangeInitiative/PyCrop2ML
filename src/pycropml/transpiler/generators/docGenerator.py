@@ -2,9 +2,10 @@
 from pycropml.transpiler.codeGenerator import CodeGenerator
 
 class DocGenerator(CodeGenerator):
-    """This class contains the specific properties of 
-    python language and use the NodeVisitor to generate a python
-    code source from a well formed syntax tree.
+    """Generate doc in different target language
+        - desccription of the code
+        - Inputs details
+        - Outputs details        
     """
     def __init__(self, model=None, tag='#'):
         CodeGenerator.__init__(self)
