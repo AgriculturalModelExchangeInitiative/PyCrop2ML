@@ -1,0 +1,88 @@
+# Grammar for Pseudo-Cython, based on Cython grammar
+
+# Note: This grammar is not yet used by the Cython parser and is subject to change.
+
+# Start symbols for the grammar:
+# to define function
+
+funcdef: 'def' PY_NAME parameters ':' suite
+parameters: '(' [typedargslist] ')'
+typedargslist: (tfpdef ['=' test] (',' tfpdef ['=' test])*) 
+tfpdef: typed_name [':' test]
+
+stmt: simple_stmt | compound_stmt | cdef_stmt
+simple_stmt: small_stmt (';' small_stmt)* [';'] NEWLINE
+small_stmt: (expr_stmt | del_stmt | flow_stmt |import_stmt )
+expr_stmt: testlist (augassignment testlist |
+                     ('=' testlist)*)
+augassign: ('+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|='   | '**=' )
+del_stmt: 'del' exprlist
+flow_stmt: break_stmt | continue_stmt | return_stmt 
+break_stmt: 'break'
+continue_stmt: 'continue'
+return_stmt: 'return' [testlist]
+import_stmt: import_PY_NAME | import_from
+import_PY_NAME: 'import' dotted_as_PY_NAMEs
+import_from: ('from' (('.')* dotted_PY_NAME | ('.')+)
+              ('import') ('*' | import_as_PY_NAMEs))
+import_as_PY_NAME: PY_NAME ['as' PY_NAME]
+dotted_as_PY_NAME: dotted_PY_NAME ['as' PY_NAME]
+import_as_PY_NAMEs: import_as_PY_NAME (',' import_as_PY_NAME)* [',']
+dotted_as_PY_NAMEs: dotted_as_PY_NAME (',' dotted_as_PY_NAME)*
+dotted_PY_NAME: PY_NAME ('.' PY_NAME)*
+compound_stmt: if_stmt | while_stmt | for_stmt | funcdef 
+if_stmt: 'if' test ':' suite ('elif' test ':' suite)* ['else' ':' suite]
+while_stmt: 'while' test ':' suite ['else' ':' suite]
+for_stmt: 'for' exprlist ('in' testlist)':' suite ['else' ':' suite]
+suite: simple_stmt | NEWLINE INDENT stmt+ DEDENT
+test: or_test ['if' or_test 'else' test] 
+test_nocond: or_test 
+or_test: and_test ('or' and_test)*
+and_test: not_test ('and' not_test)*
+not_test: 'not' not_test | comparison
+comparison: expr (comp_op expr)*
+comp_op: '<'|'>'|'=='|'>='|'<='|'!='|'in'|'not' 'in'
+expr: and_expr ('|' and_expr)*
+and_expr: arith_expr ('&' arith_expr)*
+arith_expr: term (('+'|'-') term)*
+term: factor (('*'|'/'|'%'|'//') factor)*
+factor: ('+'|'-'|'~') factor | power| cast
+power: atom_expr ['**' factor]
+atom_expr: atom trailer*
+atom: ('('testlist_comp ')' |
+       '[' [testlist_comp] ']'|
+       PY_NAME | NUMBER | STRING+ | 'None' | 'True' | 'False')
+testlist_comp: test( comp_for | (',' test)* [','] )
+trailer: '(' [arglist] ')' | '[' subscriptlist ']' 
+subscriptlist: subscript (',' subscript)* [',']
+subscript: test | [test] ':' [test] [sliceop]
+sliceop: ':' [test]
+exprlist: expr (',' expr)* [',']
+testlist: test (',' test)* [',']
+comp_iter: comp_for | comp_if
+comp_for: 'for' exprlist ('in' or_test) [comp_iter]
+comp_if: 'if' test_nocond [comp_iter]
+arglist: argument (',' argument)* [',']
+argument: ( test [comp_for] |
+            test '=' test )
+			
+# Cython extensions
+longness: 'char'
+int_type: longness | ('int' | 'float')
+type:  (NAME ('.' PY_NAME)* | int_type )
+typed_name:  (NAME [('.' PY_NAME)*  [type_qualifiers] NAME] | int_type  [type_qualifiers] NAME)
+teplate_params: '[' NAME (',' NAME)* ']'
+type_qualifiers: type_qualifier+
+type_qualifier:  type_index ('.' NAME [type_index])*
+
+type_index: '[' [(NUMBER | type (',' type)* | (memory_view_index (',' memory_view_index)*))] ']'
+memory_view_index: ':' [':'] [NUMBER]
+
+cdef_stmt: 'cdef'  (cvar_def | extern_block)
+
+# Allows an assignment
+cvar_def:  typed_name (['=' test] (',' PY_NAME ['=' test])* NEWLINE)
+cy_type_kwd: 'int' | 'float' 
+cy_kwd: cy_type_kwd | longness 
+PY_NAME: NAME | cy_kwd
+
