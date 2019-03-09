@@ -7,7 +7,6 @@ Problems:
 - name of a model unit?
 """
 from __future__ import print_function
-from __future__ import absolute_import
 from path import Path
 
 # The package used to generate Notebook
@@ -121,7 +120,7 @@ Each run will be defined in its own cell."""
         # map the paramsets
             params = {}
 
-            if   test_paramsets not in list(psets.keys()):
+            if   test_paramsets not in psets.keys():
                 print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -131,12 +130,12 @@ Each run will be defined in its own cell."""
                     des = ""
                 
                     # make a function that transforms a title into a function name
-                    tname = list(each_run.keys())[0].replace(' ', '_')
+                    tname = each_run.keys()[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
                     
                     code =tab+"//%s  %s"%(test_name,tname)+");\n"
 
-                    (run, inouts) = list(each_run.items())[0]
+                    (run, inouts) = each_run.items()[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -148,7 +147,7 @@ Each run will be defined in its own cell."""
                     
                     declaration=""
                     for testinp in inputs:
-                        if testinp.name not in list(run_param.keys()):
+                        if testinp.name not in run_param.keys():
                             run_param[testinp.name]=testinp.default
                         declaration+= tab*2+self.DATATYPE[testinp.datatype]+" "+testinp.name + " = "+ run_param[testinp.name]+";\n"
                     """

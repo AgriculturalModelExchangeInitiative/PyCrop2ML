@@ -1,18 +1,35 @@
+# coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
-from pycropml.transpiler.rules.csharpRules import types, csharpOP
+from pycropml.transpiler.rules.csharpRules import CsharpRules
+from pycropml.transpiler.generators.docGenerator import DocGenerator
 
-class CsharpGenerator(CodeGenerator):
+class CsharpGenerator(CodeGenerator,CsharpRules):
     """ This class contains the specific properties of
     Csharp language and use the NodeVisitor to generate a csharp
     code source from a well formed syntax tree.
     """
     
-    def __init__(self):
-        super().__init__(indent_with=' '*4)
+    def __init__(self, tree, model=None):
+        CodeGenerator.__init__(self)
+        CsharpRules.__init__(self)
+        self.tree = tree
+        self.model=model
+        self.indent_with=' '*4
         self.write(u"using System;\nusing System.Collections.Generic;\n")
+        self.doc= DocGenerator(model, '//')  
+        
+    
+
          
     def visit_import(self, node):
         pass
+
+    def visit_cond_expr_node(self, node):
+        self.visit(node.test)
+        self.write(u" ? ")
+        self.visit(node.true_val)     
+        self.write(u" : ")
+        self.visit(node.false_val) 
         
     def visit_if_statement(self, node):
         self.newline(node)
@@ -36,7 +53,7 @@ class CsharpGenerator(CodeGenerator):
 
     def visit_elseif_statement(self, node):
         self.newline()
-        self.write('elseif ( ')
+        self.write('else if ( ')
         self.visit(node.test)
         self.write(')')
         self.newline(node)
@@ -57,16 +74,48 @@ class CsharpGenerator(CodeGenerator):
     def visit_float(self, node):
         self.write(node.value)
         self.write("d")
+
+    def visit_array(self, node):
+        self.write("new []")        
+        self.write(u'{')
+        self.comma_separated_list(node.elements)
+        self.write(u'}')
+                
+    def visit_dict(self, node):
+        self.write("new ")
+        self.visit_decl(node.pseudo_type)
+        self.write(u'{')
+        self.comma_separated_list(node.pairs)
+        self.write(u'}')
+    
+    def visit_bool(self, node):
+        self.write("true") if node.value==True else self.write("false")
    
     def visit_standard_method_call(self, node):
-        if not node.args:
-            self.write(node.message)
-            self.write('(')
-            self.visit(node.receiver)
-            self.write(')')
+        l = node.receiver.pseudo_type
+        if isinstance(l, list):
+            l = l[0]
+        z = self.methods[l][node.message]        
+        if callable(z):
+            self.visit(z(node))
         else:
-            pass
-                         
+            if not node.args:
+                self.write(z)
+                self.write('(')
+                self.visit(node.receiver)
+                self.write(')')
+            else:
+                "%s.%s"%(self.visit(node.receiver),self.write(z))
+                self.write("(")
+                self.comma_separated_list(node.args)
+                self.write(")")
+
+            
+    
+    def visit_method_call(self, node):
+        "%s.%s"%(self.visit(node.receiver),self.write(node.message))
+        
+                                
     def visit_index(self, node):
         self.visit(node.sequence)
         self.write(u"[")
@@ -90,15 +139,6 @@ class CsharpGenerator(CodeGenerator):
             self.write(u":")
             self.visit(node.args[1])
         self.write(u"]")
-
-    def visit_binary_op(self, node):
-        op = node.op
-        prec = self.binop_precedence.get(op, 0)
-        self.operator_enter(prec)
-        self.visit(node.left)
-        self.write(u" %s " % csharpOP[op].replace('_', ' '))
-        self.visit(node.right)
-        self.operator_exit()
     
     def visit_assignment(self, node):
         self.newline(node)
@@ -108,27 +148,43 @@ class CsharpGenerator(CodeGenerator):
         self.write(";")
          
     def visit_function_definition(self, node):
-        self.write("public class Program")
+        self.write("public class %s"%node.name.capitalize())
         self.newline(node)
         self.write("{")
         self.indentation += 1        
         self.newline(node)
         self.body("")        
-        self.write('static %s %s(' %(node.return_type, node.name))
+        self.write("public static ")
+        self.visit_decl(node.return_type)
+        self.write(" %s("%node.name)
         for i, pa in enumerate(node.params):
-            self.write('%s '%pa.pseudo_type)
+            self.visit_decl(pa.pseudo_type)
+            self.write(" ")
             self.visit(pa)
             if i!= (len(node.params)-1):
                 self.write(',')
         self.write(')')
         self.newline(node)
-        self.write('{')            
+        self.write('{') 
+        self.newline(node)
+        if self.model:
+            self.write(self.doc.desc)
+            self.newline(node)
+            self.write(self.doc.inputs_doc)
+            self.newline(node)
+            self.write(self.doc.outputs_doc)
+            self.newline(node) 
         self.body(node.block)
         self.newline(node)
         self.write('}') 
         self.newline(node)
         self.indentation -= 1 
-        self.write('}')         
+        self.write('}')  
+    
+    def visit_custom_call(self, node):
+        "TODO"
+        self.visit_call(node)
+        
         
     def visit_implicit_return(self, node):
         self.newline(node)
@@ -139,44 +195,132 @@ class CsharpGenerator(CodeGenerator):
         self.visit(node.value)
         self.write(";")
     
-    def sequence_visit(left, right):
-        def visit(self, node):
-            self.write(left)
-            for idx, item in enumerate(node.elements):
-                if idx:
-                    self.write(', ')
-                self.visit(item)
-            self.write(right)
-        return visit
+    def visit_list(self, node):
+        self.write("new ")
+        self.visit_decl(node.pseudo_type)
+        self.write(u'{')
+        self.comma_separated_list(node.elements)
+        self.write(u'}')
+    
+    def visit_tuple(self,node):
+        self.write("Tuple.Create(")
+        self.comma_separated_list(node.elements)
+        self.write(")")
+    
+    def visit_str(self, node):
+        self.safe_double(node)
 
-    visit_list = sequence_visit('[', ']')
-    del sequence_visit
 
     def visit_declaration(self, node):
         self.newline(node)
         for n in node.decl:
             self.newline(node)
-            if 'value' not in dir(n) and n.type not in ("list", "tuple"):
-                self.write('%s %s;'%(types[n.type],n.name)) 
+            if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict"):
+                self.write('%s %s;'%(self.types[n.type],n.name)) 
             if 'elements' not in dir(n) and n.type=="list":
                 self.write("var %s = new List()"%n.name)
-            if 'value' in dir(n) and n.type in ("int", "float"):
-                self.write('%s %s'%("double" if n.type=="float" else "int",n.name))
+            if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
+                self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
-                self.write(n.value if n.type=="int" else "%sd"%n.value)
+                self.visit(n)
                 self.write(";")
-            elif 'value' in dir(n) and n.type=="str": 
-                self.write('%s %s'%("String",n.name))
-                self.write(n.name)
-                self.write(" = ")
-                self.emit_string(n) 
-                self.write(";")
-            elif 'elements' in dir(n) and n.type=="list":
-                self.write('%s<%s> %s= new %s<%s>'%(types[n.type], n.pseudo_type[1],n.name, types[n.type], n.pseudo_type[1] ))
+            elif 'elements' in dir(n) and n.type in ("list", "tuple"):
+                if n.type=="list":
+                    self.visit_decl(n.pseudo_type)
+                    self.write(n.name)
+                    self.write(" = new ") 
+                    self.visit_decl(n.pseudo_type)
+                if n.type=='tuple':
+                    pass
                 self.write(u'{')
                 self.comma_separated_list(n.elements)
                 self.write(u'};')
-             
+            elif 'pairs' in dir(n) and n.type=="dict":
+                self.visit_decl(n.pseudo_type)
+                self.write(n.name)
+                self.write(" = new ") 
+                self.visit_decl(n.pseudo_type)               
+                self.write(u'{')
+                self.comma_separated_list(n.pairs)
+                self.write(u'};')
+                
+        self.newline(node)
+    
+    def visit_list_decl(self, node):        
+        if not isinstance(node[1], list):
+            self.write(self.types[node[1]])
+            self.write('>')
+        else:
+            node = node[1]
+            self.visit_decl(node)
+            self.write('>')
+    
+    def visit_dict_decl(self, node):  
+        self.write(self.types[node[1]])
+        self.write(",")        
+        if not isinstance(node[2], list):
+            self.write(self.types[node[2]])
+            self.write('>')
+        else:
+            node = node[2]
+            self.visit_decl(node)
+            self.write('>')
+    
+    def visit_tuple_decl(self, node):
+        self.visit_decl(node[0])
+        for n in node[1:-1]:
+            self.visit_decl(n)
+            self.write(",")
+        self.visit_decl(node[-1])
+        self.write('> ')
+    
+    def visit_float_decl(self, node):
+        self.write(self.types[node])
+        
+    def visit_int_decl(self, node):
+        self.write(self.types[node])
+
+    def visit_str_decl(self, node):
+        self.write(self.types[node])
+        
+    def visit_bool_decl(self, node):
+        self.write(self.types[node])        
+
+    def visit_array_decl(self, node):
+        self.visit_decl(node[1])
+        self.write("[]")
+        
+    def visit_decl(self, node):
+        if isinstance(node, list):
+            if node[0]=="list":
+                self.write('List<')
+                self.visit_list_decl(node)
+            if node[0] == "dict":
+                self.write("Dictionary<")
+                self.visit_dict_decl(node)
+            if node[0]=="tuple":
+                self.write('Tuple<')
+                self.visit_tuple_decl(node)
+            if node[0]=="array":
+                self.visit_array_decl(node)
+        else:
+            if node=="float":
+                self.visit_float_decl(node)
+            if node =="int":
+                self.visit_int_decl(node)
+            if node =="str":
+                self.visit_str_decl(node)
+            if node =="bool":
+                self.visit_bool_decl(node)                
+
+            
+    def visit_pair(self, node):
+        self.write(u'{')
+        self.visit(node.key)
+        self.write(u", ")
+        self.visit(node.value)
+        self.write(u'}')
+            
     def visit_call(self, node):
         want_comma = []
         def write_comma():
@@ -194,7 +338,8 @@ class CsharpGenerator(CodeGenerator):
             self.visit(arg)
         self.write(')')
     
-    def visit_standard_call(self, node):
+    def visit_standard_call(self, node):        
+        node.function = self.functions[node.namespace][node.function]
         self.visit_call(node)  
         
     def visit_importfrom(self, node):
@@ -224,6 +369,7 @@ class CsharpGenerator(CodeGenerator):
         """self.write(" in enumerate(")
         self.visit(node.sequence)
         self.write('))')"""
+        pass
 
     
     def visit_for_iterator(self, node):
@@ -238,11 +384,11 @@ class CsharpGenerator(CodeGenerator):
         self.visit(node.index)
         self.write("=")
         self.visit(node.start)
-        self.write(' , ')
+        self.write(' ; ')
         self.visit(node.index)
         self.write("<")        
         self.visit(node.end)
-        self.write(' , ')
+        self.write(' ; ')
         self.visit(node.index)
         self.write("+=")         
         self.visit(node.step)
@@ -264,5 +410,4 @@ class CsharpGenerator(CodeGenerator):
         self.newline(node)
         self.write('}')        
 
-  
         

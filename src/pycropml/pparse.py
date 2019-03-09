@@ -1,6 +1,8 @@
 """ License, Header
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 from copy import copy
 import xml.etree.ElementTree as xml
 from . import modelunit as munit
@@ -32,9 +34,9 @@ class ModelParser(Parser):
         self.models = []
         self.crop2ml_dir = crop2ml_dir
         xmlrep = self.crop2ml_dir/'crop2ml'
-        self.algorep = self.crop2ml_dir/'src'
+        self.algorep = self.crop2ml_dir/'crop2ml'
         
-        fn = xmlrep.glob('unit*.xml')
+        fn = xmlrep.glob('unit*.xml')+xmlrep.glob('function*.xml')
         try:
             for f in fn:
             
@@ -45,8 +47,8 @@ class ModelParser(Parser):
 
                 self.dispatch(root)
                 
-        except Exception, e:
-            print "%s is NOT in CropML Format ! %s" % (f, e)
+        except Exception as e:
+            print(("%s is NOT in CropML Format ! %s" % (f, e)))
             
         return self.models
            
@@ -149,7 +151,8 @@ class ModelParser(Parser):
         
         if "filename" in elt.attrib:
             filename=elt.attrib["filename"]
-            file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
+            #file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
+            file = self.algorep/filename
             with open(file, 'r') as f:
                 development = f.read()
             algo = algorithm.Algorithm(language, development, platform, filename)

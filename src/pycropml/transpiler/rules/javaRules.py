@@ -16,8 +16,7 @@ class CsharpRules(GeneralRule):
                 "*":"*",
                 "/":"/",
                 ">=":">=",
-                "<=":"<=",
-                "!=":"!="
+                "<=":"<="
             }
     
     unary_op = {
@@ -33,8 +32,7 @@ class CsharpRules(GeneralRule):
            "bool":"bool",
            "list":"List",
            "tuple":"Tuple",
-           "str":"string",
-           "dict":"Dictionary"
+           "str":"string"       
            }
     
     functions = {
@@ -50,8 +48,7 @@ class CsharpRules(GeneralRule):
                 'sqrt':         'Math.Sqrt',
                 'ceil':         'Math.Ceiling',
                 'round':        'Math.Round',
-                'exp' :         'Math.Exp',
-                'pow':          'Math.Pow'
+                'exp' :         'Math.Exp'
                     
             },
             'system': {
@@ -70,21 +67,13 @@ class CsharpRules(GeneralRule):
                     'int':'(int)'
                     },
             'str':{
-                    'int':'(int)',
-                    'find':'.IndexOf'
+                    'int':'(int)'
                     },
             'list':{
                     'len':lambda node: Node("method_call", receiver =node.receiver, message=".Count()", args=[], pseudo_type=node.pseudo_type),
                     'append':'.Add',
                     'sum':lambda node: Node("method_call", receiver =node.receiver, message=".Sum()", args=[], pseudo_type=node.pseudo_type),
-                    'pop':'.RemoveAt',
-                    'insert_at':".Insert",
-                    'contains?':'.Contains',
-                    'not contains?':lambda node: Node("unary_op", operator="not", value =Node("standard_method_call", receiver =node.receiver, message="contains?", args=node.args, pseudo_type=node.pseudo_type)),
-                    'index':'.IndexOf'
-                    },
-            'dict':{
-                    'len':lambda node: Node("method_call", receiver =node.receiver, message=".Count()", args=[], pseudo_type=node.pseudo_type)
+                    'pop':'.RemoveAt'
                     }
             }
     

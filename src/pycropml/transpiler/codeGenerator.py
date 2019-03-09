@@ -1,8 +1,11 @@
+# coding: utf8
+from __future__ import absolute_import
+from __future__ import print_function
 from pycropml.transpiler.nodeVisitor import NodeVisitor
 class CodeGenerator(NodeVisitor):
-    def __init__(self, indent_with, add_line_information=False):
-        self.result = []
-        self.indent_with = indent_with
+    def __init__(self, add_line_information=False):
+        self.result = []        
+        self.indent_with = ' '*4
         self.add_line_information = add_line_information
         self.indentation = 0
         self.new_lines = 0
@@ -40,10 +43,10 @@ class CodeGenerator(NodeVisitor):
          
     def emit_sequence(self, node, parens=(u"", u"")):
         open_paren, close_paren = parens
-        items = node.subexpr_nodes()
-        self.put(open_paren)
+        items = node
+        self.write(open_paren)
         self.comma_separated_list(items)
-        self.put(close_paren)  
+        self.write(close_paren)  
     
     def comma_separated_list(self, items):
         if len(items) > 0:
@@ -61,12 +64,17 @@ class CodeGenerator(NodeVisitor):
     def visit_int(self, node):
         self.write(node.value)
     
-    def visit_str(self, node):
-        self.emit_string(node)
         
     def visit_comparison(self, node):
+        self.write('(')
         self.visit_binary_op(node)
+        self.write(')')
     
+    def visit_ExprStatNode(self, node):
+        self.newline(node)
+        self.visit(node.expr)
+        self.write(";")
+        
     binop_precedence = {
         'or': 1,
         'and': 2,
@@ -81,6 +89,11 @@ class CodeGenerator(NodeVisitor):
         # unary: '+': 11, '-': 11, '~': 11
         '**': 12,
     }
+    
+    unop_precedence = {
+        'not': 3, '!': 3,
+        '+': 11, '-': 11, '~': 11,
+        }
     
     def operator_enter(self, new_prec):
         old_prec = self.precedence[-1]
@@ -100,9 +113,43 @@ class CodeGenerator(NodeVisitor):
             if n!= node.elements[-1]:
                 self.write(",")
     
-    def emit_string(self, node, prefix=u""):
+    def emit_string(self, node, prefix=u''):
         repr_val = repr(node.value)
         if repr_val[0] in 'ub':
             repr_val = repr_val[1:]
-        self.write(u"%s%s" % (prefix, repr_val))
+        self.write(u"%s%s" % (prefix, repr_val))  
+    
+    def visit_binary_op(self, node):
+        op = node.op
+        prec = self.binop_precedence.get(op, 0)
+        self.operator_enter(prec)
+        self.visit(node.left)
+        self.write(u" %s " % self.binary_op[op].replace('_', ' '))
+        self.visit(node.right)
+        self.operator_exit()
+    
+    def visit_unary_op(self, node):
+        op = node.operator
+        prec = self.unop_precedence[op]
+        self.operator_enter(prec)
+        self.write(u"%s" % self.unary_op[op])
+        self.visit(node.value)
+        self.operator_exit()
+        
+    def safe_double(self, node):
+        if rb'"' in node.value:
+            if rb"'" in node.value:
+                s = '"%s"' % node.value.replace('"', '\\"')
+            else:
+                s = "'%s'" % node.value
+        else:
+            s = '"%s"' % node.value
+        self.write(s)
+    
+    def visit_simpleCall(self, node):
+        self.visit(node.value)
+        self.write(" %s "%node.op)
+        self.visit(node.sequence)
+
+
 

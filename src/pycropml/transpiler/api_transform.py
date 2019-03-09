@@ -1,3 +1,4 @@
+# coding: utf8
 ##########################################
 from pycropml.transpiler.builtin_typed_api import builtin_type_check
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError
@@ -26,6 +27,22 @@ class StandardCall(Standard):
         else:
             return self.expander(self.namespace, self.function, args)
 
+
+class StandardCallAttrib(Standard):
+    '''
+    converts to a standard call of the given namespace and function
+    '''
+    def __init__(self, namespace, function, expander=None):
+        self.namespace = namespace
+        self.function  = function
+        self.expander = expander
+
+    def expand(self, args):
+        if not self.expander:
+            q = builtin_type_check(self.namespace, self.function, None, args)[-1]
+            return {'type': 'standard_call', 'namespace': self.namespace, 'function': self.function, 'args': args, 'pseudo_type': q}
+        else:
+            return self.expander(self.namespace, self.function, args)
 class StandardMethodCall(Standard):
     '''
     converts to a method call of the same class
@@ -57,7 +74,10 @@ class StandardSwapper(Standard):
         q = builtin_type_check(self.type, self.message, args[1], [args[0]])[-1]
         return {'type': 'standard_method_call', 'receiver': args[1], 'args': [args[0]], 'message': self.message, 'pseudo_type': q}
 
-def to_int_expander(type, message, args):
+def int_expander(type, message, args):
+    return len_expander(type, message, args)
+
+def float_expander(type, message, args):
     return len_expander(type, message, args)
 
 def len_expander(type, message, args):
@@ -78,10 +98,32 @@ def min_expander(type, message, args):
     if len(args)==1:
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': args[0]["pseudo_type"][1]}
     else:
+        print(args)
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
         
 def max_expander(type, message, args):
-    return min_expander(type, message, args)    
+    if len(args)==1:
+        return {'type': 'standard_call', 'namespace': 'system', 'function': 'max', 'args': args, 'pseudo_type': args[0]["pseudo_type"][1]}
+    else:
+        return {'type': 'standard_call', 'namespace': 'system', 'function': 'max', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
+  
+def abs_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
+
+def pow_expander(type, message, args):
+    x1 = args[0]["pseudo_type"]
+    x2 = args[1]["pseudo_type"]
+    if x1=="int" and x2=="int":
+        if args[1]["value"]<0:
+            q="float"
+        else:
+            q="int"
+    else:
+        q="float"
+
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'pow', 'args': args, 'pseudo_type':q}
+
+
 
 FUNCTION_API = {
     'global': {
@@ -90,8 +132,11 @@ FUNCTION_API = {
         'str':      StandardCall('global', 'to_string'),
         'min':      StandardCall('global', 'min', expander=min_expander),
         'max':      StandardCall('global', 'max', expander=max_expander),
+        'abs':      StandardCall('global', 'abs', expander = abs_expander),
         'len':      StandardMethodCall('list', 'len', expander=len_expander),
-        'int':      StandardMethodCall('str', 'to_int', expander=to_int_expander)
+        'int':      StandardMethodCall('float', 'int', expander=int_expander),
+        'float':    StandardMethodCall('int', 'float', expander=float_expander),
+        'pow':      StandardCall('global', 'pow', expander = pow_expander)
     },
 
     'math': {
@@ -103,18 +148,19 @@ FUNCTION_API = {
         'sin':      StandardCall('math', 'sin'),
         'cos':      StandardCall('math', 'cos'),
         'tan':      StandardCall('math', 'tan'),
-        'acos':      StandardCall('math', 'acos'),
-        'asin':      StandardCall('math', 'asin'),
-        'atan':      StandardCall('math', 'atan'),
-        'pow':      lambda left, right, pseudo_type: Node('binary_op',
-                        op='**', left=left, right=right, pseudo_type=pseudo_type)
+        'acos':     StandardCall('math', 'acos'),
+        'asin':     StandardCall('math', 'asin'),
+        'atan':     StandardCall('math', 'atan'),
+        'sqrt':     StandardCall('math', 'sqrt'),
+        'ceil':     StandardCall('math', 'ceil'),
+        'exp':      StandardCall('math', 'exp')
     }
 }
 
 METHOD_API = {
     'str': {
         'split':      StandardMethodCall('str', 'split'),
-        'join':       StandardSwapper('list', 'join'),
+        'join':       StandardSwapper('str', 'join'),
         'upper':      StandardMethodCall('str', 'upper'),
         'lower':      StandardMethodCall('str', 'lower'),
         'title':      StandardMethodCall('str', 'title'),
@@ -125,23 +171,25 @@ METHOD_API = {
         }
     },
     'list': {
-        'append':   StandardMethodCall('list', 'push'),
+        'append':   StandardMethodCall('list', 'append'),
         'pop':      StandardMethodCall('list', 'pop'),
         'insert':   {
             1:      StandardMethodCall('list', 'insert'),
             2:      StandardMethodCall('list', 'insert_at')
         },
         'remove':   StandardMethodCall('list', 'remove'),
-        'extend':   StandardMethodCall('list', 'push_many'),
+        'extend':   StandardMethodCall('list', 'extend'),
         'map':      StandardMethodCall('list', 'map'),
-        'filter':   StandardMethodCall('list', 'filter')
+        'filter':   StandardMethodCall('list', 'filter'),
+        'copy':     StandardMethodCall('list', 'copy'),
+        'index':    StandardMethodCall('list', 'index')
     },
 
-    'Dictionary': {
-        'keys':     StandardMethodCall('Dictionary', 'keys'),
-        'values':   StandardMethodCall('Dictionary', 'values'),
-        '[]':       StandardMethodCall('Dictionary', 'getitem'),
-        '[]=':      StandardMethodCall('Dictionary', 'setitem')
+    'dict': {
+        'keys':     StandardMethodCall('dict', 'keys'),
+        'values':   StandardMethodCall('dict', 'values'),
+        '[]':       StandardMethodCall('dict', 'getitem'),
+        '[]=':      StandardMethodCall('dict', 'setitem')
     },
 
     'array': {

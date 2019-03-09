@@ -4,7 +4,7 @@ class Node:
     The new Node generated with specific properties.
     These properties are automatically set"
     
-    Example: Node('local', name='l', pseudo_type="int") to represent a int variable declaration
+    Example: Node(type='local', name='l', pseudo_type="int") to represent a int variable declaration
     '''
     def __init__(self, type, **fields):
         self.type = type

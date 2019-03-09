@@ -1,3 +1,4 @@
+import six
 
 class InputOutput(object):
     """
@@ -6,7 +7,7 @@ class InputOutput(object):
         self.min = None
         self.max = None
         self._attributes = kwds
-        for k, v in kwds.iteritems():
+        for k, v in six.iteritems(kwds):
             self.__setattr__(k,v)
 
     def __repr__(self):

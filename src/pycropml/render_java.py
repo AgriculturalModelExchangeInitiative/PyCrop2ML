@@ -7,6 +7,7 @@ Problems:
 
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from path import Path
 import numpy
 
@@ -259,7 +260,7 @@ class Model2Package(object):
         # map the paramsets
             params = {}
 
-            if   test_paramsets not in psets.keys():
+            if   test_paramsets not in list(psets.keys()):
                 print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -268,7 +269,7 @@ class Model2Package(object):
        
                     des = ""
                 
-                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
                     
                     code +=tab+"//%s"%tname+");\n"
@@ -276,7 +277,7 @@ class Model2Package(object):
                     code +="\n"+tab+"public static void %s()"%tname + "\n"+tab+ "{\n"
 
 
-                    (run, inouts) = each_run.items()[0]
+                    (run, inouts) = list(each_run.items())[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -288,7 +289,7 @@ class Model2Package(object):
                     
                     declaration=""
                     for testinp in inputs:
-                        if testinp.name not in run_param.keys():
+                        if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=testinp.default
                         declaration+= tab*2+self.DATATYPE[testinp.datatype]+" "+testinp.name + " = "+ run_param[testinp.name]+";\n"
 
@@ -304,7 +305,7 @@ class Model2Package(object):
                     code+=des[:-1]+");\n\n"                    
                     
                     
-                    for k, v in outs.iteritems():
+                    for k, v in outs.items():
                         type_v=[out.datatype for out in outputs if out.name==k]
                         if len(v)==2:
                             print(k)

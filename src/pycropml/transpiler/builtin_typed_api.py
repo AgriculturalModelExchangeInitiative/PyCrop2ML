@@ -1,3 +1,4 @@
+# coding: utf8
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError
 from pycropml.transpiler.helpers import serialize_type
 from Cython.Compiler import ExprNodes
@@ -29,7 +30,7 @@ def builtin_type_check(namespace, function, receiver, args):
     a = namespace + '#' + function if receiver else namespace + ':' + function
     if namespace == 'list' or namespace == 'array':
         generics = {'@t': receiver['pseudo_type'][1]}
-    elif namespace == 'Dictionary':
+    elif namespace == 'dict':
         generics = {'@k': receiver['pseudo_type'][1], '@v': receiver['pseudo_type'][2]}
     else:
         generics = {}
@@ -130,11 +131,9 @@ def mod(l, r):
     if l == 'int' and r == 'int':
         return [l, r, 'int']
     elif l == 'str' and (r == 'str' or r == ['array', 'str']):
-        return [l, ['array', 'str'], 'str']
-    elif l =="unknown" or r=="unknown":
-        return [l, r, "unknown"]    
+        return [l, ['array', 'str'], 'str']   
     else:
-        raise PseudoCythonTypeCheckError("wrong types for %: %s and %s" % (serialize_type(l), serialize_type(r)))
+        raise PseudoCythonTypeCheckError("wrong types for modulo : %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def and_(l, r):
     if l == 'bool' and r == 'bool':
@@ -182,7 +181,10 @@ TYPED_API = {
         'cos':          ['Number', 'float'],
         'acos':          ['Number', 'float'],
         'ln':           ['Number', 'float'],
-        'log':          ['Number', 'Number', 'float']
+        'log':          ['Number', 'Number', 'float'],
+        'sqrt':         ['Number', 'float'],
+        'ceil':         ['float', 'float'],
+        'exp':          ['float','float']
         
         
     },
@@ -194,34 +196,34 @@ TYPED_API = {
         '/': div,
         '**': pow_,
         '%': mod,
-
         '&':   binary_and,
         '|':   binary_or,
     },
     
     'list': {
-        'push':       ['@t', 'Void'],
+        'append':       ['@t', ['list', '@t']],
         'pop':        ['int','@t'],
-        'insert':     ['@t', 'Void'],
-        'insert_at':  ['int', '@t', 'Void'],
+        'insert':     ['@t', ['list', '@t']],
+        'insert_at':  ['int', '@t', ['list', '@t']],
         'concat':     [['list', '@t'], ['list', '@t']],
         'repeat':     ['int', ['list', '@t']],
-        'push_many':  [['list', '@t'], 'Void'],
+        'extend':  [['list', '@t'], 'Void'],
         'remove':     ['@t', 'Void'],
         'len':     ['int'],
         'join':       [['list', 'str'], 'str'],
         'map':        [['Function', '@t', '@y'], ['list', '@y']],
-        'filter':     [['Function', '@t', 'bool'], ['list', '@t']]
+        'filter':     [['Function', '@t', 'bool'], ['list', '@t']],
+        'index':      ['@t','int']
     },
 
-    'Dictionary': {
+    'dict': {
         'keys':       ['list', '@k'],
         'values':     ['list', '@v'],
         'length':     ['int']
     },
     'str': {
         'find':       ['str', 'int'],
-        'to_int':     ['int'],
+        'int':     ['int'],
         'split':      ['str', ['list', 'str']],
         'c_format':   [['array', 'str'], 'str'],
         'upper':      ['str'],
@@ -232,8 +234,8 @@ TYPED_API = {
         'length':     ['int'],
     },
 
-    'int': {'to_int': ['int'], 'to_float': ['float']},
-    'float': {'to_int': ['int'], 'to_float': ['float']},
+    'int': {'int': ['int'], 'float': ['float']},
+    'float': {'int': ['int'], 'float': ['float']},
     'array': {
         'length':      ['int'],
         'index':       ['@t', 'int'],
@@ -261,32 +263,35 @@ TYPED_API = {
     
 ORIGINAL_METHODS = {
     'list': {
-        'push':       'append(element)',
+        'append':       'append(element)',
         'pop':        'pop',
         'insert':     'insert(element)',
         'insert_at':  'insert(element, index)',
+        'index':       'index(element)',
         'concat':     '+',
         'repeat':     '*',
-        'push_many':  'extend(other)',
+        'extend':  'extend(other)',
         'remove':     'remove',
         'length':     'len',
+        'copy':'copy',
         'map':        'list comprehension / map',
         'filter':     'list comprehension / filter'
     },
 
-    'Dictionary': {
+    'dict': {
         'keys':       'keys',
         'values':     'values',
-        'length':     'len'
+        'length':     'len',
+        'copy':'copy'
     },
 
     'int': {
-        'to_int':     'int',
-        'to_float':   'float'
+        'int':     'int',
+        'float':   'float'
     },
     'float': {
-        'to_int':     'int',
-        'to_float':   'float'
+        'int':     'int',
+        'float':   'float'
     },
     'str': {
         'find':       'index(substr)',
@@ -299,7 +304,7 @@ ORIGINAL_METHODS = {
         'title':      'title',
         'center':     'center',
         'find_from':  'index(substr, index)',
-        'to_int':     'int'
+        'int':     'int'
     },
 
 
@@ -309,7 +314,7 @@ ORIGINAL_METHODS = {
         'count':       'count(element)'
     },
 
-    'Tuple': {
+    'tuple': {
         'length':       'len'
     }
 }
@@ -323,7 +328,7 @@ BUILTIN_TYPES = {
     'object':   'Object',
     'str':      'str',
     'list':     'list',
-    'dict':     'Dictionary',
+    'dict':     'dict',
     'tuple':    'tuple',
     'bool':     'bool',
 }
@@ -341,19 +346,19 @@ KEY_TYPES = {'str', 'int', 'float', 'bool'}
 
 PSEUDO_KEY_TYPES = {'str', 'int', 'float', 'bool'}
 
-BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int', 'len', 'any', 'all', 'sum', 'min', 'max'}
+BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow'}
 
 FORBIDDEN_TOP_LEVEL_FUNCTIONS = {'map', 'filter'}
 
-ITERABLE_TYPES = {'str', 'list', 'Dictionary', 'array'}
+ITERABLE_TYPES = {'str', 'list', 'dict', 'array'}
 
 TESTABLE_TYPE = 'bool'
 
-INDEXABLE_TYPES = {'str', 'list', 'Dictionary', 'array', 'tuple'}
+INDEXABLE_TYPES = {'str', 'list', 'dict', 'array', 'tuple'}
 
 COMPARABLE_TYPES = {'int', 'float', 'str'}
 
-TYPES_WITH_LENGTH = {'str', 'list', 'Dictionary', 'array', 'tuple', 'Set'}
+TYPES_WITH_LENGTH = {'str', 'list', 'dict', 'array', 'tuple', 'Set'}
 
 NUMBER_TYPES = {'int', 'float'}
 
@@ -364,7 +369,7 @@ PSEUDO_OPS = {
     ExprNodes.MulNode: '*',
     ExprNodes.DivNode: '/',
     ExprNodes.PowNode: '**',
-    ExprNodes.PrimaryCmpNode: ['==','<','>','<=','>=','!='],
+    ExprNodes.PrimaryCmpNode: ['==','<','>','<=','>=','!=', 'in', 'not_in'],
     ExprNodes.ModNode: '%',
     ExprNodes.BoolBinopNode: ['and','or']
 }

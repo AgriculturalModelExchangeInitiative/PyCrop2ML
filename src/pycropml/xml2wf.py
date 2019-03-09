@@ -1,3 +1,5 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from openalea.core.external import *
 from openalea.core.pkgmanager import PackageManager
 from pycropml.render_python import generate_doc
@@ -87,7 +89,7 @@ class XmlToWf(object):
                     
                     #assert self.compareInterface(interfaces)== True
                 except AssertionError:
-                    print("inequal interface: %s %s"% (interfaces, links_sameName))
+                    print(("inequal interface: %s %s"% (interfaces, links_sameName)))
                 for inp in inputs:
                     if inp["name"]==name and "value" in inp:
                         value=inp["value"] 
@@ -125,7 +127,7 @@ class XmlToWf(object):
         outs=[]
         # model units outputs must be unique. So model composite output is targeted by an unique output link 
         for link in self.outputLinks:
-            print("out %s"%link)
+            print(("out %s"%link))
             name =  link["target"]
             print(name) 
             model_src, out_src= link["source"].split('.')
@@ -155,9 +157,9 @@ class XmlToWf(object):
                 pout, pin = self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
             except KeyError:
                 if port_out not in self.wf.node(ns).map_index_out: 
-                    print('Error input link src : ', src)
+                    print(('Error input link src : ', src))
                 else:
-                    print('Error input link tgt: ', tgt)
+                    print(('Error input link tgt: ', tgt))
                 continue
             self.wf.connect(ns, pout, nt, pin)
     
@@ -172,9 +174,9 @@ class XmlToWf(object):
                 pout, pin = self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
             except KeyError:
                 if port_out not in self.wf.node(ns).map_index_out: 
-                    print('Error output link src: ', src)
+                    print(('Error output link src: ', src))
                 else:
-                    print('Error output link tgt: ', tgt)
+                    print(('Error output link tgt: ', tgt))
                 continue
             self.wf.connect(ns, pout, nt, pin)
     
@@ -189,8 +191,8 @@ class XmlToWf(object):
                 pout, pin =self. wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
             except KeyError:
                 if port_out not in self.wf.node(ns).map_index_out: 
-                    print('Error : ', src)
+                    print(('Error : ', src))
                 else:
-                    print('Error : ', tgt)
+                    print(('Error : ', tgt))
                 continue
             self.wf.connect(ns, pout, nt, pin)

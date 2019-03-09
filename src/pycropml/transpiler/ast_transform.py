@@ -1,9 +1,11 @@
+# coding: utf8
 from Cython.Compiler import ExprNodes, Nodes
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.env import Env
 from pycropml.transpiler.builtin_typed_api import *
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError,PseudoCythonNotTranslatableError, translation_error, type_check_error
 from pycropml.transpiler.api_transform import FUNCTION_API, METHOD_API, Standard
+from pycropml.transpiler.helpers import *
     
 class AstTransformer():
 
@@ -16,16 +18,20 @@ class AstTransformer():
         self.base=0
         self.body=[]
         self.arguments=[]
+        self.returnValue=[]
         self.declarations=[]
         self.definitions = []
         self._definition_index = {'functions': {}}
         self._hierarchy = {}
         self._imports = []
         self._fromimport = {}
+        self._tuple_used = []
+        self._tuple_assigned = []
         self.function_name = 'top level'
         self.type_env['functions'] = {}
         self.visit_top_level(self.tree.body)
         self.main=[]
+        self.forSequence=False
         body = self.visit_node(self.tree.body)
         self.visit_definitions()
         return {'type': 'module','body':body if isinstance(body, list) else [body]}
@@ -49,7 +55,9 @@ class AstTransformer():
                     }    
         elif isinstance(nodes, Nodes.FromImportStatNode):
             module = nodes.module.module_name.value
-            name_list = [name.value for name in nodes.module.name_list.args]
+            if module=="math" and nodes.module.name_list.args[0].value == "*":
+                name_list=list(FUNCTION_API["math"].keys())
+            else: name_list = [name.value for name in nodes.module.name_list.args]
             self._fromimport[module]=name_list
             return {"type": "importfrom",
                     "namespace":module,
@@ -111,13 +119,16 @@ class AstTransformer():
                 results.append(x)
         return results            
            
+    
     def visit_singleassignmentnode(self,node, lhs, rhs,location):
 
         if isinstance(rhs, Nodes.Node) and not isinstance(rhs, ExprNodes.ImportNode):            
             value_node = self.visit_node(rhs)
         
-        if isinstance(rhs, ExprNodes.ImportNode):
+        elif isinstance(rhs, ExprNodes.ImportNode):
             return self.visit_top_level(rhs)
+        else:
+            value_node = rhs
         
         if isinstance(lhs, ExprNodes.NameNode) and  not isinstance(rhs, ExprNodes.ImportNode):
             name = lhs.name
@@ -126,19 +137,91 @@ class AstTransformer():
             if e is None:   
                 self.notdeclared(name, location[0])     
             elif e:
-                a=self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
-            
+                if e in ("list","dict","tuple"):
+                    a=self._compatible_types(e, value_node['type'], "can't change the type of variable %s in %s " % (name, self.function_name))
+                else:   
+                    a=self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (name, self.function_name, location[0]))
             return {
-                    'type': 'assignment',
+                    'type': u'assignment',
                     'target': {
-                    'type': 'local',
+                    'type': u'local',
                     'name': name,
                     'pseudo_type': e
                     },
                     'value': value_node,
+                    'pseudo_type': u'Void'
+                }
+        if isinstance(lhs, ExprNodes.TupleNode):
+            if not isinstance(rhs, ExprNodes.TupleNode):
+                raise translation_error(
+                    'assignment error',
+                    location, self.lines[location[0]])
+
+            if len(lhs.args) != len(rhs.args):
+                raise translation_error(
+                    'expected %d number of values on right' % len(lhs.args),
+                    location, self.lines[location[0]])
+
+            rights = []
+            used = []
+            u = 0
+            for t, child in zip(lhs.args, rhs.args):
+                child_node = self.visit_node(child)
+                x = self.visit_node(t)
+                for a in self._tuple_used[u:]:
+                    used.append({
+                        'type': 'assignment',
+                        'target': {'type': 'local', 'name': a[0], 'pseudo_type': a[1]['pseudo_type']},
+                        'value': a[1],
+                        'pseudo_type': 'Void'
+                    })
+                    self.type_env.top[a[0]] = a[1]['pseudo_type']
+                u = len(self._tuple_used)
+                rights.append(self.visit_singleassignmentnode(node,t, child_node, location))
+                self._tuple_assigned.append(rights[-1]['target'])
+
+            self._tuple_assigned = []
+            self._tuple_used = []
+            return used + rights
+        
+        elif isinstance(lhs, ExprNodes.IndexNode):
+            z = self.visit_node(lhs)
+            if z['type'] == 'index':
+                return {
+                    'type': 'assignment',
+                    'target': z,
+                    'value': value_node,
                     'pseudo_type': 'Void'
                 }
+            elif z['type'] == 'standard_method_call': # slice
+                if z['pseudo_type'] != value_node['pseudo_type']:
+                    raise type_check_error(
+                        'expected %s' % serialize_type(z['pseudo_type']),
+                        getattr(value, 'location', location), self.lines[location[0]],
+                        wrong_type=value_node['pseudo_type'])
 
+                z['message'] = 'set_%s' % z['message']
+                z['args'].append(value_node)
+                z['pseudo_type'] = 'Void'
+                return z
+
+
+    def visit_inplaceassignmentnode(self, node, lhs, rhs, location):
+        z = node.end_pos()
+        newNode = ExprNodes.BinopNode(pos=z,operand1=lhs,operand2=rhs,operator=node.operator)
+        return self.visit_singleassignmentnode(node, lhs, ExprNodes.BinopNode(pos=z,operand1=lhs,operand2=rhs,operator=node.operator, node=newNode), location)
+        
+    def visit_binopnode(self,node, operand1, operand2, location):
+        op = node.operator
+        left_node, right_node = self.visit_node(operand1), self.visit_node(operand2)
+        binop_type = TYPED_API['operators'][op](left_node['pseudo_type'], right_node['pseudo_type'])[-1]
+        return {'type': 'binary_op',
+                    'op': op,
+                    'left': left_node,
+                    'right': right_node,
+                    'pseudo_type': binop_type
+                } 
+    
     def visit_namenode(self, node, location):
         
         id = node.name 
@@ -148,27 +231,27 @@ class AstTransformer():
                     '%s is not defined' % id,
                     location, self.lines[:location[1]])
         else:
-            if id_type is None:
-                raise type_check_error(
-                    '%s is not defined' % id,
-                    location,
-                    self.lines[location[0]])
+           
             z = {'type': 'local', 'name': id, 'pseudo_type': id_type}
+            if z in self._tuple_assigned:
+                if not any(a[0] == '_old_%s' % id for a in self._tuple_used):
+                    self._tuple_used.append(('_old_%s' % id, z))
+                    z = {'type': 'local', 'name': '_old_%s' % id, 'pseudo_type': id_type}
             return z
    
            
     def visit_intnode(self, node, location): 
 
-        return {'type': 'int', 'value': node.value, 'pseudo_type': 'int'}
+        return {'type': u'int', 'value': node.value, 'pseudo_type': u'int'}
         
     def visit_floatnode(self, node, location):
-        return {'type': 'float', 'value': node.value, 'pseudo_type': 'float'}
+        return {'type': u'float', 'value': node.value, 'pseudo_type': u'float'}
     
     def visit_listnode(self, node, args,mult_factor, location):
         if not args:
-            return {'type': 'list', 'elements': [], 'pseudo_type': ['list', None]}
+            return {'type': u'list', 'elements': [], 'pseudo_type': [u'list', None]}
 
-        element_nodes, element_type = self.visit_elements(args, 'list')
+        element_nodes, element_type = self.visit_elements(args, u'list')
 
         return {
             'type': 'list',
@@ -177,7 +260,7 @@ class AstTransformer():
         }
     
     def visit_boolnode(self, node, location): 
-        return {'type': 'bool', 'value': node.value, 'pseudo_type': 'bool'}
+        return {'type': u'bool', 'value': node.value, 'pseudo_type': u'bool'}
     
     def visit_indexnode(self, node, base,index, location):
         value_node = self.visit_node(base)
@@ -192,13 +275,13 @@ class AstTransformer():
             if value_general_type in ['str', 'list', 'tuple'] and z['pseudo_type'] != 'int':
                 raise PseudoCythonTypeCheckError('a non int index for %s %s' % (value_general_type, z['pseudo_type']))
 
-            if value_general_type == 'Dictionary' and z['pseudo_type'] != value_node['pseudo_type'][1]:
+            if value_general_type == 'dict' and z['pseudo_type'] != value_node['pseudo_type'][1]:
                 raise PseudoCythonTypeCheckError('a non %s index for %s %s' % (value_node['pseudo_type'][1], value_general_type, z['pseudo_type']))
 
             if value_general_type == 'str':
                 pseudo_type = 'str'
-            elif value_general_type  in ('list', 'array', "tuple", "unknown"):
-                pseudo_type = value_node['pseudo_type']
+            elif value_general_type  in ('list', 'array', "tuple","dict", "unknown"):
+                pseudo_type = value_node['pseudo_type'][1]
 
             result = {
                 'type': 'index',
@@ -213,22 +296,66 @@ class AstTransformer():
 
     def visit_unicodenode(self, node, location):
         return {'type': 'str', 'value':  node.value, 'pseudo_type': 'str'}
+
+
+    def visit_stringnode(self, node, location):
+        return {'type': 'str', 'value':  node.value, 'pseudo_type': 'str'}
         
     
-    def visit_tuplenode(self, node, args, mult_factor, location):        
-        element_nodes, accidentaly_homogeneous, element_type = self.visit_elements(args, 'tuple', homogeneous=False)
+    def visit_tuplenode(self, node, args, mult_factor, location):
+                
+        element_nodes, accidentaly_homogeneous, element_type = self.visit_elements(args, 'tuple', homogeneous=False)      
         return {
             'type': 'array' if accidentaly_homogeneous else 'tuple',
             'pseudo_type': ['array', element_type, len(args)] if accidentaly_homogeneous else ['tuple'] + element_type,
             'elements': element_nodes
         }
+        
+    def visit_dictnode(self, node, key_value_pairs, location):
+        if not key_value_pairs:
+            return {'type': 'dict', 'pairs': [], 'pseudo_type': ['dict', None, None]}
+
+        pairs = [{'type': 'pair', 'key': self.visit_node(key_value_pairs[0].key), 'value': self.visit_node(key_value_pairs[0].value)}]
+        key_type, value_type = pairs[0]['key']['pseudo_type'], pairs[0]['value']['pseudo_type']
+        for a, b in zip(key_value_pairs[1:], key_value_pairs[1:]):
+            pairs.append({'type': 'pair', 'key': self.visit_node(a.key), 'value': self.visit_node(b.value)})
+            key_type, value_type = self._compatible_types(key_type, pairs[-1]['key']['pseudo_type'], "can't use different types for keys of a dictionary"),\
+                                   self._compatible_types(value_type, pairs[-1]['value']['pseudo_type'], "can't use different types for values of a dictionary")
+
+        return {
+            'type': 'dict',
+            'pseudo_type': ['dict', key_type, value_type],
+            'pairs': pairs
+        }
+    
+    def visit_unaryminusnode(self, node, operand, location):
+        return {
+                    'type': 'unary_op',
+                    'operator': '-',
+                    'value': self.visit_node(operand),
+                    'pseudo_type': self.visit_node(operand)['pseudo_type']
+                }
+    def visit_notnode(self, node, operand, location):
+        return {
+                    'type': 'unary_op',
+                    'operator': 'not',
+                    'value': self.visit_node(operand),
+                    'pseudo_type': self.visit_node(operand)['pseudo_type']
+                }
+    def visit_unaryplusnode(self, node, operand, location):
+        return {
+                    'type': 'unary_op',
+                    'operator': '+',
+                    'value': self.visit_node(operand),
+                    'pseudo_type': self.visit_node(operand)['pseudo_type']
+                }
      
     def visit_elements(self, elements, kind, homogeneous=True):
         element_nodes = self.visit_node([elements[0]])
         element_type = element_nodes[0]['pseudo_type']
         if not homogeneous:
             element_types = [element_type]
-        accidentaly_homogeneous = True
+        accidentaly_homogeneous = False
         for j, element in enumerate(elements[1:]):
             element_nodes.append(self.visit_node(element))
             if homogeneous:
@@ -237,14 +364,16 @@ class AstTransformer():
                 element_types.append(element_nodes[-1]['pseudo_type'])
                 if accidentaly_homogeneous:
                     element_type = self._compatible_types(element_type, element_nodes[-1]['pseudo_type'], '', silent=True)
-                    accidentaly_homogeneous = element_type is not False
+                    accidentaly_homogeneous = element_type is not True
 
         return (element_nodes, element_type) if homogeneous else (element_nodes, accidentaly_homogeneous, element_type if accidentaly_homogeneous else element_types)
 
     
     def visit_simplecallnode(self, node,function, coerced_self, args, arg_tuple, location):
-
+        
+        
         if isinstance(function, ExprNodes.NameNode) and function.name in BUILTIN_FUNCTIONS:
+            
             if function.name in ['any', 'all', 'sum']:
                 if len(args) != 1:
                     raise translation_error('%s expected 1 arg, not %d' % (function.name, len(args)),
@@ -273,30 +402,11 @@ class AstTransformer():
                                 wrong_type=arg_node['pseudo_type'])
                         message = function.name
                         _type = arg_node['pseudo_type'][1]
-                        initial = 0.0 if _type == 'float' else 0
                         return {
                             'type': 'standard_method_call',
                             'receiver': arg_node,
-                            'message': 'reduce',
-                            'args': [{
-                                'type': 'anonymous_function',
-                                'params': [
-                                    {'type': 'local', 'name': 'memo', 'pseudo_type': _type},
-                                    {'type': 'local', 'name': 'value', 'pseudo_type': _type}],
-                                'pseudo_type': ['Function', _type, _type, _type],
-                                'return_type': _type,
-                                'block': [{
-                                    'type': 'binary_op',
-                                    'op': '+',
-                                    'left': {'type': 'local', 'name': 'memo', 'pseudo_type': _type},
-                                    'right': {'type': 'local', 'name': 'value', 'pseudo_type': _type},
-                                    'pseudo_type': 'bool'
-                                }]
-                            }, {
-                                'type': _type.lower(),
-                                'value': initial,
-                                'pseudo_type': _type
-                            }],
+                            'message': 'sum',
+                            'args': [],
                             'pseudo_type': _type
                         }
             else:
@@ -341,6 +451,7 @@ class AstTransformer():
                 location,self.lines[location[0]],
                 suggestions='pseudo-cython support those builtin classes:\n%s' % ' '.join(
                     PSEUDON_BUILTIN_TYPES[k] for k in METHOD_API.keys()))
+
         api = METHOD_API.get(class_type, {}).get(message)
         if not api:
             raise translation_error(
@@ -378,6 +489,7 @@ class AstTransformer():
         
         if namespace in FUNCTION_API:
             api = FUNCTION_API[namespace].get(function)
+            
         
             if not api:
                 raise translation_error('pseudo-cython doesn\' t support %s %s' % (namespace, function),
@@ -385,18 +497,6 @@ class AstTransformer():
                                         suggestions='pseudo-cython supports those %s functions\n  %s' % (
                                                 namespace,
                                                 prepare_table(TYPED_API[namespace], ORIGINAL_METHODS.get(namespace)).strip()))
-
-            elif function=="pow":
-                pseudo_type= TYPED_API['operators']["**"](args[0]['pseudo_type'], args[1]['pseudo_type'])[-1]
-                z= {
-                    'type': 'standard_call',
-                    'namespace': 'math',
-                    'args': [args[0], args[1]],
-                    'pseudo_type': pseudo_type,
-                    'function': 'pow'
-                }
-                if attrib==1: z["attrib"]=1
-                return z
         
             elif not isinstance(api, dict):
                 z = api.expand(args)
@@ -413,12 +513,26 @@ class AstTransformer():
 
         if namespace in self._imports:
             return {
-                    'type': 'call',
+                    'type': 'custom_call',
                     'namespace': namespace,
                     'args': self.visit_node(args),
                     'pseudo_type': "unknown",
                     'function': function
                 }         
+
+
+
+    def visit_condexprnode(self,node,test,true_val,false_val, location):
+        val1 = self.visit_node(true_val)
+        val2 = self.visit_node(false_val)
+        a=self._compatible_types(val1["pseudo_type"], val2["pseudo_type"], "can't change the type of variable")        
+        return {
+            'type': 'cond_expr_node',
+            'test': self.visit_node(test),
+            'true_val': self.visit_node(true_val),
+            'pseudo_type': a,
+            'false_val':self.visit_node(false_val) 
+            }
       
     
     def visit_mulnode(self,node, operand1, operand2, location):
@@ -489,7 +603,10 @@ class AstTransformer():
      
     def visit_exprstatnode(self, node, expr, location):
         
-        return self.visit_node(expr)
+        return {
+                "type": "ExprStatNode",
+                "expr":self.visit_node(expr)
+                }
         
 
     def visit_defnode(self,node,args,star_arg, starstar_arg,decorators, body, return_type_annotation, location):
@@ -505,7 +622,7 @@ class AstTransformer():
         q = {
             'type':   "function_definition",
             'name':   node.name,
-            'params': [{'type': 'local', 'name': k["name"], 'pseudo_type': self.type_env.top["functions"][node.name][j+1]} for j, k in enumerate(arg_nodes)],
+            'params': arg_nodes,
             'pseudo_type': self.type_env.top["functions"][node.name],
             'return_type': self.type_env.top["functions"][node.name][-1],
             'block': children
@@ -513,53 +630,79 @@ class AstTransformer():
         return q
         
     def visit_cargdeclnode(self,node, base_type,declarator,default,annotation, location):
-        decl = {"name":declarator.name, "type": base_type.name}
-        if default :
-            decl["value"] = default
+        decl = {"name":declarator.name, "type": "local"}
+        if default and not isinstance(default,ExprNodes.ListNode) :
+            de = self.visit_node(default)
+            decl["value"]=default.value
+            decl["pseudo_type"]=de["pseudo_type"]
+            a=self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (base_type.name, self.function_name))
+
+        elif default and (isinstance(default,ExprNodes.ListNode)or isinstance(default,ExprNodes.TupleNode)) :
+            arglist=[]
+            for arg in default.args:
+                arglist.append(self.visit_node(arg))
+            decl["elements"]=arglist 
+            if type(default) == ExprNodes.ListNode:
+                decl["pseudo_type"]=[u"list"]+[arg["pseudo_type"] for arg in arglist]
+            else:
+                decl["pseudo_type"]=[ u"tuple"]+[arg[u"pseudo_type"] for arg in arglist] 
+        else:
+            decl["pseudo_type"]=self.visit_node(base_type.name)
+        self.type_env.top[declarator.name]= decl[u"pseudo_type"]       
         self.arguments.append(decl)
-        if base_type.name:
-            self.type_env.top[declarator.name]= base_type.name                
         return decl
            
     def visit_cvardefnode(self,node, base_type, declarators, location):
-        x=[]       
+        x=[] 
         for de in declarators:
-            decl = {"name":de.name, "type": base_type.name}
-            if de.default is None:
-                self.type_env.top[de.name]= base_type.name
-                
-            if type(de.default) in (ExprNodes.IntNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode):
-                value_node=self.visit_node(de.default)
-                decl["value"] = value_node["value"]
-                decl["pseudo_type"]=  value_node["pseudo_type"]
-                self.type_env.top[de.name]= decl["pseudo_type"]
-                a=self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
-                          
-            if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
-                arglist=[]
-                for arg in de.default.args:
-                    arglist.append(self.visit_node(arg))
-                decl["elements"]=arglist 
-                if type(de.default) == ExprNodes.ListNode:
-                    decl["pseudo_type"]=["list" , self.visit_node(arglist[0])["type"]]
-                else:
-                    decl["pseudo_type"]=[ "tuple"]+[self.visit_node(arg)["type"] for arg in arglist] 
-                
-                self.type_env.top[de.name]= decl["pseudo_type"]
-                a=self._compatible_types(base_type.name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+            if self.type_env.top[de.name]:
+                raise PseudoCythonTypeCheckError("%s is already declared" % de.name)
+            if not isinstance(de, Nodes.CArrayDeclaratorNode):
+                decl = {u"name":de.name, u"type": base_type.name}
+                if de.default is None:
+                    self.type_env.top[de.name]= base_type.name
+                    decl["pseudo_type"] =decl["type"]                    
+                if type(de.default) in (ExprNodes.IntNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode,ExprNodes.BoolNode):
+                    value_node=self.visit_node(de.default)
+                    decl[u"value"] = value_node[u"value"]
+                    decl["pseudo_type"]=  value_node[u"pseudo_type"]
+                    self.type_env.top[de.name]= decl[u"pseudo_type"]
+                    a=self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+                              
+                if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
+                    arglist=[]
+                    for arg in de.default.args:
+                        arglist.append(self.visit_node(arg))
+                    decl["elements"]=arglist 
+                    if type(de.default) == ExprNodes.ListNode:
+                        decl["pseudo_type"]=[u"list" , self.visit_node(arglist[0])[u"pseudo_type"]]
+                    else:
+                        decl["pseudo_type"]=[ u"tuple"]+[self.visit_node(arg)[u"pseudo_type"] for arg in arglist] 
+                    
+                    self.type_env.top[de.name]= decl[u"pseudo_type"]
+                if isinstance(de.default, ExprNodes.DictNode):
+                    default = self.visit_node(de.default)
+                    decl["pairs"]=default["pairs"] 
+                    decl["pseudo_type"]=default[u"pseudo_type"]                             
+                    self.type_env.top[de.name]= default[u"pseudo_type"]
+                    a=self._compatible_types(base_type.name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
 
+            
+            else:
+                decl = {u"name":de.base.name, u"type": "array", "value": de.dimension.value, "pseudo_type":["array", self.visit_node(de.dimension)["pseudo_type"]]}
             self.declarations.append(decl)
             x.append(decl)
         return {
                 "type":"declaration",
                 "decl":x
+                
                 }
     
     def visit_forinstatnode(self, node,target, iterator,item,body,else_clause,location):        
         sketchup, env = self._translate_iter(target, iterator.sequence)
         for label, value in env.items():
-            if not self.type_env.top[label]:
-                raise self.notdeclared(label, location[0])
+            #if not self.type_env.top[label]:
+                #raise self.notdeclared(label, location[0])
             self.type_env.top[label] = value
         self.in_for = True
         sketchup['block'] = self.visit_node(body)
@@ -596,6 +739,7 @@ class AstTransformer():
             raise PseudoCythonNotTranslatableError("pseudo doesn't support %s as an iterator" % sequence_node['type'])
 
         target_pseudo_type = self._element_type(sequence_node['pseudo_type'])
+        self.forSequence = True
         return {
             'type': '',
             'sequences': {'type': 'for_sequence', 'sequence': sequence_node},
@@ -617,7 +761,7 @@ class AstTransformer():
         if not isinstance(targets[0], ExprNodes.NameNode) or not isinstance(targets[1], ExprNodes.NameNode):
             raise PseudoCythonTypeCheckError('expected a name for an index not %s' % type(targets[0]).__name__)
 
-        if self._general_type(sequence_node['pseudo_type']) == 'Dictionary':
+        if self._general_type(sequence_node['pseudo_type']) == 'dict':
             q = 'items'
             k = 'key'
             v = 'value'
@@ -674,7 +818,7 @@ class AstTransformer():
 
     def _element_type(self, sequence_type):
         if isinstance(sequence_type, list):
-            if sequence_type[0] == 'Dictionary':
+            if sequence_type[0] == 'dict':
                 return sequence_type[2]
             elif sequence_type[0] == 'list':
                 return sequence_type[1]
@@ -723,11 +867,13 @@ class AstTransformer():
         elif whiplash[-1] is None:
             whiplash[-1] = value_node['pseudo_type']
         
-        return {
+        s= {
             'type': 'implicit_return',
             'value': value_node,
             'pseudo_type': value_node['pseudo_type']
         }
+        self.returnValue.append(s)
+        return s
 
     def visit_ifstatnode(self,node, if_clauses, else_clause, location):
         otherwise = []
@@ -789,14 +935,25 @@ class AstTransformer():
             op = node.operator
             right_node = self.visit_node(operand2)
             left_node = self.visit_node(operand1)
-        self._confirm_comparable(op, left_node['pseudo_type'], right_node['pseudo_type'], location)
-        result = {
+        if node.operator not in ["in", "not_in"]:
+            self._confirm_comparable(op, left_node['pseudo_type'], right_node['pseudo_type'], location)
+            result = {
             'type': 'comparison',
             'op':   op,
             'left': left_node,
             'right': right_node,
             'pseudo_type': 'bool'
             }
+        else:
+            sequence_node = right_node 
+            element_node = left_node
+            result =  {
+            'type': 'standard_method_call',
+            'receiver': sequence_node,
+            'message': 'contains?' if op=="in" else "not contains?",
+            'args': [element_node],
+            'pseudo_type': 'Boolean'
+        }
         return result
     
     def visit_boolbinopnode(self, node,operand1,operand2, location):
@@ -816,7 +973,7 @@ class AstTransformer():
   
     def _confirm_comparable(self, o, l, r, location):
         if o == '==' and l != r or o != '==' and (isinstance(l, list) or isinstance(r, list) or
-           l != r or l not in COMPARABLE_TYPES):
+           l != r or l not  in COMPARABLE_TYPES):
             raise type_check_error(
                 '%s not comparable with %s' % (serialize_type(l), serialize_type(r)),
                 location, self.lines[location[0]],
@@ -828,7 +985,9 @@ class AstTransformer():
            )
            
     def _compatible_types(self, from_, to, err, silent=False):
-        if isinstance(from_, str):
+        if from_=="unknown" or to=="unknown":
+            return to
+        elif isinstance(from_, str):
             if not isinstance(to, str):
                 if silent:
                     return False

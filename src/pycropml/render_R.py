@@ -10,10 +10,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
 import numpy 
-from datetime import datetime
-from openalea.core import package
-from openalea.core import node
-from openalea.core import interface as inter
 import os.path
 import six
 
@@ -53,12 +49,11 @@ class Model2Package(object):
     def run(self):
         """TODO."""
         self.generate_package()
-        self.generate_wralea()
         self.write_tests()
 
 
     def generate_package(self):
-        """Generate a Python package equivalent to the xml definition.
+        """Generate a R package equivalent to the xml definition.
 
         Args:
         - models : a list of model
@@ -67,166 +62,60 @@ class Model2Package(object):
         Returns:
         - None or status
         """
-
         # Create a directory (mymodel)
         cwd = Path(self.dir)
-        directory=cwd/'python_model'
+        directory=cwd/'r_model'
         if (directory).isdir() :
             self.dir = directory
         else:
             self.dir = directory.mkdir()
-
         files = []
         count = 0
-
-        for model in self.models:
-            
-
-            self.generate_component(model)
-            
-            ext = '' if count == 0 else str(count)
-            #filename = self.dir/"model%s.py"%ext
-            filename = self.dir/"%s.py"%signature(model)
-            
-            
-            dir2 = cwd/'py'
-
-            with open(filename, "w") as python_file:
-                python_file.write(self.code.encode('utf-8','ignore'))
+        for model in self.models:     
+            self.generate_component(model)            
+            filename = self.dir/"%s.R"%signature(model)
+            with open(filename, "w") as R_file:
+                R_file.write(self.code.encode('utf-8','ignore'))
                 files.append(filename)
-                
-
                 model.module_name = str(Path(filename).namebase)
-
-            count += 1
-
+                count += 1
         return files
 
-
-    def generate_wralea(self):
-        """Generate wralea factories from the meta-information of the the model units."""
-
-        # TODO
-        metainfo = {'version': '0.0.1',
-                    'license': 'CECILL-C',
-                    'authors': 'OpenAlea Consortium',
-                    'institutes': 'INRA/CIRAD',
-                    'description': 'CropML Model library.',
-                    'url': 'http://pycropml.rtfd.org',
-                    'icon': ''}
-
-        _package = package.UserPackage(self.pkg_name, metainfo, self.dir)
-
-        for model in self.models:
-            
-            _factory = self.generate_factory(model)
-            _package.add_factory(_factory)
-
-        _package.write()
-
-
-    def generate_factory(self, model):
-        """Create a Node Factory from CropML model unit."""
-
-        inputs = []
-        for input in model.inputs:
-            name = input.name
-            dtype = input.datatype
-            interface = openalea_interface(input)
-            if dtype not in ('STRING', 'BOOLEAN' ,'DATE') and 'default' in dir(input):          
-                value = eval(input.default)
-                _in = dict(name=name, interface=interface, value=value)
-            elif 'default' in dir(input):
-                value=input.default.capitalize() if dtype=="BOOLEAN" else input.default
-                _in = dict(name=name, interface=interface, value=value)
-            elif 'default' not in dir(input):
-                _in = dict(name=name, interface=interface)
-            
-            #value = eval(input.default) if dtype != 'string'else input.default
-
-            inputs.append(_in)
-
-        outputs = []
-        for output in model.outputs:
-            name = output.name
-            dtype = output.datatype
-            interface = openalea_interface(output)
-
-            _out = dict(name=name, interface=interface)
-            outputs.append(_out)
-
-        _factory = node.Factory(name=model.name,
-                                description=model.description.Abstract,
-                                nodemodule=model.module_name,
-                                nodeclass=signature(model),
-                                inputs=inputs,
-                                outputs=outputs,
-                                )
-        return _factory
 
     def generate_component(self, model_unit):
         """ Todo
         """
-        name = model_unit.name
-        self.code= "import numpy as np \n" + "from copy import copy\n" + "from math import *\n\n"
-        
+        self.code=""
         if model_unit.function:
             for function in model_unit.function:
-                if function.language in ("Python", "python"):
+                if function.language in ("R", "r"):
                     module=os.path.splitext(function.filename)[0]
-                    self.code +="from %s import * \n"%name.lower()
+                    self.code +="source( %s/%s ) \n"%(self.dir,module.lower())
                     break
         self.code += self.generate_function_signature(model_unit)
-
         self.code += self.generate_function_doc(model_unit)
-
-        self.code += self.generate_algorithm(model_unit)
-        
+        self.code += self.generate_algorithm(model_unit)        
         return self.code
-
-
 
     def generate_algorithm(self, model_unit):
 
         outputs = model_unit.outputs
         tab = ' '*4
-        code=""
+        code="\n"
         for algorithm in model_unit.algorithms:                                  
-            if (algorithm.language=="python_ext") or (algorithm.language==" ") or (algorithm.language=="Python")|(algorithm.language=="python"):
+            if (algorithm.language=="R") or (algorithm.language==" ") or (algorithm.language=="r"):
                 algo = algorithm
                 break
         development = algo.development           
         if algo.filename==None:
-            
-            
-            lines = [l.strip() for l in development.split('\n') if l.strip()]
-
-            def indentation(lines):
-                code=''
-                z=' '*4
-                tab=' '*4
-                i=1
-                for line in lines:
-                    pline = line
-                    if line =="{":
-                        pline = line.strip('{')
-                        i = i+1
-                        tab = z*i
-                    if line =="}":
-                        pline = line.strip('}')
-                        i = i-1
-                        tab = z*i
-                    code+=tab+pline+"\n"
-                return code
-
-            code = indentation(lines)         
+        
         # Outputs
-            code += tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
+            code += tab + 'return  (list(%s))'%(', '.join(["%s=%s"%(o.name, o.name)  for o in outputs]))+ '\n}'
  
         else:
             lines = [tab+l for l in development.split('\n') if l.split()]
-            code = '\n'.join(lines)
-            code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
+            code += '\n'.join(lines)
+            code += '\n'+tab + 'return  (list(%s))'%(', '.join(["%s=%s"%(o.name, o.name)  for o in outputs]))+ '\n}'
 
         self.code = code
 
@@ -235,29 +124,17 @@ class Model2Package(object):
     # documentation
     def generate_function_doc(self, model_unit):
         doc='''
-    """%s
-    """
-'''%generate_doc(model_unit)
+    %s  
+'''%comment(generate_doc(model_unit))
         return doc
 
 
 
     def generate_function_signature(self, model_unit):
-
-        desc = model_unit.description
         inputs = model_unit.inputs
+        func_name =  signature(model_unit)
 
-        # Compute name from title.
-        # We need an explicit name rather than infering it from Title
-        #name = desc.Title
-        func_name = name = signature(model_unit)
-
-        code = 'def %s('%(func_name,)
-
-        code_size = len(code)
-
-        _input_names = [inp.name.lower() for inp in inputs]
-
+        code = '%s <- function('%(func_name,)
 
         def my_input(_input):
             name = _input.name
@@ -289,9 +166,10 @@ class Model2Package(object):
 
 
         ins = [ my_input(inp) for inp in inputs]
-        separator = ',\n'+ code_size*' '
+        separator = ','
         code += separator.join(ins)
-        code+= '):'
+        code = code[:-1]
+        code+= ')\n{'
 
         return code
 
@@ -300,13 +178,11 @@ class Model2Package(object):
         tab = ' '*4
         m = model_unit
 
-        model_name = name = signature(m)
+        model_name  = signature(m)
 
         psets = m.parametersets
         self.codetest = ""
         for v_tests in m.testsets:
-
-            test_name = v_tests.name  # name of tests
             test_runs = v_tests.test  # different run in the thest
             test_paramsets = v_tests.parameterset  # name of paramsets
 
@@ -334,7 +210,7 @@ class Model2Package(object):
                     code = '\n'
                     test_codes.append(code)
 
-                    code = "def test_%s():"%(tname)
+                    code = "test_%s<-function(){"%(tname)
                     test_codes.append(code)
                     code = "    params= %s("%model_name
                     test_codes.append(code)
@@ -402,7 +278,7 @@ class Model2Package(object):
 
                     code = '\n'.join(test_codes)
 
-                    self.codetest += code
+                    self.codetest += code +'\n}'
 
         return self.codetest
     
@@ -416,13 +292,12 @@ class Model2Package(object):
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            ext = '' if count == 0 else str(count)
-            filename = self.dir/"test_%s.py"%signature(model)
+            filename = self.dir/"test_%s.r"%signature(model)
 
-            codetest = "'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
+            codetest = "#Test generation'\n\n"+'source("%s/%s.r")'%(self.dir.replace('\\','/'),signature(model)) + codetest
 
-            with open(filename, "w") as python_file:
-                python_file.write(codetest.encode('utf-8'))
+            with open(filename, "w") as r_file:
+                r_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1
         return files
@@ -442,7 +317,6 @@ def generate_doc(model):
     desc = model.description
         
     _doc = """
-
     %s
     Author: %s
     Reference: %s
@@ -455,36 +329,8 @@ def generate_doc(model):
 
     return code
 
-def openalea_interface(inout):
-    dtype = inout.datatype.lower().strip()
-    interface = None
 
-    kwds = {}
-    if inout.min:
-        kwds['min'] = inout.min
-    if inout.max:
-        kwds['max'] = inout.max
-
-    if dtype in ('int', 'float', 'double') :
-        interface =inter.IInt if dtype == 'int' else inter.IFloat
-        if ('min' in kwds) and ('max' in kwds):
-            interface = interface(min=eval(inout.min), max=eval(inout.max))
-        elif 'min' in kwds:
-            interface = interface (min=eval(inout.min))
-        elif 'max' in kwds:
-            interface = interface(max=eval(inout.max))
-
-    elif dtype == 'string':
-        interface = inter.IStr
-    
-    elif dtype == "boolean":
-        interface = inter.IBool
-
-    elif dtype == "date":
-        interface = inter.IDateTime
-           
-    elif dtype in ("doublelist", "intlist", "stringlist","datelist", "doublearray", "intarray", "datearray"):
-        interface=inter.ISequence
-
-    return interface
-
+def comment(line):
+    list_com = ['#'+x for x in line.split('\n')]
+    com = '\n'.join(list_com)
+    return com

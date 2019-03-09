@@ -1,5 +1,6 @@
+# coding: utf8
 from pycropml.transpiler.pseudo_tree import Node
-class NodeVisitor:
+class NodeVisitor(object):
     '''
     Define a method which browse the graph and call a methode constructed from the type
     of each node of the graph
