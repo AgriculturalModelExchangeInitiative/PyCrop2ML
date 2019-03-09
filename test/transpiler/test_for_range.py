@@ -1,7 +1,7 @@
 # coding: utf8
 from pycropml.transpiler.main import Main
 
-source = """def test(int a):
+source =u"""def test(int a):
         cdef int x=15, y=15
         cdef int i
         a=12
@@ -9,7 +9,7 @@ source = """def test(int a):
             a=a+i 
         return a
         """
-output_cs="""using System;
+output_cs=u"""using System;
 using System.Collections.Generic;
 public class Program
 {
@@ -26,15 +26,26 @@ public class Program
         return a;
     }
 }"""
+
+output_py=u"""def test(a):
+    x = 15
+    y = 15
+    a = 12
+    for i in range(0 , 10 , 1):
+        a = a + i
+    return a"""
+
+languages=["py","cs"]
+output={"py":output_py, "cs":output_cs}        
   
 def test_for_range():
-   
-    test=Main(source, "cs")
-    test.parse()    
-    test.to_ast(source)    
-    code=test.to_source()
-    print(code)
-    assert(code==output_cs)   
+    for lang in languages:   
+        test=Main(source, lang)
+        test.parse()    
+        test.to_ast(source)    
+        code=test.to_source()
+        print(code)
+        assert(code==output[lang])
 
 if __name__=='__main__':
     test_for_range()

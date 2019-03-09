@@ -27,10 +27,14 @@
 
     </Outputs>
 
-	<Algorithm  language="Python" platform="" filename="UpdateCalendar.py" />
-	<Algorithm  language="C#" platform="" filename="UpdateCalendar.cs" />
-	<Algorithm  language="Java" platform="" filename="UpdateCalendar.java" />
-  
+	<Algorithm  language="Python" platform="" filename="algo/py/UpdateCalendar.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/UpdateCalendar.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/UpdateCalendar.java" />
+ 	<Algorithm  language="C++" platform="" filename="algo/cpp/UpdateCalendar.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/UpdateCalendar.f90" /> 
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/UpdateCalendar.pyx" />
+    <Algorithm  language="R" platform="" filename="algo/r/UpdateCalendar.r" />        
+   
     <Parametersets>
         <Parameterset name="wheat" description="some values in there" >
         </Parameterset>

@@ -1,6 +1,8 @@
 """ Read xml representation of a component.
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 from path import Path
 
 from pycropml import pparse, render_java

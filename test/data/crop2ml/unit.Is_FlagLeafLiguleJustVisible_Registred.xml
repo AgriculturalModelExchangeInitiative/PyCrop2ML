@@ -18,9 +18,13 @@
 
     </Outputs>
     
-	<Algorithm  language="Python" platform="" filename="Is_FlagLeafLiguleJustVisible_Registred.py" />
-	<Algorithm  language="C#" platform="" filename="Is_FlagLeafLiguleJustVisible_Registred.cs" />
-	<Algorithm  language="Java" platform="" filename="Is_FlagLeafLiguleJustVisible_Registred.java" />
+	<Algorithm  language="Python" platform="" filename="algo/py/Is_FlagLeafLiguleJustVisible_Registred.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/Is_FlagLeafLiguleJustVisible_Registred.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/Is_FlagLeafLiguleJustVisible_Registred.java" />
+	<Algorithm  language="C++" platform="" filename="algo/cpp/Is_FlagLeafLiguleJustVisible_Registred.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/Is_FlagLeafLiguleJustVisible_Registred.f90" />
+	<Algorithm  language="Cyml" platform="" filename="algo/pyx/Is_FlagLeafLiguleJustVisible_Registred.pyx" />
+	<Algorithm  language="R" platform="" filename="algo/r/Is_FlagLeafLiguleJustVisible_Registred.r" />
 
     <Parametersets>
         <Parameterset name="wheat" description="some values in there" >

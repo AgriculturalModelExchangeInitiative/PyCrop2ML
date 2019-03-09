@@ -31,9 +31,13 @@
         <Output name="ntip" description="Maize number of tip" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
     </Outputs>
     
-    <Algorithm  language="Python" platform="" filename="LeafNumberModule.py"/>
-	<Algorithm  language="C#" platform="" filename="LeafNumberModule.cs"/>
-	<Algorithm  language="Java" platform="" filename="LeafNumberModule.java"/>
+    <Algorithm  language="Python" platform="" filename="algo/py/LeafNumberModule.py"/>
+	<Algorithm  language="C#" platform="" filename="algo/cs/LeafNumberModule.cs"/>
+	<Algorithm  language="Java" platform="" filename="algo/java/LeafNumberModule.java"/>
+	<Algorithm  language="C++" platform="" filename="algo/cpp/LeafNumberModule.cpp"/>
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/LeafNumberModule.f90"/>
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/LeafNumberModule.pyx"/>
+    <Algorithm  language="R" platform="" filename="algo/r/LeafNumberModule.r"/>
 
     <Parametersets>
         <Parameterset name="ParamWheat" description="some values in there" >

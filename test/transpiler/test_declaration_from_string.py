@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.main import Main
-source ="""def test(int a):
+source =u"""def test(int a):
         cdef list g=[10,1,7]
         cdef int x=1
         cdef float s= 0.9
@@ -25,7 +25,7 @@ public class Program
   
 def testDeclaration():
    
-    test=Main(source, "cs")
+    test=Main(source, "py")
     test.parse() 
     
     test.to_ast(source)    

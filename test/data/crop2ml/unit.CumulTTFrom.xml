@@ -13,7 +13,7 @@
     <Inputs>
         <Input name="calendarMoments" description="List containing appearance of each stage" variablecategory="auxiliary"  datatype="STRINGLIST"  default= "['Sowing']" unit=""  inputtype = "variable"/>
 		<Input name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" variablecategory="auxiliary"  datatype="DOUBLELIST" default="[0.0]" unit="°C d"  inputtype = "variable"/>
-        <Input name="switchMaize" description="true if maize"  datatype="INT" min="0" max="1" default="0" unit=""  inputtype = "parameter"/>
+        <Input name="switchMaize" description="true if maize"  datatype="INT" parametercategory="constant" min="0" max="1" default="0" unit=""  inputtype = "parameter"/>
         <Input name="cumulTT" description="cumul TT at current date" datatype="DOUBLE" variablecategory="auxiliary" min="-200" max="10000" default="8" unit="°C d" inputtype = "variable"/>
       
     </Inputs>
@@ -24,10 +24,13 @@
     	
     </Outputs>
     
-	<Algorithm  language="python" platform="" filename="CumulFrom.py" />
-	<Algorithm  language="C#" platform="" filename="CumulFrom.cs" />
-	<Algorithm  language="Java" platform="" filename="CumulFrom.java" />
-
+	<Algorithm  language="Python" platform="" filename="algo/py/CumulFrom.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/CumulFrom.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/CumulFrom.java" />
+	<Algorithm  language="C++" platform="" filename="algo/cpp/CumulFrom.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/CumulFrom.f90" />
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/CumulFrom.pyx" />
+    <Algorithm  language="R" platform="" filename="algo/r/CumulFrom.r" />
 
 
     <Parametersets>

@@ -47,9 +47,13 @@
         <Output name="hasLastPrimordiumAppeared" description="if Last Primordium has Appeared" variablecategory="state"  datatype="INT" min="0" max="1"  unit="" />
    	
     </Outputs>
-	<Algorithm  language="Python" platform="" filename="UpdatePhase.py" />
-	<Algorithm  language="C#" platform="" filename="UpdatePhase.cs" />
-	<Algorithm  language="Java" platform="" filename="UpdatePhase.java" />
+	<Algorithm  language="Python" platform="" filename="algo/py/UpdatePhase.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/UpdatePhase.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/UpdatePhase.java" />
+	<Algorithm  language="C++" platform="" filename="algo/cpp/UpdatePhase.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/UpdatePhase.f90" /> 
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/UpdatePhase.pyx" /> 
+    <Algorithm  language="R" platform="" filename="algo/r/UpdatePhase.r" />    
 
      <Parametersets>
         <Parameterset name="wheat" description="some values in there" >

@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.main import Main
-source = """def test(int a):
+source =u"""def test(int a):
         cdef int x=1, y=2
         if x==y:
             if x<2:
@@ -12,7 +12,7 @@ source = """def test(int a):
         else:
             return a
         """ 
-output_cs="""using System;
+output_cs=u"""using System;
 using System.Collections.Generic;
 public class Program
 {
@@ -53,3 +53,15 @@ def test_if_elif_else():
 
 if __name__=='__main__':
     test_if_elif_else()
+
+
+
+# coding: utf8
+from pycropml.transpiler.main import Main
+source =u"""def test(int a):
+        cdef int x=1, y=2
+        x=2
+        return a"""
+test=Main(source, "cs")
+test.parse()    
+test.to_ast(source) 

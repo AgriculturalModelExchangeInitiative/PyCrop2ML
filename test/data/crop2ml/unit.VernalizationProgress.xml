@@ -49,9 +49,13 @@
  	
     </Outputs>
 
-	<Algorithm  language="Python" platform="" filename="VernalizationProgress.py" />
-	<Algorithm  language="C#" platform="" filename="VernalizationProgress.cs" />
-	<Algorithm  language="Java" platform="" filename="VernalizationProgress.java" />
+	<Algorithm  language="Python" platform="" filename="algo/py/VernalizationProgress.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/VernalizationProgress.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/VernalizationProgress.java" />
+	<Algorithm  language="C++" platform="" filename="algo/cpp/VernalizationProgress.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/VernalizationProgress.f90" />
+	<Algorithm  language="Cyml" platform="" filename="algo/pyx/VernalizationProgress.pyx" />
+	<Algorithm  language="R" platform="" filename="algo/r/VernalizationProgress.r" />
 
     
     <Parametersets>

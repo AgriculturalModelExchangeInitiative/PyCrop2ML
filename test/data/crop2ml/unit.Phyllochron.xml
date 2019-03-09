@@ -33,9 +33,13 @@
     	    	
     </Outputs>
     
-	<Algorithm  language="Python" platform="" filename="PhyllochronModule.py" />
-	<Algorithm  language="C#" platform="" filename="PhyllochronModule.cs"/>
-	<Algorithm  language="Java" platform="" filename="PhyllochronModule.java"/>
+	<Algorithm  language="Python" platform="" filename="algo/py/PhyllochronModule.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/PhyllochronModule.cs"/>
+	<Algorithm  language="Java" platform="" filename="algo/java/PhyllochronModule.java"/>
+    <Algorithm  language="C++" platform="" filename="algo/cpp/PhyllochronModule.cpp"/>
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/PhyllochronModule.f90"/>
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/PhyllochronModule.pyx"/>
+    <Algorithm  language="R" platform="" filename="algo/r/PhyllochronModule.r"/>
 
     <Parametersets>
         <Parameterset name="wheat" description="some values in there" >

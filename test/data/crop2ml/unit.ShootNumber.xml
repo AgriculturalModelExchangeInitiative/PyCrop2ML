@@ -28,18 +28,27 @@
    	
     </Outputs>
     
-    <Function name = "fibonacci" language="Python" type="external" filename="Fibonacci.py" description="calculate fibonacci number"/>  
-    <Function name = "fibonacci" language="csharp" type="external" filename="Fibonacci.cs" description="calculate fibonacci number"/>
-    <Function name = "fibonacci" language="java" type="external" filename="Fibonacci.java" description="calculate fibonacci number"/>  
+    <Function name = "fibonacci" language="Python" type="external" filename="algo/py/Fibonacci.py" description="calculate fibonacci number"/>  
+    <Function name = "fibonacci" language="C#" type="external" filename="algo/cs/Fibonacci.cs" description="calculate fibonacci number"/>
+    <Function name = "fibonacci" language="Java" type="external" filename="algo/java/Fibonacci.java" description="calculate fibonacci number"/>  
+    <Function name = "fibonacci" language="C++" type="external" filename="algo/cpp/Fibonacci.cpp" description="calculate fibonacci number"/>
+    <Function name = "fibonacci" language="Fortran" type="external" filename="algo/f90/Fibonacci.f90" description="calculate fibonacci number"/>  
+    <Function name = "fibonacci" language="Cyml" type="external" filename="algo/pyx/Fibonacci.pyx" description="calculate fibonacci number"/>  
+    <Function name = "fibonacci" language="R" type="external" filename="algo/R/Fibonacci.r" description="calculate fibonacci number"/>  
 
-	<Algorithm  language="Python" platform="" filename="ShootNumber.py" />
-	<Algorithm  language="C#" platform="" filename="ShootNumber.cs" />
-	<Algorithm  language="Java" platform="" filename="ShootNumber.java" />
-  
+
+	<Algorithm  language="Python" platform="" filename="algo/py/ShootNumber.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/ShootNumber.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/ShootNumber.java" />
+ 	<Algorithm  language="C++" platform="" filename="algo/cpp/ShootNumber.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/ShootNumber.f90" />
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/ShootNumber.pyx" />
+    <Algorithm  language="R" platform="" filename="algo/r/ShootNumber.r" />
+
     <Parametersets>
         <Parameterset name="wheat" description="some values in there" >
         	<Param name="targetFertileShoot">600.0</Param>
-        	<Param name="sowingDensity">288.0</Param>
+        	<Param name="sowingDensity">288</Param>
         </Parameterset>
      </Parametersets>
      <Testsets>

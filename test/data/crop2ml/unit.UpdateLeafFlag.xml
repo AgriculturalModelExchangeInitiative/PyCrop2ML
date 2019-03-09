@@ -31,12 +31,15 @@
    	
     </Outputs>
     
-	<Algorithm  language="Python" platform="" filename="UpdateLeafFlag.py" />
-	<Algorithm  language="C#" platform="" filename="UpdateLeafFlag.cs" />
-	<Algorithm  language="Java" platform="" filename="UpdateLeafFlag.java" />
-
+	<Algorithm  language="Python" platform="" filename="algo/py/UpdateLeafFlag.py" />
+	<Algorithm  language="C#" platform="" filename="algo/cs/UpdateLeafFlag.cs" />
+	<Algorithm  language="Java" platform="" filename="algo/java/UpdateLeafFlag.java" />
+	<Algorithm  language="C++" platform="" filename="algo/cpp/UpdateLeafFlag.cpp" />
+	<Algorithm  language="Fortran" platform="" filename="algo/f90/UpdateLeafFlag.f90" />    
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/UpdateLeafFlag.pyx" /> 
+    <Algorithm  language="R" platform="" filename="algo/r/UpdateLeafFlag.r" />    
     
-     <Parametersets>
+    <Parametersets>
         <Parameterset name="wheat" description="some values in there" >
         </Parameterset>
 

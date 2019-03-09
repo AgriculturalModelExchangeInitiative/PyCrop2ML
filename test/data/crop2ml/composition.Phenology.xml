@@ -29,8 +29,7 @@
       <InputLink target="Phyllochron.leafNumber" source="leafNumber" />
       <InputLink target="Phyllochron.lincr" source="lincr" />
       <InputLink target="Phyllochron.ldecr" source="ldecr" />
-      <InputLink target="Phyllochron.ldecr" source="ldecr" />
-      <InputLink target="Phyllochron.pdecr" source="pdecr" />
+      <InputLink target="Phyllochron.ldecr" source="pdecr" />
       <InputLink target="Phyllochron.pincr" source="pincr" />
       <InputLink target="Phyllochron.ptq" source="ptq" />
       <InputLink target="Phyllochron.gai" source="gai" />
@@ -47,7 +46,6 @@
       <InputLink target="PhylSowingDateCorrection.sDws" source="sDws" />
       <InputLink target="PhylSowingDateCorrection.sDsa_nh" source="sDsa_nh" />
       <InputLink target="PhylSowingDateCorrection.rp" source="rp" />
-      <InputLink target="PhylSowingDateCorrection.latitude" source="latitude" />
       <InputLink target="CumulTTFrom.calendarMoments" source="calendarMoments" />
       <InputLink target="CumulTTFrom.calendarCumuls" source="calendarCumuls" />
       <InputLink target="CumulTTFrom.switchMaize" source="switchMaize" />
