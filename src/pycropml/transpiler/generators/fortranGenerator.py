@@ -466,11 +466,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(' , ')
         self.visit(node.iterator)        
 
-    def visit_for_sequence_with_index(self, node):
+    """def visit_for_sequence_with_index(self, node):
         
         self.write(" in enumerate(")
         self.visit(node.sequence)
-        self.write('):')
+        self.write('):')"""
     
     def visit_for_iterator(self, node):
         self.visit(node.iterator)
