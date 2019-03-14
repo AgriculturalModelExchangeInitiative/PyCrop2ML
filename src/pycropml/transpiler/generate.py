@@ -20,6 +20,7 @@ def run(crop2ml_pkg,language):
     # generate 
     cyml_rep = Path(output/'pyx') # cyml model directory in output
     for k, file in enumerate(cyml_rep.files()):
+        print(file)
         with open(file, 'r') as fi:
             source = fi.read()
         name = os.path.split(file)[1].split(".")[0]
@@ -30,12 +31,11 @@ def run(crop2ml_pkg,language):
                 test.to_ast(source) 
                 code=test.to_source()
                 filename = tg_rep/"%s.%s"%(name, language)   
-                with open(filename, "w") as tg_file:
-                    tg_file.write(str(code))
+                with open(filename, "wb") as tg_file:
+                    tg_file.write(code.encode('utf-8'))
 
 
-   
-    
+
     
 
 
