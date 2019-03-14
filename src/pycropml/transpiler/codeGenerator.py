@@ -17,7 +17,7 @@ class CodeGenerator(NodeVisitor):
                 self.result.append('\n' * self.new_lines)
             self.result.append(self.indent_with * self.indentation)
             self.new_lines = 0
-        self.result.append(x)
+        self.result.append(x)  
 
     def newline(self, node=None, extra=0):
         self.new_lines = max(self.new_lines, 1 + extra)
@@ -66,9 +66,9 @@ class CodeGenerator(NodeVisitor):
     
         
     def visit_comparison(self, node):
-        self.write('(')
+        #self.write('(')
         self.visit_binary_op(node)
-        self.write(')')
+        #self.write(')')
     
     def visit_ExprStatNode(self, node):
         self.newline(node)

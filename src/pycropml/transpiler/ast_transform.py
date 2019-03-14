@@ -34,6 +34,7 @@ class AstTransformer():
         self.forSequence=False
         body = self.visit_node(self.tree.body)
         self.visit_definitions()
+        self.type_env['__name__']="str"
         return {'type': 'module','body':body if isinstance(body, list) else [body]}
 
     def visit_definitions(self):
@@ -118,7 +119,12 @@ class AstTransformer():
             else:
                 results.append(x)
         return results            
-           
+
+
+    def visit_printstatnode(self, node, arg_tuple, stream, location):
+        return {"type":"print",
+                "elements": [self.visit_node(arg) for arg in arg_tuple.args[0].args],
+                "pseudo_type":['Tuple']+[self.visit_node(arg)["pseudo_type"] for arg in arg_tuple.args[0].args]}          
     
     def visit_singleassignmentnode(self,node, lhs, rhs,location):
 
@@ -184,9 +190,9 @@ class AstTransformer():
             self._tuple_used = []
             return used + rights
         
-        elif isinstance(lhs, ExprNodes.IndexNode):
+        elif isinstance(lhs, ExprNodes.IndexNode) or isinstance(lhs, ExprNodes.SliceIndexNode) :
             z = self.visit_node(lhs)
-            if z['type'] == 'index':
+            if z['type'] == 'index' or z['type']=="sliceindex" :
                 return {
                     'type': 'assignment',
                     'target': z,
@@ -204,6 +210,7 @@ class AstTransformer():
                 z['args'].append(value_node)
                 z['pseudo_type'] = 'Void'
                 return z
+
 
 
     def visit_inplaceassignmentnode(self, node, lhs, rhs, location):
@@ -414,12 +421,19 @@ class AstTransformer():
                 return self._translate_builtin_call('global', function.name, arg_nodes, location, attrib=0)
                         
         elif isinstance(function, ExprNodes.NameNode):
-            if not self._fromimport:
+            if not self._fromimport and function.name not in list(self.type_env.top['functions'].keys()):
                  print("errr")
+            
+            if function.name in list(self.type_env.top['functions'].keys()):
+                return {
+                        "type":"custom_call",
+                        "args" : self.visit_node(args),
+                        "function":function.name,
+                        "pseudo_type" : self.type_env.top['functions'][function.name][-1]}
             else:
                 arg_nodes = [arg if not isinstance(arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
-                if function.name not in meth:
+                if function.name not in meth :
                     print("err")
                 else:
                     if self.retrieve_library(function.name) not in self._imports:
@@ -470,8 +484,7 @@ class AstTransformer():
                 'pseudo-cython doesn\'t support %s%s with %d args' % (serialize_type(class_type), message, len(args)),
                 location, self.lines[location[0]])
 
-    
-    
+       
     def _translate_builtin_call(self, namespace, function, args, location, attrib):
 
         if namespace != 'global' and namespace not in self._imports:
@@ -489,8 +502,6 @@ class AstTransformer():
         
         if namespace in FUNCTION_API:
             api = FUNCTION_API[namespace].get(function)
-            
-        
             if not api:
                 raise translation_error('pseudo-cython doesn\' t support %s %s' % (namespace, function),
                                         location, self.lines[location[0]],
@@ -504,10 +515,10 @@ class AstTransformer():
                 return z
 
             else:
-                for count,(a, b)  in api.items():
-                    if len(args) == count:
+                for count,(a, b)  in enumerate(list(api.items())):
+                    if len(args) == a:
                         return b.expand(args)
-                    raise translation_error(
+                raise translation_error(
                             'pseudo-cython doesn\'t support %s%s with %d args' % (namespace, function, len(args)),
                             location, self.lines[location[0]])
 
@@ -655,9 +666,9 @@ class AstTransformer():
     def visit_cvardefnode(self,node, base_type, declarators, location):
         x=[] 
         for de in declarators:
-            if self.type_env.top[de.name]:
-                raise PseudoCythonTypeCheckError("%s is already declared" % de.name)
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
+                if self.type_env.top[de.name]:
+                    raise PseudoCythonTypeCheckError("%s is already declared" % de.name)
                 decl = {u"name":de.name, u"type": base_type.name}
                 if de.default is None:
                     self.type_env.top[de.name]= base_type.name
@@ -690,6 +701,7 @@ class AstTransformer():
             
             else:
                 decl = {u"name":de.base.name, u"type": "array", "value": de.dimension.value, "pseudo_type":["array", self.visit_node(de.dimension)["pseudo_type"]]}
+                self.type_env.top[de.base.name]= decl["pseudo_type"]
             self.declarations.append(decl)
             x.append(decl)
         return {

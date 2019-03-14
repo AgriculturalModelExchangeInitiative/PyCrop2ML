@@ -14,7 +14,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.tree=tree
         self.model=model
         self.indent_with=' '*4 
-        self.doc=DocGenerator(self.model, "#")
+        if self.model: self.doc=DocGenerator(self.model, "#")
 
     def comment(self,doc):
         list_com = [self.indent_with + '#'+x for x in doc.split('\n')]
