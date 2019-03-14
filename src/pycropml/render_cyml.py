@@ -76,9 +76,9 @@ class Model2Package(object):
             self.generate_component(model)            
             ext = '' if count == 0 else str(count)
             filename = self.dir/"%s.pyx"%signature(model)                     
-            with open(filename, "w") as cyml_file:
+            with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
-                cyml_file.write(str(self.code))
+                cyml_file.write(self.code.encode('utf-8'))
                 files.append(filename)           
                 model.module_name = str(Path(filename).namebase)
             count += 1
@@ -295,8 +295,8 @@ class Model2Package(object):
 
             codetest = "'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
-            with open(filename, "w") as cyml_file:
-                cyml_file.write(str(codetest))
+            with open(filename, "wb") as cyml_file:
+                cyml_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1
         return files
