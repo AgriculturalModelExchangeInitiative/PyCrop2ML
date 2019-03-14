@@ -114,7 +114,7 @@ def pow_expander(type, message, args):
     x1 = args[0]["pseudo_type"]
     x2 = args[1]["pseudo_type"]
     if x1=="int" and x2=="int":
-        if args[1]["value"]<0:
+        if int(args[1]["value"])<0:
             q="float"
         else:
             q="int"

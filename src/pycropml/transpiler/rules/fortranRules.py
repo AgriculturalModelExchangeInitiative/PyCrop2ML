@@ -41,7 +41,6 @@ class FortranRules(GeneralRule):
                 'tan':         'TAN',
                 'sin':         'SIN',
                 'cos':         'COS',
-                'pow':         lambda node: Node("call", function=" ",args=Node("binary_op", op = "**", left = node.args[0], right=node.args[1]), pseudo_type="boolean"),
                 'asin':        'ASIN',
                 'acos':        'ACOS',
                 'atan':         'ATAN',
@@ -53,7 +52,8 @@ class FortranRules(GeneralRule):
                     'min': 'MIN',
                     'max': 'MAX',
                     'abs':'ABS',
-                    'round': 'Round'
+                    'round': 'Round',
+                    'pow':         lambda node: Node("call", function=" ",args=Node("binary_op", op = "**", left = node.args[0], right=node.args[1]), pseudo_type="boolean")
                     },
             
             }

@@ -4,6 +4,8 @@ from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.fortranRules import FortranRules
 from pycropml.transpiler.interface import middleware
 from pycropml.transpiler.generators.docGenerator import DocGenerator
+
+
 class FortranGenerator(CodeGenerator, FortranRules):
     """This class contains the specific properties of 
     fortran language and use the NodeVisitor to generate a fortran
@@ -20,13 +22,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.initialValue=[] 
         self.z = middleware(self.tree)
         self.z.transform(self.tree)
-        self.doc= DocGenerator(model, '!')
-        
-    def comment(self,doc):
-        list_com = [self.indent_with+'!'+x for x in doc.split('\n')]
-        com = '\n'.join(list_com)
-        return com      
-    
+        if self.model: self.doc= DocGenerator(model, '!')
+              
     def body(self, statements):
         self.new_line = True
         self.indentation += 1
@@ -66,7 +63,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit(node.value.true_val)
         self.newline(node)
         self.indentation-=1
-        self.write(u" ELSE ")
+        self.write(u"ELSE ")
         self.newline(node)
         self.indentation+=1
         self.visit(node.target)
@@ -74,7 +71,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit(node.value.false_val)
         self.newline(node)
         self.indentation-=1
-        self.write(u" END IF ")
+        self.write(u"END IF ")
 
         
     def visit_if_statement(self, node):
@@ -192,6 +189,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(u")")
           
     def visit_function_definition(self, node):
+        self.nb=0
         self.write("MODULE %smod"%node.name.capitalize())
         self.newline(node)
         self.indentation += 1        
@@ -200,11 +198,12 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node) 
         if self.z.dependencies:
             for dependency in self.z.dependencies:
-                self.write("USE %s_mod" %dependency)
+                self.write("USE %smod" %dependency)
                 self.newline(node)        
         self.write("IMPLICIT NONE")
         self.newline(node)
-        self.body("") 
+        #self.body("")
+        self.indentation -= 1 
         self.write("CONTAINS")
         self.newline(node)
         self.indentation += 1
@@ -216,7 +215,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             parameters.append(pa.name)
             node_params.append(pa)
         parameters = parameters+[e for e in self.transform_return(node)[0] if e not in parameters]
-        self.write(','.join(parameters))
+        self.write(', &\n        '.join(parameters))
         self.write(')') 
         self.indentation += 1
         newNode = self.add_features(node)
@@ -241,7 +240,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node)
         self.write("END SUBROUTINE %s"%node.name)
         self.newline(node)
-        self.indentation -= 2        
+        self.indentation -= 1        
         self.write("END MODULE")
     
     def transform_return(self, node):
@@ -270,7 +269,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
                 if stmt.type=="declaration":
                     intern_decl=intern_decl+stmt.decl
                 if self.z.ForSequence:
-                    intern_decl = intern_decl+[Node(type="int", name="i_cyml", pseudo_type="int")]
+                    for i in range(self.z.nbForSeq):
+                        intern_decl = intern_decl+[Node(type="int", name="i_cyml%s"%i, pseudo_type="int")]
         else: intern_decl=statements.decl if statements.type=="declaration" else None
         return intern_decl
     
@@ -443,7 +443,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
     
     def visit_for_statement(self, node):
         self.newline(node)
-        self.write("DO i_cyml = 1, SIZE(")
+        self.write("DO i_cyml%s = 1, SIZE("%self.nb)
         if "sequences" in dir(node):
             self.visit(node.sequences)
             self.write(")")
@@ -453,12 +453,14 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.visit(node.iterators)
             self.write(" = ")
             self.visit(node.sequences)
-            self.write("(i_cyml)")
+            self.write("(i_cyml%s)"%self.nb)
+            self.nb = self.nb+1
             self.newline(node)
             self.indentation -=1
         self.body(node.block)
         self.newline(node)       
         self.write("END DO")
+        
 
     
     def visit_for_iterator_with_index(self, node):

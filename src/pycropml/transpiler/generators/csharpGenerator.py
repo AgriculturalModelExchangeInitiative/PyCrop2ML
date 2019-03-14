@@ -16,7 +16,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.model=model
         self.indent_with=' '*4
         self.write(u"using System;\nusing System.Collections.Generic;\n")
-        self.doc= DocGenerator(model, '//')  
+        if self.model: self.doc= DocGenerator(model, '//')  
         
     
 
