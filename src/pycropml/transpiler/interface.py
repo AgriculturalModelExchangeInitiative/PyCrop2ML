@@ -9,12 +9,14 @@ class TreeInterface():
     def __init__(self, tree):
         self.tree=tree
         self.ForSequence = False
+        self.nbForSeq=0
         self.dependencies=[]
 
     def transform(self, tree, in_block=False):
         if isinstance(tree, Node):
             if tree.type =="for_sequence":
                 self.ForSequence = True
+                self.nbForSeq =self.nbForSeq+1 
             if tree.type == "custom_call":
                 self.dependencies.append(tree.function)
             else:
