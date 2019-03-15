@@ -126,7 +126,7 @@ CONTAINS
     !                          - unit : 
         oldCanopyShootNumber = canopyShootNumber
         emergedLeaves = INT(MAX(1.0, REAL(CEILING(leafNumber - 1))))
-        call fibonacci_(shoots, emergedLeaves)
+        call fibonacci_(emergedLeaves,shoots)
         canopyShootNumber = MIN(REAL(shoots * sowingDensity),  &
                 targetFertileShoot)
         averageShootNumberPerPlant = canopyShootNumber / sowingDensity
@@ -134,7 +134,7 @@ CONTAINS
             call Add(tilleringProfile, canopyShootNumber - oldCanopyShootNumber)
         END IF
         tillerNumber = SIZE(tilleringProfile)
-        DO i = SIZE(leafTillerNumberArray) + (1) ,  &
+        DO i = SIZE(leafTillerNumberArray) + 1  ,  &
                 INT(REAL(CEILING(leafNumber))) , 1
             call Add(leafTillerNumberArray, tillerNumber)
         END DO

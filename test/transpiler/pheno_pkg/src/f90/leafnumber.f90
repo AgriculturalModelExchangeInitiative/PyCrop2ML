@@ -23,7 +23,7 @@ CONTAINS
         REAL:: bbl
         REAL:: tt_bl
         REAL, INTENT(IN) :: deltaTT
-        REAL, INTENT(IN) :: phyllochron
+        REAL :: phyllochron
         INTEGER, INTENT(IN) :: hasFlagLeafLiguleAppeared
         INTEGER, INTENT(IN) :: switchMaize
         REAL, INTENT(IN) :: atip
@@ -37,14 +37,14 @@ CONTAINS
         !- Description:
     !            - Model Name: CalculateLeafNumber Model
     !            - Author: Pierre MARTRE
-    !            - Reference: Modeling development phase in the 
+    !            - Reference: Modeling development phase in the
     !                Wheat Simulation Model SiriusQuality.
     !                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427
     !            - Institution: INRA Montpellier
     !            - Abstract: calculate leaf number. LeafNumber increase is caped at one more leaf per day
         !- inputs:
     !            - name: deltaTT
-    !                          - description : daily delta TT 
+    !                          - description : daily delta TT
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : -20
@@ -68,7 +68,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - default : 0
-    !                          - unit : 
+    !                          - unit :
     !                          - inputtype : variable
     !            - name: switchMaize
     !                          - description : true if maize
@@ -77,7 +77,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - default : 0
-    !                          - unit : 
+    !                          - unit :
     !                          - inputtype : parameter
     !            - name: atip
     !                          - description : slope of leaf initiation
@@ -95,25 +95,25 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1000
     !                          - default : 10
-    !                          - unit : 
+    !                          - unit :
     !                          - inputtype : parameter
     !            - name: k_bl
-    !                          - description : 
+    !                          - description :
     !                          - parametercategory : constant
     !                          - inputtype : parameter
     !                          - datatype : DOUBLE
     !                          - min : 0
     !                          - max : 100
     !                          - default : 1.412
-    !                          - unit : 
+    !                          - unit :
     !            - name: nlim
-    !                          - description : 
+    !                          - description :
     !                          - parametercategory : constant
     !                          - datatype : DOUBLE
     !                          - default : 6.617
     !                          - min : 0
     !                          - max : 1000
-    !                          - unit : 
+    !                          - unit :
     !                          - inputtype : parameter
     !            - name: leafNumber
     !                          - description :  Actual number of phytomers
@@ -134,7 +134,7 @@ CONTAINS
     !                          - unit : °C
     !                          - inputtype : variable
     !            - name: cumulTT
-    !                          - description : cumul thermal times at current time 
+    !                          - description : cumul thermal times at current time
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : -200
@@ -149,7 +149,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 7
     !                          - default : 1
-    !                          - unit :  
+    !                          - unit :
     !                          - uri : some url
     !                          - inputtype : variable
         !- outputs:

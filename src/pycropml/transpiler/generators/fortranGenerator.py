@@ -413,7 +413,24 @@ class FortranGenerator(CodeGenerator, FortranRules):
            self.visit(node.function(node)) 
         else: self.visit_call(node) 
 
-    def visit_subroutine(self,node):
+    def visit_subroutine(self,node):         
+        self.write(node.function)
+        self.write('(')
+        self.comma_separated_list(node.args)
+        self.write(',')
+        self.visit(node.receiver)
+        self.write(')')        
+        
+    def visit_importfrom(self, node):
+        """self.newline(node)
+        self.write('from %s import ' % (node.namespace))
+        for idx, item in enumerate(node.name):
+            if idx:
+                self.write(', ')
+            self.write(item)"""
+
+    
+    def visit_custom_call(self, node):
         want_comma = []
         def write_comma():
             if want_comma:
@@ -427,19 +444,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         for arg in node.args:
             write_comma()
             self.visit(arg)
-        self.write(')')        
-        
-    def visit_importfrom(self, node):
-        """self.newline(node)
-        self.write('from %s import ' % (node.namespace))
-        for idx, item in enumerate(node.name):
-            if idx:
-                self.write(', ')
-            self.write(item)"""
-
-    
-    def visit_custom_call(self, node):
-        self.visit_subroutine(node)
+        self.write(')')
     
     def visit_for_statement(self, node):
         self.newline(node)
@@ -487,10 +492,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit(node.index)
         self.write(" = ")
         self.visit(node.start)
-        self.write(" + ")
-        self.write("(")
+        self.write(" + 1 ")
+        '''self.write("(")
         self.visit(node.step)
-        self.write(")")        
+        self.write(")") '''       
         self.write(' , ')
         self.visit(node.end)
         self.write(' , ')

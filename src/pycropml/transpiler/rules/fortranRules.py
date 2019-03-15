@@ -68,18 +68,18 @@ class FortranRules(GeneralRule):
                     },
             'str':{
                     'int':'INT',
-                    'find':lambda node: Node("subroutine",receiver = node.receiver, function="index", args=node.args, pseudo_type=node.pseudo_type)
+                    'find':lambda node: Node("custom_call",receiver = node.receiver, function="index", args=node.args, pseudo_type=node.pseudo_type)
                     },
             'list':{
                     'len':'SIZE',
-                    'append':lambda node: Node("subroutine",receiver = node.receiver, function="call Add", args=node.args, pseudo_type=node.pseudo_type),
+                    'append':lambda node: Node("custom_call",receiver = node.receiver, function="call Add", args=node.args, pseudo_type=node.pseudo_type),
                     'sum':'sum',
                     'pop':'.RemoveAt',
                     'contains?':lambda node: Node("call", function="ANY", args=Node(type="binary_op", op="==", right =node.args, left = node.receiver), 
                                                  pseudo_type=node.pseudo_type),
                     'not contains?':lambda node: Node("call", function="ALL", args=Node(type="binary_op", op="!=", right =node.args, left = node.receiver), 
                                                  pseudo_type=node.pseudo_type),
-                    'index':lambda node: Node("subroutine",receiver = node.receiver, function="indice", args=node.args, pseudo_type=node.pseudo_type)
+                    'index':lambda node: Node("custom_call",receiver = node.receiver, function="indice", args=node.args, pseudo_type=node.pseudo_type)
                     
                     },
             'dict':{
