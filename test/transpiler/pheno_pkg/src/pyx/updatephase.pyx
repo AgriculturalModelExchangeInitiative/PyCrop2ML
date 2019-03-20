@@ -1,15 +1,15 @@
 import numpy as np 
 from math import *
 
-def updatephase_(float cumulTT=354.582294512,
-                 float leafNumber=4.62051162186,
+def updatephase_(float cumulTT=354.582294511779,
+                 float leafNumber=4.620511621863958,
                  float cumulTTFromZC_39=0.0,
                  int isMomentRegistredZC_39=0,
-                 float gai=0.325519628514,
+                 float gai=0.3255196285135,
                  float grainCumulTT=0.0,
-                 float dayLength=12.7433275303,
-                 float vernaprog=1.05325268296,
-                 float minFinalNumber=6.87941041399,
+                 float dayLength=12.7433275303389,
+                 float vernaprog=1.0532526829571554,
+                 float minFinalNumber=6.879410413987549,
                  float fixPhyll=91.2,
                  int isVernalizable=1,
                  float dse=105.0,

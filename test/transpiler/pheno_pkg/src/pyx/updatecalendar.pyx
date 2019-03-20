@@ -1,7 +1,7 @@
 import numpy as np 
 from math import *
 
-def updatecalendar_(float cumulTT=741.510096672,
+def updatecalendar_(float cumulTT=741.510096671757,
                     list calendarMoments=['Sowing'],
                     list calendarDates=['21/3/2007'],
                     list calendarCumuls=[0.0],
