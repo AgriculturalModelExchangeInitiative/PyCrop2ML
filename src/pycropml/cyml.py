@@ -78,6 +78,9 @@ def main():
             
         if not tg_rep.isdir() :  #Create if it doesn't exist
             tg_rep.mkdir()
+			
+        if not dir_test.isdir() :  #Create if it doesn't exist
+			dir_test_lang.mkdir() 			
     
         if not dir_test_lang.isdir() :  #Create if it doesn't exist
             dir_test_lang.mkdir()             
