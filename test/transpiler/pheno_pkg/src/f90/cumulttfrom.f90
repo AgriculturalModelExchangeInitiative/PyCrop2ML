@@ -27,59 +27,59 @@ CONTAINS
     !            - Abstract: Calculate CumulTT 
         !- inputs:
     !            - name: calendarMoments
-    !                          - description : List containing appearance of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - unit : 
     !                          - inputtype : variable
+    !                          - unit : 
+    !                          - description : List containing appearance of each stage
     !            - name: calendarCumuls
-    !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [0.0]
-    !                          - unit : °C d
     !                          - inputtype : variable
+    !                          - unit : °C d
+    !                          - description : list containing for each stage occured its cumulated thermal times
     !            - name: switchMaize
-    !                          - description : true if maize
-    !                          - datatype : INT
     !                          - parametercategory : constant
     !                          - min : 0
+    !                          - datatype : INT
     !                          - max : 1
     !                          - default : 0
-    !                          - unit : 
     !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : true if maize
     !            - name: cumulTT
-    !                          - description : cumul TT at current date
+    !                          - min : -200
+    !                          - default : 8
+    !                          - max : 10000
     !                          - datatype : DOUBLE
     !                          - variablecategory : auxiliary
-    !                          - min : -200
-    !                          - max : 10000
-    !                          - default : 8
-    !                          - unit : °C d
     !                          - inputtype : variable
+    !                          - unit : °C d
+    !                          - description : cumul TT at current date
         !- outputs:
     !            - name: cumulTTFromZC_65
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - variablecategory : auxiliary
+    !                          - max : 5000
+    !                          - unit : °C d
     !                          - description :  cumul TT from Anthesis to current date 
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 5000
-    !                          - unit : °C d
     !            - name: cumulTTFromZC_39
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - variablecategory : auxiliary
+    !                          - max : 5000
+    !                          - unit : °C d
     !                          - description :  cumul TT from FlagLeafLiguleJustVisible to current date 
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 5000
-    !                          - unit : °C d
     !            - name: cumulTTFromZC_91
-    !                          - description :  cumul TT from EndGrainFilling to current date 
-    !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - variablecategory : auxiliary
     !                          - max : 5000
     !                          - unit : °C d
+    !                          - description :  cumul TT from EndGrainFilling to current date 
         cumulTTFromZC_65 = 0.0
         cumulTTFromZC_39 = 0.0
         cumulTTFromZC_91 = 0.0
@@ -98,7 +98,7 @@ CONTAINS
         IF(ANY(calendarMoments .EQ. 'EndGrainFilling')) THEN
             IF(switchMaize .EQ. 0) THEN
                 cumulTTFromZC_91 = cumulTT - calendarCumuls(indice(calendarMoments,  &
-                        'FlagLeafLiguleJustVisible'))
+                        'EndGrainFilling'))
             END IF
         END IF
     END SUBROUTINE cumulttfrom_

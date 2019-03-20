@@ -13,6 +13,7 @@ from . import checking
 from . import algorithm
 from . import function
 import os.path
+from path import Path
 from pycropml import initialization
 class Parser(object):
     """ Read an XML file and transform it in our object model.
@@ -33,8 +34,8 @@ class ModelParser(Parser):
     def parse(self, crop2ml_dir):
         self.models = []
         self.crop2ml_dir = crop2ml_dir
-        xmlrep = self.crop2ml_dir/'crop2ml'
-        self.algorep = self.crop2ml_dir/'crop2ml'
+        xmlrep = Path(self.crop2ml_dir/'crop2ml')
+        self.algorep = Path(self.crop2ml_dir/'crop2ml')
         
         fn = xmlrep.glob('unit*.xml')+xmlrep.glob('function*.xml')
         try:

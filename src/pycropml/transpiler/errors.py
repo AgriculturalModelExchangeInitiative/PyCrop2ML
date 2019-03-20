@@ -1,3 +1,4 @@
+from __future__ import absolute_import
 from pycropml.transpiler.helpers import serialize_type
 class PseudoError(Exception):
     def __init__(self, message, suggestions=None, right=None, wrong=None):

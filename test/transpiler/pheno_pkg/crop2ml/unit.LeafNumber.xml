@@ -29,7 +29,6 @@
     <Outputs>
         <Output name="leafNumber" description="Actual number of phytomers" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
         <Output name="ntip" description="Maize number of tip" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
-        <Output name="cumulTTPhenoMaizeAtEmergence" description="cumulTTPhenoMaizeAtEmergence" variablecategory="auxiliary" datatype="DOUBLE" min="0" max="10000"  unit="°C"/>
     
     </Outputs>
     

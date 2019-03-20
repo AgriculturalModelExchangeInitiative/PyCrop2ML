@@ -1,4 +1,5 @@
 # coding: utf8
+from __future__ import absolute_import
 import os
 from Cython.Compiler import Scanning
 from Cython.Compiler import Main

@@ -2,6 +2,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from pycropml.transpiler.nodeVisitor import NodeVisitor
+import sys
 class CodeGenerator(NodeVisitor):
     def __init__(self, add_line_information=False):
         self.result = []        
@@ -137,13 +138,23 @@ class CodeGenerator(NodeVisitor):
         self.operator_exit()
         
     def safe_double(self, node):
-        if rb'"' in node.value:
-            if rb"'" in node.value:
-                s = '"%s"' % node.value.replace('"', '\\"')
+        if  sys.version_info.major<3:
+            if '"' in node.value:
+                if "'" in node.value:
+                    s = '"%s"' % node.value.replace('"', '\\"')
+                else:
+                    s = "'%s'" % node.value
             else:
-                s = "'%s'" % node.value
+                s = '"%s"' % node.value
         else:
-            s = '"%s"' % node.value
+            if b'"' in node.value:
+                if b"'" in node.value:
+                    s = '"%s"' % node.value.replace('"', '\\"')
+                else:
+                    s = "'%s'" % node.value
+            else:
+                s = '"%s"' % node.value            
+            
         self.write(s)
     
     def visit_simpleCall(self, node):

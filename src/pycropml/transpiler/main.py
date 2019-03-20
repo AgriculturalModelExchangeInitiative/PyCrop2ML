@@ -7,7 +7,7 @@ from pycropml.transpiler.ast_transform import AstTransformer, transform_to_synta
 
 
 
-language = ['cs','py', 'f90']
+languages = ['cs','py', 'f90']
 NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran'}
 
 GENERATORS = {
@@ -16,7 +16,7 @@ GENERATORS = {
                     pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[format]),
                 '%sGenerator' % NAMES[format].capitalize())
-    for format in language
+    for format in languages
 }
 
 def formater(code):

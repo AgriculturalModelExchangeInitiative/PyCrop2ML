@@ -135,13 +135,6 @@ def leafnumber_(deltaTT,phyllochron,hasFlagLeafLiguleAppeared,switchMaize,atip,l
     #                          - max : 10000
     #                          - unit : leaf
     #                          - uri : some url
-    #            - name: cumulTTPhenoMaizeAtEmergence
-    #                          - description : cumulTTPhenoMaizeAtEmergence
-    #                          - variablecategory : auxiliary
-    #                          - datatype : DOUBLE
-    #                          - min : 0
-    #                          - max : 10000
-    #                          - unit : °C
     ntip = 0.0
     if phase == 1.0 and cumulTTPhenoMaizeAtEmergence == 0.0:
         cumulTTPhenoMaizeAtEmergence = cumulTT
@@ -169,4 +162,4 @@ def leafnumber_(deltaTT,phyllochron,hasFlagLeafLiguleAppeared,switchMaize,atip,l
                     if cumulTT >= nextstartExpTT:
                         leafNumber = leafNumber + 1
                 ntip = atip * (cumulTT - cumulTTPhenoMaizeAtEmergence) + leaf_tip_emerg
-    return (leafNumber, ntip, cumulTTPhenoMaizeAtEmergence)
+    return (leafNumber, ntip)

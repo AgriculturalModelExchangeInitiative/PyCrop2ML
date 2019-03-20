@@ -30,8 +30,7 @@
     <Outputs>
         <Output name="phyllochron" description=" the rate of leaf appearance " variablecategory="state" datatype="DOUBLE" min="0" max="1000"  unit=" °C d leaf-1" />
     	<Output name="pastMaxAI" description="Past maximum GAI" variablecategory="auxiliary" datatype="DOUBLE" min="0" max="10000"  unit="m2 m-2"/>
-        <Output name="gai" description="Green Area Index" parametercategory="species" datatype="DOUBLE" min="0" max="10000" unit="m2 m-2" uri="some url" />
-    	    	
+     	    	
     </Outputs>
     
    <Algorithm  language="Cyml" platform="" filename="algo/pyx/PhyllochronModule.pyx"/>

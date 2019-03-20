@@ -28,5 +28,5 @@ def cumulttfrom_(list calendarMoments=['Sowing'],
     if "FlagLeafLiguleJustVisible" in calendarMoments:
         if (switchMaize == 0): cumulTTFromZC_39 = cumulTT-calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]  
     if "EndGrainFilling"in calendarMoments:
-        if (switchMaize == 0): cumulTTFromZC_91 = cumulTT-calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]
+        if (switchMaize == 0): cumulTTFromZC_91 = cumulTT-calendarCumuls[calendarMoments.index("EndGrainFilling")]
     return  cumulTTFromZC_65, cumulTTFromZC_39, cumulTTFromZC_91

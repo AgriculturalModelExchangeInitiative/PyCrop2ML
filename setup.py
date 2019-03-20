@@ -45,8 +45,8 @@ setup_kwds = dict(
     long_description=readme + '\n\n' + history,
     author="Cyrille Ahmed Midingoyi",
     author_email="cyrille.midingoyi@inra.fr",
-    url='https://github.com/AgriculturalModelExchangeInitiative/PyCropML',
-    license='cecill-c',
+    url='https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML',
+    license='MIT',
     zip_safe=False,
 
     packages=pkgs,
@@ -63,7 +63,7 @@ setup_kwds = dict(
         "nose",
         "sphinx",
         ],
-    entry_points={},
+    entry_points={"console_scripts": ["cyml = pycropml.cyml:main"]},
     keywords='',
     
     test_suite='nose.collector',

@@ -163,14 +163,6 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - min : 0
     #                          - max : 10000
     #                          - unit : m2 m-2
-    #            - name: gai
-    #                          - description : Green Area Index
-    #                          - parametercategory : species
-    #                          - datatype : DOUBLE
-    #                          - min : 0
-    #                          - max : 10000
-    #                          - unit : m2 m-2
-    #                          - uri : some url
     phyllochron = 0.0
     if choosePhyllUse == "Default":
         if leafNumber < ldecr:
@@ -194,4 +186,4 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
             phyllochron = p
         else:
             phyllochron = p * pincr
-    return (phyllochron, pastMaxAI, gai)
+    return (phyllochron, pastMaxAI)

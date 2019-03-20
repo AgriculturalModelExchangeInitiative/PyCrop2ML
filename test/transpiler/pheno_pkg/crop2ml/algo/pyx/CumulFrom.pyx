@@ -7,4 +7,4 @@ if "Anthesis" in calendarMoments:
 if "FlagLeafLiguleJustVisible" in calendarMoments:
     if (switchMaize == 0): cumulTTFromZC_39 = cumulTT-calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]  
 if "EndGrainFilling"in calendarMoments:
-    if (switchMaize == 0): cumulTTFromZC_91 = cumulTT-calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]
+    if (switchMaize == 0): cumulTTFromZC_91 = cumulTT-calendarCumuls[calendarMoments.index("EndGrainFilling")]

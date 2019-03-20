@@ -23,7 +23,7 @@ CONTAINS
         REAL:: bbl
         REAL:: tt_bl
         REAL, INTENT(IN) :: deltaTT
-        REAL :: phyllochron
+        REAL, INTENT(IN) :: phyllochron
         INTEGER, INTENT(IN) :: hasFlagLeafLiguleAppeared
         INTEGER, INTENT(IN) :: switchMaize
         REAL, INTENT(IN) :: atip
@@ -31,149 +31,142 @@ CONTAINS
         REAL, INTENT(IN) :: k_bl
         REAL, INTENT(IN) :: nlim
         REAL, INTENT(INOUT) :: leafNumber
-        REAL, INTENT(INOUT) :: cumulTTPhenoMaizeAtEmergence
+        REAL, INTENT(IN) :: cumulTTPhenoMaizeAtEmergence
         REAL, INTENT(IN) :: cumulTT
         REAL, INTENT(IN) :: phase
         !- Description:
     !            - Model Name: CalculateLeafNumber Model
     !            - Author: Pierre MARTRE
-    !            - Reference: Modeling development phase in the
+    !            - Reference: Modeling development phase in the 
     !                Wheat Simulation Model SiriusQuality.
     !                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427
     !            - Institution: INRA Montpellier
     !            - Abstract: calculate leaf number. LeafNumber increase is caped at one more leaf per day
         !- inputs:
     !            - name: deltaTT
-    !                          - description : daily delta TT
+    !                          - min : -20
+    !                          - default : 23.5895677277199
+    !                          - max : 100
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - min : -20
-    !                          - max : 100
-    !                          - default : 23.5895677277199
+    !                          - inputtype : variable
     !                          - unit : °C d
-    !                          - inputtype : variable
+    !                          - description : daily delta TT 
     !            - name: phyllochron
-    !                          - description : phyllochron
-    !                          - variablecategory : state
-    !                          - inputtype : variable
-    !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - max : 1000
     !                          - default : 0
+    !                          - max : 1000
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - inputtype : variable
     !                          - unit : °C d leaf-1
+    !                          - description : phyllochron
     !            - name: hasFlagLeafLiguleAppeared
-    !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
+    !                          - min : 0
+    !                          - default : 0
+    !                          - max : 1
     !                          - variablecategory : state
     !                          - datatype : INT
-    !                          - min : 0
-    !                          - max : 1
-    !                          - default : 0
-    !                          - unit :
     !                          - inputtype : variable
+    !                          - unit : 
+    !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
     !            - name: switchMaize
-    !                          - description : true if maize
     !                          - parametercategory : constant
-    !                          - datatype : INT
     !                          - min : 0
+    !                          - datatype : INT
     !                          - max : 1
     !                          - default : 0
-    !                          - unit :
     !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : true if maize
     !            - name: atip
-    !                          - description : slope of leaf initiation
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 1000
     !                          - default : 10
+    !                          - inputtype : parameter
     !                          - unit : leaf °C-1 d-2
-    !                          - inputtype : parameter
+    !                          - description : slope of leaf initiation
     !            - name: leaf_tip_emerg
-    !                          - description : parameter for maize number of tip emerged
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 1000
     !                          - default : 10
-    !                          - unit :
     !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : parameter for maize number of tip emerged
     !            - name: k_bl
-    !                          - description :
     !                          - parametercategory : constant
-    !                          - inputtype : parameter
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 100
     !                          - default : 1.412
-    !                          - unit :
-    !            - name: nlim
-    !                          - description :
-    !                          - parametercategory : constant
-    !                          - datatype : DOUBLE
-    !                          - default : 6.617
-    !                          - min : 0
-    !                          - max : 1000
-    !                          - unit :
     !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : 
+    !            - name: nlim
+    !                          - parametercategory : constant
+    !                          - min : 0
+    !                          - datatype : DOUBLE
+    !                          - max : 1000
+    !                          - default : 6.617
+    !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : 
     !            - name: leafNumber
-    !                          - description :  Actual number of phytomers
-    !                          - variablecategory : state
-    !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - max : 25
     !                          - default : 0
-    !                          - unit : leaf
-    !                          - inputtype : variable
-    !            - name: cumulTTPhenoMaizeAtEmergence
-    !                          - description : cumulTTPhenoMaizeAtEmergence
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 10000
-    !                          - default : 300
-    !                          - unit : °C
-    !                          - inputtype : variable
-    !            - name: cumulTT
-    !                          - description : cumul thermal times at current time
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - min : -200
-    !                          - max : 10000
-    !                          - unit : °C
-    !                          - default : 402.042720581446
-    !                          - inputtype : variable
-    !            - name: phase
-    !                          - description :  the name of the phase
+    !                          - max : 25
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 7
-    !                          - default : 1
-    !                          - unit :
-    !                          - uri : some url
     !                          - inputtype : variable
+    !                          - unit : leaf
+    !                          - description :  Actual number of phytomers
+    !            - name: cumulTTPhenoMaizeAtEmergence
+    !                          - min : 0
+    !                          - default : 300
+    !                          - max : 10000
+    !                          - variablecategory : auxiliary
+    !                          - datatype : DOUBLE
+    !                          - inputtype : variable
+    !                          - unit : °C
+    !                          - description : cumulTTPhenoMaizeAtEmergence
+    !            - name: cumulTT
+    !                          - min : -200
+    !                          - default : 402.042720581446
+    !                          - max : 10000
+    !                          - variablecategory : auxiliary
+    !                          - datatype : DOUBLE
+    !                          - inputtype : variable
+    !                          - unit : °C
+    !                          - description : cumul thermal times at current time 
+    !            - name: phase
+    !                          - min : 0
+    !                          - default : 1
+    !                          - max : 7
+    !                          - uri : some url
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - inputtype : variable
+    !                          - unit :  
+    !                          - description :  the name of the phase
         !- outputs:
     !            - name: leafNumber
+    !                          - min : 0
+    !                          - datatype : DOUBLE
+    !                          - max : 10000
+    !                          - uri : some url
+    !                          - unit : leaf
     !                          - description : Actual number of phytomers
-    !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 10000
-    !                          - unit : leaf
-    !                          - uri : some url
     !            - name: ntip
-    !                          - description : Maize number of tip
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 10000
-    !                          - unit : leaf
     !                          - uri : some url
-    !            - name: cumulTTPhenoMaizeAtEmergence
-    !                          - description : cumulTTPhenoMaizeAtEmergence
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 10000
-    !                          - unit : °C
+    !                          - unit : leaf
+    !                          - description : Maize number of tip
         ntip = 0.0
         IF(phase .EQ. 1.0 .AND. cumulTTPhenoMaizeAtEmergence .EQ. 0.0) THEN
             cumulTTPhenoMaizeAtEmergence = cumulTT
