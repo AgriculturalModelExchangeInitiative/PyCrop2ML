@@ -1,6 +1,6 @@
-What is PyCropML?
+What is PyCrop2ML?
 =================
-| **PyCropML** is a free, open-source library for defining
+| **PyCrop2ML** is a free, open-source library for defining
 	and exchanging CropML models.It is used to generate components
 	of modeling and simulation platforms from the CropML specification and 
 	allow component exchange between different platform.
@@ -8,7 +8,7 @@ What is PyCropML?
 	and automatically generate the equivalent executable Python, java, C#, C++ components
 	and packages usable from existing crop simulation platform.
 
-What is CropML ?
+What is Crop2ML ?
 ================
 | **CropML** is a XML-(JSON-)based language used to represent different biological processes involved
 	in the crop models.
