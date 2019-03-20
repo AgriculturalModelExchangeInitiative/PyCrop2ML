@@ -1,7 +1,7 @@
 import numpy as np 
 from math import *
 
-def leafnumber_(float deltaTT=23.5895677277,
+def leafnumber_(float deltaTT=23.5895677277199,
                 float phyllochron=0.0,
                 int hasFlagLeafLiguleAppeared=0,
                 int switchMaize=0,
@@ -11,7 +11,7 @@ def leafnumber_(float deltaTT=23.5895677277,
                 float nlim=6.617,
                 float leafNumber=0.0,
                 float cumulTTPhenoMaizeAtEmergence=300.0,
-                float cumulTT=402.042720581,
+                float cumulTT=402.042720581446,
                 float phase=1.0):
     """
 
