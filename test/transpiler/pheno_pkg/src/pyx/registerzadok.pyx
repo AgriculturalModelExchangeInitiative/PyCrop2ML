@@ -1,9 +1,9 @@
 import numpy as np 
 from math import *
 
-def registerzadok_(float cumulTT=354.582294511779,
+def registerzadok_(float cumulTT=354.582294512,
                    float phase=2.0,
-                   float leafNumber=4.8854219661087575,
+                   float leafNumber=4.88542196611,
                    list calendarMoments=['Sowing'],
                    list calendarDates=['21/3/2007'],
                    list calendarCumuls=[0.0],
@@ -12,7 +12,7 @@ def registerzadok_(float cumulTT=354.582294511779,
                    float der=300.0,
                    float slopeTSFLN=0.9,
                    float intTSFLN=0.9,
-                   float finalLeafNumber=8.797582013199484,
+                   float finalLeafNumber=8.7975820132,
                    str currentZadokStage='MainShootPlus1Tiller',
                    int hasZadokStageChanged=0):
     """

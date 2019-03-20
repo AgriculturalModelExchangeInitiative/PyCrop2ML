@@ -1,3 +1,5 @@
+from six.moves import map
+from six.moves import zip
 
 def serialize_type(l):
     if isinstance(l, str):

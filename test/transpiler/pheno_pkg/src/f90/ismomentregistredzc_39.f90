@@ -17,19 +17,19 @@ CONTAINS
     !            - Abstract: if FlagLeafLiguleJustVisible is already Registred 
         !- inputs:
     !            - name: calendarMoments
-    !                          - description : List containing appearance of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - unit : 
     !                          - inputtype : variable
+    !                          - unit : 
+    !                          - description : List containing appearance of each stage
         !- outputs:
     !            - name: isMomentRegistredZC_39
-    !                          - description :  if Flag leaf ligule has already appeared 
-    !                          - datatype : INT
     !                          - min : 0
+    !                          - datatype : INT
     !                          - max : 1
     !                          - unit : 
+    !                          - description :  if Flag leaf ligule has already appeared 
         IF (ANY(calendarMoments .EQ. 'FlagLeafLiguleJustVisible')) THEN
             isMomentRegistredZC_39=1
         ELSE

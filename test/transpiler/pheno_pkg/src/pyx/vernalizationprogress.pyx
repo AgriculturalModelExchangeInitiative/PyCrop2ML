@@ -1,9 +1,9 @@
 import numpy as np 
 from math import *
 
-def vernalizationprogress_(float dayLength=12.3037621834005,
-                           float deltaTT=20.3429985011972,
-                           float cumulTT=112.330110409888,
+def vernalizationprogress_(float dayLength=12.3037621834,
+                           float deltaTT=20.3429985012,
+                           float cumulTT=112.33011041,
                            float leafNumber=0.0,
                            list calendarMoments=['Sowing'],
                            list calendarDates=['21/3/2007'],
@@ -17,7 +17,7 @@ def vernalizationprogress_(float dayLength=12.3037621834005,
                            float maxTvern=23.0,
                            float pNini=4.0,
                            float aMXLFNO=24.0,
-                           float vernaprog=0.5517254187376879,
+                           float vernaprog=0.551725418738,
                            str currentdate='27/3/2007',
                            int isVernalizable=1,
                            float minFinalNumber=5.5):

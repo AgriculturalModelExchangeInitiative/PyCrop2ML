@@ -1,5 +1,7 @@
-# coding: utf8
+# coding: utf-8
 ##########################################
+from __future__ import absolute_import
+from __future__ import print_function
 from pycropml.transpiler.builtin_typed_api import builtin_type_check
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError
 from pycropml.transpiler.pseudo_tree import  Node
@@ -98,7 +100,6 @@ def min_expander(type, message, args):
     if len(args)==1:
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': args[0]["pseudo_type"][1]}
     else:
-        print(args)
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
         
 def max_expander(type, message, args):

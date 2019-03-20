@@ -1,18 +1,23 @@
-# coding: utf8
+# coding: utf-8
+from __future__ import absolute_import
+from __future__ import print_function
 from Cython.Compiler import ExprNodes, Nodes
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.env import Env
 from pycropml.transpiler.builtin_typed_api import *
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError,PseudoCythonNotTranslatableError, translation_error, type_check_error
 from pycropml.transpiler.api_transform import FUNCTION_API, METHOD_API, Standard
+from Cython.Compiler.StringEncoding import EncodedString
 from pycropml.transpiler.helpers import *
+from six.moves import map
+from six.moves import zip
     
 class AstTransformer():
 
     def __init__(self, tree, code):
         self.tree = tree
         self.lines = [''] + code.split('\n') # to access line of instruction
-        self.type_env = Env(dict(TYPED_API.items()), None)
+        self.type_env = Env(dict(list(TYPED_API.items())), None)
 
     def transformer(self):
         self.base=0
@@ -654,12 +659,12 @@ class AstTransformer():
                 arglist.append(self.visit_node(arg))
             decl["elements"]=arglist 
             if type(default) == ExprNodes.ListNode:
-                decl["pseudo_type"]=[u"list"]+[arg["pseudo_type"] for arg in arglist]
+                decl["pseudo_type"]=["list"]+[arg["pseudo_type"] for arg in arglist]
             else:
-                decl["pseudo_type"]=[ u"tuple"]+[arg[u"pseudo_type"] for arg in arglist] 
+                decl["pseudo_type"]=["tuple"]+[arg["pseudo_type"] for arg in arglist] 
         else:
             decl["pseudo_type"]=self.visit_node(base_type.name)
-        self.type_env.top[declarator.name]= decl[u"pseudo_type"]       
+        self.type_env.top[declarator.name]= decl["pseudo_type"]       
         self.arguments.append(decl)
         return decl
            
@@ -669,16 +674,16 @@ class AstTransformer():
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if self.type_env.top[de.name]:
                     raise PseudoCythonTypeCheckError("%s is already declared" % de.name)
-                decl = {u"name":de.name, u"type": base_type.name}
+                decl = {"name":de.name, "type": base_type.name}
                 if de.default is None:
                     self.type_env.top[de.name]= base_type.name
                     decl["pseudo_type"] =decl["type"]                    
                 if type(de.default) in (ExprNodes.IntNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode,ExprNodes.BoolNode):
                     value_node=self.visit_node(de.default)
-                    decl[u"value"] = value_node[u"value"]
-                    decl["pseudo_type"]=  value_node[u"pseudo_type"]
-                    self.type_env.top[de.name]= decl[u"pseudo_type"]
-                    a=self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+                    decl["value"] = value_node["value"]
+                    decl["pseudo_type"]=  value_node["pseudo_type"]
+                    self.type_env.top[de.name]= decl["pseudo_type"]
+                    a=self._compatible_types(decl['type'], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
                               
                 if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
                     arglist=[]
@@ -686,21 +691,21 @@ class AstTransformer():
                         arglist.append(self.visit_node(arg))
                     decl["elements"]=arglist 
                     if type(de.default) == ExprNodes.ListNode:
-                        decl["pseudo_type"]=[u"list" , self.visit_node(arglist[0])[u"pseudo_type"]]
+                        decl["pseudo_type"]=["list" , self.visit_node(arglist[0])["pseudo_type"]]
                     else:
-                        decl["pseudo_type"]=[ u"tuple"]+[self.visit_node(arg)[u"pseudo_type"] for arg in arglist] 
+                        decl["pseudo_type"]=["tuple"]+[self.visit_node(arg)["pseudo_type"] for arg in arglist] 
                     
-                    self.type_env.top[de.name]= decl[u"pseudo_type"]
+                    self.type_env.top[de.name]= decl["pseudo_type"]
                 if isinstance(de.default, ExprNodes.DictNode):
                     default = self.visit_node(de.default)
                     decl["pairs"]=default["pairs"] 
-                    decl["pseudo_type"]=default[u"pseudo_type"]                             
-                    self.type_env.top[de.name]= default[u"pseudo_type"]
+                    decl["pseudo_type"]=default["pseudo_type"]                             
+                    self.type_env.top[de.name]= default["pseudo_type"]
                     a=self._compatible_types(base_type.name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
 
             
             else:
-                decl = {u"name":de.base.name, u"type": "array", "value": de.dimension.value, "pseudo_type":["array", self.visit_node(de.dimension)["pseudo_type"]]}
+                decl = {"name":de.base.name, "type": "array", "value": de.dimension.value, "pseudo_type":["array", self.visit_node(de.dimension)["pseudo_type"]]}
                 self.type_env.top[de.base.name]= decl["pseudo_type"]
             self.declarations.append(decl)
             x.append(decl)
@@ -999,8 +1004,8 @@ class AstTransformer():
     def _compatible_types(self, from_, to, err, silent=False):
         if from_=="unknown" or to=="unknown":
             return to
-        elif isinstance(from_, str):
-            if not isinstance(to, str):
+        elif isinstance(from_, str) or isinstance(from_, EncodedString) or isinstance(from_, unicode)  :
+            if not isinstance(to, str) and not isinstance(to, EncodedString) and not isinstance(to, unicode):
                 if silent:
                     return False
                 else:

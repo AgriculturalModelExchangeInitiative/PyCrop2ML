@@ -17,13 +17,13 @@ CONTAINS
     !            - Abstract: see documentation
         !- inputs:
     !            - name: n
-    !                          - description : argument
     !                          - datatype : INT
+    !                          - description : argument
     !                          - inputtype : variable
         !- outputs:
     !            - name: result
-    !                          - description :  fibonacci number 
     !                          - datatype : INT
+    !                          - description :  fibonacci number 
         result = 0
         b = 1
         DO i = 0 + 1  , n , 1

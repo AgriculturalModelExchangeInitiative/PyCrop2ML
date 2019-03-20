@@ -44,4 +44,4 @@ def phyllochron_(float fixPhyll=5.0,
         if (leafNumber < ldecr): phyllochron = p * pdecr
         elif (leafNumber >= ldecr and leafNumber < lincr): phyllochron = p
         else: phyllochron = p * pincr
-    return  phyllochron, pastMaxAI, gai
+    return  phyllochron, pastMaxAI

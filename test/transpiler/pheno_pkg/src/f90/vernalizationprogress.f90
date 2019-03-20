@@ -66,200 +66,200 @@ CONTAINS
     !    	
         !- inputs:
     !            - name: dayLength
-    !                          - description : day length
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 10000
     !                          - default : 12.3037621834005
+    !                          - inputtype : variable
     !                          - unit : mm2 m-2
-    !                          - inputtype : variable
+    !                          - description : day length
     !            - name: deltaTT
-    !                          - description : difference cumul TT between j and j-1 day 
-    !                          - inputtype : variable
-    !                          - datatype : DOUBLE
     !                          - min : -20
+    !                          - datatype : DOUBLE
     !                          - max : 100
     !                          - default : 20.3429985011972
+    !                          - inputtype : variable
     !                          - unit : °C d
+    !                          - description : difference cumul TT between j and j-1 day 
     !            - name: cumulTT
-    !                          - description : cumul thermal times at currentdate
-    !                          - datatype : DOUBLE
     !                          - min : -200
+    !                          - datatype : DOUBLE
     !                          - max : 10000
     !                          - default : 112.330110409888
-    !                          - unit : °C d
     !                          - inputtype : variable
+    !                          - unit : °C d
+    !                          - description : cumul thermal times at currentdate
     !            - name: leafNumber
-    !                          - description : Actual number of phytomers
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 25
     !                          - default : 0
-    !                          - unit : leaf
     !                          - inputtype : variable
+    !                          - unit : leaf
+    !                          - description : Actual number of phytomers
     !            - name: calendarMoments
-    !                          - description : List containing appearance of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - unit : 
     !                          - inputtype : variable
+    !                          - unit : 
+    !                          - description : List containing appearance of each stage
     !            - name: calendarDates
-    !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - default : ['21/3/2007']
-    !                          - unit : 
     !                          - inputtype : variable
+    !                          - unit : 
+    !                          - description : List containing  the dates of the wheat developmental phases
     !            - name: calendarCumuls
-    !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [0.0]
-    !                          - unit : 
     !                          - inputtype : variable
+    !                          - unit : 
+    !                          - description : list containing for each stage occured its cumulated thermal times
     !            - name: minTvern
-    !                          - description : Minimum temperature for vernalization to occur
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : -20
+    !                          - datatype : DOUBLE
     !                          - max : 60
     !                          - default : 0.0
-    !                          - unit : °C
     !                          - inputtype : parameter
+    !                          - unit : °C
+    !                          - description : Minimum temperature for vernalization to occur
     !            - name: intTvern
-    !                          - description : Intermediate temperature for vernalization to occur
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : -20
+    !                          - datatype : DOUBLE
     !                          - max : 60
     !                          - default :  11.0
-    !                          - unit : °C
     !                          - inputtype : parameter
+    !                          - unit : °C
+    !                          - description : Intermediate temperature for vernalization to occur
     !            - name: vAI
-    !                          - description : Response of vernalization rate to temperature
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 1
     !                          - default :  0.015
-    !                          - unit : d-1 °C-1
     !                          - inputtype : parameter
+    !                          - unit : d-1 °C-1
+    !                          - description : Response of vernalization rate to temperature
     !            - name: vBEE
-    !                          - description : Vernalization rate at 0°C
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 1
     !                          - default : 0.01
-    !                          - unit : d-1
     !                          - inputtype : parameter
+    !                          - unit : d-1
+    !                          - description : Vernalization rate at 0°C
     !            - name: minDL
-    !                          - description : Threshold daylength below which it does influence vernalization rate
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 12
+    !                          - datatype : DOUBLE
     !                          - max : 24
     !                          - default : 8.0
-    !                          - unit : h
     !                          - inputtype : parameter
+    !                          - unit : h
+    !                          - description : Threshold daylength below which it does influence vernalization rate
     !            - name: maxDL
-    !                          - description : Saturating photoperiod above which final leaf number is not influenced by daylength
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 24
     !                          - default : 15.0
-    !                          - unit : h
     !                          - inputtype : parameter
+    !                          - unit : h
+    !                          - description : Saturating photoperiod above which final leaf number is not influenced by daylength
     !            - name: maxTvern
-    !                          - description : Maximum temperature for vernalization to occur
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : -20
+    !                          - datatype : DOUBLE
     !                          - max : 60
     !                          - default :  23.0
-    !                          - unit : °C
     !                          - inputtype : parameter
+    !                          - unit : °C
+    !                          - description : Maximum temperature for vernalization to occur
     !            - name: pNini
-    !                          - description : Number of primorida in the apex at emergence
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 24
     !                          - default : 4.0
-    !                          - unit : primordia
     !                          - inputtype : parameter
+    !                          - unit : primordia
+    !                          - description : Number of primorida in the apex at emergence
     !            - name: aMXLFNO
-    !                          - description : Absolute maximum leaf number
     !                          - parametercategory : species
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 25
     !                          - default : 24.0
-    !                          - unit : leaf
     !                          - inputtype : parameter
+    !                          - unit : leaf
+    !                          - description : Absolute maximum leaf number
     !            - name: vernaprog
-    !                          - description : progression on a 0  to 1 scale of the vernalization
+    !                          - min : 0
+    !                          - default :  0.5517254187376879
+    !                          - max : 1
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 1
-    !                          - default :  0.5517254187376879
-    !                          - unit : 
     !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : progression on a 0  to 1 scale of the vernalization
     !            - name: currentdate
-    !                          - description : current date 
     !                          - variablecategory : auxiliary
     !                          - datatype : DATE
     !                          - default : 27/3/2007
     !                          - inputtype : variable
+    !                          - description : current date 
     !            - name: isVernalizable
-    !                          - description : true if the plant is vernalizable
-    !                          - datatype : INT
     !                          - min : 0
+    !                          - datatype : INT
     !                          - max : 1
     !                          - default : 1
-    !                          - unit : 
     !                          - inputtype : parameter
+    !                          - unit : 
+    !                          - description : true if the plant is vernalizable
     !            - name: minFinalNumber
-    !                          - description : minimum final leaf number
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 25
     !                          - default : 5.5
-    !                          - unit : leaf
-    !                          - inputtype : variable
     !                          - variablecategory : state
+    !                          - inputtype : variable
+    !                          - unit : leaf
+    !                          - description : minimum final leaf number
         !- outputs:
     !            - name: vernaprog
-    !                          - description : progression on a 0  to 1 scale of the vernalization
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 10000
     !                          - unit : 
+    !                          - description : progression on a 0  to 1 scale of the vernalization
     !            - name: minFinalNumber
-    !                          - description : minimum final leaf number
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 10000
     !                          - unit : leaf
+    !                          - description : minimum final leaf number
     !            - name: calendarMoments
-    !                          - description : List containing appearance of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - unit : 
+    !                          - description : List containing appearance of each stage
     !            - name: calendarDates
-    !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - unit : 
+    !                          - description : List containing  the dates of the wheat developmental phases
     !            - name: calendarCumuls
-    !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - unit : 
+    !                          - description : list containing for each stage occured its cumulated thermal times
         IF(isVernalizable .EQ. 1 .AND. vernaprog .LT. 1.0) THEN
             tt = deltaTT
             IF(tt .GE. minTvern .AND. tt .LE. intTvern) THEN
