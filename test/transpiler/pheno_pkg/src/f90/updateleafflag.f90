@@ -1,5 +1,5 @@
 MODULE Updateleafflag_mod
-    use list_sub
+    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE updateleafflag_(cumulTT, &
@@ -25,12 +25,12 @@ CONTAINS
         !- Description:
     !            - Model Name: UpdateLeafFlag Model
     !            - Author: Pierre MARTRE
-    !            - Reference: Modeling development phase in the
+    !            - Reference: Modeling development phase in the 
     !                Wheat Simulation Model SiriusQuality.
     !                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427
     !            - Institution: INRA Montpellier
     !            - Abstract: tells if flag leaf has appeared and update the calendar if so
-    !
+    !    	
         !- inputs:
     !            - name: cumulTT
     !                          - description : cumul thermal times at current date
@@ -57,14 +57,14 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: calendarDates
     !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - default : ['21/3/2007']
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: calendarCumuls
     !                          - description : list containing for each stage occured its cumulated thermal times
@@ -78,7 +78,7 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : DATE
     !                          - default : 29/4/2007
-    !                          - unit :
+    !                          - unit : 
     !                          - uri : some url
     !                          - inputtype : variable
     !            - name: finalLeafNumber
@@ -98,7 +98,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - default : 1
-    !                          - unit :
+    !                          - unit : 
     !                          - uri : some url
     !                          - inputtype : variable
     !            - name: phase
@@ -108,7 +108,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 7
     !                          - default : 1
-    !                          - unit :
+    !                          - unit : 
     !                          - uri : some url
     !                          - inputtype : variable
         !- outputs:
@@ -118,18 +118,18 @@ CONTAINS
     !                          - datatype : INT
     !                          - min : 0
     !                          - max : 1
-    !                          - unit :
+    !                          - unit : 
     !                          - uri : some url
     !            - name: calendarMoments
     !                          - description :  List containing apparition of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
-    !                          - unit :
+    !                          - unit : 
     !            - name: calendarDates
     !                          - description :  List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
-    !                          - unit :
+    !                          - unit : 
     !            - name: calendarCumuls
     !                          - description :  list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary

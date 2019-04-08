@@ -1,5 +1,5 @@
 MODULE Vernalizationprogress_mod
-    use list_sub
+    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE vernalizationprogress_(dayLength, &
@@ -53,17 +53,17 @@ CONTAINS
         !- Description:
     !            - Model Name: VernalizationProgress Model
     !            - Author: Pierre MARTRE
-    !            - Reference: Modeling development phase in the
+    !            - Reference: Modeling development phase in the 
     !                Wheat Simulation Model SiriusQuality.
     !                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427
     !            - Institution: INRA Montpellier
-    !            - Abstract: Calculate progress (VernaProg) towards vernalization, but there
-    !        			is no vernalization below minTvern
+    !            - Abstract: Calculate progress (VernaProg) towards vernalization, but there 
+    !        			is no vernalization below minTvern 
     !        			and above maxTvern . The maximum value of VernaProg is 1.
-    !        			Progress towards full vernalization is a linear function of shoot
+    !        			Progress towards full vernalization is a linear function of shoot 
     !        			temperature (soil temperature until leaf # reach MaxLeafSoil and then
     !        			 canopy temperature)
-    !
+    !    	
         !- inputs:
     !            - name: dayLength
     !                          - description : day length
@@ -74,7 +74,7 @@ CONTAINS
     !                          - unit : mm2 m-2
     !                          - inputtype : variable
     !            - name: deltaTT
-    !                          - description : difference cumul TT between j and j-1 day
+    !                          - description : difference cumul TT between j and j-1 day 
     !                          - inputtype : variable
     !                          - datatype : DOUBLE
     !                          - min : -20
@@ -103,21 +103,21 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: calendarDates
     !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - default : ['21/3/2007']
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: calendarCumuls
     !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [0.0]
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: minTvern
     !                          - description : Minimum temperature for vernalization to occur
@@ -207,10 +207,10 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - default :  0.5517254187376879
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: currentdate
-    !                          - description : current date
+    !                          - description : current date 
     !                          - variablecategory : auxiliary
     !                          - datatype : DATE
     !                          - default : 27/3/2007
@@ -222,7 +222,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - default : 1
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : parameter
     !            - name: minFinalNumber
     !                          - description : minimum final leaf number
@@ -239,7 +239,7 @@ CONTAINS
     !                          - datatype : DOUBLE
     !                          - min : 0
     !                          - max : 10000
-    !                          - unit :
+    !                          - unit : 
     !            - name: minFinalNumber
     !                          - description : minimum final leaf number
     !                          - datatype : DOUBLE
@@ -250,17 +250,17 @@ CONTAINS
     !                          - description : List containing appearance of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
-    !                          - unit :
+    !                          - unit : 
     !            - name: calendarDates
     !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
-    !                          - unit :
+    !                          - unit : 
     !            - name: calendarCumuls
     !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
-    !                          - unit :
+    !                          - unit : 
         IF(isVernalizable .EQ. 1 .AND. vernaprog .LT. 1.0) THEN
             tt = deltaTT
             IF(tt .GE. minTvern .AND. tt .LE. intTvern) THEN

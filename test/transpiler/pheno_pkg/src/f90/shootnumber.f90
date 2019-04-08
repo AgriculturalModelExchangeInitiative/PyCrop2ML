@@ -1,6 +1,6 @@
 MODULE Shootnumber_mod
+    USE list_sub
     USE fibonacci_mod
-    use list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE shootnumber_(canopyShootNumber, &
@@ -27,7 +27,7 @@ CONTAINS
         !- Description:
     !            - Model Name: CalculateShootNumber Model
     !            - Author: Pierre MARTRE
-    !            - Reference: Modeling development phase in the
+    !            - Reference: Modeling development phase in the 
     !                Wheat Simulation Model SiriusQuality.
     !                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427
     !            - Institution: INRA/LEPSE Montpellier
@@ -43,7 +43,7 @@ CONTAINS
     !                          - unit : shoot m-2
     !                          - inputtype : variable
     !            - name: leafNumber
-    !                          - description : Leaf number
+    !                          - description : Leaf number 
     !                          - variablecategory : state
     !                          - inputtype : variable
     !                          - datatype : DOUBLE
@@ -74,7 +74,7 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [288.0]
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
     !            - name: leafTillerNumberArray
     !                          - description : store the number of tiller for each leaf layer
@@ -90,7 +90,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 10000
     !                          - default : 1
-    !                          - unit :
+    !                          - unit : 
     !                          - inputtype : variable
         !- outputs:
     !            - name: averageShootNumberPerPlant
@@ -116,14 +116,14 @@ CONTAINS
     !                          - description :  store the amount of new tiller created at each time a new tiller appears
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
-    !                          - unit :
+    !                          - unit : 
     !            - name: tillerNumber
     !                          - description :  store the amount of new tiller created at each time a new tiller appears
     !                          - variablecategory : auxiliary
     !                          - datatype : INT
     !                          - min : 0
     !                          - max : 10000
-    !                          - unit :
+    !                          - unit : 
         oldCanopyShootNumber = canopyShootNumber
         emergedLeaves = INT(MAX(1.0, REAL(CEILING(leafNumber - 1))))
         call fibonacci_(emergedLeaves,shoots)
