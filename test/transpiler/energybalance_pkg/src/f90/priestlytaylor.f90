@@ -4,14 +4,12 @@ MODULE Priestlytaylor_mod
 CONTAINS
     SUBROUTINE priestlytaylor_(netRadiationEquivalentEvaporation, &
         hslope, &
-        psychrometricConstant, &
-        Alpha, &
         evapoTranspirationPriestlyTaylor)
         REAL, INTENT(OUT) :: evapoTranspirationPriestlyTaylor
         REAL, INTENT(IN) :: netRadiationEquivalentEvaporation
         REAL, INTENT(IN) :: hslope
-        REAL, INTENT(IN) :: psychrometricConstant
-        REAL, INTENT(IN) :: Alpha
+        REAL, PARAMETER :: psychrometricConstant = 0.66
+        REAL, PARAMETER :: Alpha = 1.5
         !- Description:
     !            - Model Name: evapoTranspirationPriestlyTaylor  Model
     !            - Author: Pierre Martre

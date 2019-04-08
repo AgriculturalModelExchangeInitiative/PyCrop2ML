@@ -21,7 +21,7 @@ def netradiationequivalentevaporation_(lambdaV,netRadiation):
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : parameter
     #            - name: netRadiation
-    #                          - description : 
+    #                          - description : net radiation
     #                          - variablecategory : state
     #                          - datatype : DOUBLE
     #                          - default : 1.566

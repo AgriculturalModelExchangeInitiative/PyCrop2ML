@@ -11,8 +11,8 @@
     </Description>
 
     <Inputs>
-        <Input name="minTair" description="minimal temperature" datatype="DOUBLE" variablecategory = "auxiliary" min="-30" max="45" default="0.7" unit="°C" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" inputtype = "variable"/>
-        <Input name="maxTair" description="max Temperature" datatype="DOUBLE" variablecategory = "auxiliary" min="-30" max="45" default="7.2" unit="°C" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" inputtype = "variable"/>
+        <Input name="minTair" description="minimum air temperature" datatype="DOUBLE" variablecategory = "auxiliary" min="-30" max="45" default="0.7" unit="°C" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" inputtype = "variable"/>
+        <Input name="maxTair" description="maximum air Temperature" datatype="DOUBLE" variablecategory = "auxiliary" min="-30" max="45" default="7.2" unit="°C" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" inputtype = "variable"/>
         <Input name="cropHeatFlux" description="Crop heat flux" variablecategory = "rate" inputtype="variable" datatype="DOUBLE" min="0" max="10000" default="447.912" unit="g m² d-1" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" />
         <Input name="conductance" description="the boundary layer conductance" variablecategory = "state" inputtype="variable" datatype="DOUBLE" min="0" max="10000" default="598.685" unit="m d-1" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" />
         <Input name="lambdaV" description="latent heat of vaporization of water" parametercategory="constant" datatype="DOUBLE" default="2.454" min="0" max="10"  unit="MJ kg-1" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547" inputtype="parameter"/>

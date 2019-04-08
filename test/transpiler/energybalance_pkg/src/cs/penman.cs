@@ -14,102 +14,102 @@ public class Penman_
     //        
         //- inputs:
     //            - name: evapoTranspirationPriestlyTaylor
-    //                          - description : evapoTranspiration of Priestly Taylor 
+    //                          - min : 0
+    //                          - default : 449.367
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : rate
     //                          - datatype : DOUBLE
-    //                          - default : 449.367
-    //                          - min : 0
-    //                          - max : 10000
+    //                          - inputtype : variable
     //                          - unit : g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
+    //                          - description : evapoTranspiration of Priestly Taylor 
     //            - name: hslope
-    //                          - description : slope
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
+    //                          - min : 0
     //                          - default : 0.584
-    //                          - min : 0
     //                          - max : 1000
-    //                          - unit : hPa °C-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
-    //            - name: VPDair
-    //                          - description :  vapour pressure density
     //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLE
-    //                          - default : 2.19
-    //                          - min : 0
-    //                          - max : 1000
-    //                          - unit : hPa
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : hPa °C-1
+    //                          - description : the slope of saturated vapor pressure temperature curve at a given temperature 
+    //            - name: VPDair
+    //                          - min : 0
+    //                          - default : 2.19
+    //                          - max : 1000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : auxiliary
+    //                          - datatype : DOUBLE
+    //                          - inputtype : variable
+    //                          - unit : hPa
+    //                          - description :  vapour pressure density
     //            - name: psychrometricConstant
-    //                          - description : psychrometric constant
     //                          - parametercategory : constant
+    //                          - min : 0
     //                          - datatype : DOUBLE
+    //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 0.66
-    //                          - min : 0
-    //                          - max : 1
-    //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : psychrometric constant
     //            - name: Alpha
-    //                          - description : Priestley-Taylor evapotranspiration proportionality constant
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 1.5
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 100
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 1.5
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : Priestley-Taylor evapotranspiration proportionality constant
     //            - name: lambdaV
-    //                          - description : latent heat of vaporization of water
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 2.454
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 2.454
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : latent heat of vaporization of water
     //            - name: rhoDensityAir
-    //                          - description : Density of air
     //                          - parametercategory : constant
     //                          - datatype : DOUBLE
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 1.225
-    //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : Density of air
     //            - name: specificHeatCapacityAir
-    //                          - description : Specific heat capacity of dry air
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 0.00101
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.00101
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : Specific heat capacity of dry air
     //            - name: conductance
-    //                          - description : conductance
+    //                          - min : 0
+    //                          - default : 598.685
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : state
     //                          - datatype : DOUBLE
-    //                          - min : 0
-    //                          - max : 10000
-    //                          - default : 598.685
-    //                          - unit : m d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : m d-1
+    //                          - description : conductance
         //- outputs:
     //            - name: evapoTranspirationPenman
-    //                          - description :  evapoTranspiration of Penman Monteith
-    //                          - variablecategory : rate
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : rate
     //                          - max : 5000
-    //                          - unit : g/m²d
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description :  evapoTranspiration of Penman Monteith
         double evapoTranspirationPenman;
         evapoTranspirationPenman = evapoTranspirationPriestlyTaylor / Alpha + 1000 * rhoDensityAir * specificHeatCapacityAir * VPDair * conductance / lambdaV * (hslope + psychrometricConstant);
         return evapoTranspirationPenman;

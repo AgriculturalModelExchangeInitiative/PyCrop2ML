@@ -13,53 +13,53 @@ public class Priestlytaylor_
     //            - Abstract: Calculate Energy Balance 
         //- inputs:
     //            - name: netRadiationEquivalentEvaporation
-    //                          - description : net Radiation in Equivalent Evaporation
+    //                          - min : 0
+    //                          - default : 638.142
+    //                          - max : 5000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : state
     //                          - datatype : DOUBLE
-    //                          - default : 638.142
-    //                          - min : 0
-    //                          - max : 5000
-    //                          - unit : g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : g m-2 d-1
+    //                          - description : net Radiation in Equivalent Evaporation
     //            - name: hslope
-    //                          - description : the slope of saturated vapor pressure temperature curve at a given temperature 
+    //                          - min : 0
+    //                          - default : 0.584
+    //                          - max : 1000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLE
-    //                          - default : 0.584
-    //                          - min : 0
-    //                          - max : 1000
-    //                          - unit : hPa °C-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : hPa °C-1
+    //                          - description : the slope of saturated vapor pressure temperature curve at a given temperature 
     //            - name: psychrometricConstant
-    //                          - description : psychrometric constant
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 0.66
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.66
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : psychrometric constant
     //            - name: Alpha
-    //                          - description : Priestley-Taylor evapotranspiration proportionality constant
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 1.5
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 100
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 1.5
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : Priestley-Taylor evapotranspiration proportionality constant
         //- outputs:
     //            - name: evapoTranspirationPriestlyTaylor
-    //                          - description : evapoTranspiration of Priestly Taylor 
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - unit : g m-2 d-1
+    //                          - description : evapoTranspiration of Priestly Taylor 
         double evapoTranspirationPriestlyTaylor;
         evapoTranspirationPriestlyTaylor = Math.Max(Alpha * hslope * netRadiationEquivalentEvaporation / (hslope + psychrometricConstant), 0);
         return evapoTranspirationPriestlyTaylor;

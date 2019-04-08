@@ -13,86 +13,86 @@ public class Canopytemperature_
     //            - Abstract: It is calculated from the crop heat flux and the boundary layer conductance 
         //- inputs:
     //            - name: minTair
-    //                          - description : minimal temperature
-    //                          - datatype : DOUBLE
-    //                          - variablecategory : auxiliary
     //                          - min : -30
-    //                          - max : 45
     //                          - default : 0.7
-    //                          - unit : °C
+    //                          - max : 45
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
-    //            - name: maxTair
-    //                          - description : max Temperature
     //                          - datatype : DOUBLE
     //                          - variablecategory : auxiliary
-    //                          - min : -30
-    //                          - max : 45
-    //                          - default : 7.2
+    //                          - inputtype : variable
     //                          - unit : °C
+    //                          - description : minimum air temperature
+    //            - name: maxTair
+    //                          - min : -30
+    //                          - default : 7.2
+    //                          - max : 45
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - variablecategory : auxiliary
     //                          - inputtype : variable
+    //                          - unit : °C
+    //                          - description : maximum air Temperature
     //            - name: cropHeatFlux
-    //                          - description : Crop heat flux
-    //                          - variablecategory : rate
-    //                          - inputtype : variable
-    //                          - datatype : DOUBLE
     //                          - min : 0
-    //                          - max : 10000
     //                          - default : 447.912
-    //                          - unit : g m² d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //            - name: conductance
-    //                          - description : the boundary layer conductance
-    //                          - variablecategory : state
-    //                          - inputtype : variable
-    //                          - datatype : DOUBLE
-    //                          - min : 0
     //                          - max : 10000
-    //                          - default : 598.685
-    //                          - unit : m d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //            - name: lambdaV
-    //                          - description : latent heat of vaporization of water
-    //                          - parametercategory : constant
+    //                          - variablecategory : rate
     //                          - datatype : DOUBLE
-    //                          - default : 2.454
+    //                          - inputtype : variable
+    //                          - unit : g m² d-1
+    //                          - description : Crop heat flux
+    //            - name: conductance
     //                          - min : 0
+    //                          - default : 598.685
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : state
+    //                          - datatype : DOUBLE
+    //                          - inputtype : variable
+    //                          - unit : m d-1
+    //                          - description : the boundary layer conductance
+    //            - name: lambdaV
+    //                          - parametercategory : constant
+    //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 2.454
+    //                          - inputtype : parameter
     //                          - unit : MJ kg-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : parameter
+    //                          - description : latent heat of vaporization of water
     //            - name: rhoDensityAir
-    //                          - description : Density of air
     //                          - parametercategory : constant
     //                          - datatype : DOUBLE
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 1.225
-    //                          - unit : kg m3
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : parameter
+    //                          - unit : kg m3
+    //                          - description : Density of air
     //            - name: specificHeatCapacityAir
-    //                          - description : Specific heat capacity of dry air
     //                          - parametercategory : constant
     //                          - datatype : DOUBLE
-    //                          - default : 0.00101
-    //                          - unit : MJ kg-1 °C-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.00101
     //                          - inputtype : parameter
+    //                          - unit : MJ kg-1 °C-1
+    //                          - description : Specific heat capacity of dry air
         //- outputs:
     //            - name: minCanopyTemperature
+    //                          - min : -30
+    //                          - datatype : DOUBLE
+    //                          - max : 45
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - unit : °C
     //                          - description : minimal Canopy Temperature  
-    //                          - datatype : DOUBLE
-    //                          - min : -30
-    //                          - max : 45
-    //                          - unit : °C
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //            - name: maxCanopyTemperature
-    //                          - description : maximal Canopy Temperature 
-    //                          - datatype : DOUBLE
     //                          - min : -30
+    //                          - datatype : DOUBLE
     //                          - max : 45
-    //                          - unit : °C
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - unit : °C
+    //                          - description : maximal Canopy Temperature 
         double minCanopyTemperature;
         double maxCanopyTemperature;
         minCanopyTemperature = minTair + cropHeatFlux / rhoDensityAir * specificHeatCapacityAir * conductance / lambdaV * 1000;

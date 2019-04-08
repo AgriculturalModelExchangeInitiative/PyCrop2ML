@@ -12,7 +12,7 @@ def netradiation_(minTair,maxTair,albedoCoefficient,stefanBoltzman,elevation,sol
     #                     and long wavelength radiation 
     #- inputs:
     #            - name: minTair
-    #                          - description : minimal temperature
+    #                          - description : minimum air temperature
     #                          - variablecategory : auxiliary
     #                          - datatype : DOUBLE
     #                          - min : -30
@@ -22,7 +22,7 @@ def netradiation_(minTair,maxTair,albedoCoefficient,stefanBoltzman,elevation,sol
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : variable
     #            - name: maxTair
-    #                          - description : maximal Temperature
+    #                          - description : maximum air Temperature
     #                          - variablecategory : auxiliary
     #                          - datatype : DOUBLE
     #                          - min : -30
@@ -32,7 +32,7 @@ def netradiation_(minTair,maxTair,albedoCoefficient,stefanBoltzman,elevation,sol
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : variable
     #            - name: albedoCoefficient
-    #                          - description : albedoCoefficient
+    #                          - description : albedo Coefficient
     #                          - parametercategory : constant
     #                          - datatype : DOUBLE
     #                          - default : 0.23
@@ -42,7 +42,7 @@ def netradiation_(minTair,maxTair,albedoCoefficient,stefanBoltzman,elevation,sol
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : parameter
     #            - name: stefanBoltzman
-    #                          - description : stefanBoltzman
+    #                          - description : stefan Boltzman constant
     #                          - parametercategory : constant
     #                          - datatype : DOUBLE
     #                          - default : 4.903E-09
@@ -68,7 +68,7 @@ def netradiation_(minTair,maxTair,albedoCoefficient,stefanBoltzman,elevation,sol
     #                          - default : 3
     #                          - min : 0
     #                          - max : 1000
-    #                          - unit : MJ/m²/d
+    #                          - unit : MJ m-2 d-1
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : variable
     #            - name: vaporPressure

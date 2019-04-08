@@ -13,44 +13,44 @@ public class Soilheatflux_
     //            - Abstract: The available energy in the soil 
         //- inputs:
     //            - name: netRadiationEquivalentEvaporation
-    //                          - variablecategory : state
-    //                          - description : net Radiation Equivalent Evaporation
-    //                          - datatype : DOUBLE
+    //                          - min : 0
     //                          - default : 638.142
-    //                          - min : 0
     //                          - max : 5000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
-    //            - name: tau
-    //                          - description : plant cover factor
-    //                          - parametercategory : species
-    //                          - datatype : DOUBLE
-    //                          - default : 0.9983
-    //                          - min : 0
-    //                          - max : 100
-    //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : parameter
-    //            - name: soilEvaporation
-    //                          - description : soil Evaporation
     //                          - variablecategory : state
     //                          - datatype : DOUBLE
-    //                          - default : 448.240
-    //                          - min : 0
-    //                          - max : 10000
-    //                          - unit : g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : g m-2 d-1
+    //                          - description : net Radiation Equivalent Evaporation
+    //            - name: tau
+    //                          - parametercategory : species
+    //                          - min : 0
+    //                          - datatype : DOUBLE
+    //                          - max : 100
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.9983
+    //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : plant cover factor
+    //            - name: soilEvaporation
+    //                          - min : 0
+    //                          - default : 448.240
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : state
+    //                          - datatype : DOUBLE
+    //                          - inputtype : variable
+    //                          - unit : g m-2 d-1
+    //                          - description : soil Evaporation
         //- outputs:
     //            - name: soilHeatFlux
-    //                          - description : soil Heat Flux 
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : state
     //                          - max : 10000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description : soil Heat Flux 
         double soilHeatFlux;
         soilHeatFlux = tau * netRadiationEquivalentEvaporation - soilEvaporation;
         return soilHeatFlux;

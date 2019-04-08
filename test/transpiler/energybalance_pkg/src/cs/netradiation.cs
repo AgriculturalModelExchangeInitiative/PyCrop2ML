@@ -14,102 +14,102 @@ public class Netradiation_
     //                     and long wavelength radiation 
         //- inputs:
     //            - name: minTair
-    //                          - description : minimal temperature
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
     //                          - min : -30
-    //                          - max : 45
     //                          - default : 0.7
-    //                          - unit : °C
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
-    //            - name: maxTair
-    //                          - description : maximal Temperature
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
-    //                          - min : -30
     //                          - max : 45
-    //                          - default : 7.2
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : auxiliary
+    //                          - datatype : DOUBLE
+    //                          - inputtype : variable
     //                          - unit : °C
+    //                          - description : minimum air temperature
+    //            - name: maxTair
+    //                          - min : -30
+    //                          - default : 7.2
+    //                          - max : 45
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : auxiliary
+    //                          - datatype : DOUBLE
     //                          - inputtype : variable
+    //                          - unit : °C
+    //                          - description : maximum air Temperature
     //            - name: albedoCoefficient
-    //                          - description : albedoCoefficient
     //                          - parametercategory : constant
+    //                          - min : 0
     //                          - datatype : DOUBLE
+    //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 0.23
-    //                          - min : 0
-    //                          - max : 1
-    //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : albedo Coefficient
     //            - name: stefanBoltzman
-    //                          - description : stefanBoltzman
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 4.903E-09
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 4.903E-09
+    //                          - inputtype : parameter
     //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : parameter
+    //                          - description : stefan Boltzman constant
     //            - name: elevation
-    //                          - description : elevation
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 0
     //                          - min : -500
+    //                          - datatype : DOUBLE
     //                          - max : 10000
-    //                          - unit : m
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0
     //                          - inputtype : parameter
+    //                          - unit : m
+    //                          - description : elevation
     //            - name: solarRadiation
-    //                          - description : solar Radiation
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
+    //                          - min : 0
     //                          - default : 3
-    //                          - min : 0
     //                          - max : 1000
-    //                          - unit : MJ/m²/d
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : auxiliary
+    //                          - datatype : DOUBLE
     //                          - inputtype : variable
+    //                          - unit : MJ m-2 d-1
+    //                          - description : solar Radiation
     //            - name: vaporPressure
-    //                          - description : vapor Pressure
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
+    //                          - min : 0
     //                          - default : 6.1
-    //                          - min : 0
     //                          - max : 1000
-    //                          - unit : hPa
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
-    //            - name: extraSolarRadiation
-    //                          - description : extra Solar Radiation
     //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLE
-    //                          - default : 11.7
-    //                          - min : 0
-    //                          - max : 1000
-    //                          - unit : MJ m2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : hPa
+    //                          - description : vapor Pressure
+    //            - name: extraSolarRadiation
+    //                          - min : 0
+    //                          - default : 11.7
+    //                          - max : 1000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : auxiliary
+    //                          - datatype : DOUBLE
+    //                          - inputtype : variable
+    //                          - unit : MJ m2 d-1
+    //                          - description : extra Solar Radiation
         //- outputs:
     //            - name: netRadiation
+    //                          - min : 0
+    //                          - variablecategory : state
+    //                          - max : 5000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
     //                          - description :  net radiation 
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
-    //                          - min : 0
-    //                          - max : 5000
-    //                          - unit : g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //            - name: netOutGoingLongWaveRadiation
-    //                          - description : net OutGoing Long Wave Radiation 
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : state
     //                          - max : 5000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description : net OutGoing Long Wave Radiation 
         double netRadiation;
         double netOutGoingLongWaveRadiation;
         double Nsr;

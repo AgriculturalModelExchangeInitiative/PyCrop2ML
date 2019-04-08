@@ -18,7 +18,7 @@
     <Outputs>
         <Output name="soilHeatFlux" description="soil Heat Flux " variablecategory="state"  datatype="DOUBLE" min="0" max="10000"  unit="g m-2 d-1" uri="http://www1.clermont.inra.fr/siriusquality/?page_id=547"/>
    	</Outputs>
-    
+
     <Algorithm  language="Cyml" platform="" filename="algo/pyx/SoilHeatFlux.pyx" />
 
 

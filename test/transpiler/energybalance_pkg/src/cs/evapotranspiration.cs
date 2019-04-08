@@ -16,44 +16,44 @@ public class Evapotranspiration_
     //            (Priestley and Taylor 1972) method 
         //- inputs:
     //            - name: isWindVpDefined
-    //                          - description : if wind and vapour pressure are defined
     //                          - parametercategory : constant
+    //                          - min : 0
     //                          - datatype : INT
-    //                          - default : 1
-    //                          - min : 0
     //                          - max : 1
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 1
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : if wind and vapour pressure are defined
     //            - name: evapoTranspirationPriestlyTaylor
-    //                          - description : evapoTranspiration of Priestly Taylor 
-    //                          - variablecategory : rate
     //                          - default : 449.367
-    //                          - datatype : DOUBLE
+    //                          - description : evapoTranspiration of Priestly Taylor 
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10000
-    //                          - unit : mm
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : rate
     //                          - inputtype : variable
+    //                          - unit : mm
     //            - name: evapoTranspirationPenman
-    //                          - description : evapoTranspiration of Penman 
+    //                          - min : 0
+    //                          - default : 830.958
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - datatype : DOUBLE
     //                          - variablecategory : rate
-    //                          - default : 830.958
-    //                          - min : 0
-    //                          - max : 10000
-    //                          - unit : mm
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : mm
+    //                          - description : evapoTranspiration of Penman 
         //- outputs:
     //            - name: evapoTranspiration
-    //                          - description : evapoTranspiration
-    //                          - variablecategory : rate
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : rate
     //                          - max : 10000
-    //                          - unit : mm
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : mm
+    //                          - description : evapoTranspiration
         double evapoTranspiration;
         if (isWindVpDefined == 1)
         {

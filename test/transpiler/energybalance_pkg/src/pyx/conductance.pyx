@@ -23,6 +23,6 @@ def conductance_(float vonKarman=0.42,
     """
     cdef float conductance
     cdef float h
-    h = max(10.0, plantHeight) / 100.0
+    h = max(10, plantHeight) / 100.0
     conductance = (wind * pow(vonKarman, 2)) / (log((heightWeatherMeasurements - d * h) / (zm * h)) * log((heightWeatherMeasurements - d * h) / (zh * h)))
     return  conductance

@@ -14,34 +14,34 @@ public class Potentialtranspiration_
     //                    transpiration as soil moisture is depleted 
         //- inputs:
     //            - name: evapoTranspiration
-    //                          - description : evapoTranspiration
+    //                          - min : 0
+    //                          - default : 830.958
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : rate
     //                          - datatype : DOUBLE
-    //                          - default : 830.958
-    //                          - min : 0
-    //                          - max : 10000
-    //                          - unit : mm
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : mm
+    //                          - description : evapoTranspiration
     //            - name: tau
-    //                          - description : plant cover factor
     //                          - parametercategory : species
-    //                          - datatype : DOUBLE
-    //                          - default : 0.9983
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.9983
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : plant cover factor
         //- outputs:
     //            - name: potentialTranspiration
-    //                          - description : potential Transpiration 
-    //                          - variablecategory : rate
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : rate
     //                          - max : 10000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description : potential Transpiration 
         double potentialTranspiration;
         potentialTranspiration = evapoTranspiration * (1 - tau);
         return potentialTranspiration;

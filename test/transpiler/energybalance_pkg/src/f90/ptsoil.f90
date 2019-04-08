@@ -3,14 +3,13 @@ MODULE Ptsoil_mod
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE ptsoil_(evapoTranspirationPriestlyTaylor, &
-        Alpha, &
         tau, &
         tauAlpha, &
         energyLimitedEvaporation)
         REAL, INTENT(OUT) :: energyLimitedEvaporation
         REAL:: AlphaE
         REAL, INTENT(IN) :: evapoTranspirationPriestlyTaylor
-        REAL, INTENT(IN) :: Alpha
+        REAL, PARAMETER :: Alpha = 1.5
         REAL, INTENT(IN) :: tau
         REAL, INTENT(IN) :: tauAlpha
         !- Description:

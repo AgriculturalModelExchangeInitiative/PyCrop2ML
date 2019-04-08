@@ -24,6 +24,7 @@ def conductance_(vonKarman,heightWeatherMeasurements,zm,zh,d,plantHeight,wind):
     #                          - parametercategory : constant
     #            - name: heightWeatherMeasurements
     #                          - description : reference height of wind and humidity measurements
+    #                          - parametercategory : soil
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 10
@@ -89,6 +90,6 @@ def conductance_(vonKarman,heightWeatherMeasurements,zm,zh,d,plantHeight,wind):
     #                          - max : 10000
     #                          - unit : m d-1
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    h = max(10.0, plantHeight) / 100.0
+    h = max(10, plantHeight) / 100.0
     conductance = wind * pow(vonKarman, 2) / ln((heightWeatherMeasurements - d * h) / zm * h) * ln((heightWeatherMeasurements - d * h) / zh * h)
     return conductance

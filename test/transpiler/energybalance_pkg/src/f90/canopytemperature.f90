@@ -6,9 +6,6 @@ CONTAINS
         maxTair, &
         cropHeatFlux, &
         conductance, &
-        lambdaV, &
-        rhoDensityAir, &
-        specificHeatCapacityAir, &
         minCanopyTemperature, &
         maxCanopyTemperature)
         REAL, INTENT(OUT) :: minCanopyTemperature
@@ -17,9 +14,9 @@ CONTAINS
         REAL, INTENT(IN) :: maxTair
         REAL, INTENT(IN) :: cropHeatFlux
         REAL, INTENT(IN) :: conductance
-        REAL, INTENT(IN) :: lambdaV
-        REAL, INTENT(IN) :: rhoDensityAir
-        REAL, INTENT(IN) :: specificHeatCapacityAir
+        REAL, PARAMETER :: lambdaV = 2.454
+        REAL, PARAMETER :: rhoDensityAir = 1.225
+        REAL, PARAMETER :: specificHeatCapacityAir = 0.00101
         !- Description:
     !            - Model Name: CanopyTemperature Model
     !            - Author: Pierre Martre
@@ -29,7 +26,7 @@ CONTAINS
     !            - Abstract: It is calculated from the crop heat flux and the boundary layer conductance 
         !- inputs:
     !            - name: minTair
-    !                          - description : minimal temperature
+    !                          - description : minimum air temperature
     !                          - datatype : DOUBLE
     !                          - variablecategory : auxiliary
     !                          - min : -30
@@ -39,7 +36,7 @@ CONTAINS
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : variable
     !            - name: maxTair
-    !                          - description : max Temperature
+    !                          - description : maximum air Temperature
     !                          - datatype : DOUBLE
     !                          - variablecategory : auxiliary
     !                          - min : -30
