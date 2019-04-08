@@ -3,6 +3,7 @@ from __future__ import print_function
 from openalea.core.external import *
 from openalea.core.pkgmanager import PackageManager
 from pycropml.render_python import generate_doc
+from pycropml.pparse import model_parser
 
 
 class XmlToWf(object):
@@ -15,6 +16,8 @@ class XmlToWf(object):
         self.inputLinks = self.xmlwf.inputlink
         self.outputLinks = self.xmlwf.outputlink
         self.internalLinks = self.xmlwf.internallink
+        self.inputs=[]
+        self.outputs=[]
     
     def run(self):
         self.doc = generate_doc(self.xmlwf)
@@ -100,11 +103,11 @@ class XmlToWf(object):
                 else:
                     din=dict(name=name, interface = interfaces[0])
                 ins.append(din)
+                self.inputs.append(name)
         
             else:
                 value=None
                 model= links_sameName[0]["target"].split('.')[0]
-                print(model)
                 inputs = self.pkg[model].inputs
                 #print(inputs)
                 interface=[inp["interface"] for inp in inputs if inp["name"]==name]
@@ -118,6 +121,7 @@ class XmlToWf(object):
                 else:
                     din=dict(name=name, interface = interface[0])
                 ins.append(din)
+                self.inputs.append(name)
         self.inputs_wf = ins        
 
 
@@ -127,15 +131,13 @@ class XmlToWf(object):
         outs=[]
         # model units outputs must be unique. So model composite output is targeted by an unique output link 
         for link in self.outputLinks:
-            print(("out %s"%link))
-            name =  link["target"]
-            print(name) 
+            name =  link["target"] 
             model_src, out_src= link["source"].split('.')
             outputs = self.pkg[model_src].outputs
             interface=[out["interface"] for out in outputs if out["name"]==name]
             dout= dict(name=name, interface = interface[0])
             outs.append(dout)
-    
+            self.outputs.append(name)
         self.outputs_wf = outs
     
         

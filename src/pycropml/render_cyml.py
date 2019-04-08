@@ -28,7 +28,8 @@ class Model2Package(object):
     DATATYPE['STRINGLIST'] = "list"
     DATATYPE['CHARLIST'] = "list"
     DATATYPE['DATELIST'] = "list"
-    DATATYPE['DOUBLEARRAY'] = "numpy.array"
+    DATATYPE['DOUBLEARRAY'] = "float"
+    DATATYPE['INTARRAY'] = "int"
     DATATYPE['BOOLEAN'] = "bool"
     DATATYPE['DATE'] = "str"
  
@@ -153,21 +154,35 @@ class Model2Package(object):
     def my_input(self,_input):
         name = _input.name
         _type = _input.datatype
+        
         if 'default' in dir(_input):
-            default = _input.default              
-            if self.DATATYPE[_type]  == "bool":
-                val = default.capitalize()
-                return "bool %s=%s"%(name, val)                    
-            elif self.DATATYPE[_type] == "list":
-                val = eval(default)
-                return 'list %s=%s'%(name, val)              
-            elif self.DATATYPE[_type] == "str":                   
-                return "str %s='%s'"%(name, default)                
-            elif _type in self.DATATYPE:                   
-                default = float(default) if self.DATATYPE[_type]=="float" else int(default)                                     
-                return '%s %s=%s'%(self.DATATYPE[_type], name, default)
+            if _input.default :
+                default = _input.default              
+                if self.DATATYPE[_type]  == "bool":
+                    val = default.capitalize()
+                    return "bool %s=%s"%(name, val)                    
+                elif self.DATATYPE[_type] == "list":
+                    val = eval(default)
+                    return 'list %s=%s'%(name, val)              
+                elif self.DATATYPE[_type] == "str":                   
+                    return "str %s='%s'"%(name, default)                
+                elif _type in self.DATATYPE:                   
+                    default = float(default) if self.DATATYPE[_type]=="float" else int(default)                                     
+                    return '%s %s=%s'%(self.DATATYPE[_type], name, default)
+            else:
+                if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
+                    len = _input.len
+                    print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
+                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, len))
+                else:
+                    return ("%s %s"%(self.DATATYPE[_type], name))
         else:
-            return ("%s %s"%(self.DATATYPE[_type], name))
+                if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
+                    len = _input.len
+                    print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
+                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, len))
+                else:
+                    return ("%s %s"%(self.DATATYPE[_type], name))            
 
     def generate_test(self, model_unit):
 

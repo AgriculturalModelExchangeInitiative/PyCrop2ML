@@ -109,9 +109,9 @@ class CodeGenerator(NodeVisitor):
         self.precedence.pop()
     
     def visit_array(self, node):
-        for n in node.elements:
+        for n in node.elts:
             self.visit(n)
-            if n!= node.elements[-1]:
+            if n!= node.elts[-1]:
                 self.write(",")
     
     def emit_string(self, node, prefix=u''):

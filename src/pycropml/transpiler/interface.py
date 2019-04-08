@@ -11,14 +11,17 @@ class TreeInterface():
         self.ForSequence = False
         self.nbForSeq=0
         self.dependencies=[]
+        self.indexNames=[]
 
     def transform(self, tree, in_block=False):
+        self.nameIndex=[]
         if isinstance(tree, Node):
             if tree.type =="for_sequence":
                 self.ForSequence = True
                 self.nbForSeq =self.nbForSeq+1 
-            if tree.type == "custom_call":
+            if tree.type == "custom_call" and tree.function not in self.dependencies:
                 self.dependencies.append(tree.function)
+            if tree.type=="list" and "list" not in self.dependencies: self.dependencies.append("list")                
             else:
                 tree = self.transform_default(tree)
             return tree
@@ -26,7 +29,8 @@ class TreeInterface():
             return [self.transform(child) for child in tree]
         else:
             return tree
-
+    
+        
 
     def transform_default(self, tree):
         for field, child in tree.__dict__.items():
@@ -50,7 +54,6 @@ class TreeInterface():
             else:
                 results += result
         return results
-
 
 class middleware(TreeInterface):
     def __init__(self, tree):

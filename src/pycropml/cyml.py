@@ -68,6 +68,8 @@ def main():
         models = model_parser(pkg) # parse xml files and create python model object
         output = pkg/'src'
         dir_test= pkg/'test'
+        m=[model.name for model in models]
+        print(m)
         m2p = render_cyml.Model2Package(models, dir=output)
         m2p.generate_package()        # generate cyml models in "pyx" directory          
         tg_rep = Path(output/"%s"%(language)) # target language models  directory in output
@@ -89,7 +91,7 @@ def main():
         # generate 
         cyml_rep = Path(output/'pyx') # cyml model directory in output
         for k, file in enumerate(cyml_rep.files()):
-            print(file)
+            #print(file)
             with open(file, 'r') as fi:
                 source = fi.read()
             name = os.path.split(file)[1].split(".")[0]

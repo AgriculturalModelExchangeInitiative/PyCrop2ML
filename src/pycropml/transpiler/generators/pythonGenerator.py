@@ -53,6 +53,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
             else:
                 self.visit(else_)
                 break
+            break
     
     def visit_elseif_statement(self, node):
         self.newline()
@@ -197,6 +198,23 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.write(n.name)
                 self.write(" = ")                 
                 self.visit_dict(n)
+            elif n.type=="array" and 'elements' in dir(n):       
+                self.visit_array(n)
+
+
+    def visit_array(self,node): 
+        self.write(node.name)
+        '''self.write(" =np.ndarray((")
+        self.comma_separated_list(node.elts)
+        self.write("),dtype=%s)"%node.pseudo_type[-1])'''
+
+    def visit_continuestatnode(self, node):
+        self.newline(node)
+        self.write('continue')
+        
+    def visit_breakstatnode(self, node):
+        self.newline(node)
+        self.write('break')              
         
     def visit_call(self, node):
         want_comma = []
