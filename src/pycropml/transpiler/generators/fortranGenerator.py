@@ -257,9 +257,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node)
         self.indentation += 1        
         self.newline(node)        
-        #self.write("USE list_sub")
-        self.newline(node) 
-        if self.z.dependencies:
+        self.write("USE list_sub")
+        self.newline(node)          
+        if self.z.dependencies and "list" not in self.z.dependencies:
             for dependency in self.z.dependencies:
                 self.write("USE %smod" %dependency)
                 self.newline(node)        
