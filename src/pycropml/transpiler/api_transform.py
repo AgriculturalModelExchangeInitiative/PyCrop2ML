@@ -124,6 +124,8 @@ def pow_expander(type, message, args):
 
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'pow', 'args': args, 'pseudo_type':q}
 
+def modulo_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'modulo', 'args': args, 'pseudo_type':"int"}
 
 
 FUNCTION_API = {
@@ -137,7 +139,8 @@ FUNCTION_API = {
         'len':      StandardMethodCall('list', 'len', expander=len_expander),
         'int':      StandardMethodCall('float', 'int', expander=int_expander),
         'float':    StandardMethodCall('int', 'float', expander=float_expander),
-        'pow':      StandardCall('global', 'pow', expander = pow_expander)
+        'pow':      StandardCall('global', 'pow', expander = pow_expander),
+        'modulo':      StandardCall('global', 'modulo', expander = modulo_expander)
     },
 
     'math': {

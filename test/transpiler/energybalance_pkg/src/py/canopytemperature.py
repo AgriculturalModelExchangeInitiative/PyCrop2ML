@@ -11,7 +11,7 @@ def canopytemperature_(minTair,maxTair,cropHeatFlux,conductance,lambdaV,rhoDensi
     #            - Abstract: It is calculated from the crop heat flux and the boundary layer conductance 
     #- inputs:
     #            - name: minTair
-    #                          - description : minimal temperature
+    #                          - description : minimum air temperature
     #                          - datatype : DOUBLE
     #                          - variablecategory : auxiliary
     #                          - min : -30
@@ -21,7 +21,7 @@ def canopytemperature_(minTair,maxTair,cropHeatFlux,conductance,lambdaV,rhoDensi
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : variable
     #            - name: maxTair
-    #                          - description : max Temperature
+    #                          - description : maximum air Temperature
     #                          - datatype : DOUBLE
     #                          - variablecategory : auxiliary
     #                          - min : -30

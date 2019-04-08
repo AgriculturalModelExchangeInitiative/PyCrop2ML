@@ -26,66 +26,66 @@ CONTAINS
     !            - Abstract: Lists containing for each stage the date it occurs as well as a copy of all types of cumulated thermal times 
         !- inputs:
     !            - name: cumulTT
-    !                          - min : -200
-    !                          - default : 741.510096671757
-    !                          - max : 10000
+    !                          - description : cumul thermal times at current date
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : -200
+    !                          - max : 10000
+    !                          - default : 741.510096671757
     !                          - unit : °C d
-    !                          - description : cumul thermal times at current date
+    !                          - inputtype : variable
     !            - name: calendarMoments
+    !                          - description : List containing apparition of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - inputtype : variable
     !                          - unit : 
-    !                          - description : List containing apparition of each stage
+    !                          - inputtype : variable
     !            - name: calendarDates
+    !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - default : ['21/3/2007']
-    !                          - inputtype : variable
     !                          - unit : 
-    !                          - description : List containing  the dates of the wheat developmental phases
+    !                          - inputtype : variable
     !            - name: calendarCumuls
+    !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [0.0]
-    !                          - inputtype : variable
     !                          - unit : °C d
-    !                          - description : list containing for each stage occured its cumulated thermal times
+    !                          - inputtype : variable
     !            - name: currentdate
+    !                          - description : current date
     !                          - variablecategory : auxiliary
     !                          - datatype : DATE
     !                          - default : 27/3/2007
-    !                          - inputtype : variable
     !                          - unit : 
-    !                          - description : current date
+    !                          - inputtype : variable
     !            - name: phase
-    !                          - min : 0
-    !                          - default : 1
-    !                          - max : 7
+    !                          - description :  the name of the phase
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : 0
+    !                          - max : 7
+    !                          - default : 1
     !                          - unit : 
-    !                          - description :  the name of the phase
+    !                          - inputtype : variable
         !- outputs:
     !            - name: calendarMoments
+    !                          - description :  List containing apparition of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - unit : 
-    !                          - description :  List containing apparition of each stage
     !            - name: calendarDates
+    !                          - description :  List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST 
     !                          - unit : 
-    !                          - description :  List containing  the dates of the wheat developmental phases
     !            - name: calendarCumuls
+    !                          - description :  list containing for each stage occured its cumulated thermal times
     !                          - datatype : DOUBLELIST
     !                          - unit : °C d
-    !                          - description :  list containing for each stage occured its cumulated thermal times
         IF(phase .GE. 1.0 .AND. phase .LT. 2.0 .AND. ALL(calendarMoments .NE.  &
                 'Emergence')) THEN
             call Add(calendarMoments, 'Emergence')

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 public class Cumulttfrom_
 {
-    public static Tuple<double,double,double>  cumulttfrom_(List<string> calendarMoments,List<double> calendarCumuls,int switchMaize,double cumulTT)
+    public static Tuple<double,double,double>  cumulttfrom_(List<string> calendarMoments,List<double> calendarCumuls,double cumulTT)
     {
         //- Description:
     //            - Model Name: CumulTTFrom Model
@@ -14,59 +14,50 @@ public class Cumulttfrom_
     //            - Abstract: Calculate CumulTT 
         //- inputs:
     //            - name: calendarMoments
-    //                          - description : List containing appearance of each stage
     //                          - variablecategory : auxiliary
     //                          - datatype : STRINGLIST
     //                          - default : ['Sowing']
-    //                          - unit : 
     //                          - inputtype : variable
+    //                          - unit : 
+    //                          - description : List containing appearance of each stage
     //            - name: calendarCumuls
-    //                          - description : list containing for each stage occured its cumulated thermal times
     //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLELIST
     //                          - default : [0.0]
-    //                          - unit : °C d
     //                          - inputtype : variable
-    //            - name: switchMaize
-    //                          - description : true if maize
-    //                          - datatype : INT
-    //                          - parametercategory : constant
-    //                          - min : 0
-    //                          - max : 1
-    //                          - default : 0
-    //                          - unit : 
-    //                          - inputtype : parameter
+    //                          - unit : °C d
+    //                          - description : list containing for each stage occured its cumulated thermal times
     //            - name: cumulTT
-    //                          - description : cumul TT at current date
+    //                          - min : -200
+    //                          - default : 8
+    //                          - max : 10000
     //                          - datatype : DOUBLE
     //                          - variablecategory : auxiliary
-    //                          - min : -200
-    //                          - max : 10000
-    //                          - default : 8
-    //                          - unit : °C d
     //                          - inputtype : variable
+    //                          - unit : °C d
+    //                          - description : cumul TT at current date
         //- outputs:
     //            - name: cumulTTFromZC_65
+    //                          - datatype : DOUBLE
+    //                          - min : 0
+    //                          - variablecategory : auxiliary
+    //                          - max : 5000
+    //                          - unit : °C d
     //                          - description :  cumul TT from Anthesis to current date 
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
-    //                          - min : 0
-    //                          - max : 5000
-    //                          - unit : °C d
     //            - name: cumulTTFromZC_39
+    //                          - datatype : DOUBLE
+    //                          - min : 0
+    //                          - variablecategory : auxiliary
+    //                          - max : 5000
+    //                          - unit : °C d
     //                          - description :  cumul TT from FlagLeafLiguleJustVisible to current date 
-    //                          - variablecategory : auxiliary
-    //                          - datatype : DOUBLE
-    //                          - min : 0
-    //                          - max : 5000
-    //                          - unit : °C d
     //            - name: cumulTTFromZC_91
-    //                          - description :  cumul TT from EndGrainFilling to current date 
-    //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : auxiliary
     //                          - max : 5000
     //                          - unit : °C d
+    //                          - description :  cumul TT from EndGrainFilling to current date 
         double cumulTTFromZC_65;
         double cumulTTFromZC_39;
         double cumulTTFromZC_91;
@@ -75,24 +66,15 @@ public class Cumulttfrom_
         cumulTTFromZC_91 = 0.0d;
         if (calendarMoments.Contains("Anthesis"))
         {
-            if (switchMaize == 0)
-            {
-                cumulTTFromZC_65 = cumulTT - calendarCumuls[calendarMoments.IndexOf("Anthesis")];
-            }
+            cumulTTFromZC_65 = cumulTT - calendarCumuls[calendarMoments.IndexOf("Anthesis")];
         }
         if (calendarMoments.Contains("FlagLeafLiguleJustVisible"))
         {
-            if (switchMaize == 0)
-            {
-                cumulTTFromZC_39 = cumulTT - calendarCumuls[calendarMoments.IndexOf("FlagLeafLiguleJustVisible")];
-            }
+            cumulTTFromZC_39 = cumulTT - calendarCumuls[calendarMoments.IndexOf("FlagLeafLiguleJustVisible")];
         }
         if (calendarMoments.Contains("EndGrainFilling"))
         {
-            if (switchMaize == 0)
-            {
-                cumulTTFromZC_91 = cumulTT - calendarCumuls[calendarMoments.IndexOf("EndGrainFilling")];
-            }
+            cumulTTFromZC_91 = cumulTT - calendarCumuls[calendarMoments.IndexOf("EndGrainFilling")];
         }
         return Tuple.Create(cumulTTFromZC_65, cumulTTFromZC_39, cumulTTFromZC_91);
     }

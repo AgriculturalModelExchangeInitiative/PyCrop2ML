@@ -184,6 +184,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
     def visit_custom_call(self, node):
         "TODO"
         self.visit_call(node)
+        self.write(".result")
         
         
     def visit_implicit_return(self, node):

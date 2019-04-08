@@ -173,8 +173,8 @@ class Model2Package(object):
         if model_unit.function:
             for function in model_unit.function:
                 if function.language in ("Python", "python"):
-                    module=os.path.splitext(function.filename)[0]
-                    self.code +="from %s import * \n"%name.lower()
+                    module=os.path.split(function.filename)[1].split(".")[0]
+                    self.code +="from %s import * \n"%module.lower()
                     break
         self.code += self.generate_function_signature(model_unit)
 

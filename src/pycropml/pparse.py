@@ -12,9 +12,10 @@ from . import parameterset as pset
 from . import checking
 from . import algorithm
 from . import function
+from . import initialization
 import os.path
 from path import Path
-from pycropml import initialization
+
 class Parser(object):
     """ Read an XML file and transform it in our object model.
     """
@@ -124,10 +125,9 @@ class ModelParser(Parser):
         language=elt.attrib["language"]
         name=elt.attrib["name"]
         filename=elt.attrib["filename"]
-        file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
-        with open(file, 'r') as f:
-            development = f.read()
-        code = initialization.Initialization(name,language, development, filename)
+        description =elt.attrib["description"]
+        file = Path(self.algorep/ filename)
+        code = initialization.Initialization(name,language, filename, description)
         self._model.initialization.append(code)
         
         

@@ -17,34 +17,34 @@ public class Soilevaporation_
     //                evaporation 
         //- inputs:
     //            - name: diffusionLimitedEvaporation
-    //                          - description : diffusion Limited Evaporation
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
+    //                          - min : 0
     //                          - default : 6605.505
-    //                          - min : 0
     //                          - max : 10000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
-    //            - name: energyLimitedEvaporation
-    //                          - description : energy Limited Evaporation
     //                          - variablecategory : state
     //                          - datatype : DOUBLE
-    //                          - default : 448.240
-    //                          - min : 0
-    //                          - max : 1000
-    //                          - unit : g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : g m-2 d-1
+    //                          - description : diffusion Limited Evaporation
+    //            - name: energyLimitedEvaporation
+    //                          - min : 0
+    //                          - default : 448.240
+    //                          - max : 1000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - variablecategory : state
+    //                          - datatype : DOUBLE
+    //                          - inputtype : variable
+    //                          - unit : g m-2 d-1
+    //                          - description : energy Limited Evaporation
         //- outputs:
     //            - name: soilEvaporation
-    //                          - description : soil Evaporation
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : state
     //                          - max : 5000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description : soil Evaporation
         double soilEvaporation;
         soilEvaporation = Math.Min(diffusionLimitedEvaporation, energyLimitedEvaporation);
         return soilEvaporation;

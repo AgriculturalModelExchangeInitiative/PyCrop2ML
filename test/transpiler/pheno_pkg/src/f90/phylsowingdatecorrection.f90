@@ -28,82 +28,82 @@ CONTAINS
     !            - Abstract: Correction of the Phyllochron Varietal parameter according to sowing date 
         !- inputs:
     !            - name: sowingDay
-    !                          - parametercategory : constant
-    !                          - min : 1
-    !                          - datatype : INT
-    !                          - max : 365
-    !                          - uri : some url
-    !                          - default : 1
-    !                          - inputtype : parameter
-    !                          - unit : d
     !                          - description : Day of Year at sowing
-    !            - name: latitude
-    !                          - parametercategory : constant
-    !                          - min : -90
-    !                          - datatype : DOUBLE
-    !                          - max : 90
-    !                          - uri : some url
-    !                          - default : 0.0
-    !                          - inputtype : parameter
-    !                          - unit : °C
-    !                          - description : Latitude
-    !            - name: sDsa_sh
-    !                          - parametercategory : constant
-    !                          - min : 1
-    !                          - datatype : INT
-    !                          - max : 365
-    !                          - uri : some url
-    !                          - default : 1
-    !                          - inputtype : parameter
-    !                          - unit : d
-    !                          - description : Sowing date at which Phyllochrone is maximum in southern hemispher
-    !            - name: rp
-    !                          - parametercategory : constant
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 365
-    !                          - uri : some url
-    !                          - default : 0
-    !                          - inputtype : parameter
-    !                          - unit : d-1
-    !                          - description : Rate of change of Phyllochrone with sowing date
-    !            - name: sDws
-    !                          - parametercategory : constant
-    !                          - min : 1
-    !                          - datatype : INT
-    !                          - max : 365
-    !                          - uri : some url
-    !                          - default : 1
-    !                          - inputtype : parameter
-    !                          - unit : d
-    !                          - description : Sowing date at which Phyllochrone is minimum
-    !            - name: sDsa_nh
-    !                          - parametercategory : constant
-    !                          - min : 1
-    !                          - datatype : INT
-    !                          - max : 365
-    !                          - uri : some url
-    !                          - default : 1
-    !                          - inputtype : parameter
-    !                          - unit : d
-    !                          - description : Sowing date at which Phyllochrone is maximum in northern hemispher
-    !            - name: p
     !                          - parametercategory : species
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 1000
+    !                          - datatype : INT
+    !                          - min : 1
+    !                          - max : 365
+    !                          - default : 1
+    !                          - unit : d
     !                          - uri : some url
-    !                          - default : 120
     !                          - inputtype : parameter
-    !                          - unit : °C d leaf-1
+    !            - name: latitude
+    !                          - description : Latitude
+    !                          - parametercategory : soil
+    !                          - datatype : DOUBLE
+    !                          - min : -90
+    !                          - max : 90
+    !                          - default : 0.0
+    !                          - unit : °
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: sDsa_sh
+    !                          - description : Sowing date at which Phyllochrone is maximum in southern hemispher
+    !                          - parametercategory : species
+    !                          - inputtype : parameter
+    !                          - datatype : INT
+    !                          - min : 1
+    !                          - max : 365
+    !                          - default : 1
+    !                          - unit : d
+    !                          - uri : some url
+    !            - name: rp
+    !                          - description : Rate of change of Phyllochrone with sowing date
+    !                          - parametercategory : species
+    !                          - inputtype : parameter
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 365
+    !                          - default : 0
+    !                          - unit : d-1
+    !                          - uri : some url
+    !            - name: sDws
+    !                          - description : Sowing date at which Phyllochrone is minimum
+    !                          - parametercategory : species
+    !                          - datatype : INT
+    !                          - default : 1
+    !                          - min : 1
+    !                          - max : 365
+    !                          - unit : d
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: sDsa_nh
+    !                          - description : Sowing date at which Phyllochrone is maximum in northern hemispher
+    !                          - parametercategory : species
+    !                          - datatype : INT
+    !                          - default : 1
+    !                          - min : 1
+    !                          - max : 365
+    !                          - unit : d
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: p
     !                          - description : Phyllochron (Varietal parameter)
+    !                          - parametercategory : species
+    !                          - datatype : DOUBLE
+    !                          - default : 120
+    !                          - min : 0
+    !                          - max : 1000
+    !                          - unit : °C d leaf-1
+    !                          - uri : some url
+    !                          - inputtype : parameter
         !- outputs:
     !            - name: fixPhyll
-    !                          - min : 0
+    !                          - description :  Phyllochron Varietal parameter 
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 1000
     !                          - unit : °C d leaf-1
-    !                          - description :  Phyllochron Varietal parameter 
         IF(latitude .LT. 0.0) THEN
             IF(sowingDay .GT. sDsa_sh) THEN
                 fixPhyll = p * (1 - rp * MIN((sowingDay - sDsa_sh), sDws))

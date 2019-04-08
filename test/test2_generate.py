@@ -4,11 +4,10 @@
 from __future__ import absolute_import
 import os
 from path import Path
-#from urlparse import urlparse
 
 from pycropml import pparse, render_python
 
-from .test1 import example, cwd, xmls
+from .test1 import example, cwd
 
 from test import test1
 

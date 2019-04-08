@@ -13,34 +13,34 @@ public class Diffusionlimitedevaporation_
     //            - Abstract: the evaporation from the diffusion limited soil 
         //- inputs:
     //            - name: deficitOnTopLayers
-    //                          - description : deficit On TopLayers
+    //                          - min : 0
+    //                          - default : 5341
+    //                          - max : 10000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLE
-    //                          - default : 5341
-    //                          - min : 0
-    //                          - max : 10000
-    //                          - unit : g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : g m-2 d-1
+    //                          - description : deficit On TopLayers
     //            - name: soilDiffusionConstant
-    //                          - description : soil Diffusion Constant
     //                          - parametercategory : soil
-    //                          - datatype : DOUBLE
-    //                          - default : 4.2
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 4.2
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : soil Diffusion Constant
         //- outputs:
     //            - name: diffusionLimitedEvaporation
-    //                          - description : the evaporation from the diffusion limited soil 
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : state
     //                          - max : 5000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description : the evaporation from the diffusion limited soil 
         double diffusionLimitedEvaporation;
         if (deficitOnTopLayers / 1000.0d <= 0.0d)
         {

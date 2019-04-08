@@ -48,7 +48,6 @@
       <InputLink target="PhylSowingDateCorrection.rp" source="rp" />
       <InputLink target="CumulTTFrom.calendarMoments" source="calendarMoments" />
       <InputLink target="CumulTTFrom.calendarCumuls" source="calendarCumuls" />
-      <InputLink target="CumulTTFrom.switchMaize" source="switchMaize" />
       <InputLink target="CumulTTFrom.cumulTT" source="cumulTT" />
       <InputLink target="VernalizationProgress.isVernalizable" source="isVernalizable" />
       <InputLink target="VernalizationProgress.vernaprog" source="vernaprog" />
@@ -79,8 +78,8 @@
       <InputLink target="UpdatePhase.maxDL" source="maxDL" />
       <InputLink target="UpdatePhase.ignoreGrainMaturation" source="ignoreGrainMaturation" />
       <InputLink target="UpdatePhase.pHEADANTH" source="pHEADANTH" />
-      <InputLink target="UpdatePhase.switchMaize" source="switchMaize" />
       <InputLink target="UpdatePhase.choosePhyllUse" source="choosePhyllUse" />
+      <InputLink target="UpdatePhase.finalLeafNumber" source="finalLeafNumber" />     
       <InputLink target="UpdatePhase.p" source="p" />
       <InputLink target="UpdatePhase.dayLength" source="dayLength" />
       <InputLink target="UpdatePhase.sLDL" source="sLDL" />
@@ -92,13 +91,7 @@
       <InputLink target="UpdatePhase.hasLastPrimordiumAppeared" source="hasLastPrimordiumAppeared" />
       <InputLink target="LeafNumber.leafNumber" source="leafNumber" />
       <InputLink target="LeafNumber.hasFlagLeafLiguleAppeared" source="hasFlagLeafLiguleAppeared" />
-      <InputLink target="LeafNumber.switchMaize" source="switchMaize" />
       <InputLink target="LeafNumber.deltaTT" source="deltaTT" />
-      <InputLink target="LeafNumber.leaf_tip_emerg" source="leaf_tip_emerg" />
-      <InputLink target="LeafNumber.atip" source="atip" />
-      <InputLink target="LeafNumber.nlim" source="nlim" />
-      <InputLink target="LeafNumber.k_bl" source="k_bl" />
-      <InputLink target="LeafNumber.cumulTTPhenoMaizeAtEmergence" source="cumulTTPhenoMaizeAtEmergence" />
       <InputLink target="LeafNumber.cumulTT" source="cumulTT" />
       <InputLink target="UpdateLeafFlag.hasFlagLeafLiguleAppeared" source="hasFlagLeafLiguleAppeared" />
       <InputLink target="UpdateLeafFlag.currentdate" source="currentdate" />
@@ -166,7 +159,6 @@
       <OutputLink source="UpdatePhase.finalLeafNumber" target="finalLeafNumber" />
       <OutputLink source="UpdateLeafFlag.hasFlagLeafLiguleAppeared" target="hasFlagLeafLiguleAppeared" />
       <OutputLink source="UpdatePhase.hasLastPrimordiumAppeared" target="hasLastPrimordiumAppeared" />
-      <OutputLink source="LeafNumber.ntip" target="ntip" />
 
     </Links>
   </Composition>

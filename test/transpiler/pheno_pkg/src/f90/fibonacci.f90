@@ -17,16 +17,16 @@ CONTAINS
     !            - Abstract: see documentation
         !- inputs:
     !            - name: n
-    !                          - datatype : INT
     !                          - description : argument
+    !                          - datatype : INT
     !                          - inputtype : variable
         !- outputs:
     !            - name: result
-    !                          - datatype : INT
     !                          - description :  fibonacci number 
+    !                          - datatype : INT
         result = 0
         b = 1
-        DO i = 0 + 1  , n , 1
+        DO i = 1 , n, 1
             temp = result
             result = b
             b = temp + b

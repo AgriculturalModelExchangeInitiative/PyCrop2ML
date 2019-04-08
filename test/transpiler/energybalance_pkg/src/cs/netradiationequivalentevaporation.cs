@@ -13,33 +13,33 @@ public class Netradiationequivalentevaporation_
     //            - Abstract:  It is given by dividing net radiation by latent heat of vaporization of water 
         //- inputs:
     //            - name: lambdaV
-    //                          - description : latent heat of vaporization of water
     //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 2.454
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10
-    //                          - unit : MJ kg-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 2.454
     //                          - inputtype : parameter
+    //                          - unit : MJ kg-1
+    //                          - description : latent heat of vaporization of water
     //            - name: netRadiation
-    //                          - description : 
+    //                          - min : 0
+    //                          - default : 1.566
+    //                          - max : 5000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : state
     //                          - datatype : DOUBLE
-    //                          - default : 1.566
-    //                          - min : 0
-    //                          - max : 5000
-    //                          - unit : MJ m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : MJ m-2 d-1
+    //                          - description : net radiation
         //- outputs:
     //            - name: netRadiationEquivalentEvaporation
-    //                          - description : net Radiation in Equivalent Evaporation 
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 5000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - unit : g m-2 d-1
+    //                          - description : net Radiation in Equivalent Evaporation 
         double netRadiationEquivalentEvaporation;
         netRadiationEquivalentEvaporation = netRadiation / lambdaV * 1000.0d;
         return netRadiationEquivalentEvaporation;

@@ -1,7 +1,7 @@
 import numpy
 from math import *
 
-def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,grainCumulTT,dayLength,vernaprog,minFinalNumber,fixPhyll,isVernalizable,dse,pFLLAnth,dcd,dgf,degfm,maxDL,sLDL,ignoreGrainMaturation,pHEADANTH,switchMaize,choosePhyllUse,p,phase,cumulTTFromZC_91,phyllochron,hasLastPrimordiumAppeared):
+def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,grainCumulTT,dayLength,vernaprog,minFinalNumber,fixPhyll,isVernalizable,dse,pFLLAnth,dcd,dgf,degfm,maxDL,sLDL,ignoreGrainMaturation,pHEADANTH,choosePhyllUse,p,phase,cumulTTFromZC_91,phyllochron,hasLastPrimordiumAppeared,finalLeafNumber):
     #- Description:
     #            - Model Name: UpdatePhase Model
     #            - Author: Pierre MARTRE
@@ -104,7 +104,7 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - inputtype : variable
     #            - name: isVernalizable
     #                          - description : true if the plant is vernalizable
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : INT
     #                          - min : 0
     #                          - max : 1
@@ -122,7 +122,7 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - inputtype : parameter
     #            - name: pFLLAnth
     #                          - description : Phyllochronic duration of the period between flag leaf ligule appearance and anthesis
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 1000
@@ -158,6 +158,7 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - inputtype : parameter
     #            - name: maxDL
     #                          - description : Saturating photoperiod above which final leaf number is not influenced by daylength
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 24
@@ -166,6 +167,7 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - inputtype : parameter
     #            - name: sLDL
     #                          - description : Daylength response of leaf production
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 1
@@ -174,28 +176,23 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - inputtype : parameter
     #            - name: ignoreGrainMaturation
     #                          - description : true to ignore grain maturation
+    #                          - parametercategory : species
     #                          - datatype : BOOLEAN
     #                          - default : FALSE
     #                          - unit : 
     #                          - inputtype : parameter
     #            - name: pHEADANTH
     #                          - description : Number of phyllochron between heading and anthesiss
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 1000
     #                          - default : 1
     #                          - unit : 
     #                          - inputtype : parameter
-    #            - name: switchMaize
-    #                          - description : true if maize
-    #                          - datatype : INT
-    #                          - min : 0
-    #                          - max : 1
-    #                          - default : 0
-    #                          - unit : 
-    #                          - inputtype : parameter
     #            - name: choosePhyllUse
     #                          - description : Switch to choose the type of phyllochron calculation to be used
+    #                          - parametercategory : species
     #                          - datatype : STRING
     #                          - unit : 
     #                          - default : Default
@@ -245,6 +242,15 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - default : 0
     #                          - unit : 
     #                          - inputtype : variable
+    #            - name: finalLeafNumber
+    #                          - description : final leaf number
+    #                          - variablecategory : state
+    #                          - datatype : DOUBLE
+    #                          - min : 0
+    #                          - max : 25
+    #                          - default : 0
+    #                          - unit : leaf
+    #                          - inputtype : variable
     #- outputs:
     #            - name: finalLeafNumber
     #                          - description : final leaf number
@@ -267,40 +273,24 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
     #                          - min : 0
     #                          - max : 1
     #                          - unit : 
-    phase1 = phase
-    if phase1 >= 0.0 and phase1 < 1.0:
-        if switchMaize == 0:
-            if cumulTT >= dse:
-                phase = 1.0
-            else:
-                phase = phase1
-        else:
-            if cumulTT >= dse:
-                phase = 1.0
-            else:
-                phase = phase1
-    elif phase1 >= 1.0 and phase1 < 2.0:
+    if phase >= 0.0 and phase < 1.0:
+        if cumulTT >= dse:
+            phase = 1.0
+    elif phase >= 1.0 and phase < 2.0:
         if isVernalizable == 1 and vernaprog >= 1.0 or isVernalizable == 0:
-            if switchMaize == 0:
-                if dayLength > maxDL:
-                    finalLeafNumber = minFinalNumber
-                    hasLastPrimordiumAppeared = 1
-                else:
-                    appFLN = minFinalNumber + sLDL * (maxDL - dayLength)
-                    if appFLN / 2.0 <= leafNumber:
-                        finalLeafNumber = appFLN
-                        hasLastPrimordiumAppeared = 1
-                    else:
-                        phase = phase1
-            else:
+            if dayLength > maxDL:
+                finalLeafNumber = minFinalNumber
                 hasLastPrimordiumAppeared = 1
+            else:
+                appFLN = minFinalNumber + sLDL * (maxDL - dayLength)
+                if appFLN / 2.0 <= leafNumber:
+                    finalLeafNumber = appFLN
+                    hasLastPrimordiumAppeared = 1
             if hasLastPrimordiumAppeared == 1:
                 phase = 2.0
-        else:
-            phase = phase1
-    elif phase1 >= 2.0 and phase1 < 4.0:
+    elif phase >= 2.0 and phase < 4.0:
         if isMomentRegistredZC_39 == 1:
-            if phase1 < 3.0:
+            if phase < 3.0:
                 ttFromLastLeafToHeading = 0.0
                 if choosePhyllUse == "Default":
                     ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH) * fixPhyll
@@ -310,10 +300,6 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
                     ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH) * p
                 if cumulTTFromZC_39 >= ttFromLastLeafToHeading:
                     phase = 3.0
-                else:
-                    phase = phase1
-            else:
-                phase = phase1
             ttFromLastLeafToAnthesis = 0.0
             if choosePhyllUse == "Default":
                 ttFromLastLeafToAnthesis = pFLLAnth * fixPhyll
@@ -323,26 +309,16 @@ def updatephase_(cumulTT,leafNumber,cumulTTFromZC_39,isMomentRegistredZC_39,gai,
                 ttFromLastLeafToAnthesis = pFLLAnth * p
             if cumulTTFromZC_39 >= ttFromLastLeafToAnthesis:
                 phase = 4.0
-        else:
-            phase = phase1
-    elif phase1 == 4.0:
+    elif phase == 4.0:
         if grainCumulTT >= dcd:
             phase = 4.5
-        else:
-            phase = phase1
-    elif phase1 == 4.5:
+    elif phase == 4.5:
         if grainCumulTT >= dgf or gai <= 0.0:
             phase = 5.0
-        else:
-            phase = phase1
-    elif phase1 >= 5.0 and phase1 < 6.0:
+    elif phase >= 5.0 and phase < 6.0:
         localDegfm = degfm
         if ignoreGrainMaturation:
             localDegfm = -1.0
         if cumulTTFromZC_91 >= localDegfm:
             phase = 6.0
-        else:
-            phase = phase1
-    elif phase1 >= 6.0 and phase1 < 7.0:
-        phase = phase1
     return (finalLeafNumber, phase, hasLastPrimordiumAppeared)

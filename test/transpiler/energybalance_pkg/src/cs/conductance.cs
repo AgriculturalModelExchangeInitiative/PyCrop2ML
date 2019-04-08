@@ -15,85 +15,85 @@ public class Conductance_
     //            effects. 
         //- inputs:
     //            - name: vonKarman
-    //                          - description : von Karman constant
-    //                          - datatype : DOUBLE
+    //                          - parametercategory : constant
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 0.42
+    //                          - inputtype : parameter
     //                          - unit :  
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : parameter
-    //                          - parametercategory : constant
+    //                          - description : von Karman constant
     //            - name: heightWeatherMeasurements
-    //                          - description : reference height of wind and humidity measurements
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 2
+    //                          - inputtype : parameter
     //                          - unit : m
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : parameter
+    //                          - description : reference height of wind and humidity measurements
     //            - name: zm
-    //                          - description : roughness length governing momentum transfer, FAO
     //                          - parametercategory : constant
-    //                          - inputtype : parameter
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 0.13
+    //                          - inputtype : parameter
     //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - description : roughness length governing momentum transfer, FAO
     //            - name: zh
-    //                          - description : roughness length governing transfer of heat and vapour, FAO
     //                          - parametercategory : constant
-    //                          - inputtype : parameter
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 0.013
-    //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //            - name: d
-    //                          - description : corresponding to 2/3. This is multiplied to the crop heigth for calculating the zero plane displacement height, FAO
     //                          - inputtype : parameter
-    //                          - parametercategory : constant
-    //                          - datatype : DOUBLE
-    //                          - default : 0.67
-    //                          - min : 0
-    //                          - max : 1
     //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547rl
-    //            - name: plantHeight
-    //                          - description : plant Height
-    //                          - datatype : DOUBLE
-    //                          - default : 0
+    //                          - description : roughness length governing transfer of heat and vapour, FAO
+    //            - name: d
+    //                          - parametercategory : constant
     //                          - min : 0
+    //                          - datatype : DOUBLE
+    //                          - max : 1
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547rl
+    //                          - default : 0.67
+    //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : corresponding to 2/3. This is multiplied to the crop heigth for calculating the zero plane displacement height, FAO
+    //            - name: plantHeight
+    //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1000
-    //                          - unit : mm
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-    //                          - inputtype : variable
+    //                          - default : 0
     //                          - variablecategory : state
+    //                          - inputtype : variable
+    //                          - unit : mm
+    //                          - description : plant Height
     //            - name: wind
-    //                          - description : wind
+    //                          - min : 0
+    //                          - default : 124000
+    //                          - max : 1000000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : auxiliary
     //                          - datatype : DOUBLE
-    //                          - default : 124000
-    //                          - min : 0
-    //                          - max : 1000000
-    //                          - unit : m d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : m d-1
+    //                          - description : wind
         //- outputs:
     //            - name: conductance
-    //                          - description : the boundary layer conductance
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 10000
-    //                          - unit : m d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - unit : m d-1
+    //                          - description : the boundary layer conductance
         double conductance;
         double h;
-        h = Math.Max(10.0d, plantHeight) / 100.0d;
+        h = Math.Max(10, plantHeight) / 100.0d;
         conductance = wind * Math.Pow(vonKarman, 2) / Math.Log((heightWeatherMeasurements - d * h) / zm * h) * Math.Log((heightWeatherMeasurements - d * h) / zh * h);
         return conductance;
     }

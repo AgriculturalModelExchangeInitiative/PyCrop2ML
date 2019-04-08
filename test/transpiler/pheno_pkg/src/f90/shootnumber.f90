@@ -34,96 +34,96 @@ CONTAINS
     !            - Abstract: calculate the shoot number and update the related variables if needed
         !- inputs:
     !            - name: canopyShootNumber
-    !                          - min : 0
-    !                          - default : 288.0
-    !                          - max : 10000
+    !                          - description : shoot number for the whole canopy
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : shoot m-2
-    !                          - description : shoot number for the whole canopy
-    !            - name: leafNumber
     !                          - min : 0
-    !                          - default : 0
     !                          - max : 10000
-    !                          - variablecategory : state
-    !                          - datatype : DOUBLE
+    !                          - default : 288.0
+    !                          - unit : shoot m-2
     !                          - inputtype : variable
-    !                          - unit : leaf
+    !            - name: leafNumber
     !                          - description : Leaf number 
-    !            - name: sowingDensity
-    !                          - parametercategory : constant
+    !                          - variablecategory : state
+    !                          - inputtype : variable
+    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 0
+    !                          - unit : leaf
+    !            - name: sowingDensity
+    !                          - description : number of plant /m²
+    !                          - parametercategory : species
     !                          - datatype : INT
+    !                          - min : 0
     !                          - max : 500
     !                          - default : 288
-    !                          - inputtype : parameter
     !                          - unit : plant m-2
-    !                          - description : number of plant /m²
+    !                          - inputtype : parameter
     !            - name: targetFertileShoot
-    !                          - min : 280
-    !                          - default : 600
-    !                          - max : 1000
+    !                          - description : max value of shoot number for the canopy
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : 280
+    !                          - max : 1000
+    !                          - default : 600
     !                          - unit : shoot
-    !                          - description : max value of shoot number for the canopy
+    !                          - inputtype : variable
     !            - name: tilleringProfile
+    !                          - description :  store the amount of new tiller created at each time a new tiller appears
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [288.0]
-    !                          - inputtype : variable
     !                          - unit : 
-    !                          - description :  store the amount of new tiller created at each time a new tiller appears
+    !                          - inputtype : variable
     !            - name: leafTillerNumberArray
+    !                          - description : store the number of tiller for each leaf layer
     !                          - variablecategory : auxiliary
     !                          - datatype : INTLIST
+    !                          - unit : leaf
     !                          - default : [1]
     !                          - inputtype : variable
-    !                          - unit : leaf
-    !                          - description : store the number of tiller for each leaf layer
     !            - name: tillerNumber
-    !                          - min : 0
-    !                          - default : 1
-    !                          - max : 10000
+    !                          - description :  Number of tiller which appears
     !                          - variablecategory : auxiliary
     !                          - datatype : INT
-    !                          - inputtype : variable
+    !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 1
     !                          - unit : 
-    !                          - description :  store the amount of tiller created at each time a tiller appears
+    !                          - inputtype : variable
         !- outputs:
     !            - name: averageShootNumberPerPlant
+    !                          - description : average shoot number per plant in the canopy
+    !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - variablecategory : auxiliary
     !                          - max : 10000
     !                          - unit : shoot m-2
-    !                          - description : average shoot number per plant in the canopy
     !            - name: canopyShootNumber
+    !                          - description : shoot number for the whole canopy
+    !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - variablecategory : auxiliary
     !                          - max : 10000
-    !                          - unit : m2 m-2
-    !                          - description : shoot number for the whole canopy
+    !                          - unit : shoot m-2
     !            - name: leafTillerNumberArray
+    !                          - description : store the number of tiller for each leaf layer
     !                          - variablecategory : auxiliary
     !                          - datatype : INTLIST
     !                          - unit : leaf
-    !                          - description : store the number of tiller for each leaf layer
     !            - name: tilleringProfile
+    !                          - description :  store the amount of new tiller created at each time a new tiller appears
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - unit : 
-    !                          - description :  store the amount of new tiller created at each time a new tiller appears
     !            - name: tillerNumber
+    !                          - description :  store the amount of new tiller created at each time a new tiller appears
+    !                          - variablecategory : auxiliary
     !                          - datatype : INT
     !                          - min : 0
-    !                          - variablecategory : auxiliary
     !                          - max : 10000
     !                          - unit : 
-    !                          - description :  store the amount of new tiller created at each time a new tiller appears
         oldCanopyShootNumber = canopyShootNumber
         emergedLeaves = INT(MAX(1.0, REAL(CEILING(leafNumber - 1))))
         call fibonacci_(emergedLeaves,shoots)
@@ -135,7 +135,7 @@ CONTAINS
         END IF
         tillerNumber = SIZE(tilleringProfile)
         DO i = SIZE(leafTillerNumberArray) + 1  ,  &
-                INT(REAL(CEILING(leafNumber))) , 1
+                INT(REAL(CEILING(leafNumber))), 1
             call Add(leafTillerNumberArray, tillerNumber)
         END DO
     END SUBROUTINE shootnumber_

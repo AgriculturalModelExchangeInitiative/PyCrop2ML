@@ -4,9 +4,6 @@ MODULE Netradiation_mod
 CONTAINS
     SUBROUTINE netradiation_(minTair, &
         maxTair, &
-        albedoCoefficient, &
-        stefanBoltzman, &
-        elevation, &
         solarRadiation, &
         vaporPressure, &
         extraSolarRadiation, &
@@ -22,9 +19,9 @@ CONTAINS
         REAL:: Nolr
         REAL, INTENT(IN) :: minTair
         REAL, INTENT(IN) :: maxTair
-        REAL, INTENT(IN) :: albedoCoefficient
-        REAL, INTENT(IN) :: stefanBoltzman
-        REAL, INTENT(IN) :: elevation
+        REAL, PARAMETER :: albedoCoefficient = 0.23
+        REAL, PARAMETER :: stefanBoltzman = 4.903E-09
+        REAL, PARAMETER :: elevation = 0
         REAL, INTENT(IN) :: solarRadiation
         REAL, INTENT(IN) :: vaporPressure
         REAL, INTENT(IN) :: extraSolarRadiation
@@ -38,7 +35,7 @@ CONTAINS
     !                     and long wavelength radiation 
         !- inputs:
     !            - name: minTair
-    !                          - description : minimal temperature
+    !                          - description : minimum air temperature
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : -30
@@ -48,7 +45,7 @@ CONTAINS
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : variable
     !            - name: maxTair
-    !                          - description : maximal Temperature
+    !                          - description : maximum air Temperature
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : -30
@@ -58,7 +55,7 @@ CONTAINS
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : variable
     !            - name: albedoCoefficient
-    !                          - description : albedoCoefficient
+    !                          - description : albedo Coefficient
     !                          - parametercategory : constant
     !                          - datatype : DOUBLE
     !                          - default : 0.23
@@ -68,7 +65,7 @@ CONTAINS
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : parameter
     !            - name: stefanBoltzman
-    !                          - description : stefanBoltzman
+    !                          - description : stefan Boltzman constant
     !                          - parametercategory : constant
     !                          - datatype : DOUBLE
     !                          - default : 4.903E-09
@@ -94,7 +91,7 @@ CONTAINS
     !                          - default : 3
     !                          - min : 0
     !                          - max : 1000
-    !                          - unit : MJ/m²/d
+    !                          - unit : MJ m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : variable
     !            - name: vaporPressure

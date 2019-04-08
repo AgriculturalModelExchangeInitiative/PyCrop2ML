@@ -5,22 +5,17 @@ CONTAINS
     SUBROUTINE penman_(evapoTranspirationPriestlyTaylor, &
         hslope, &
         VPDair, &
-        psychrometricConstant, &
-        Alpha, &
-        lambdaV, &
-        rhoDensityAir, &
-        specificHeatCapacityAir, &
         conductance, &
         evapoTranspirationPenman)
         REAL, INTENT(OUT) :: evapoTranspirationPenman
         REAL, INTENT(IN) :: evapoTranspirationPriestlyTaylor
         REAL, INTENT(IN) :: hslope
         REAL, INTENT(IN) :: VPDair
-        REAL, INTENT(IN) :: psychrometricConstant
-        REAL, INTENT(IN) :: Alpha
-        REAL, INTENT(IN) :: lambdaV
-        REAL, INTENT(IN) :: rhoDensityAir
-        REAL, INTENT(IN) :: specificHeatCapacityAir
+        REAL, PARAMETER :: psychrometricConstant = 0.66
+        REAL, PARAMETER :: Alpha = 1.5
+        REAL, PARAMETER :: lambdaV = 2.454
+        REAL, PARAMETER :: rhoDensityAir = 1.225
+        REAL, PARAMETER :: specificHeatCapacityAir = 0.00101
         REAL, INTENT(IN) :: conductance
         !- Description:
     !            - Model Name: Penman Model
@@ -42,7 +37,7 @@ CONTAINS
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : variable
     !            - name: hslope
-    !                          - description : slope
+    !                          - description : the slope of saturated vapor pressure temperature curve at a given temperature 
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - default : 0.584
@@ -126,7 +121,7 @@ CONTAINS
     !                          - datatype : DOUBLE
     !                          - min : 0
     !                          - max : 5000
-    !                          - unit : g/m²d
+    !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
         evapoTranspirationPenman = evapoTranspirationPriestlyTaylor / Alpha +  &
                 1000 * rhoDensityAir * specificHeatCapacityAir * VPDair * conductance  &

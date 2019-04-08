@@ -14,30 +14,19 @@
         <Input name="deltaTT" description="daily delta TT " variablecategory="auxiliary" datatype="DOUBLE" min="-20" max="100" default="23.5895677277199" unit="°C d"  inputtype="variable"/>
         <Input name="phyllochron" description="phyllochron" variablecategory="state" inputtype ="variable" datatype="DOUBLE" min="0" max="1000" default="0" unit="°C d leaf-1" />
         <Input name="hasFlagLeafLiguleAppeared" description="true if flag leaf has appeared (leafnumber reached finalLeafNumber)" variablecategory="state" datatype="INT" min="0" max="1" default="0" unit="" inputtype = "variable"/>
-        <Input name="switchMaize" description="true if maize" parametercategory="constant" datatype="INT" min="0" max="1" default="0" unit=""  inputtype = "parameter"/>
-        <Input name="atip" description="slope of leaf initiation" parametercategory="species" datatype="DOUBLE" min="0" max="1000" default="10" unit="leaf °C-1 d-2" inputtype = "parameter"/>
-        <Input name="leaf_tip_emerg" description="parameter for maize number of tip emerged" parametercategory="species" datatype="DOUBLE" min="0" max="1000" default="10" unit=""  inputtype = "parameter"/>
-        <Input name="k_bl" description="" parametercategory="constant" inputtype="parameter" datatype="DOUBLE" min="0" max="100" default="1.412" unit="" />
-        <Input name="nlim" description="" parametercategory="constant" datatype="DOUBLE" default="6.617" min="0" max="1000" unit="" inputtype="parameter"/>
         <Input name="leafNumber" description=" Actual number of phytomers" variablecategory="state" datatype="DOUBLE" min="0" max="25" default="0"  unit="leaf" inputtype="variable"/>
-        <Input name="cumulTTPhenoMaizeAtEmergence" description="cumulTTPhenoMaizeAtEmergence" variablecategory="auxiliary" datatype="DOUBLE" min="0" max="10000" default="300"  unit="°C"  inputtype="variable"/>
-        <Input name="cumulTT" description="cumul thermal times at current time " variablecategory="auxiliary" datatype="DOUBLE" min="-200" max="10000"  unit="°C" default="402.042720581446"  inputtype="variable"/>
         <Input name="phase" description=" the name of the phase" variablecategory="state" datatype="DOUBLE" min="0" max="7" default = "1" unit=" " uri="some url" inputtype="variable"/>
         
     
     </Inputs>
     <Outputs>
         <Output name="leafNumber" description="Actual number of phytomers" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
-        <Output name="ntip" description="Maize number of tip" datatype="DOUBLE" min="0" max="10000"  unit="leaf" uri="some url"/>
-    
     </Outputs>
     
-   <Algorithm  language="Cyml" platform="" filename="algo/pyx/LeafNumberModule.pyx"/>
- 
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/LeafNumberModule.pyx"/>
+
     <Parametersets>
         <Parameterset name="ParamWheat" description="some values in there" >
-        	<Param name="switchMaize">0</Param>
-        	<Param name="leaf_tip_emerg">10</Param>
         </Parameterset>
      </Parametersets>
      <Testsets>
@@ -46,7 +35,6 @@
         		<InputValue name="leafNumber">5.147163833893262</InputValue>
         		<InputValue name="phase">3</InputValue>
         		<InputValue name="phyllochron">91.2</InputValue>
-        		<OutputValue name="ntip" precision ="2">0</OutputValue>
 				<OutputValue name="leafNumber" precision ="2">5.41</OutputValue>
  	
         	</Test>

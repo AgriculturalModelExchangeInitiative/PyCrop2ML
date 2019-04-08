@@ -23,7 +23,7 @@
     
     <Algorithm  language="Cyml" platform="" filename="algo/pyx/PriestlyTaylor.pyx" />
 
-    <Parametersets>
+      <Parametersets>
         <Parameterset name="set1" description="some values in there" >
         	<Param name="Alpha">1.5</Param>
 

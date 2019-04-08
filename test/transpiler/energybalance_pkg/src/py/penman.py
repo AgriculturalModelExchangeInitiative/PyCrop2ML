@@ -22,7 +22,7 @@ def penman_(evapoTranspirationPriestlyTaylor,hslope,VPDair,psychrometricConstant
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     #                          - inputtype : variable
     #            - name: hslope
-    #                          - description : slope
+    #                          - description : the slope of saturated vapor pressure temperature curve at a given temperature 
     #                          - variablecategory : auxiliary
     #                          - datatype : DOUBLE
     #                          - default : 0.584
@@ -106,7 +106,7 @@ def penman_(evapoTranspirationPriestlyTaylor,hslope,VPDair,psychrometricConstant
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 5000
-    #                          - unit : g/m²d
+    #                          - unit : g m-2 d-1
     #                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     evapoTranspirationPenman = evapoTranspirationPriestlyTaylor / Alpha + 1000 * rhoDensityAir * specificHeatCapacityAir * VPDair * conductance / lambdaV * (hslope + psychrometricConstant)
     return evapoTranspirationPenman

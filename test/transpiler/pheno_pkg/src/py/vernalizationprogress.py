@@ -43,7 +43,7 @@ def vernalizationprogress_(dayLength,deltaTT,cumulTT,leafNumber,calendarMoments,
     #                          - inputtype : variable
     #            - name: leafNumber
     #                          - description : Actual number of phytomers
-    #                          - parametercategory : species
+    #                          - variablecategory : state
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 25
@@ -160,7 +160,7 @@ def vernalizationprogress_(dayLength,deltaTT,cumulTT,leafNumber,calendarMoments,
     #                          - max : 1
     #                          - default :  0.5517254187376879
     #                          - unit : 
-    #                          - inputtype : parameter
+    #                          - inputtype : variable
     #            - name: currentdate
     #                          - description : current date 
     #                          - variablecategory : auxiliary
@@ -169,6 +169,7 @@ def vernalizationprogress_(dayLength,deltaTT,cumulTT,leafNumber,calendarMoments,
     #                          - inputtype : variable
     #            - name: isVernalizable
     #                          - description : true if the plant is vernalizable
+    #                          - parametercategory : species
     #                          - datatype : INT
     #                          - min : 0
     #                          - max : 1

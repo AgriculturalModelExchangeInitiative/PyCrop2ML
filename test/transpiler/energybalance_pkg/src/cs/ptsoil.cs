@@ -13,54 +13,54 @@ public class Ptsoil_
     //            - Abstract: Evaporation from the soil in the energy-limited stage 
         //- inputs:
     //            - name: evapoTranspirationPriestlyTaylor
-    //                          - description : evapoTranspiration Priestly Taylor
+    //                          - min : 0
+    //                          - default : 120
+    //                          - max : 1000
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - variablecategory : state
     //                          - datatype : DOUBLE
-    //                          - default : 120
-    //                          - min : 0
-    //                          - max : 1000
-    //                          - unit : °g m-2 d-1
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : variable
+    //                          - unit : °g m-2 d-1
+    //                          - description : evapoTranspiration Priestly Taylor
     //            - name: Alpha
-    //                          - description : Priestley-Taylor evapotranspiration proportionality constant
     //                          - parametercategory : constant
+    //                          - min : 0
     //                          - datatype : DOUBLE
+    //                          - max : 100
+    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - default : 1.5
-    //                          - min : 0
-    //                          - max : 100
-    //                          - unit : 
-    //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : Priestley-Taylor evapotranspiration proportionality constant
     //            - name: tau
-    //                          - description : plant cover factor
     //                          - parametercategory : species
-    //                          - datatype : DOUBLE
-    //                          - default : 0.9983
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 100
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.9983
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : plant cover factor
     //            - name: tauAlpha
-    //                          - description : Fraction of the total net radiation exchanged at the soil surface when AlpaE = 1
     //                          - parametercategory : soil
-    //                          - datatype : DOUBLE
-    //                          - default : 0.3
     //                          - min : 0
+    //                          - datatype : DOUBLE
     //                          - max : 1
-    //                          - unit : 
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - default : 0.3
     //                          - inputtype : parameter
+    //                          - unit : 
+    //                          - description : Fraction of the total net radiation exchanged at the soil surface when AlpaE = 1
         //- outputs:
     //            - name: energyLimitedEvaporation
-    //                          - description : energy Limited Evaporation 
-    //                          - variablecategory : state
-    //                          - datatype : DOUBLE
     //                          - min : 0
+    //                          - variablecategory : state
     //                          - max : 5000
-    //                          - unit : g m-2 d-1
     //                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
+    //                          - datatype : DOUBLE
+    //                          - unit : g m-2 d-1
+    //                          - description : energy Limited Evaporation 
         double energyLimitedEvaporation;
         double AlphaE;
         if (tau < tauAlpha)

@@ -2,11 +2,10 @@ MODULE Netradiationequivalentevaporation_mod
     USE list_sub
     IMPLICIT NONE
 CONTAINS
-    SUBROUTINE netradiationequivalentevaporation_(lambdaV, &
-        netRadiation, &
+    SUBROUTINE netradiationequivalentevaporation_(netRadiation, &
         netRadiationEquivalentEvaporation)
         REAL, INTENT(OUT) :: netRadiationEquivalentEvaporation
-        REAL, INTENT(IN) :: lambdaV
+        REAL, PARAMETER :: lambdaV = 2.454
         REAL, INTENT(IN) :: netRadiation
         !- Description:
     !            - Model Name: NetRadiationEquivalentEvaporation Model
@@ -27,7 +26,7 @@ CONTAINS
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
     !                          - inputtype : parameter
     !            - name: netRadiation
-    !                          - description : 
+    !                          - description : net radiation
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
     !                          - default : 1.566

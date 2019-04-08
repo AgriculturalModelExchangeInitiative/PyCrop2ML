@@ -13,7 +13,6 @@
     <Inputs>
         <Input name="calendarMoments" description="List containing appearance of each stage" variablecategory="auxiliary"  datatype="STRINGLIST"  default= "['Sowing']" unit=""  inputtype = "variable"/>
 		<Input name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" variablecategory="auxiliary"  datatype="DOUBLELIST" default="[0.0]" unit="°C d"  inputtype = "variable"/>
-        <Input name="switchMaize" description="true if maize"  datatype="INT" parametercategory="constant" min="0" max="1" default="0" unit=""  inputtype = "parameter"/>
         <Input name="cumulTT" description="cumul TT at current date" datatype="DOUBLE" variablecategory="auxiliary" min="-200" max="10000" default="8" unit="°C d" inputtype = "variable"/>
       
     </Inputs>
@@ -30,7 +29,6 @@
 
     <Parametersets>
         <Parameterset name="wheat" description="some values in there" >
-        	<Param name="switchMaize">0</Param>
         </Parameterset>
      </Parametersets>
      <Testsets>

@@ -23,7 +23,7 @@ class ModelUnit(ModelDefinition):
         self.inputs = []
         self.outputs = []
         self.function=[]
-        self.Initialization=[]
+        self.initialization=[]
         self.algorithms = []
         self.parametersets = {}
         self.testsets = []

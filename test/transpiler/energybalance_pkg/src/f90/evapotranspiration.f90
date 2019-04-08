@@ -2,12 +2,11 @@ MODULE Evapotranspiration_mod
     USE list_sub
     IMPLICIT NONE
 CONTAINS
-    SUBROUTINE evapotranspiration_(isWindVpDefined, &
-        evapoTranspirationPriestlyTaylor, &
+    SUBROUTINE evapotranspiration_(evapoTranspirationPriestlyTaylor, &
         evapoTranspirationPenman, &
         evapoTranspiration)
         REAL, INTENT(OUT) :: evapoTranspiration
-        INTEGER, INTENT(IN) :: isWindVpDefined
+        INTEGER, PARAMETER :: isWindVpDefined = 1
         REAL, INTENT(IN) :: evapoTranspirationPriestlyTaylor
         REAL, INTENT(IN) :: evapoTranspirationPenman
         !- Description:

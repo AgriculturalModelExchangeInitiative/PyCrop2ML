@@ -31,7 +31,8 @@ class FortranRules(GeneralRule):
            "float":"REAL",
            "bool":"LOGICAL",
            "str":"CHARACTER(65)",
-           "list": "%s,DIMENSION (:), ALLOCATABLE::"
+           "list": "%s,DIMENSION (:), ALLOCATABLE::",
+           "array":"%s, DIMENSION(%s)"
            }
     
     functions = {
@@ -53,7 +54,10 @@ class FortranRules(GeneralRule):
                     'max': 'MAX',
                     'abs':'ABS',
                     'round': 'Round',
-                    'pow':         lambda node: Node("call", function=" ",args=Node("binary_op", op = "**", left = node.args[0], right=node.args[1]), pseudo_type="boolean")
+                    'pow':         lambda node: Node("call", function=" ",args=Node("binary_op", op = "**", left = node.args[0], right=node.args[1]), pseudo_type="boolean"),
+                    'modulo':   "modulo"
+
+
                     },
             
             }
@@ -74,7 +78,7 @@ class FortranRules(GeneralRule):
                     'len':'SIZE',
                     'append':lambda node: Node("custom_call",receiver = node.receiver, function="call Add", args=node.args, pseudo_type=node.pseudo_type),
                     'sum':'sum',
-                    'pop':'.RemoveAt',
+                    'pop': lambda node: Node("assignment",target =node.receiver, value=Node("tab",receiver=node.receiver, index=node.args), pseudo_type="Void"),
                     'contains?':lambda node: Node("call", function="ANY", args=Node(type="binary_op", op="==", right =node.args, left = node.receiver), 
                                                  pseudo_type=node.pseudo_type),
                     'not contains?':lambda node: Node("call", function="ALL", args=Node(type="binary_op", op="!=", right =node.args, left = node.receiver), 
