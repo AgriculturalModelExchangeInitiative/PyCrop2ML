@@ -1,4 +1,5 @@
 MODULE Registerzadok_mod
+    use list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE registerzadok_(cumulTT, &
@@ -35,15 +36,15 @@ CONTAINS
         !- Description:
     !            - Model Name: RegisterZadok Model
     !            - Author: Pierre MARTRE
-    !            - Reference: Modeling development phase in the 
+    !            - Reference: Modeling development phase in the
     !                Wheat Simulation Model SiriusQuality.
     !                See documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=427
     !            - Institution: INRA/LEPSE Montpellier
     !            - Abstract: Record the zadok stage in the calendar
-    !    	
+    !
         !- inputs:
     !            - name: cumulTT
-    !                          - description : 
+    !                          - description :
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : -200
@@ -53,14 +54,14 @@ CONTAINS
     !                          - uri : some url
     !                          - inputtype : variable
     !            - name: phase
-    !                          - description : instance of the phase class . You can get the name of the phase using phase.getPhaseAsString(PhaseValue) 
+    !                          - description : instance of the phase class . You can get the name of the phase using phase.getPhaseAsString(PhaseValue)
     !                          - variablecategory : state
     !                          - inputtype : variable
     !                          - datatype : DOUBLE
     !                          - min : 0
     !                          - max : 7
     !                          - default : 2
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !            - name: leafNumber
     !                          - description : Actual number of phytomers
@@ -77,14 +78,14 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - unit : 
+    !                          - unit :
     !                          - inputtype : variable
     !            - name: calendarDates
     !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - default : ['21/3/2007']
-    !                          - unit : 
+    !                          - unit :
     !                          - inputtype : variable
     !            - name: calendarCumuls
     !                          - description : list containing for each stage occured its cumulated thermal times
@@ -107,10 +108,10 @@ CONTAINS
     !                          - description : current date
     !                          - variablecategory : auxiliary
     !                          - datatype : DATE
-    !                          - min : 
-    !                          - max : 
+    !                          - min :
+    !                          - max :
     !                          - default : 9/4/2007
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !                          - inputtype : variable
     !            - name: der
@@ -130,7 +131,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 10000
     !                          - default : 0.9
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !                          - inputtype : parameter
     !            - name: intTSFLN
@@ -140,7 +141,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 10000
     !                          - default : 0.9
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !                          - inputtype : parameter
     !            - name: finalLeafNumber
@@ -156,10 +157,10 @@ CONTAINS
     !            - name: currentZadokStage
     !                          - description : current zadok stage
     !                          - datatype : STRING
-    !                          - min : 
-    !                          - max : 
+    !                          - min :
+    !                          - max :
     !                          - default : MainShootPlus1Tiller
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !                          - inputtype : variable
     !            - name: hasZadokStageChanged
@@ -169,7 +170,7 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - default : 0
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !                          - inputtype : variable
         !- outputs:
@@ -179,24 +180,24 @@ CONTAINS
     !                          - datatype : INT
     !                          - min : 0
     !                          - max : 1
-    !                          - unit : 
+    !                          - unit :
     !                          - uri : some url
     !            - name: currentZadokStage
     !                          - description : current zadok stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRING
-    !                          - unit :  
+    !                          - unit :
     !                          - uri : some url
     !            - name: calendarMoments
     !                          - description :  List containing apparition of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
-    !                          - unit : 
+    !                          - unit :
     !            - name: calendarDates
     !                          - description :  List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
-    !                          - unit : 
+    !                          - unit :
     !            - name: calendarCumuls
     !                          - description :  list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
