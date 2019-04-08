@@ -4,7 +4,6 @@ from CumulTTFrom import *
 
 def test_test_wheat1():
     params= cumulttfrom(
-    switchMaize = 0,
     calendarMoments = ["Sowing", "Emergence", "FloralInitiation", "FlagLeafLiguleJustVisible", "Heading", "Anthesis"],
     calendarCumuls = [0.0, 112.330110409888, 354.582294511779, 741.510096671757, 853.999637026622, 954.59002776961],
     cumulTT = 972.970888983105,
@@ -33,18 +32,13 @@ from LeafNumber import *
 
 def test_test_wheat1():
     params= leafnumber(
-    switchMaize = 0,
-    leaf_tip_emerg = 10,
     leafNumber = 5.147163833893262,
     phase = 3,
     phyllochron = 91.2,
      )
-    leafNumber_estimated = round(params[0], 2)
+    leafNumber_estimated = round(params, 2)
     leafNumber_computed = 5.41
     assert (leafNumber_estimated == leafNumber_computed)
-    ntip_estimated = round(params[1], 2)
-    ntip_computed = 0
-    assert (ntip_estimated == ntip_computed)
 
 from Phyllochron import *
 
@@ -181,7 +175,6 @@ from UpdatePhase import *
 
 def test_test_wheat1():
     params= updatephase(
-    switchMaize = 0,
     choosePhyllUse = "Default",
     phase = 1,
     hasLastPrimordiumAppeared = 0,

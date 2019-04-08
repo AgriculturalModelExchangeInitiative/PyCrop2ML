@@ -1,7 +1,7 @@
 import numpy
 from math import *
 
-def cumulttfrom_(calendarMoments,calendarCumuls,switchMaize,cumulTT):
+def cumulttfrom_(calendarMoments,calendarCumuls,cumulTT):
     #- Description:
     #            - Model Name: CumulTTFrom Model
     #            - Author: Pierre Martre
@@ -25,15 +25,6 @@ def cumulttfrom_(calendarMoments,calendarCumuls,switchMaize,cumulTT):
     #                          - default : [0.0]
     #                          - unit : °C d
     #                          - inputtype : variable
-    #            - name: switchMaize
-    #                          - description : true if maize
-    #                          - datatype : INT
-    #                          - parametercategory : constant
-    #                          - min : 0
-    #                          - max : 1
-    #                          - default : 0
-    #                          - unit : 
-    #                          - inputtype : parameter
     #            - name: cumulTT
     #                          - description : cumul TT at current date
     #                          - datatype : DOUBLE
@@ -69,12 +60,9 @@ def cumulttfrom_(calendarMoments,calendarCumuls,switchMaize,cumulTT):
     cumulTTFromZC_39 = 0.0
     cumulTTFromZC_91 = 0.0
     if "Anthesis" in calendarMoments:
-        if switchMaize == 0:
-            cumulTTFromZC_65 = cumulTT - calendarCumuls[calendarMoments.index("Anthesis")]
+        cumulTTFromZC_65 = cumulTT - calendarCumuls[calendarMoments.index("Anthesis")]
     if "FlagLeafLiguleJustVisible" in calendarMoments:
-        if switchMaize == 0:
-            cumulTTFromZC_39 = cumulTT - calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]
+        cumulTTFromZC_39 = cumulTT - calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]
     if "EndGrainFilling" in calendarMoments:
-        if switchMaize == 0:
-            cumulTTFromZC_91 = cumulTT - calendarCumuls[calendarMoments.index("EndGrainFilling")]
+        cumulTTFromZC_91 = cumulTT - calendarCumuls[calendarMoments.index("EndGrainFilling")]
     return (cumulTTFromZC_65, cumulTTFromZC_39, cumulTTFromZC_91)

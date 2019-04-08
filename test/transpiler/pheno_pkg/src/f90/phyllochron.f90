@@ -1,5 +1,4 @@
 MODULE Phyllochron_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE phyllochron_(fixPhyll, &
@@ -18,7 +17,7 @@ CONTAINS
         choosePhyllUse, &
         phyllochron)
         REAL, INTENT(OUT) :: phyllochron
-        REAL:: pastMaxAI1
+        REAL:: gai_
         REAL, INTENT(IN) :: fixPhyll
         REAL, INTENT(IN) :: leafNumber
         REAL, INTENT(IN) :: lincr
@@ -43,158 +42,158 @@ CONTAINS
     !            - Abstract: Calculate different types of phyllochron 
         !- inputs:
     !            - name: fixPhyll
-    !                          - min : 0
-    !                          - default : 5
-    !                          - max : 10000
-    !                          - uri : some url
+    !                          - description : Sowing date corrected Phyllochron
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d leaf-1
-    !                          - description : Sowing date corrected Phyllochron
-    !            - name: leafNumber
     !                          - min : 0
-    !                          - default : 0
-    !                          - max : 25
+    !                          - max : 10000
+    !                          - default : 5
+    !                          - unit : °C d leaf-1
     !                          - uri : some url
+    !                          - inputtype : variable
+    !            - name: leafNumber
+    !                          - description : Actual number of phytomers
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : 0
+    !                          - max : 25
+    !                          - default : 0
     !                          - unit : leaf
-    !                          - description : Actual number of phytomers
+    !                          - uri : some url
+    !                          - inputtype : variable
     !            - name: lincr
-    !                          - parametercategory : species
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 30
-    !                          - uri : some url
-    !                          - default : 8
-    !                          - inputtype : parameter
-    !                          - unit : leaf
     !                          - description : Leaf number above which the phyllochron is increased by Pincr
-    !            - name: ldecr
     !                          - parametercategory : species
-    !                          - min : 0
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 30
-    !                          - uri : some url
-    !                          - default : 10
-    !                          - inputtype : parameter
+    !                          - default : 8
     !                          - unit : leaf
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: ldecr
     !                          - description : Leaf number up to which the phyllochron is decreased by Pdecr
+    !                          - parametercategory : species
+    !                          - inputtype : parameter
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 30
+    !                          - default : 10
+    !                          - unit : leaf
+    !                          - uri : some url
     !            - name: pdecr
-    !                          - parametercategory : constant
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 10
-    !                          - uri : some url
-    !                          - default : 0.4
-    !                          - inputtype : parameter
-    !                          - unit : 
     !                          - description : Factor decreasing the phyllochron for leaf number less than Ldecr
-    !            - name: pincr
-    !                          - parametercategory : constant
-    !                          - min : 0
+    !                          - parametercategory : species
+    !                          - inputtype : parameter
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 10
-    !                          - uri : some url
-    !                          - default : 1.5
-    !                          - inputtype : parameter
+    !                          - default : 0.4
     !                          - unit : 
+    !                          - uri : some url
+    !            - name: pincr
     !                          - description : Factor increasing the phyllochron for leaf number higher than Lincr
+    !                          - parametercategory : species
+    !                          - datatype : DOUBLE
+    !                          - default : 1.5
+    !                          - min : 0
+    !                          - max : 10
+    !                          - unit : 
+    !                          - uri : some url
+    !                          - inputtype : parameter
     !            - name: ptq
-    !                          - parametercategory : species
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 10000
-    !                          - uri : some url
-    !                          - default : 0
-    !                          - inputtype : variable
-    !                          - unit : MJ °C-1 d-1 m-2)
     !                          - description : Photothermal quotient 
+    !                          - parametercategory : species
+    !                          - inputtype : variable
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 0
+    !                          - unit : MJ °C-1 d-1 m-2)
+    !                          - uri : some url
     !            - name: gai
-    !                          - parametercategory : species
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 10000
-    !                          - uri : some url
-    !                          - default : 0
-    !                          - inputtype : variable
-    !                          - unit : m2 m-2
     !                          - description : Green Area Index
-    !            - name: pastMaxAI
+    !                          - variablecategory : species
+    !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - default : 0
     !                          - max : 10000
-    !                          - uri : some url
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - default : 0
     !                          - unit : m2 m-2
-    !                          - description : PhotoThermal Quotien
-    !            - name: kl
-    !                          - parametercategory : constant
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 50
     !                          - uri : some url
-    !                          - default : 0.45
-    !                          - inputtype : parameter
-    !                          - unit : 
-    !                          - description : Exctinction Coefficient
-    !            - name: aPTQ
-    !                          - parametercategory : constant
-    !                          - min : 0
-    !                          - datatype : DOUBLE
-    !                          - max : 1000
-    !                          - uri : some url
-    !                          - default : 0.842934
     !                          - inputtype : variable
-    !                          - unit : 
-    !                          - description : Slope to intercept ratio for Phyllochron  parametrization with PhotoThermal Quotient
-    !            - name: phylPTQ1
-    !                          - parametercategory : constant
-    !                          - min : 0
+    !            - name: pastMaxAI
+    !                          - description : Past Maximum GAI
+    !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - max : 1000
+    !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 0
+    !                          - unit : m2 m-2
     !                          - uri : some url
-    !                          - default : 20
-    !                          - inputtype : parameter
-    !                          - unit : °C d leaf-1
-    !                          - description : Phyllochron at PTQ equal 1
-    !            - name: p
+    !                          - inputtype : variable
+    !            - name: kl
+    !                          - description : Exctinction Coefficient
     !                          - parametercategory : species
-    !                          - min : 0
     !                          - datatype : DOUBLE
-    !                          - max : 1000
-    !                          - uri : some url
-    !                          - default : 120
-    !                          - inputtype : parameter
-    !                          - unit : °C d leaf-1
-    !                          - description : Phyllochron (Varietal parameter)
-    !            - name: choosePhyllUse
-    !                          - default : Default
-    !                          - datatype : STRING
-    !                          - description : Switch to choose the type of phyllochron calculation to be used
-    !                          - uri : some url
+    !                          - min : 0
+    !                          - max : 50
+    !                          - default : 0.45
     !                          - unit : 
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: aPTQ
+    !                          - description : Slope to intercept ratio for Phyllochron  parametrization with PhotoThermal Quotient
+    !                          - parametercategory : species
+    !                          - inputtype : variable
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 1000
+    !                          - default : 0.842934
+    !                          - unit : 
+    !                          - uri : some url
+    !            - name: phylPTQ1
+    !                          - description : Phyllochron at PTQ equal 1
+    !                          - parametercategory : species
+    !                          - datatype : DOUBLE
+    !                          - default : 20
+    !                          - min : 0
+    !                          - max : 1000
+    !                          - unit : °C d leaf-1
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: p
+    !                          - description : Phyllochron (Varietal parameter)
+    !                          - parametercategory : species
+    !                          - datatype : DOUBLE
+    !                          - default : 120
+    !                          - min : 0
+    !                          - max : 1000
+    !                          - unit : °C d leaf-1
+    !                          - uri : some url
+    !                          - inputtype : parameter
+    !            - name: choosePhyllUse
+    !                          - description : Switch to choose the type of phyllochron calculation to be used
+    !                          - parametercategory : species
+    !                          - datatype : STRING
+    !                          - default : Default
+    !                          - unit : 
+    !                          - uri : some url
     !                          - inputtype : parameter
         !- outputs:
     !            - name: phyllochron
+    !                          - description :  the rate of leaf appearance 
+    !                          - variablecategory : state
     !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - variablecategory : state
     !                          - max : 1000
     !                          - unit :  °C d leaf-1
-    !                          - description :  the rate of leaf appearance 
     !            - name: pastMaxAI
+    !                          - description : Past maximum GAI
+    !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - variablecategory : auxiliary
     !                          - max : 10000
     !                          - unit : m2 m-2
-    !                          - description : Past maximum GAI
-        phyllochron = 0.0
         IF(choosePhyllUse .EQ. 'Default') THEN
             IF(leafNumber .LT. ldecr) THEN
                 phyllochron = fixPhyll * pdecr
@@ -205,11 +204,10 @@ CONTAINS
             END IF
         END IF
         IF(choosePhyllUse .EQ. 'PTQ') THEN
-            pastMaxAI1 = pastMaxAI
-            gai = MAX(pastMaxAI1, gai)
-            pastMaxAI = gai
-            IF(gai .GT. 0.0) THEN
-                phyllochron = phylPTQ1 * gai * kl / (1 - EXP(-kl * gai)) / (ptq +  &
+            gai_ = MAX(pastMaxAI, gai)
+            pastMaxAI = gai_
+            IF(gai_ .GT. 0.0) THEN
+                phyllochron = phylPTQ1 * gai_ * kl / (1 - EXP(-kl * gai_)) / (ptq +  &
                         aPTQ)
             ELSE
                 phyllochron = phylPTQ1

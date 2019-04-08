@@ -53,7 +53,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - uri : some url
     #            - name: pdecr
     #                          - description : Factor decreasing the phyllochron for leaf number less than Ldecr
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - inputtype : parameter
     #                          - datatype : DOUBLE
     #                          - min : 0
@@ -63,7 +63,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - uri : some url
     #            - name: pincr
     #                          - description : Factor increasing the phyllochron for leaf number higher than Lincr
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - default : 1.5
     #                          - min : 0
@@ -83,7 +83,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - uri : some url
     #            - name: gai
     #                          - description : Green Area Index
-    #                          - parametercategory : species
+    #                          - variablecategory : species
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 10000
@@ -92,8 +92,8 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - uri : some url
     #                          - inputtype : variable
     #            - name: pastMaxAI
-    #                          - description : PhotoThermal Quotien
-    #                          - variablecategory : auxiliary
+    #                          - description : Past Maximum GAI
+    #                          - variablecategory : state
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 10000
@@ -103,7 +103,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - inputtype : variable
     #            - name: kl
     #                          - description : Exctinction Coefficient
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 50
@@ -113,7 +113,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - inputtype : parameter
     #            - name: aPTQ
     #                          - description : Slope to intercept ratio for Phyllochron  parametrization with PhotoThermal Quotient
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - inputtype : variable
     #                          - datatype : DOUBLE
     #                          - min : 0
@@ -123,7 +123,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - uri : some url
     #            - name: phylPTQ1
     #                          - description : Phyllochron at PTQ equal 1
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : DOUBLE
     #                          - default : 20
     #                          - min : 0
@@ -143,6 +143,7 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - inputtype : parameter
     #            - name: choosePhyllUse
     #                          - description : Switch to choose the type of phyllochron calculation to be used
+    #                          - parametercategory : species
     #                          - datatype : STRING
     #                          - default : Default
     #                          - unit : 
@@ -163,7 +164,6 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
     #                          - min : 0
     #                          - max : 10000
     #                          - unit : m2 m-2
-    phyllochron = 0.0
     if choosePhyllUse == "Default":
         if leafNumber < ldecr:
             phyllochron = fixPhyll * pdecr
@@ -172,11 +172,10 @@ def phyllochron_(fixPhyll,leafNumber,lincr,ldecr,pdecr,pincr,ptq,gai,pastMaxAI,k
         else:
             phyllochron = fixPhyll * pincr
     if choosePhyllUse == "PTQ":
-        pastMaxAI1 = pastMaxAI
-        gai = max(pastMaxAI1, gai)
-        pastMaxAI = gai
-        if gai > 0.0:
-            phyllochron = phylPTQ1 * gai * kl / (1 - exp(-kl * gai)) / (ptq + aPTQ)
+        gai_ = max(pastMaxAI, gai)
+        pastMaxAI = gai_
+        if gai_ > 0.0:
+            phyllochron = phylPTQ1 * gai_ * kl / (1 - exp(-kl * gai_)) / (ptq + aPTQ)
         else:
             phyllochron = phylPTQ1
     if choosePhyllUse == "Test":

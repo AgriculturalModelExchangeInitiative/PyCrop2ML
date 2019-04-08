@@ -13,7 +13,7 @@ def registerzadok_(cumulTT,phase,leafNumber,calendarMoments,calendarDates,calend
     #    	
     #- inputs:
     #            - name: cumulTT
-    #                          - description : cumul TT at current date
+    #                          - description : 
     #                          - variablecategory : auxiliary
     #                          - datatype : DOUBLE
     #                          - min : -200
@@ -155,7 +155,7 @@ def registerzadok_(cumulTT,phase,leafNumber,calendarMoments,calendarDates,calend
     #                          - description : current zadok stage
     #                          - variablecategory : auxiliary
     #                          - datatype : STRING
-    #                          - unit : m2 m-2
+    #                          - unit :  
     #                          - uri : some url
     #            - name: calendarMoments
     #                          - description :  List containing apparition of each stage

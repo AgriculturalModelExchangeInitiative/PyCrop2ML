@@ -3,7 +3,6 @@ from math import *
 
 def cumulttfrom_(list calendarMoments=['Sowing'],
                  list calendarCumuls=[0.0],
-                 int switchMaize=0,
                  float cumulTT=8.0):
     """
 
@@ -24,9 +23,9 @@ def cumulttfrom_(list calendarMoments=['Sowing'],
     cumulTTFromZC_39 = 0.0
     cumulTTFromZC_91 = 0.0     
     if "Anthesis" in calendarMoments:
-        if (switchMaize == 0): cumulTTFromZC_65 = cumulTT-calendarCumuls[calendarMoments.index("Anthesis")]    
+        cumulTTFromZC_65 = cumulTT-calendarCumuls[calendarMoments.index("Anthesis")]    
     if "FlagLeafLiguleJustVisible" in calendarMoments:
-        if (switchMaize == 0): cumulTTFromZC_39 = cumulTT-calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]  
+        cumulTTFromZC_39 = cumulTT-calendarCumuls[calendarMoments.index("FlagLeafLiguleJustVisible")]  
     if "EndGrainFilling"in calendarMoments:
-        if (switchMaize == 0): cumulTTFromZC_91 = cumulTT-calendarCumuls[calendarMoments.index("EndGrainFilling")]
+        cumulTTFromZC_91 = cumulTT-calendarCumuls[calendarMoments.index("EndGrainFilling")]
     return  cumulTTFromZC_65, cumulTTFromZC_39, cumulTTFromZC_91

@@ -12,13 +12,13 @@ public class Fibonacci_
     //            - Abstract: see documentation
         //- inputs:
     //            - name: n
-    //                          - description : argument
     //                          - datatype : INT
+    //                          - description : argument
     //                          - inputtype : variable
         //- outputs:
     //            - name: result
-    //                          - description :  fibonacci number 
     //                          - datatype : INT
+    //                          - description :  fibonacci number 
         int result;
         int b;
         int temp;

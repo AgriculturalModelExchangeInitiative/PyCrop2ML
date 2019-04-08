@@ -12,7 +12,7 @@
     	</Abstract>
     </Description>
     <Inputs>
-        <Input name="cumulTT" description="cumul TT at current date" variablecategory="auxiliary" datatype="DOUBLE" min="-200" max="10000" default="354.582294511779" unit="°C d" uri="some url" inputtype="variable"/>
+        <Input name="cumulTT" description="" variablecategory="auxiliary" datatype="DOUBLE" min="-200" max="10000" default="354.582294511779" unit="°C d" uri="some url" inputtype="variable"/>
         <Input name="phase" description="instance of the phase class . You can get the name of the phase using phase.getPhaseAsString(PhaseValue) " variablecategory="state"  inputtype ="variable" datatype="DOUBLE" min="0" max="7" default="2" unit="" uri="some url"/>
         <Input name="leafNumber" description="Actual number of phytomers" variablecategory="state" datatype="DOUBLE" min="0" max="25" default="4.8854219661087575" unit="leaf" uri="some url" inputtype = "variable"/>
         <Input name="calendarMoments" description="List containing apparition of each stage" variablecategory="auxiliary"  datatype="STRINGLIST"  default= "['Sowing']" unit=""  inputtype = "variable"/>
@@ -30,15 +30,14 @@
     </Inputs>
     <Outputs>
         <Output name="hasZadokStageChanged" description="true if the zadok stage has changed this time step" variablecategory="state" datatype="INT" min="0" max="1" unit="" uri="some url"/>
-        <Output name="currentZadokStage" description="current zadok stage" variablecategory="auxiliary" datatype="STRING"  unit="m2 m-2" uri="some url" />
+        <Output name="currentZadokStage" description="current zadok stage" variablecategory="auxiliary" datatype="STRING"  unit=" " uri="some url" />
         <Output name="calendarMoments" description=" List containing apparition of each stage" variablecategory="auxiliary" datatype="STRINGLIST"  unit="" />
         <Output name="calendarDates" description=" List containing  the dates of the wheat developmental phases" variablecategory="auxiliary"  datatype="DATELIST"  unit=""/>
         <Output name="calendarCumuls" description=" list containing for each stage occured its cumulated thermal times" variablecategory="auxiliary"  datatype="DOUBLELIST"  unit="°C d" />
    	
     </Outputs>
     
-  
-   <Algorithm  language="Cyml" platform="" filename="algo/pyx/RegisterZadok.pyx" />
+    <Algorithm  language="Cyml" platform="" filename="algo/pyx/RegisterZadok.pyx" />
 
 	
 	

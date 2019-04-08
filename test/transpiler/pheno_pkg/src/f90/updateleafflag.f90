@@ -1,5 +1,4 @@
 MODULE Updateleafflag_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE updateleafflag_(cumulTT, &
@@ -33,108 +32,108 @@ CONTAINS
     !    	
         !- inputs:
     !            - name: cumulTT
-    !                          - min : -200
-    !                          - default : 741.510096671757
-    !                          - max : 10000
-    !                          - uri : some url
+    !                          - description : cumul thermal times at current date
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : -200
+    !                          - max : 10000
+    !                          - default : 741.510096671757
     !                          - unit : °C d
-    !                          - description : cumul thermal times at current date
-    !            - name: leafNumber
-    !                          - min : 0
-    !                          - default : 8.919453833361189
-    !                          - max : 25
     !                          - uri : some url
+    !                          - inputtype : variable
+    !            - name: leafNumber
+    !                          - description : Actual number of phytomers
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : 0
+    !                          - max : 25
+    !                          - default : 8.919453833361189
     !                          - unit : leaf
-    !                          - description : Actual number of phytomers
+    !                          - uri : some url
+    !                          - inputtype : variable
     !            - name: calendarMoments
+    !                          - description : List containing apparition of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - default : ['Sowing']
-    !                          - inputtype : variable
     !                          - unit : 
-    !                          - description : List containing apparition of each stage
+    !                          - inputtype : variable
     !            - name: calendarDates
+    !                          - description : List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - default : ['21/3/2007']
-    !                          - inputtype : variable
     !                          - unit : 
-    !                          - description : List containing  the dates of the wheat developmental phases
+    !                          - inputtype : variable
     !            - name: calendarCumuls
+    !                          - description : list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - default : [0.0]
-    !                          - inputtype : variable
     !                          - unit : °C d
-    !                          - description : list containing for each stage occured its cumulated thermal times
+    !                          - inputtype : variable
     !            - name: currentdate
-    !                          - default : 29/4/2007
-    !                          - uri : some url
+    !                          - description :  current date
     !                          - variablecategory : auxiliary
     !                          - datatype : DATE
-    !                          - inputtype : variable
+    !                          - default : 29/4/2007
     !                          - unit : 
-    !                          - description :  current date
-    !            - name: finalLeafNumber
-    !                          - min : 0
-    !                          - default : 8.797582013199484
-    !                          - max : 10000
     !                          - uri : some url
+    !                          - inputtype : variable
+    !            - name: finalLeafNumber
+    !                          - description : final leaf number
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : leaf
-    !                          - description : final leaf number
-    !            - name: hasFlagLeafLiguleAppeared
     !                          - min : 0
-    !                          - default : 1
-    !                          - max : 1
+    !                          - max : 10000
+    !                          - default : 8.797582013199484
+    !                          - unit : leaf
     !                          - uri : some url
+    !                          - inputtype : variable
+    !            - name: hasFlagLeafLiguleAppeared
+    !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
     !                          - variablecategory : state
     !                          - datatype : INT
-    !                          - inputtype : variable
-    !                          - unit : 
-    !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
-    !            - name: phase
     !                          - min : 0
+    !                          - max : 1
     !                          - default : 1
-    !                          - max : 7
+    !                          - unit : 
     !                          - uri : some url
+    !                          - inputtype : variable
+    !            - name: phase
+    !                          - description :  the name of the phase
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - min : 0
+    !                          - max : 7
+    !                          - default : 1
     !                          - unit : 
-    !                          - description :  the name of the phase
+    !                          - uri : some url
+    !                          - inputtype : variable
         !- outputs:
     !            - name: hasFlagLeafLiguleAppeared
-    !                          - min : 0
-    !                          - variablecategory : state
-    !                          - max : 1
-    !                          - uri : some url
-    !                          - datatype : INT
-    !                          - unit : 
     !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
+    !                          - variablecategory : state
+    !                          - datatype : INT
+    !                          - min : 0
+    !                          - max : 1
+    !                          - unit : 
+    !                          - uri : some url
     !            - name: calendarMoments
+    !                          - description :  List containing apparition of each stage
     !                          - variablecategory : auxiliary
     !                          - datatype : STRINGLIST
     !                          - unit : 
-    !                          - description :  List containing apparition of each stage
     !            - name: calendarDates
+    !                          - description :  List containing  the dates of the wheat developmental phases
     !                          - variablecategory : auxiliary
     !                          - datatype : DATELIST
     !                          - unit : 
-    !                          - description :  List containing  the dates of the wheat developmental phases
     !            - name: calendarCumuls
+    !                          - description :  list containing for each stage occured its cumulated thermal times
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - unit : °C d
-    !                          - description :  list containing for each stage occured its cumulated thermal times
         IF(phase .GE. 1.0 .AND. phase .LT. 4.0) THEN
             IF(leafNumber .GT. 0.0) THEN
                 IF(hasFlagLeafLiguleAppeared .EQ. 0 .AND. finalLeafNumber .GT. 0.0  &

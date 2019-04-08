@@ -32,7 +32,7 @@ def shootnumber_(canopyShootNumber,leafNumber,sowingDensity,targetFertileShoot,t
     #                          - unit : leaf
     #            - name: sowingDensity
     #                          - description : number of plant /m²
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : INT
     #                          - min : 0
     #                          - max : 500
@@ -63,7 +63,7 @@ def shootnumber_(canopyShootNumber,leafNumber,sowingDensity,targetFertileShoot,t
     #                          - default : [1]
     #                          - inputtype : variable
     #            - name: tillerNumber
-    #                          - description :  store the amount of tiller created at each time a tiller appears
+    #                          - description :  Number of tiller which appears
     #                          - variablecategory : auxiliary
     #                          - datatype : INT
     #                          - min : 0
@@ -85,7 +85,7 @@ def shootnumber_(canopyShootNumber,leafNumber,sowingDensity,targetFertileShoot,t
     #                          - datatype : DOUBLE
     #                          - min : 0
     #                          - max : 10000
-    #                          - unit : m2 m-2
+    #                          - unit : shoot m-2
     #            - name: leafTillerNumberArray
     #                          - description : store the number of tiller for each leaf layer
     #                          - variablecategory : auxiliary

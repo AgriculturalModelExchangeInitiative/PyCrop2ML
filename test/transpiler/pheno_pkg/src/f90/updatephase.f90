@@ -1,5 +1,4 @@
 MODULE Updatephase_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE updatephase_(cumulTT, &
@@ -22,7 +21,6 @@ CONTAINS
         sLDL, &
         ignoreGrainMaturation, &
         pHEADANTH, &
-        switchMaize, &
         choosePhyllUse, &
         p, &
         phase, &
@@ -30,8 +28,6 @@ CONTAINS
         phyllochron, &
         hasLastPrimordiumAppeared, &
         finalLeafNumber)
-        REAL, INTENT(OUT) :: finalLeafNumber
-        REAL:: phase1
         REAL:: ttFromLastLeafToHeading
         REAL:: appFLN
         REAL:: localDegfm
@@ -56,13 +52,13 @@ CONTAINS
         REAL, INTENT(IN) :: sLDL
         LOGICAL, INTENT(IN) :: ignoreGrainMaturation
         REAL, INTENT(IN) :: pHEADANTH
-        INTEGER, INTENT(IN) :: switchMaize
         CHARACTER(65), INTENT(IN) :: choosePhyllUse
         REAL, INTENT(IN) :: p
         REAL, INTENT(INOUT) :: phase
         REAL, INTENT(IN) :: cumulTTFromZC_91
         REAL, INTENT(IN) :: phyllochron
         INTEGER, INTENT(INOUT) :: hasLastPrimordiumAppeared
+        REAL, INTENT(INOUT) :: finalLeafNumber
         !- Description:
     !            - Model Name: UpdatePhase Model
     !            - Author: Pierre MARTRE
@@ -74,303 +70,290 @@ CONTAINS
     !    	
         !- inputs:
     !            - name: cumulTT
-    !                          - min : -200
-    !                          - default : 354.582294511779
-    !                          - max : 10000
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d
     !                          - description : cumul thermal times at current date
+    !                          - variablecategory : auxiliary
+    !                          - datatype : DOUBLE
+    !                          - min : -200
+    !                          - max : 10000
+    !                          - default : 354.582294511779
+    !                          - unit : °C d
+    !                          - inputtype : variable
     !            - name: leafNumber
-    !                          - min : 0
-    !                          - default :  4.620511621863958
-    !                          - max : 25
-    !                          - variablecategory : state
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : leaf
     !                          - description : Actual number of phytomers
-    !            - name: cumulTTFromZC_39
-    !                          - min : 0
-    !                          - default : 0
-    !                          - max : 10000
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d-1
-    !                          - description : cumul of the thermal time ( DeltaTT) since the moment ZC_39
-    !            - name: isMomentRegistredZC_39
-    !                          - min : 0
-    !                          - default : 0
-    !                          - max : 1
-    !                          - variablecategory : auxiliary
-    !                          - datatype : INT
-    !                          - inputtype : variable
-    !                          - unit : 
-    !                          - description : true if ZC_39 is registered in the calendar
-    !            - name: gai
-    !                          - min : 0
-    !                          - default : 0.3255196285135
-    !                          - max : 10000
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : 
-    !                          - description : used to calculate Terminal spikelet
-    !            - name: grainCumulTT
-    !                          - min : 0
-    !                          - default : 0
-    !                          - max : 10000
-    !                          - variablecategory : auxiliary
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d
-    !                          - description : cumulTT used for the grain developpment
-    !            - name: dayLength
-    !                          - min : 0
-    !                          - default : 12.7433275303389
-    !                          - max : 24
-    !                          - datatype : DOUBLE
-    !                          - variablecategory : auxiliary
-    !                          - inputtype : variable
-    !                          - unit : h
-    !                          - description : length of the day
-    !            - name: vernaprog
-    !                          - min : 0
-    !                          - default :  1.0532526829571554
-    !                          - max : 10
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : 
-    !                          - description : progression on a 0  to 1 scale of the vernalization
-    !            - name: minFinalNumber
     !                          - min : 0
-    !                          - default : 6.879410413987549
     !                          - max : 25
-    !                          - variablecategory : state
-    !                          - datatype : DOUBLE
-    !                          - inputtype : variable
+    !                          - default :  4.620511621863958
     !                          - unit : leaf
-    !                          - description : minimum final leaf number
-    !            - name: fixPhyll
+    !                          - inputtype : variable
+    !            - name: cumulTTFromZC_39
+    !                          - description : cumul of the thermal time ( DeltaTT) since the moment ZC_39
+    !                          - variablecategory : auxiliary
+    !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - default : 91.2
     !                          - max : 10000
+    !                          - default : 0
+    !                          - unit : °C d-1
+    !                          - inputtype : variable
+    !            - name: isMomentRegistredZC_39
+    !                          - description : true if ZC_39 is registered in the calendar
+    !                          - variablecategory : auxiliary
+    !                          - datatype : INT
+    !                          - min : 0
+    !                          - max : 1
+    !                          - default : 0
+    !                          - unit : 
+    !                          - inputtype : variable
+    !            - name: gai
+    !                          - description : used to calculate Terminal spikelet
+    !                          - variablecategory : auxiliary
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 0.3255196285135
+    !                          - unit : 
+    !                          - inputtype : variable
+    !            - name: grainCumulTT
+    !                          - description : cumulTT used for the grain developpment
+    !                          - variablecategory : auxiliary
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 0
+    !                          - unit : °C d
+    !                          - inputtype : variable
+    !            - name: dayLength
+    !                          - description : length of the day
+    !                          - datatype : DOUBLE
+    !                          - variablecategory : auxiliary
+    !                          - min : 0
+    !                          - max : 24
+    !                          - unit : h
+    !                          - default : 12.7433275303389
+    !                          - inputtype : variable
+    !            - name: vernaprog
+    !                          - description : progression on a 0  to 1 scale of the vernalization
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d
-    !                          - description : Phyllochron with sowing date fix
-    !            - name: isVernalizable
-    !                          - parametercategory : constant
     !                          - min : 0
+    !                          - max : 10
+    !                          - default :  1.0532526829571554
+    !                          - unit : 
+    !                          - inputtype : variable
+    !            - name: minFinalNumber
+    !                          - description : minimum final leaf number
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 25
+    !                          - default : 6.879410413987549
+    !                          - unit : leaf
+    !                          - inputtype : variable
+    !            - name: fixPhyll
+    !                          - description : Phyllochron with sowing date fix
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 10000
+    !                          - default : 91.2
+    !                          - unit : °C d
+    !                          - inputtype : variable
+    !            - name: isVernalizable
+    !                          - description : true if the plant is vernalizable
+    !                          - parametercategory : species
     !                          - datatype : INT
+    !                          - min : 0
     !                          - max : 1
+    !                          - unit : 
     !                          - default : 1
     !                          - inputtype : parameter
-    !                          - unit : 
-    !                          - description : true if the plant is vernalizable
     !            - name: dse
+    !                          - description : Thermal time from sowing to emergence
     !                          - parametercategory : species
-    !                          - min : 0
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 1000
     !                          - default : 105
-    !                          - inputtype : parameter
     !                          - unit : °C d
-    !                          - description : Thermal time from sowing to emergence
+    !                          - inputtype : parameter
     !            - name: pFLLAnth
-    !                          - parametercategory : constant
-    !                          - min : 0
+    !                          - description : Phyllochronic duration of the period between flag leaf ligule appearance and anthesis
+    !                          - parametercategory : species
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 1000
+    !                          - unit : 
     !                          - default : 2.22
     !                          - inputtype : parameter
-    !                          - unit : 
-    !                          - description : Phyllochronic duration of the period between flag leaf ligule appearance and anthesis
     !            - name: dcd
+    !                          - description : Duration of the endosperm cell division phase
     !                          - parametercategory : species
-    !                          - min : 0
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 10000
     !                          - default : 100
-    !                          - inputtype : parameter
     !                          - unit : °C d
-    !                          - description : Duration of the endosperm cell division phase
+    !                          - inputtype : parameter
     !            - name: dgf
+    !                          - description : Grain filling duration (from anthesis to physiological maturity)
     !                          - parametercategory : species
-    !                          - min : 0
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 10000
     !                          - default : 450
-    !                          - inputtype : parameter
     !                          - unit : °C d
-    !                          - description : Grain filling duration (from anthesis to physiological maturity)
+    !                          - inputtype : parameter
     !            - name: degfm
+    !                          - description : Grain maturation duration (from physiological maturity to harvest ripeness)
     !                          - parametercategory : species
-    !                          - min : 0
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 50
     !                          - default : 0
-    !                          - inputtype : parameter
     !                          - unit : °C d
-    !                          - description : Grain maturation duration (from physiological maturity to harvest ripeness)
+    !                          - inputtype : parameter
     !            - name: maxDL
-    !                          - min : 0
+    !                          - description : Saturating photoperiod above which final leaf number is not influenced by daylength
+    !                          - parametercategory : species
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 24
     !                          - default : 15
-    !                          - inputtype : parameter
     !                          - unit : h
-    !                          - description : Saturating photoperiod above which final leaf number is not influenced by daylength
+    !                          - inputtype : parameter
     !            - name: sLDL
-    !                          - min : 0
+    !                          - description : Daylength response of leaf production
+    !                          - parametercategory : species
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 1
     !                          - default : 0.85
-    !                          - inputtype : parameter
     !                          - unit : leaf h-1
-    !                          - description : Daylength response of leaf production
-    !            - name: ignoreGrainMaturation
-    !                          - default : FALSE
-    !                          - datatype : BOOLEAN
     !                          - inputtype : parameter
-    !                          - unit : 
+    !            - name: ignoreGrainMaturation
     !                          - description : true to ignore grain maturation
+    !                          - parametercategory : species
+    !                          - datatype : BOOLEAN
+    !                          - default : FALSE
+    !                          - unit : 
+    !                          - inputtype : parameter
     !            - name: pHEADANTH
-    !                          - min : 0
+    !                          - description : Number of phyllochron between heading and anthesiss
+    !                          - parametercategory : species
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 1000
     !                          - default : 1
-    !                          - inputtype : parameter
     !                          - unit : 
-    !                          - description : Number of phyllochron between heading and anthesiss
-    !            - name: switchMaize
-    !                          - min : 0
-    !                          - datatype : INT
-    !                          - max : 1
-    !                          - default : 0
     !                          - inputtype : parameter
-    !                          - unit : 
-    !                          - description : true if maize
     !            - name: choosePhyllUse
-    !                          - default : Default
-    !                          - datatype : STRING
-    !                          - inputtype : parameter
-    !                          - unit : 
     !                          - description : Switch to choose the type of phyllochron calculation to be used
-    !            - name: p
     !                          - parametercategory : species
-    !                          - min : 0
+    !                          - datatype : STRING
+    !                          - unit : 
+    !                          - default : Default
+    !                          - inputtype : parameter
+    !            - name: p
+    !                          - description : Phyllochron (Varietal parameter)
+    !                          - parametercategory : species
     !                          - datatype : DOUBLE
+    !                          - min : 0
     !                          - max : 1000
     !                          - default : 120
-    !                          - inputtype : parameter
     !                          - unit : °C d leaf-1
-    !                          - description : Phyllochron (Varietal parameter)
+    !                          - inputtype : parameter
     !            - name: phase
-    !                          - min : 0
-    !                          - default : 1
-    !                          - max : 7
+    !                          - description :  the name of the phase
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : 
-    !                          - description :  the name of the phase
-    !            - name: cumulTTFromZC_91
     !                          - min : 0
-    !                          - default : 0
-    !                          - max : 5000
+    !                          - max : 7
+    !                          - default : 1
+    !                          - unit : 
+    !                          - inputtype : variable
+    !            - name: cumulTTFromZC_91
+    !                          - description : cumul of the thermal time (DeltaTT) since the moment ZC_91
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d-1
-    !                          - description : cumul of the thermal time (DeltaTT) since the moment ZC_91
-    !            - name: phyllochron
     !                          - min : 0
-    !                          - default : 91.2
-    !                          - max : 1000
+    !                          - max : 5000
+    !                          - default : 0
+    !                          - unit : °C d-1
+    !                          - inputtype : variable
+    !            - name: phyllochron
+    !                          - description : Phyllochron
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - inputtype : variable
-    !                          - unit : °C d leaf-1
-    !                          - description : Phyllochron
-    !            - name: hasLastPrimordiumAppeared
     !                          - min : 0
-    !                          - default : 0
-    !                          - max : 1
+    !                          - max : 1000
+    !                          - default : 91.2
+    !                          - unit : °C d leaf-1
+    !                          - inputtype : variable
+    !            - name: hasLastPrimordiumAppeared
+    !                          - description : if Last Primordium has Appeared
     !                          - variablecategory : state
     !                          - datatype : INT
-    !                          - inputtype : variable
+    !                          - min : 0
+    !                          - max : 1
+    !                          - default : 0
     !                          - unit : 
-    !                          - description : if Last Primordium has Appeared
+    !                          - inputtype : variable
+    !            - name: finalLeafNumber
+    !                          - description : final leaf number
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - min : 0
+    !                          - max : 25
+    !                          - default : 0
+    !                          - unit : leaf
+    !                          - inputtype : variable
         !- outputs:
     !            - name: finalLeafNumber
+    !                          - description : final leaf number
+    !                          - variablecategory : state
     !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - variablecategory : state
     !                          - max : 25
     !                          - unit : leaf
-    !                          - description : final leaf number
     !            - name: phase
+    !                          - description : the name of the phase
+    !                          - variablecategory : state
     !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - variablecategory : state
     !                          - max : 7
     !                          - unit : 
-    !                          - description : the name of the phase
     !            - name: hasLastPrimordiumAppeared
+    !                          - description : if Last Primordium has Appeared
+    !                          - variablecategory : state
     !                          - datatype : INT
     !                          - min : 0
-    !                          - variablecategory : state
     !                          - max : 1
     !                          - unit : 
-    !                          - description : if Last Primordium has Appeared
-        phase1 = phase
-        IF(phase1 .GE. 0.0 .AND. phase1 .LT. 1.0) THEN
-            IF(switchMaize .EQ. 0) THEN
-                IF(cumulTT .GE. dse) THEN
-                    phase = 1.0
-                ELSE
-                    phase = phase1
-                END IF
-            ELSE
-                IF(cumulTT .GE. dse) THEN
-                    phase = 1.0
-                ELSE
-                    phase = phase1
-                END IF
+        IF(phase .GE. 0.0 .AND. phase .LT. 1.0) THEN
+            IF(cumulTT .GE. dse) THEN
+                phase = 1.0
             END IF
-        ELSE IF ( phase1 .GE. 1.0 .AND. phase1 .LT. 2.0) THEN
+        ELSE IF ( phase .GE. 1.0 .AND. phase .LT. 2.0) THEN
             IF(isVernalizable .EQ. 1 .AND. vernaprog .GE. 1.0 .OR. isVernalizable  &
                     .EQ. 0) THEN
-                IF(switchMaize .EQ. 0) THEN
-                    IF(dayLength .GT. maxDL) THEN
-                        finalLeafNumber = minFinalNumber
-                        hasLastPrimordiumAppeared = 1
-                    ELSE
-                        appFLN = minFinalNumber + sLDL * (maxDL - dayLength)
-                        IF(appFLN / 2.0 .LE. leafNumber) THEN
-                            finalLeafNumber = appFLN
-                            hasLastPrimordiumAppeared = 1
-                        ELSE
-                            phase = phase1
-                        END IF
-                    END IF
-                ELSE
+                IF(dayLength .GT. maxDL) THEN
+                    finalLeafNumber = minFinalNumber
                     hasLastPrimordiumAppeared = 1
+                ELSE
+                    appFLN = minFinalNumber + sLDL * (maxDL - dayLength)
+                    IF(appFLN / 2.0 .LE. leafNumber) THEN
+                        finalLeafNumber = appFLN
+                        hasLastPrimordiumAppeared = 1
+                    END IF
                 END IF
                 IF(hasLastPrimordiumAppeared .EQ. 1) THEN
                     phase = 2.0
                 END IF
-            ELSE
-                phase = phase1
             END IF
-        ELSE IF ( phase1 .GE. 2.0 .AND. phase1 .LT. 4.0) THEN
+        ELSE IF ( phase .GE. 2.0 .AND. phase .LT. 4.0) THEN
             IF(isMomentRegistredZC_39 .EQ. 1) THEN
-                IF(phase1 .LT. 3.0) THEN
+                IF(phase .LT. 3.0) THEN
                     ttFromLastLeafToHeading = 0.0
                     IF(choosePhyllUse .EQ. 'Default') THEN
                         ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH) * fixPhyll
@@ -381,11 +364,7 @@ CONTAINS
                     END IF
                     IF(cumulTTFromZC_39 .GE. ttFromLastLeafToHeading) THEN
                         phase = 3.0
-                    ELSE
-                        phase = phase1
                     END IF
-                ELSE
-                    phase = phase1
                 END IF
                 ttFromLastLeafToAnthesis = 0.0
                 IF(choosePhyllUse .EQ. 'Default') THEN
@@ -398,33 +377,23 @@ CONTAINS
                 IF(cumulTTFromZC_39 .GE. ttFromLastLeafToAnthesis) THEN
                     phase = 4.0
                 END IF
-            ELSE
-                phase = phase1
             END IF
-        ELSE IF ( phase1 .EQ. 4.0) THEN
+        ELSE IF ( phase .EQ. 4.0) THEN
             IF(grainCumulTT .GE. dcd) THEN
                 phase = 4.5
-            ELSE
-                phase = phase1
             END IF
-        ELSE IF ( phase1 .EQ. 4.5) THEN
+        ELSE IF ( phase .EQ. 4.5) THEN
             IF(grainCumulTT .GE. dgf .OR. gai .LE. 0.0) THEN
                 phase = 5.0
-            ELSE
-                phase = phase1
             END IF
-        ELSE IF ( phase1 .GE. 5.0 .AND. phase1 .LT. 6.0) THEN
+        ELSE IF ( phase .GE. 5.0 .AND. phase .LT. 6.0) THEN
             localDegfm = degfm
             IF(ignoreGrainMaturation) THEN
                 localDegfm = -1.0
             END IF
             IF(cumulTTFromZC_91 .GE. localDegfm) THEN
                 phase = 6.0
-            ELSE
-                phase = phase1
             END IF
-        ELSE IF ( phase1 .GE. 6.0 .AND. phase1 .LT. 7.0) THEN
-            phase = phase1
         END IF
     END SUBROUTINE updatephase_
 END MODULE

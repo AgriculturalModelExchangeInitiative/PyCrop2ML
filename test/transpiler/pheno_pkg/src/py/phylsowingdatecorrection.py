@@ -13,7 +13,7 @@ def phylsowingdatecorrection_(sowingDay,latitude,sDsa_sh,rp,sDws,sDsa_nh,p):
     #- inputs:
     #            - name: sowingDay
     #                          - description : Day of Year at sowing
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : INT
     #                          - min : 1
     #                          - max : 365
@@ -23,17 +23,17 @@ def phylsowingdatecorrection_(sowingDay,latitude,sDsa_sh,rp,sDws,sDsa_nh,p):
     #                          - inputtype : parameter
     #            - name: latitude
     #                          - description : Latitude
-    #                          - parametercategory : constant
+    #                          - parametercategory : soil
     #                          - datatype : DOUBLE
     #                          - min : -90
     #                          - max : 90
     #                          - default : 0.0
-    #                          - unit : °C
+    #                          - unit : °
     #                          - uri : some url
     #                          - inputtype : parameter
     #            - name: sDsa_sh
     #                          - description : Sowing date at which Phyllochrone is maximum in southern hemispher
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - inputtype : parameter
     #                          - datatype : INT
     #                          - min : 1
@@ -43,7 +43,7 @@ def phylsowingdatecorrection_(sowingDay,latitude,sDsa_sh,rp,sDws,sDsa_nh,p):
     #                          - uri : some url
     #            - name: rp
     #                          - description : Rate of change of Phyllochrone with sowing date
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - inputtype : parameter
     #                          - datatype : DOUBLE
     #                          - min : 0
@@ -53,7 +53,7 @@ def phylsowingdatecorrection_(sowingDay,latitude,sDsa_sh,rp,sDws,sDsa_nh,p):
     #                          - uri : some url
     #            - name: sDws
     #                          - description : Sowing date at which Phyllochrone is minimum
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : INT
     #                          - default : 1
     #                          - min : 1
@@ -63,7 +63,7 @@ def phylsowingdatecorrection_(sowingDay,latitude,sDsa_sh,rp,sDws,sDsa_nh,p):
     #                          - inputtype : parameter
     #            - name: sDsa_nh
     #                          - description : Sowing date at which Phyllochrone is maximum in northern hemispher
-    #                          - parametercategory : constant
+    #                          - parametercategory : species
     #                          - datatype : INT
     #                          - default : 1
     #                          - min : 1

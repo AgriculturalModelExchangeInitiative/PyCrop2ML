@@ -20,7 +20,7 @@
         <Input name="dayLength" description="day length" datatype="DOUBLE" min="0" max="10000" default="12.3037621834005" unit="mm2 m-2"  inputtype="variable"/>
         <Input name="deltaTT" description="difference cumul TT between j and j-1 day " inputtype ="variable" datatype="DOUBLE" min="-20" max="100" default="20.3429985011972" unit="°C d" />
         <Input name="cumulTT" description="cumul thermal times at currentdate"  datatype="DOUBLE" min="-200" max="10000" default="112.330110409888" unit="°C d"  inputtype = "variable"/>
-        <Input name="leafNumber" description="Actual number of phytomers" parametercategory="species" datatype="DOUBLE" min="0" max="25" default="0" unit="leaf"  inputtype = "variable"/>
+        <Input name="leafNumber" description="Actual number of phytomers" variablecategory="state" datatype="DOUBLE" min="0" max="25" default="0" unit="leaf"  inputtype = "variable"/>
         <Input name="calendarMoments" description="List containing appearance of each stage" variablecategory="auxiliary"  datatype="STRINGLIST"  default= "['Sowing']" unit=""  inputtype = "variable"/>
         <Input name="calendarDates" description="List containing  the dates of the wheat developmental phases" variablecategory="auxiliary" datatype="DATELIST" default="['21/3/2007']" unit=""  inputtype = "variable"/>
         <Input name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" variablecategory="auxiliary"  datatype="DOUBLELIST" default="[0.0]" unit=""  inputtype = "variable"/>
@@ -33,9 +33,9 @@
         <Input name="maxTvern" description="Maximum temperature for vernalization to occur" parametercategory="species" datatype="DOUBLE" min="-20" max="60" default=" 23.0" unit="°C"  inputtype = "parameter"/>
         <Input name="pNini" description="Number of primorida in the apex at emergence" parametercategory="species" datatype="DOUBLE" min="0" max="24" default="4.0" unit="primordia"  inputtype = "parameter"/>
         <Input name="aMXLFNO" description="Absolute maximum leaf number" parametercategory="species" datatype="DOUBLE" min="0" max="25" default="24.0" unit="leaf"  inputtype = "parameter"/>
-        <Input name="vernaprog" description="progression on a 0  to 1 scale of the vernalization" variablecategory="state" datatype="DOUBLE" min="0" max="1" default=" 0.5517254187376879" unit=""  inputtype = "parameter"/>
+        <Input name="vernaprog" description="progression on a 0  to 1 scale of the vernalization" variablecategory="state" datatype="DOUBLE" min="0" max="1" default=" 0.5517254187376879" unit=""  inputtype = "variable"/>
         <Input name="currentdate" description="current date " variablecategory="auxiliary"  datatype="DATE" default="27/3/2007"  inputtype = "variable"/>
-        <Input name="isVernalizable" description="true if the plant is vernalizable"  datatype="INT" min="0" max="1" default="1" unit=""  inputtype = "parameter"/>
+        <Input name="isVernalizable" description="true if the plant is vernalizable" parametercategory="species"  datatype="INT" min="0" max="1" default="1" unit=""  inputtype = "parameter"/>
         <Input name="minFinalNumber" description="minimum final leaf number"  datatype="DOUBLE" min="0" max="25" default="5.5" unit="leaf"  inputtype = "variable" variablecategory="state"/>
      
     </Inputs>
