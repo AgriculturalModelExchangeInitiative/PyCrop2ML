@@ -32,8 +32,8 @@ class Wf2Xml(object):
 
         # Extract the description of the wf
         # TODO: Do it in a generic way
-        doc = wf.doc
-        docs = [x.strip() for x in wf.doc.strip().split('\n')]
+        doc = wf.description
+        docs = [x.strip() for x in doc.strip().split('\n')]
 
         if len(docs) == 5:
             title = docs[0]
