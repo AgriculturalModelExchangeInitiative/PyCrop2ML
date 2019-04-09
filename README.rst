@@ -17,4 +17,13 @@ For more information, refer to `the documentation`__.
 .. __: http://cropml.readthedocs.io/en/latest/
 
 
+Installation
+============
+
+Using Conda
+~~~~~~~~~~~
+
+.. bash::
+
+    conda create -n crop2ml cython path.py numpy
 
