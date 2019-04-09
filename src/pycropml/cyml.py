@@ -14,7 +14,7 @@ import sys
 
 
 def main():
-    
+
 
     usage = """
         cyml transpiler translate a cyml source code or a Crop2ML package with algo in cyml
@@ -30,36 +30,36 @@ def main():
         -java  for java
         -r for R
 
-"""  
+"""
 
     if len(sys.argv)!=3:
         print(usage)
         return
- 
+
     sourcef= sys.argv[1]
     language = sys.argv[2]
-    
+
     if language not in languages:
         print(usage)
-        return    
-              
+        return
+
     if  len(sourcef.split("."))==2:  # translate from cyml code
         if sourcef.split(".")[1]!="pyx" :
             print(usage)
-            return                  
+            return
         file = Path(sourcef)
         with open(file, 'r') as fi:
             source = fi.read()
         name = sourcef.split(".")[0]
         test=Main(file, language)
         test.parse()
-        test.to_ast(source) 
+        test.to_ast(source)
         code=test.to_source()
         print(code)
-        filename = "%s.%s"%(name, language)   
+        filename = "%s.%s"%(name, language)
         with open(filename, "wb") as tg_file:
             tg_file.write(code.encode('utf-8'))
-        
+
     else:                       # translate from crop2ml package
         from pycropml import render_cyml
         from pycropml.pparse import model_parser
@@ -69,26 +69,28 @@ def main():
         output = pkg/'src'
         dir_test= pkg/'test'
         m=[model.name for model in models]
-        print(m)
+
+        # Generate packages if the directories does not exists.
+        if not output.isdir():
+            output.mkdir()
+
+        if not tg_rep.isdir():
+            tg_rep.mkdir()
+
+        if not dir_test.isdir():
+            dir_test.mkdir()
+
         m2p = render_cyml.Model2Package(models, dir=output)
-        m2p.generate_package()        # generate cyml models in "pyx" directory          
+        m2p.generate_package()        # generate cyml models in "pyx" directory
         tg_rep = Path(output/"%s"%(language)) # target language models  directory in output
         dir_test_lang =  Path(dir_test/"%s"%(language))
- 
-        if not output.isdir() :  #Create src directory if it doesn't exist
-            output.mkdir()              
-            
-        if not tg_rep.isdir() :  #Create if it doesn't exist
-            tg_rep.mkdir()
-			
-        if not dir_test.isdir() :  #Create if it doesn't exist
-            dir_test.mkdir() 			
 
-    
+
+
         if not dir_test_lang.isdir() :  #Create if it doesn't exist
-            dir_test_lang.mkdir()             
-            
-        # generate 
+            dir_test_lang.mkdir()
+
+        # generate
         cyml_rep = Path(output/'pyx') # cyml model directory in output
         for k, file in enumerate(cyml_rep.files()):
             #print(file)
@@ -99,12 +101,12 @@ def main():
                 if name == model.name.lower():
                     test=Main(file, language, model)
                     test.parse()
-                    test.to_ast(source) 
+                    test.to_ast(source)
                     code=test.to_source()
-                    filename = tg_rep/"%s.%s"%(name, language)   
+                    filename = tg_rep/"%s.%s"%(name, language)
                     with open(filename, "wb") as tg_file:
                         tg_file.write(code.encode('utf-8'))
-    
+
         test = WriteTest(models,language)                  # writeTest
         code=test.write()
         filename = dir_test_lang/"test.%s"%language
