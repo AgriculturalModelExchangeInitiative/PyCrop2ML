@@ -70,7 +70,8 @@ class Model2Package(object):
         if (directory).isdir() :
             self.dir = directory
         else:
-            self.dir = directory.mkdir()
+            #self.dir = directory.mkdir()
+            os.makedirs(self.dir,exist_ok=True)
         files = []
         count = 0
         for model in self.models:          
