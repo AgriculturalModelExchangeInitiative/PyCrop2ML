@@ -1,0 +1,32 @@
+{% set version = "0.0.2" %}
+
+package:
+  name: pycropml
+  version: {{ version }}
+
+source:
+  path: ..
+
+build:
+  preserve_egg_dir: True
+  number: 1
+  script: python setup.py install --prefix=$PREFIX
+
+requirements:
+  build:
+    - setuptools
+  run:
+    - python
+    - cython
+    - path.py
+    - numpy
+
+test:
+  commands:
+    - cyml -h
+
+about:
+  home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
+  license: Cecill-c License
+  summary: PyCrop2ML Python library.
+

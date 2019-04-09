@@ -23,59 +23,59 @@ CONTAINS
     !            - Abstract: calculate leaf number. LeafNumber increase is caped at one more leaf per day
         !- inputs:
     !            - name: deltaTT
-    !                          - description : daily delta TT 
+    !                          - min : -20
+    !                          - default : 23.5895677277199
+    !                          - max : 100
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLE
-    !                          - min : -20
-    !                          - max : 100
-    !                          - default : 23.5895677277199
+    !                          - inputtype : variable
     !                          - unit : °C d
-    !                          - inputtype : variable
+    !                          - description : daily delta TT 
     !            - name: phyllochron
-    !                          - description : phyllochron
-    !                          - variablecategory : state
-    !                          - inputtype : variable
-    !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - max : 1000
     !                          - default : 0
+    !                          - max : 1000
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - inputtype : variable
     !                          - unit : °C d leaf-1
+    !                          - description : phyllochron
     !            - name: hasFlagLeafLiguleAppeared
-    !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
+    !                          - min : 0
+    !                          - default : 0
+    !                          - max : 1
     !                          - variablecategory : state
     !                          - datatype : INT
-    !                          - min : 0
-    !                          - max : 1
-    !                          - default : 0
+    !                          - inputtype : variable
     !                          - unit : 
-    !                          - inputtype : variable
+    !                          - description : true if flag leaf has appeared (leafnumber reached finalLeafNumber)
     !            - name: leafNumber
-    !                          - description :  Actual number of phytomers
-    !                          - variablecategory : state
-    !                          - datatype : DOUBLE
     !                          - min : 0
-    !                          - max : 25
     !                          - default : 0
-    !                          - unit : leaf
-    !                          - inputtype : variable
-    !            - name: phase
-    !                          - description :  the name of the phase
+    !                          - max : 25
     !                          - variablecategory : state
     !                          - datatype : DOUBLE
-    !                          - min : 0
-    !                          - max : 7
-    !                          - default : 1
-    !                          - unit :  
-    !                          - uri : some url
     !                          - inputtype : variable
+    !                          - unit : leaf
+    !                          - description :  Actual number of phytomers
+    !            - name: phase
+    !                          - min : 0
+    !                          - default : 1
+    !                          - max : 7
+    !                          - uri : some url
+    !                          - variablecategory : state
+    !                          - datatype : DOUBLE
+    !                          - inputtype : variable
+    !                          - unit :  
+    !                          - description :  the name of the phase
         !- outputs:
     !            - name: leafNumber
-    !                          - description : Actual number of phytomers
-    !                          - datatype : DOUBLE
     !                          - min : 0
+    !                          - datatype : DOUBLE
     !                          - max : 10000
-    !                          - unit : leaf
     !                          - uri : some url
+    !                          - unit : leaf
+    !                          - description : Actual number of phytomers
         IF(phase .GE. 1.0 .AND. phase .LT. 4.0) THEN
             IF(hasFlagLeafLiguleAppeared .EQ. 0) THEN
                 IF(phyllochron .EQ. 0.0) THEN

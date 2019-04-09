@@ -1,13 +1,13 @@
 import numpy as np 
 from math import *
 
-def updateleafflag_(float cumulTT=741.510096671757,
-                    float leafNumber=8.919453833361189,
+def updateleafflag_(float cumulTT=741.510096672,
+                    float leafNumber=8.91945383336,
                     list calendarMoments=['Sowing'],
                     list calendarDates=['21/3/2007'],
                     list calendarCumuls=[0.0],
                     str currentdate='29/4/2007',
-                    float finalLeafNumber=8.797582013199484,
+                    float finalLeafNumber=8.7975820132,
                     int hasFlagLeafLiguleAppeared=1,
                     float phase=1.0):
     """
