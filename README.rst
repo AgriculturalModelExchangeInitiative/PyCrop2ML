@@ -25,5 +25,5 @@ Using Conda
 
 ::
 
-    conda create -n crop2ml -c pradal pycropml
+    conda create -n crop2ml -c amei pycropml
 
