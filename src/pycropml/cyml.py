@@ -105,11 +105,12 @@ def main():
                     with open(filename, "wb") as tg_file:
                         tg_file.write(code.encode('utf-8'))
     
-        test = WriteTest(models,language)                  # writeTest
-        code=test.write()
+        test = WriteTest(models,language,dir_test_lang)  
+        test.write()                # writeTest
+        '''code=test.write()
         filename = dir_test_lang/"test.%s"%language
         with open(filename, "wb") as tg_file:
-            tg_file.write(code.encode('utf-8'))
+            tg_file.write(code.encode('utf-8'))'''
 
 if __name__ == '__main__':
     main()
