@@ -11,6 +11,7 @@ from pycropml.transpiler.main import languages
 from path import Path
 import os.path
 import sys
+import os
 
 
 def main():
@@ -70,26 +71,19 @@ def main():
         dir_test= pkg/'test'
         m=[model.name for model in models]
         print(m)
+
         m2p = render_cyml.Model2Package(models, dir=output)
         m2p.generate_package()        # generate cyml models in "pyx" directory          
         tg_rep = Path(output/"%s"%(language)) # target language models  directory in output
         dir_test_lang =  Path(dir_test/"%s"%(language))
- 
-        if not output.isdir() :  #Create src directory if it doesn't exist
-            output.mkdir()              
-            
-        if not tg_rep.isdir() :  #Create if it doesn't exist
-            tg_rep.mkdir()
-			
-        if not dir_test.isdir() :  #Create if it doesn't exist
-            dir_test.mkdir() 			
-
-    
-        if not dir_test_lang.isdir() :  #Create if it doesn't exist
-            dir_test_lang.mkdir()             
-            
+             
+        os.makedirs(output, exist_ok=True)   
+        os.makedirs(tg_rep, exist_ok=True)  				
+        os.makedirs(dir_test, exist_ok=True)           
+        os.makedirs(dir_test_lang, exist_ok=True)    
         # generate 
         cyml_rep = Path(output/'pyx') # cyml model directory in output
+        os.makedirs(cyml_rep, exist_ok=True)
         for k, file in enumerate(cyml_rep.files()):
             #print(file)
             with open(file, 'r') as fi:
