@@ -21,6 +21,8 @@ requirements:
     - cython
     - path.py
     - numpy
+    - pyyaml
+    - six
 
 test:
   commands:
