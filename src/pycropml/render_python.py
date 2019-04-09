@@ -7,6 +7,7 @@ Problems:
 
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from path import Path
 import numpy 
 from datetime import datetime
@@ -14,6 +15,7 @@ from openalea.core import package
 from openalea.core import node
 from openalea.core import interface as inter
 import os.path
+import six
 
 class Model2Package(object):
     """ TODO
@@ -165,12 +167,13 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
+        name = model_unit.name
         self.code= "import numpy as np \n" + "from copy import copy\n" + "from math import *\n\n"
         
         if model_unit.function:
             for function in model_unit.function:
                 if function.language in ("Python", "python"):
-                    module=os.path.splitext(function.filename)[0]
+                    module=os.path.split(function.filename)[1].split(".")[0]
                     self.code +="from %s import * \n"%module.lower()
                     break
         self.code += self.generate_function_signature(model_unit)
@@ -310,7 +313,7 @@ class Model2Package(object):
         # map the paramsets
             params = {}
 
-            if   test_paramsets not in psets.keys():
+            if   test_paramsets not in list(psets.keys()):
                 print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -319,11 +322,11 @@ class Model2Package(object):
                     test_codes = []
 
                     # make a function that transforms a title into a function name
-                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
 
 
-                    (run, inouts) = each_run.items()[0]
+                    (run, inouts) = list(each_run.items())[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -339,7 +342,7 @@ class Model2Package(object):
                     run_param = params.copy()
                     run_param.update(ins)
 
-                    for k, v in run_param.iteritems():
+                    for k, v in six.iteritems(run_param):
                         code = "    %s = %s,"%(k,v)
                         test_codes.append(code)
                     code = "     )"

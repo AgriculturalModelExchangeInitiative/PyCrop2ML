@@ -7,6 +7,7 @@ Problems:
 - name of a model unit?
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from path import Path
 
 # The package used to generate Notebook
@@ -14,6 +15,7 @@ import nbformat as nbf
 
 from . import render_csharp as rp
 from sympy.codegen.fnodes import elemental
+from six.moves import range
 
 
 
@@ -125,19 +127,19 @@ Each run will be defined in its own cell."""
         # map the paramsets
             params = {}
 
-            if   test_paramsets not in psets.keys():
+            if   test_paramsets not in list(psets.keys()):
                 print('Unknow parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
                 
                 for each_run in test_runs :
                                         
-                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
                     
                     des = ""                    
 
-                    (run, inouts) = each_run.items()[0]
+                    (run, inouts) = list(each_run.items())[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -147,11 +149,11 @@ Each run will be defined in its own cell."""
                     run_param.update(ins)
                     
                     for testinp in inputs:
-                        if testinp.name not in run_param.keys():
+                        if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=testinp.default
                     
                     vartest = ""
-                    for k, v in run_param.iteritems():
+                    for k, v in run_param.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k]
                         vartest+= "%s: %s,"%(k,transf(self.DATATYPE[type_v[0]], v))
                         #vartest += "%s:%s,"%(k,v)
@@ -169,7 +171,7 @@ Each run will be defined in its own cell."""
                     testcode+=des[:-1]+");\n\n"                    
                     
                     
-                    for k, v in outs.iteritems():
+                    for k, v in outs.items():
                         type_v=[out.datatype for out in outputs if out.name==k]
                         val = transfDouble(type_v,v[0]) if type_v[0]=="DOUBLE" else v[0]
                         if len(v)==2:

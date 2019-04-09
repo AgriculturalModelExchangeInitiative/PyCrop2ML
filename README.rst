@@ -1,5 +1,5 @@
 ========================
-pycropml
+Pycrop2ml
 ========================
 
 ..  image:: https://readthedocs.org/projects/cropml/badge/?version=latest

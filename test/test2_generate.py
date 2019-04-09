@@ -4,11 +4,10 @@
 from __future__ import absolute_import
 import os
 from path import Path
-#from urlparse import urlparse
 
 from pycropml import pparse, render_python
 
-from .test1 import example, cwd, xmls
+from .test1 import example, cwd
 
 from test import test1
 
@@ -22,7 +21,7 @@ def test1():
     assert len(models)
 
 
-    m2p = render_python.Model2Package(models, dir='.',pkg_name="EnergyBalance")
+    m2p = render_python.Model2Package(models, dir='.',pkg_name="Phenology")
     m2p.run()
 
     code = m2p.code
@@ -30,11 +29,12 @@ def test1():
 
     codetest = m2p.codetest
 
-    mymodel = Path('python_model')
+
+    mymodel = Path("python_model")
     mymodel.chdir()
     os.system('nosetests')
 
-    Path('..').chdir()
+    Path("..").chdir()
     """if mymodel.exists():
         mymodel.rmtree()"""
 
@@ -44,7 +44,7 @@ def test1():
 if __name__ == '__main__':
     models = example()
     assert len(models)
-    m2p = render_python.Model2Package(models);
+    m2p = render_python.Model2Package(models)
     m2p.run()
     code = m2p.code
     exec(code)

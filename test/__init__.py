@@ -1,5 +1,6 @@
 
 
+from __future__ import print_function
 def setup_package():
     """Some code executed once when test are loaded.
     """

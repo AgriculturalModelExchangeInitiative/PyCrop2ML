@@ -1,8 +1,11 @@
 """ Read xml representation of a model composite
 
 """
+from __future__ import absolute_import
+from __future__ import print_function
 from path import Path
 import xml.etree.ElementTree as xml
+import six
 
 class ModelDefinition(object):
     """
@@ -10,7 +13,7 @@ class ModelDefinition(object):
     """
     def __init__(self, kwds):
         self._attributes = kwds
-        for k, v in kwds.iteritems():
+        for k, v in six.iteritems(kwds):
             self.__setattr__(k,v)
 
     def __repr__(self):

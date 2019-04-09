@@ -6,11 +6,9 @@ import os
 from path import Path
 #from urlparse import urlparse
 
-from pycropml import pparse, render_java
+from pycropml import render_java
 
-from .test1bis2 import example, cwd, xmls
-
-from test import test1
+from .test1bis2 import example
 
 
 ##############################################################################
@@ -24,12 +22,6 @@ def test1():
 
     m2p = render_java.Model2Package(models, dir='.');
     m2p.run()
-
-    code = m2p.code
-    #exec(code)
-
-    codetest = m2p.codetest
-
     mymodel = Path('java_model')
     mymodel.chdir()
     os.system('nosetests')

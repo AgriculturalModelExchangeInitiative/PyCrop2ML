@@ -4,7 +4,7 @@
 from __future__ import absolute_import
 import os
 from path import Path
-from urlparse import urlparse
+from six.moves.urllib.parse import urlparse
 
 from pycropml import pparse, render_notebook
 

@@ -6,12 +6,14 @@ Problems:
 - name of a model unit?
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from path import Path
 
 # The package used to generate Notebook
 import nbformat as nbf
 
 from . import render_python as rp
+import six
 
 
 
@@ -113,7 +115,7 @@ Each run will be defined in its own cell."""
         # map the paramsets
             params = {}
             
-            if   test_paramsets not in psets.keys():
+            if   test_paramsets not in list(psets.keys()):
                 print('Unknow parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -122,11 +124,11 @@ Each run will be defined in its own cell."""
                     test_codes = []
 
                     # make a function that transforms a title into a function name
-                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
 
 
-                    (run, inouts) = each_run.items()[0]
+                    (run, inouts) = list(each_run.items())[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -137,7 +139,7 @@ Each run will be defined in its own cell."""
                     run_param = params.copy()
                     run_param.update(ins)
 
-                    for k, v in run_param.iteritems():
+                    for k, v in six.iteritems(run_param):
                         code = "    %s = %s,"%(k,v)
                         test_codes.append(code)
                     code = "     )"
