@@ -23,7 +23,7 @@ Installation
 Using Conda
 ~~~~~~~~~~~
 
-.. bash::
+::
 
-    conda create -n crop2ml cython path.py numpy
+    conda create -n crop2ml -c amei pycropml
 
