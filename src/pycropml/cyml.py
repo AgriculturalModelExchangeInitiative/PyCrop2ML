@@ -74,9 +74,6 @@ def main():
         if not output.isdir():
             output.mkdir()
 
-        if not tg_rep.isdir():
-            tg_rep.mkdir()
-
         if not dir_test.isdir():
             dir_test.mkdir()
 
@@ -85,7 +82,8 @@ def main():
         tg_rep = Path(output/"%s"%(language)) # target language models  directory in output
         dir_test_lang =  Path(dir_test/"%s"%(language))
 
-
+        if not tg_rep.isdir():
+            tg_rep.mkdir()
 
         if not dir_test_lang.isdir() :  #Create if it doesn't exist
             dir_test_lang.mkdir()
