@@ -3,37 +3,32 @@ from __future__ import absolute_import
 from __future__ import print_function
 from pycropml.transpiler.main import Main
 
-source = u"""import numpy as np 
-from math import *
-
-from fibonacci import fibonacci_ 
-def shootnumber_(float canopyShootNumber=288.0,
-                 float leafNumber=0.0,
-                 int sowingDensity=288,
-                 float targetFertileShoot=600.0,
-                 list tilleringProfile=[288.0],
-                 list leafTillerNumberArray=[1],
-                 int tillerNumber=1):
-
-    cdef float averageShootNumberPerPlant
-    cdef float oldCanopyShootNumber
-    cdef int emergedLeaves, shoots, i
-    cdef list a=[15]
-    cdef list b=[12]
-    oldCanopyShootNumber = canopyShootNumber
-    emergedLeaves = int(max(1.0, ceil(leafNumber - 1)))
-    shoots = fibonacci_(emergedLeaves)
-    canopyShootNumber = min(float(shoots * sowingDensity), targetFertileShoot)
-    averageShootNumberPerPlant = canopyShootNumber / sowingDensity       
-    if (canopyShootNumber != oldCanopyShootNumber):
-        tilleringProfile.append(canopyShootNumber - oldCanopyShootNumber)         
-    tillerNumber = len(tilleringProfile)     
-    for i in range(len(leafTillerNumberArray),int(ceil(leafNumber)),1):
-        leafTillerNumberArray.append(tillerNumber)
-    return  averageShootNumberPerPlant, canopyShootNumber, leafTillerNumberArray, tilleringProfile, tillerNumber
-"""
+source = u"""from math import *
+def evapo(float MSALB,float SRAD,
+                 float TMAX,
+                 float TMIN,
+                 float XHLAI):
+    cdef float ALBEDO
+    cdef float SLANG
+    cdef float EEQ
+    cdef float eo
+    cdef float TD
+    cdef float EO
+    TD = 0.60*TMAX + 0.40*TMIN
+    if (XHLAI <= 0.0):
+        ALBEDO = MSALB
+    else:
+        ALBEDO = 0.23 - (0.23-MSALB)*exp(-0.75*XHLAI)
+    SLANG = SRAD * 23.923
+    EEQ = SLANG * (2.04E-4 - 1.83E-4 * ALBEDO)*(TD+29.0)
+    eo = EEQ*1.1
+    if (TMAX < 35.0):
+        eo = EEQ*((TMAX-35.0)*0.05+1.1)
+    else:
+        eo = EEQ*0.01*exp(0.18*(TMAX+20.0))
+    EO = max(eo, 0.0001)
+    return EO """
     
-
 test=Main(source, 'f90')
 a=test.parse()    
 g=test.to_ast(source)  
