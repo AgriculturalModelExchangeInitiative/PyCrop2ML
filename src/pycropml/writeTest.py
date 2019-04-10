@@ -14,13 +14,9 @@ class WriteTest(object):
         self.dir=dir
 
     def write(self):
-        """TODO"""
-        #code="\n"
-        #for model in self.models:
+        """Populate and write the test files. """
         if self.language=="f90":
             render_fortran.Model2Package(self.models, self.dir).write_tests()
 
         if self.language=="py":
             render_cyml.Model2Package(self.models, self.dir).write_tests()
-
-
