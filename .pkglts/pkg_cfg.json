@@ -1,61 +1,61 @@
 {
   "_pkglts": {
-    "auto_install": true, 
-    "install_front_end": "stdout", 
-    "use_prompts": false, 
-    "version": 11
-  }, 
+    "auto_install": true,
+    "install_front_end": "stdout",
+    "use_prompts": false,
+    "version": 12
+  },
   "base": {
     "authors": [
       [
-        "Cyrille Ahmed Midingoyi", 
+        "Cyrille Ahmed Midingoyi",
         "cyrille.midingoyi@inra.fr"
-      ], 
+      ],
       [
-        "Christophe Pradal", 
+        "Christophe Pradal",
         "christophe.pradal@cirad.fr"
       ]
-    ], 
-    "namespace": null, 
-    "namespace_method": "pkg_util", 
-    "pkgname": "pycropml", 
+    ],
+    "namespace": null,
+    "namespace_method": "pkg_util",
+    "pkgname": "pycropml",
     "url": "https://github.com/AgriculturalModelExchangeInitiative/PyCropML"
-  }, 
+  },
   "data": {
     "filetype": [
-      ".json", 
+      ".json",
       ".ini"
-    ], 
+    ],
     "use_ext_dir": false
-  }, 
+  },
   "doc": {
-    "description": "A Python library to generate components from CropML declarative language", 
-    "fmt": "rst", 
+    "description": "A Python library to generate components from CropML declarative language",
+    "fmt": "rst",
     "keywords": []
-  }, 
+  },
   "license": {
-    "name": "cecill-c", 
-    "organization": "organization", 
-    "project": "{{ base.pkgname }}", 
+    "name": "MIT",
+    "organization": "organization",
+    "project": "{{ base.pkgname }}",
     "year": 2017
-  }, 
+  },
   "pysetup": {
     "intended_versions": [
-      "27"
-    ], 
+      "27", "37"
+    ],
     "require": []
-  }, 
+  },
   "sphinx": {
-    "autodoc_dvlpt": true, 
-    "build_dir": "build/sphinx", 
+    "autodoc_dvlpt": true,
+    "build_dir": "build/sphinx",
     "theme": "default"
-  }, 
+  },
   "test": {
     "suite_name": "nose"
-  }, 
+  },
   "version": {
-    "major": 0, 
-    "minor": 0, 
-    "post": 2
+    "major": 0,
+    "minor": 1,
+    "post": 0
   }
 }

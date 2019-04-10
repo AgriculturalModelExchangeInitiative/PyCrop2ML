@@ -3,6 +3,23 @@
 # edit .pkglts/pkg_cfg instead
 # section pysetup
 
+# install
+
+
+# run examples
+
+
+# test
+mock
+nose
+
+
+# compile doc
+sphinx
+
+
+# other dvlpt tools
+
 
 # #}
 path.py
