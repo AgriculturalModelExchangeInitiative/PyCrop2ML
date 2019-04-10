@@ -4,114 +4,79 @@ Created on Tue Mar 19 22:59:23 2019
 
 @author: midingoy
 """
-
-# coding: utf8
-from pycropml.transpiler.main import Main
-from pycropml.transpiler.main import languages
-from path import Path
 import os.path
-import sys
+from path import Path
 
+from pycropml.transpiler.main import Main
 
-def main():
+from pycropml import render_cyml
+from pycropml.pparse import model_parser
+from pycropml.writeTest import WriteTest
 
+def transpile_file(source, language):
+    sourcef = source
+    file = Path(sourcef)
+    with open(file, 'r') as fi:
+        source = fi.read()
+    name = sourcef.split(".")[0]
+    test = Main(file, language)
+    test.parse()
+    test.to_ast(source)
+    code = test.to_source()
+    print(code)
+    filename = "%s.%s" % (name, language)
+    with open(filename, "wb") as tg_file:
+        tg_file.write(code.encode('utf-8'))
+    return 0
 
-    usage = """
-        cyml transpiler translate a cyml source code or a Crop2ML package with algo in cyml
-        language to target language .
-    Example
-       cyml <source_code.pyx or pkg> <target_language>
+def transpile_package(package, language):
+    # translate from crop2ml package
+    sourcef = package
+    pkg = Path(sourcef)
+    models = model_parser(pkg) # parse xml files and create python model object
+    output = pkg/'src'
+    dir_test= pkg/'test'
+    m=[model.name for model in models]
 
-    * target language must be:
-        -py for python
-        -cs for csharp
-        -cpp for c++
-        -f90 for fortran
-        -java  for java
-        -r for R
+    # Generate packages if the directories does not exists.
+    if not output.isdir():
+        output.mkdir()
 
-"""
+    if not dir_test.isdir():
+        dir_test.mkdir()
 
-    if len(sys.argv)!=3:
-        print(usage)
-        return
+    m2p = render_cyml.Model2Package(models, dir=output)
+    m2p.generate_package()        # generate cyml models in "pyx" directory
+    tg_rep = Path(output/"%s"%(language)) # target language models  directory in output
+    dir_test_lang =  Path(dir_test/"%s"%(language))
 
-    sourcef= sys.argv[1]
-    language = sys.argv[2]
+    if not tg_rep.isdir():
+        tg_rep.mkdir()
 
-    if language not in languages:
-        print(usage)
-        return
+    if not dir_test_lang.isdir() :  #Create if it doesn't exist
+        dir_test_lang.mkdir()
 
-    if  len(sourcef.split("."))==2:  # translate from cyml code
-        if sourcef.split(".")[1]!="pyx" :
-            print(usage)
-            return
-        file = Path(sourcef)
+    # generate
+    cyml_rep = Path(output/'pyx') # cyml model directory in output
+    for k, file in enumerate(cyml_rep.files()):
+        #print(file)
         with open(file, 'r') as fi:
             source = fi.read()
-        name = sourcef.split(".")[0]
-        test=Main(file, language)
-        test.parse()
-        test.to_ast(source)
-        code=test.to_source()
-        filename = "%s.%s"%(name, language)
-        with open(filename, "wb") as tg_file:
-            tg_file.write(code.encode('utf-8'))
 
-    else:                       # translate from crop2ml package
-        from pycropml import render_cyml
-        from pycropml.pparse import model_parser
-        from pycropml.writeTest import WriteTest
-        pkg= Path(sourcef)
-        models = model_parser(pkg) # parse xml files and create python model object
-        output = pkg/'src'
-        dir_test= pkg/'test'
-        m=[model.name for model in models]
+        name = os.path.split(file)[1].split(".")[0]
+        for model in models:                         # in the case we have'nt the same order
+            if name == model.name.lower():
+                test=Main(file, language, model)
+                test.parse()
+                test.to_ast(source)
+                code=test.to_source()
+                filename = tg_rep/"%s.%s"%(name, language)
+                with open(filename, "wb") as tg_file:
+                    tg_file.write(code.encode('utf-8'))
 
-        # Generate packages if the directories does not exists.
-        if not output.isdir():
-            output.mkdir()
+    # writeTest
+    test = WriteTest(models,language,dir_test_lang)
+    test.write()
 
-        if not dir_test.isdir():
-            dir_test.mkdir()
-
-        m2p = render_cyml.Model2Package(models, dir=output)
-        m2p.generate_package()        # generate cyml models in "pyx" directory
-        tg_rep = Path(output/"%s"%(language)) # target language models  directory in output
-        dir_test_lang =  Path(dir_test/"%s"%(language))
-
-        if not tg_rep.isdir():
-            tg_rep.mkdir()
-
-        if not dir_test_lang.isdir() :  #Create if it doesn't exist
-            dir_test_lang.mkdir()
-
-        # generate
-        cyml_rep = Path(output/'pyx') # cyml model directory in output
-        for k, file in enumerate(cyml_rep.files()):
-            #print(file)
-            with open(file, 'r') as fi:
-                source = fi.read()
-            name = os.path.split(file)[1].split(".")[0]
-            for model in models:                         # in the case we have'nt the same order
-                if name == model.name.lower():
-                    test=Main(file, language, model)
-                    test.parse()
-                    test.to_ast(source)
-                    code=test.to_source()
-                    filename = tg_rep/"%s.%s"%(name, language)
-                    with open(filename, "wb") as tg_file:
-                        tg_file.write(code.encode('utf-8'))
-    
-        test = WriteTest(models,language,dir_test_lang)  
-        test.write()                # writeTest
-        '''code=test.write()
-
-        filename = dir_test_lang/"test.%s"%language
-        with open(filename, "wb") as tg_file:
-            tg_file.write(code.encode('utf-8'))
-        '''
-
-if __name__ == '__main__':
-    main()
+    status = 0
+    return status

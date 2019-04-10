@@ -51,8 +51,8 @@ setup_kwds = dict(
 
     packages=pkgs,
     package_dir={'': 'src'},
-    
-    
+
+
     package_data=pkg_data,
     setup_requires=[
         ],
@@ -63,9 +63,9 @@ setup_kwds = dict(
         "nose",
         "sphinx",
         ],
-    entry_points={"console_scripts": ["cyml = pycropml.cyml:main"]},
+    entry_points={"console_scripts": ["cyml = pycropml.main:main"]},
     keywords='',
-    
+
     test_suite='nose.collector',
     )
 # #}
