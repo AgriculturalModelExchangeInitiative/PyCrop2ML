@@ -8,3 +8,6 @@
 path.py
 six
 nbformat
+numpy
+cython
+nbsphinx

@@ -1,6 +1,6 @@
 
 =====================================
-**Welcome to PyCropML Documentation**
+**Welcome to PyCrop2ML Documentation**
 =====================================
 
 **Contents**
