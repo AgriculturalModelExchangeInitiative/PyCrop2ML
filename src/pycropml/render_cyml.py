@@ -1,10 +1,7 @@
 """Add License, Header.
-
 Use pkglts
-
 Problems:
 - name of a model unit?
-
 """
 from __future__ import print_function
 from __future__ import absolute_import
@@ -13,10 +10,10 @@ import numpy
 from datetime import datetime
 import os.path
 import six
+from . import error
 
 class Model2Package(object):
     """ TODO
-
     """
 
     DATATYPE = {}
@@ -55,11 +52,9 @@ class Model2Package(object):
 
     def generate_package(self):
         """Generate a Cyml package equivalent to the xml definition.
-
         Args:
         - models : a list of model
         - dir: the directory where the code is generated.
-
         Returns:
         - None or status
         """
@@ -106,7 +101,8 @@ class Model2Package(object):
         outputs = model_unit.outputs
         inputs = model_unit.inputs
         tab = ' '*4
-        list_inputs=[]        
+        list_inputs=[]
+        algo=""        
         
         """ we  declare all outputs which are not in inputs"""
         output_declaration=""
@@ -120,12 +116,16 @@ class Model2Package(object):
             if (algorithm.language=="Cyml") or (algorithm.language=="cyml"):
                 algo = algorithm
                 break
-        development = algo.development           
-        lines = [tab+l for l in development.split('\n') if l.split()]
-        code = output_declaration
-        code += '\n'.join(lines)
-        code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
-        self.code = code
+        
+        if algo :
+            development = algo.development           
+            lines = [tab+l for l in development.split('\n') if l.split()]
+            code = output_declaration
+            code += '\n'.join(lines)
+            code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
+            self.code = code
+        else:
+            raise error.Error("algorithm is not defined in model unit")
         return self.code
 
     # documentation
@@ -330,7 +330,6 @@ def generate_doc(model):
     desc = model.description
         
     _doc = """
-
     %s
     Author: %s
     Reference: %s
