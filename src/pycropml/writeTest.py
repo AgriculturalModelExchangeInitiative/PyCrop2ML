@@ -20,7 +20,7 @@ class WriteTest(object):
             render_fortran.Model2Package(self.models, self.dir).write_tests()
                 
         if self.language=="py":
-            Model2Package(self.models).write_tests(self.models)+"\n"
+            Model2Package(self.models,self.dir).write_tests()
         
             
             
