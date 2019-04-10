@@ -1,4 +1,4 @@
-language: python
+language: cpp
 
 os:
   - linux
@@ -12,13 +12,14 @@ services:
 env:
  - CONDA_RECIPE=conda
    CONDA_VERSION=2
-# - CONDA_RECIPE=conda
-#   CONDA_VERSION=3
+ - CONDA_RECIPE=conda
+   CONDA_VERSION=3
 
 install:
   - git clone https://github.com/OpenAlea/travis-ci.git
   - cd travis-ci
   - source install.sh
+
 
 before_script:
   - source before_script.sh
@@ -45,3 +46,4 @@ after_deploy:
 
 after_script:
   - source after_script.sh
+
