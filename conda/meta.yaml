@@ -15,6 +15,7 @@ build:
 requirements:
   build:
     - setuptools
+    - python {{PY_VER}}*
   run:
     - python {{PY_VER}}*
     - cython
@@ -25,7 +26,8 @@ requirements:
 
 test:
   requires:
-    pytest
+    - pytest
+    - pytest-mock
   commands:
     - cyml -h
 
