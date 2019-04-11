@@ -6,7 +6,7 @@
   "CONTRIBUTING.rst": {}, 
   "HISTORY.rst": {}, 
   "LICENSE": {
-    "license": "CiHHzUwznSpITdQl9Yr/YoM7zqBPz3Eu2lImHdBkKbM+9PUlLe0Kt7SDCQEi6CVncOlHQsTk+dkPadkP1Avnew=="
+    "license": "C0IwSkbEvv2vFSuJVbCTUfoNdOV+xJSVvLVgXjClviD3HXxeghoSi3lL8RuGWpD/obJR6gjZRHargPIWFe0DgQ=="
   }, 
   "MANIFEST.in": {
     "pysetup": "Y1QOReOOILPOTsNf8wWix/GCwuIUCPa5GRZKgK0pmu/K/7rkIpdpl4DrFkpaGrOrzdQv8bvLDxJzrxzHeJ8zFg=="
@@ -19,7 +19,7 @@
   }, 
   "doc/_static/nonempty.txt": {}, 
   "doc/conf.py": {
-    "sphinx": "FSNFzgPfGk/3yKP25TiP5+STH0Q2qAjjgCGtGAmDJfKALvp8XuKPIQz5uwdaUDvQACHsyZGumxjRCls7jk3Iqg=="
+    "sphinx": "9Es4xBjP4wNP42oYEuv0YtrjJd3GtgmcJwjQ8eqR0C5L3oviEvXYcjN1llUKtI++GsN63ZYh97vKwZNMldJiCw=="
   }, 
   "doc/make.bat": {
     "sphinx": "E9sFsnXAm9uPYBn7f0Qb6edct0UKizsXRIJyjZISRCjHbT2HldXK4GIj1yO69R/OVSfnmdAX5lzXQ4wONQNFgA=="
@@ -38,13 +38,13 @@
   }, 
   "setup.py": {
     "pysetup.call": "t30iIuCMd/sWxStR2XNYb8bCBgwanhKt8YYn2VKACyAqL5cKFRUWpVRIpAR+uxXUZ9PYYy2csMmECcONnRZE8w==", 
-    "pysetup.kwds": "aMeaVXR0N/nyZPGWDWwYbcLsAl2LKwnCeX9bplFWGjoVtCcq9rTY4KGPu/BfDgKoHahp3Cm+m4kIDyl4I+aSXA=="
+    "pysetup.kwds": "KGzI9FnrlIttIthe2/HGAD1nDHZ4zH3USpA/6lyBU1VBPukkTkvbGFt2nTZgkbZYYX5+8mq4R8XMchsMXrvHGQ=="
   }, 
   "src/pycropml/__init__.py": {
     "base": "+GVGxVjJGifAp8dAR9V2W3aVPe7/D53bN7r0O5VxO9OUqG4vnGTZvnORu1objjjIwm86DgemQd7ax/IJpRa8Wg=="
   }, 
   "src/pycropml/version.py": {
-    "version": "XWEqqZL60QELaVflJcV2g9swZiGpSJ/V+NyoUlW7/1k6q9EnI5U1PeuLRhjGAciBI1Z89apvk/OPqgp9BfLyyw=="
+    "version": "LUfWWi6YGFd5aBPyVXJsi8S9WYGJB04teFuZx8ekMC0L1URqvAP8FQm3aeOl8JcKazpQ77c7iSLIkpiD/Usy1g=="
   }, 
   "test/__init__.py": {}, 
   "test/conftest.py": {

@@ -16,6 +16,7 @@ requirements:
   build:
     - setuptools
     - python {{PY_VER}}*
+    - pytest-runner
   run:
     - python {{PY_VER}}*
     - cython

@@ -19,23 +19,24 @@
     "namespace": null,
     "namespace_method": "pkg_util",
     "pkgname": "pycropml",
-    "url": "https://github.com/AgriculturalModelExchangeInitiative/PyCropML"
+    "url": "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML"
   },
   "data": {
     "filetype": [
       ".json",
+      ".xml",
       ".ini"
     ],
     "use_ext_dir": false
   },
   "doc": {
-    "description": "A Python library to generate components from CropML declarative language",
+    "description": "A Python library to generate components from Crop2ML declarative language",
     "fmt": "rst",
     "keywords": []
   },
   "license": {
     "name": "MIT",
-    "organization": "organization",
+    "organization": "AMEI",
     "project": "{{ base.pkgname }}",
     "year": 2017
   },
@@ -56,6 +57,6 @@
   "version": {
     "major": 0,
     "minor": 1,
-    "post": 0
+    "post": 1
   }
 }
