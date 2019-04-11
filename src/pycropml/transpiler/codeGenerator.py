@@ -77,6 +77,8 @@ class CodeGenerator(NodeVisitor):
         self.write(";")
         
     binop_precedence = {
+        '(':1,
+        ')':1,
         'or': 1,
         'and': 2,
         # unary: 'not': 3, '!': 3,
@@ -97,6 +99,7 @@ class CodeGenerator(NodeVisitor):
         }
     
     def operator_enter(self, new_prec):
+        print(new_prec)
         old_prec = self.precedence[-1]
         if old_prec > new_prec:
             self.write(u"(")
@@ -126,7 +129,12 @@ class CodeGenerator(NodeVisitor):
         self.operator_enter(prec)
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
-        self.visit(node.right)
+        if node.right.type=="binary_op":
+            self.write("(")
+            self.visit(node.right)
+            self.write(")")
+        else:
+            self.visit(node.right)
         self.operator_exit()
     
     def visit_unary_op(self, node):
