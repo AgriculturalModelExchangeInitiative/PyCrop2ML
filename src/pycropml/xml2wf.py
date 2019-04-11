@@ -1,6 +1,9 @@
+from __future__ import absolute_import
+from __future__ import print_function
 from openalea.core.external import *
 from openalea.core.pkgmanager import PackageManager
 from pycropml.render_python import generate_doc
+from pycropml.pparse import model_parser
 
 
 class XmlToWf(object):
@@ -13,7 +16,9 @@ class XmlToWf(object):
         self.inputLinks = self.xmlwf.inputlink
         self.outputLinks = self.xmlwf.outputlink
         self.internalLinks = self.xmlwf.internallink
-
+        self.inputs = []
+        self.outputs = []
+    
     def run(self):
         self.doc = generate_doc(self.xmlwf)
         self.pkg = self.retrievePackage(self.pkg_name)
@@ -88,7 +93,7 @@ class XmlToWf(object):
 
                     #assert self.compareInterface(interfaces)== True
                 except AssertionError:
-                    print("inequal interface: %s %s"% (interfaces, links_sameName))
+                    print(("inequal interface: %s %s"% (interfaces, links_sameName)))
                 for inp in inputs:
                     if inp["name"]==name and "value" in inp:
                         value=inp["value"]
@@ -99,11 +104,11 @@ class XmlToWf(object):
                 else:
                     din=dict(name=name, interface = interfaces[0])
                 ins.append(din)
-
+                self.inputs.append(name)
+        
             else:
                 value=None
                 model= links_sameName[0]["target"].split('.')[0]
-                print(model)
                 inputs = self.pkg[model].inputs
                 #print(inputs)
                 interface=[inp["interface"] for inp in inputs if inp["name"]==name]
@@ -117,6 +122,8 @@ class XmlToWf(object):
                 else:
                     din=dict(name=name, interface = interface[0])
                 ins.append(din)
+                self.inputs.append(name)
+
         self.inputs_wf = ins
 
 
@@ -126,14 +133,13 @@ class XmlToWf(object):
         outs=[]
         # model units outputs must be unique. So model composite output is targeted by an unique output link
         for link in self.outputLinks:
-            print("out %s"%link)
             name =  link["target"]
-            print(name)
             model_src, out_src= link["source"].split('.')
             outputs = self.pkg[model_src].outputs
             interface=[out["interface"] for out in outputs if out["name"]==name]
             dout= dict(name=name, interface = interface[0])
             outs.append(dout)
+            self.outputs.append(name)
 
         self.outputs_wf = outs
 
@@ -158,7 +164,7 @@ class XmlToWf(object):
                 if port_out not in self.wf.node(ns).map_index_out:
                     print('Error input link src : ', src)
                 else:
-                    print('Error input link tgt: ', tgt)
+                    print(('Error input link tgt: ', tgt))
                 continue
             self.wf.connect(ns, pout, nt, pin)
 
@@ -175,7 +181,7 @@ class XmlToWf(object):
                 if port_out not in self.wf.node(ns).map_index_out:
                     print('Error output link src: ', src)
                 else:
-                    print('Error output link tgt: ', tgt)
+                    print(('Error output link tgt: ', tgt))
                 continue
             self.wf.connect(ns, pout, nt, pin)
 
@@ -192,6 +198,6 @@ class XmlToWf(object):
                 if port_out not in self.wf.node(ns).map_index_out:
                     print('Error : ', src)
                 else:
-                    print('Error : ', tgt)
+                    print(('Error : ', tgt))
                 continue
             self.wf.connect(ns, pout, nt, pin)

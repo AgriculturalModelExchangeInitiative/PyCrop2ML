@@ -7,8 +7,10 @@ Problems:
 
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from path import Path
 import numpy
+from six.moves import range
 
 
 class Model2Package(object):
@@ -260,7 +262,7 @@ class Model2Package(object):
         # map the paramsets
             params = {}
             
-            if   test_paramsets not in psets.keys():
+            if   test_paramsets not in list(psets.keys()):
                 print('Unknow parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -271,7 +273,7 @@ class Model2Package(object):
                     des = ""
                     
                     # make a function that transforms a title into a function name
-                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
                     
                     code +=tab+"//%s"%tname+"\n"
@@ -279,7 +281,7 @@ class Model2Package(object):
                     code +="\n"+tab+"public static void %s()"%tname + "\n"+tab+ "{\n"
 
 
-                    (run, inouts) = each_run.items()[0]
+                    (run, inouts) = list(each_run.items())[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -288,14 +290,16 @@ class Model2Package(object):
                     run_param.update(ins)
                     
                     for testinp in inputs:
-                        if testinp.name not in run_param.keys():
+                        if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=[testinp.default] 
                             
                     
                     vartest = ""
-                    for k, v in run_param.iteritems():
+                    for k, v in run_param.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k]
-                        vartest+= "%s: new %s %s,"%(k,self.DATATYPE[type_v[0]], transfList(v)) if type_v[0] in ("DATE","STRINGLIST","DOUBLELIST","INTLIST", "DATELIST") else "%s:%s,"%(k,v)
+                        if type_v[0] in ("DATE","STRINGLIST","DOUBLELIST","INTLIST", "DATELIST"):
+                            vartest+= "%s: new %s %s,"%(k,self.DATATYPE[type_v[0]], transfList(v)) 
+                        else: "%s:%s,"%(k,v)
                         #vartest += "%s:%s,"%(k,v)
                         
                     code+=tab*2+signature(m)+" res%s = Estimation_%s.Calculate"%(num,signature(m))+signature(m)+"("+vartest[:-1]+");\n\n"
@@ -311,11 +315,11 @@ class Model2Package(object):
                     code+=des[:-1]+");\n\n"                    
                     
                     
-                    for k, v in outs.iteritems():
+                    for k, v in outs.items():
                         type_v=[out.datatype for out in outputs if out.name==k]
                         val = transfDouble(v[0]) if type_v[0]=="DOUBLE" else v[0]
                         if len(v)==2:
-                            code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+"+Math.Round("+val +","+v[1]+")+"+'";"' +"+Math.Round(res%s."%num+k+","+v[1]+")+"+'") "' + "+Equals(Math.Round("+val +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
+                            code+=tab*2+"Console.WriteLine("+'"%s Comparison: (Math.Round(%s ,%s);Math.Round(res%s.%s, %s)) "'%(k, val,v[1], num, k, v[1]) + "+Equals(Math.Round("+val +","+v[1]+")," +"Math.Round(res%s."%num+k+","+v[1]+")));\n"
                         else: code+=tab*2+"Console.WriteLine("+'"%s Comparison: ("'%k+ val+ '";"' +"res%s."%num+k+")+"+'") "'+"+Equals("+val+"," +"res%s."%num+k+"));\n"
                     
                     code+=tab+"}\n"
@@ -338,7 +342,7 @@ class Model2Package(object):
             ext = '' if count == 0 else str(count)
             filename = self.dir/"test_%s.cs"%signature(model)
 
-            codetest = "'Test generation'\n\n" + codetest
+            codetest = "//Test generation'\n\n" + codetest
 
             with open(filename, "w") as csharp_file:
                 csharp_file.write(codetest.encode('utf-8'))

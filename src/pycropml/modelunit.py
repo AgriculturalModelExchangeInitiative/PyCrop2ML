@@ -1,12 +1,13 @@
 """ Model Description and Model Unit.
 
 """
+import six
 class ModelDefinition(object):
     """
     """
     def __init__(self, kwds):
         self._attributes = kwds
-        for k, v in kwds.iteritems():
+        for k, v in six.iteritems(kwds):
             self.__setattr__(k,v)
 
     def __repr__(self):
@@ -22,7 +23,7 @@ class ModelUnit(ModelDefinition):
         self.inputs = []
         self.outputs = []
         self.function=[]
-        self.Initialization=[]
+        self.initialization=[]
         self.algorithms = []
         self.parametersets = {}
         self.testsets = []

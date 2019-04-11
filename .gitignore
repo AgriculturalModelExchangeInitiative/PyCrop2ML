@@ -66,3 +66,8 @@ nosetests.xml
 # temporary files
 *._icon.png
 
+# Mac OS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints

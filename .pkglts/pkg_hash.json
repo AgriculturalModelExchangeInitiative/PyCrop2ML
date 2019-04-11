@@ -1,47 +1,56 @@
 {
   "AUTHORS.rst": {
-    "doc.authors": "E4UaUzfzxuRYp+twIJkLoXYmMLhUuUPJ9xdENxZvH9koDoIbNY1IjPgL7WYbniYjzsykOkk3BiDfT/qg//n7nQ==", 
-    "doc.contributors": "CsQZVW/GsCWv8QEyGySskSI6eWXB0nG1eNG+RQuJvXtcmalju8le+Kc3Q/GzFTwZtAsRYx39I1UQecOLvHdOTA=="
+    "doc.authors": "WBQE+pNJxobHw9z7xCoMU7/mTLz9vgnGD/XtriE8c507RJ1cs4o8XHmktlI6R+8YdJg504I5KDeVLmMM2MFpxw==", 
+    "doc.contributors": "Ac1xHbB5q5mQmhiYDeN4wlY1XcXX+3z2O7Y14J0R8PshAShZ7fH6eusQDc1eMXM1tgKvDvo+lZMEc+Ondw9kiw=="
   }, 
   "CONTRIBUTING.rst": {}, 
   "HISTORY.rst": {}, 
   "LICENSE": {
-    "license": "21ExMhSzB2uXQuU1VoH7++nrb4u6TbesqGtJDpM39OLPWft9SJ2tJ956R6foYmkI9VuJay7SUrhFLPxxMEHLxg=="
+    "license": "C0IwSkbEvv2vFSuJVbCTUfoNdOV+xJSVvLVgXjClviD3HXxeghoSi3lL8RuGWpD/obJR6gjZRHargPIWFe0DgQ=="
   }, 
   "MANIFEST.in": {
-    "pysetup": "Hnik3ZmZ6h7lPMgCdBS9C7UsLAGrhFQnJAJWc1nhWBgYBGykh2+ggzqHadAFRHl1G3+5iG05PM8Spagmt2rGTw=="
+    "pysetup": "Y1QOReOOILPOTsNf8wWix/GCwuIUCPa5GRZKgK0pmu/K/7rkIpdpl4DrFkpaGrOrzdQv8bvLDxJzrxzHeJ8zFg=="
   }, 
   "README.rst": {
-    "doc": "z4PhNX7vuL3xVChQ1m2AB9Yg5AULVxXcg/SpIdNs6c5H0NE8XYXysP+DGNKHfuwvY7kxvUdBeoGlODJ6+SfaPg=="
+    "doc": "vmiIOMqGhuXJBom/KrWFzvETfJmbSMcLkvZ6XDTcFWl7XRHJgu1tcb4eHn97TgcziEqpfD96M5qO0DV3z3S+CQ=="
   }, 
   "doc/Makefile": {
-    "sphinx": "C58jxdu8XJNOoaWOw7VWy4LwFmS8lTQt/JeZLt5JozMSJ503plOZchucx+vAEzELbx/Czs/h9pshe9s+9HeOeQ=="
+    "sphinx": "EsaaEppe6Kw79WHpUyBigedrIraP6YlQDBg9Fu6jue32Rt6mCQkk2zH7gfOVqjT5bNpnXN90UfLkrzHVJCo6UQ=="
   }, 
   "doc/_static/nonempty.txt": {}, 
   "doc/conf.py": {
-    "sphinx": "SLebPn+mwdY+C4pulVKwh0tVHJAYza4dUtGXxFusMUWtkinb63vz1epCdZXGig47n+uL466ORAMq4RQJ7Y1YSw=="
+    "sphinx": "9Es4xBjP4wNP42oYEuv0YtrjJd3GtgmcJwjQ8eqR0C5L3oviEvXYcjN1llUKtI++GsN63ZYh97vKwZNMldJiCw=="
   }, 
   "doc/make.bat": {
-    "sphinx": "oA67PK7JSR3w9u1V0gOXFZAb8qgfgUJ0wQ46cVXu7M3iJyAbLf76WkEqw6Y1r5Q6EvHAogcjmImdGsOpiYZ22g=="
+    "sphinx": "E9sFsnXAm9uPYBn7f0Qb6edct0UKizsXRIJyjZISRCjHbT2HldXK4GIj1yO69R/OVSfnmdAX5lzXQ4wONQNFgA=="
   }, 
   "dvlpt_requirements.txt": {
     "pysetup": "4buSt15qYSNvkD2Ans39WG6s3ouq8r2I3vCvzX/y0oRz4LU+KrR2ktIO5SQ1+Amc8OS17QiDrVeKnvM6y8OFMA=="
   }, 
   "requirements.txt": {
-    "pysetup": "/5djJXLbrvuFk7LIgtfgYR8RnQrY5BEmOB4zEd0PrKeswR/8sQkzj4yKy7Zl3LAdRzYjPDhWiRkS1oMCG4FX7Q=="
+    "pysetup": "2aT4rxgylS03HPPG+iGdYWan09mglW87QwvHiknWk3Hsjso06WVD719z4QfyySWlUA0150sJbx9hsWNKDj7vmg=="
+  }, 
+  "requirements_minimal.txt": {
+    "pysetup": "vmiIOMqGhuXJBom/KrWFzvETfJmbSMcLkvZ6XDTcFWl7XRHJgu1tcb4eHn97TgcziEqpfD96M5qO0DV3z3S+CQ=="
   }, 
   "setup.cfg": {
-    "pysetup": "OjcWBMhd1noe+8jyIMjkmHkS5ovZRh+0ms8ZtQyCgroYEWoqcBfo37W/Ee3pgRrzUXBD2CXFbMa4dFKOl+kr/w=="
+    "pysetup": "BfdDz2+rdH5M/G1s39qU7tastV/hvs7xwgDSCBZ4HyFmkLVcXs0PnXlEeTokJLXdvjZQsKcM4z6Dg77cRfUYdQ=="
   }, 
   "setup.py": {
-    "pysetup.call": "2wHuP94SpWKZpqOzExkQGTxnhGPgBHK3qOdPn0Ncstj5FkZ7FBGGM/inqAXaI4QLKQtTNlOUYRGSkYUWAUcf1w==", 
-    "pysetup.kwds": "btTLxqlf8mTq0yegDOqisqwQeS1HZQUliWNiK7KgPfdx+lQbP8alaM9CaTl/4+VTDBlY3+1oBo9LGKjH7oLf9Q=="
+    "pysetup.call": "t30iIuCMd/sWxStR2XNYb8bCBgwanhKt8YYn2VKACyAqL5cKFRUWpVRIpAR+uxXUZ9PYYy2csMmECcONnRZE8w==", 
+    "pysetup.kwds": "KGzI9FnrlIttIthe2/HGAD1nDHZ4zH3USpA/6lyBU1VBPukkTkvbGFt2nTZgkbZYYX5+8mq4R8XMchsMXrvHGQ=="
   }, 
   "src/pycropml/__init__.py": {
-    "base": "gR33dW0qqYmsV9NSNB+DD8XmuxnC2t0mKjnMoU5728qh97fSER6MbX+3QKxpZDLByZToaAay4xhx8acxketJmA=="
+    "base": "+GVGxVjJGifAp8dAR9V2W3aVPe7/D53bN7r0O5VxO9OUqG4vnGTZvnORu1objjjIwm86DgemQd7ax/IJpRa8Wg=="
   }, 
   "src/pycropml/version.py": {
-    "version": "Nj2/+OEY68P8K40HdBrKhlv5eGu5Qc0nRliFTUKGxMSKJs+M7ezp/27fnXc+TOIgn5onj4GShDI4fC0FeI5CPg=="
+    "version": "LUfWWi6YGFd5aBPyVXJsi8S9WYGJB04teFuZx8ekMC0L1URqvAP8FQm3aeOl8JcKazpQ77c7iSLIkpiD/Usy1g=="
   }, 
-  "test/__init__.py": {}
+  "test/__init__.py": {}, 
+  "test/conftest.py": {
+    "test.pytest_addoption": "I/hswVryIEYvZRBcFqkfRBxLP6eZCwZSbQuPclkOkjHw4MApBst5h7H0ejnMMe4bmwHXMXR5DCSxOMj/FcCnjQ==", 
+    "test.pytest_cmdline_preparse": "Lid4ojpVpBIIn1jpCe1fmfeSeAgYhmIu4K5huJGEMv87/LruGeI0PjWNyONDNXlZrL0CL0BPTKvXlOkEj3jIWA==", 
+    "test.pytest_collection": "a/3h30sLUHJ7xWsOrmfCInOOVXvm660dS+RxHwcDUcae2jHqDLRGhq/v8zgC+FSzN3pXaEaJ1QBJ9MNLOUBuCA==", 
+    "test.pytest_import": "2ox6A0szNpUYZR5cJJRSW3OwEWR558BOiUMjC/OVkTPT++CF/OCgGSELCPL+7YHWaJGQKMw2rtCXmOMeSK5ZJA=="
+  }
 }

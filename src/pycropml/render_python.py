@@ -7,13 +7,22 @@ Problems:
 
 """
 from __future__ import print_function
+from __future__ import absolute_import
 from path import Path
-import numpy 
+import numpy
 from datetime import datetime
-from openalea.core import package
-from openalea.core import node
-from openalea.core import interface as inter
 import os.path
+import six
+
+try:
+    from openalea.core import interface as inter
+    from openalea.core import package
+    from openalea.core import node
+except:
+    inter = None
+    package = None
+    node = None
+    has_openalea = False
 
 class Model2Package(object):
     """ TODO
@@ -33,8 +42,8 @@ class Model2Package(object):
     DATATYPE['DOUBLEARRAY'] = numpy.array
     DATATYPE['BOOLEAN'] = bool
     DATATYPE['DATE'] = str
- 
-    
+
+
 
     num = 0
 
@@ -78,21 +87,19 @@ class Model2Package(object):
         count = 0
 
         for model in self.models:
-            
 
             self.generate_component(model)
-            
+
             ext = '' if count == 0 else str(count)
             #filename = self.dir/"model%s.py"%ext
             filename = self.dir/"%s.py"%signature(model)
-            
-            
+
+
             dir2 = cwd/'py'
 
-            with open(filename, "w") as python_file:
+            with open(filename, "wb") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
                 files.append(filename)
-                
 
                 model.module_name = str(Path(filename).namebase)
 
@@ -103,6 +110,9 @@ class Model2Package(object):
 
     def generate_wralea(self):
         """Generate wralea factories from the meta-information of the the model units."""
+
+        if not has_openalea:
+            return
 
         # TODO
         metainfo = {'version': '0.0.1',
@@ -116,7 +126,7 @@ class Model2Package(object):
         _package = package.UserPackage(self.pkg_name, metainfo, self.dir)
 
         for model in self.models:
-            
+
             _factory = self.generate_factory(model)
             _package.add_factory(_factory)
 
@@ -125,13 +135,15 @@ class Model2Package(object):
 
     def generate_factory(self, model):
         """Create a Node Factory from CropML model unit."""
+        if not has_openalea:
+            return
 
         inputs = []
         for input in model.inputs:
             name = input.name
             dtype = input.datatype
             interface = openalea_interface(input)
-            if dtype not in ('STRING', 'BOOLEAN' ,'DATE') and 'default' in dir(input):          
+            if dtype not in ('STRING', 'BOOLEAN' ,'DATE') and 'default' in dir(input):
                 value = eval(input.default)
                 _in = dict(name=name, interface=interface, value=value)
             elif 'default' in dir(input):
@@ -139,7 +151,7 @@ class Model2Package(object):
                 _in = dict(name=name, interface=interface, value=value)
             elif 'default' not in dir(input):
                 _in = dict(name=name, interface=interface)
-            
+
             #value = eval(input.default) if dtype != 'string'else input.default
 
             inputs.append(_in)
@@ -165,12 +177,13 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
+        name = model_unit.name
         self.code= "import numpy as np \n" + "from copy import copy\n" + "from math import *\n\n"
-        
+
         if model_unit.function:
             for function in model_unit.function:
-                if function.language in ("Python", "python"):
-                    module=os.path.splitext(function.filename)[0]
+                if function.language.lower() == "python":
+                    module=os.path.split(function.filename)[1].split(".")[0]
                     self.code +="from %s import * \n"%module.lower()
                     break
         self.code += self.generate_function_signature(model_unit)
@@ -178,7 +191,7 @@ class Model2Package(object):
         self.code += self.generate_function_doc(model_unit)
 
         self.code += self.generate_algorithm(model_unit)
-        
+
         return self.code
 
 
@@ -188,14 +201,21 @@ class Model2Package(object):
         outputs = model_unit.outputs
         tab = ' '*4
         code=""
-        for algorithm in model_unit.algorithms:                                  
-            if (algorithm.language=="python_ext") or (algorithm.language==" ") or (algorithm.language=="Python")|(algorithm.language=="python"):
+        algo = None
+        for algorithm in model_unit.algorithms:
+            lang = algorithm.language.lower()
+            if ((algorithm.language == "python_ext") or
+                (algorithm.language == " ") or
+                (algorithm.language=="python")):
                 algo = algorithm
                 break
-        development = algo.development           
+
+        if algo is None:
+            return code
+
+        development = algo.development
         if algo.filename==None:
-            
-            
+
             lines = [l.strip() for l in development.split('\n') if l.strip()]
 
             def indentation(lines):
@@ -216,10 +236,10 @@ class Model2Package(object):
                     code+=tab+pline+"\n"
                 return code
 
-            code = indentation(lines)         
-        # Outputs
+            code = indentation(lines)
+            # Outputs
             code += tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
- 
+
         else:
             lines = [tab+l for l in development.split('\n') if l.split()]
             code = '\n'.join(lines)
@@ -261,25 +281,25 @@ class Model2Package(object):
             _type = _input.datatype
             if 'default' in dir(_input):
                 default = _input.default
-                
+
                 if self.DATATYPE[_type]  == bool:
                     val = default.capitalize()
                     return "%s=%s"%(name, val)
-                    
+
                 elif self.DATATYPE[_type] == list:
                     val = eval(default)
                     return '%s=%s'%(name, val)
-                
-                elif self.DATATYPE[_type] == str: 
-                    print("%s='%s'"%(name, default))                    
+
+                elif self.DATATYPE[_type] == str:
+                    print("%s='%s'"%(name, default))
                     return "%s='%s'"%(name, default)
-                
+
                 elif _type in self.DATATYPE:# and _type!="Date":
-                    
+
                     default = self.DATATYPE[_type](default)
                 ##if _type=="Date":
                     #default = datetime.strptime(default, '%d/%m/%Y')
-                    
+
                     return '%s=%s'%(name, default)
             else:
                 return name
@@ -310,7 +330,7 @@ class Model2Package(object):
         # map the paramsets
             params = {}
 
-            if   test_paramsets not in psets.keys():
+            if   test_paramsets not in list(psets.keys()):
                 print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -319,11 +339,11 @@ class Model2Package(object):
                     test_codes = []
 
                     # make a function that transforms a title into a function name
-                    tname = each_run.keys()[0].replace(' ', '_')
+                    tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
 
 
-                    (run, inouts) = each_run.items()[0]
+                    (run, inouts) = list(each_run.items())[0]
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
@@ -339,7 +359,7 @@ class Model2Package(object):
                     run_param = params.copy()
                     run_param.update(ins)
 
-                    for k, v in run_param.iteritems():
+                    for k, v in six.iteritems(run_param):
                         code = "    %s = %s,"%(k,v)
                         test_codes.append(code)
                     code = "     )"
@@ -347,38 +367,38 @@ class Model2Package(object):
 
                     for j, k in enumerate(m.outputs):
                         if  k.datatype.strip() in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
-                        
+
                             code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
-                            
+
                             test_codes.append(code)
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                        
+
                             test_codes.append(code)
                             code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                        
+
                             test_codes.append(code)
-                                                   
+
                         if k.datatype.strip() in ("STRING", "BOOL", "INT", "DATE"):
                             code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
                             test_codes.append(code)
-                       
+
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
                             test_codes.append(code)
-                       
+
                             code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
                             test_codes.append(code)
-                       
-                           
+
+
                         if k.datatype.strip() in ("DOUBLELIST", "DOUBLEARRAY"):
                             code = tab + "%s_estimated = np.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
                             test_codes.append(code)
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
                             test_codes.append(code)
-                       
+
                             code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
                             test_codes.append(code)
-                           
-                           
+
+
                         if k.datatype.strip() in ("INTLIST", "INTARRAY"):
                             code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
                             test_codes.append(code)
@@ -390,10 +410,10 @@ class Model2Package(object):
                         if k.datatype.strip() == "DOUBLE":
                             code = tab + "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
                             test_codes.append(code)
-                           
+
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
                             test_codes.append(code)
-                           
+
                             code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
                             test_codes.append(code)
 
@@ -402,7 +422,7 @@ class Model2Package(object):
                     self.codetest += code
 
         return self.codetest
-    
+
     def generate_func_test(self, model_unit):
         pass
 
@@ -418,7 +438,7 @@ class Model2Package(object):
 
             codetest = "'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
-            with open(filename, "w") as python_file:
+            with open(filename, "wb") as python_file:
                 python_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1
@@ -437,7 +457,7 @@ def signature(model):
 
 def generate_doc(model):
     desc = model.description
-        
+
     _doc = """
 
     %s
@@ -453,6 +473,9 @@ def generate_doc(model):
     return code
 
 def openalea_interface(inout):
+    if inter is None:
+        return None
+
     dtype = inout.datatype.lower().strip()
     interface = None
 
@@ -473,13 +496,13 @@ def openalea_interface(inout):
 
     elif dtype == 'string':
         interface = inter.IStr
-    
+
     elif dtype == "boolean":
         interface = inter.IBool
 
     elif dtype == "date":
         interface = inter.IDateTime
-           
+
     elif dtype in ("doublelist", "intlist", "stringlist","datelist", "doublearray", "intarray", "datearray"):
         interface=inter.ISequence
 
