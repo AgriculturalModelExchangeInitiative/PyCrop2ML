@@ -15,10 +15,12 @@ build:
 requirements:
   build:
     - setuptools
-    - python {{PY_VER}}*
+    - python {{PY_VER}}* [not win]
+    - python {{PY_VER}}  [win]
     - pytest-runner
   run:
-    - python {{PY_VER}}*
+    - python {{PY_VER}}* [not win]
+    - python {{PY_VER}}  [win]
     - cython
     - path.py
     - numpy
