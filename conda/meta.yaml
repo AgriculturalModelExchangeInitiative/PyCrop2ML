@@ -33,6 +33,7 @@ test:
     - pytest-mock
   commands:
     - cyml -h
+    - pytest test
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
