@@ -11,11 +11,18 @@ from __future__ import absolute_import
 from path import Path
 import numpy
 from datetime import datetime
-from openalea.core import package
-from openalea.core import node
-from openalea.core import interface as inter
 import os.path
 import six
+
+try:
+    from openalea.core import interface as inter
+    from openalea.core import package
+    from openalea.core import node
+except:
+    inter = None
+    package = None
+    node = None
+    has_openalea = False
 
 class Model2Package(object):
     """ TODO
@@ -104,6 +111,9 @@ class Model2Package(object):
     def generate_wralea(self):
         """Generate wralea factories from the meta-information of the the model units."""
 
+        if not has_openalea:
+            return
+
         # TODO
         metainfo = {'version': '0.0.1',
                     'license': 'CECILL-C',
@@ -125,6 +135,8 @@ class Model2Package(object):
 
     def generate_factory(self, model):
         """Create a Node Factory from CropML model unit."""
+        if not has_openalea:
+            return
 
         inputs = []
         for input in model.inputs:
@@ -461,6 +473,9 @@ def generate_doc(model):
     return code
 
 def openalea_interface(inout):
+    if inter is None:
+        return None
+
     dtype = inout.datatype.lower().strip()
     interface = None
 
