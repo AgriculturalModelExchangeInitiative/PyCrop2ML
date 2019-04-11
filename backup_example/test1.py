@@ -21,10 +21,12 @@ else:
 # Test on Example
 
 def example():
-        
+
     #fn = data.glob('Example*.xml')
     #print (fn)
-    
+
     models = pparse.model_parser(data)
     return models
 
+def test():
+    models = example()

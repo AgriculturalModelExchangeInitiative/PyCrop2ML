@@ -10,8 +10,8 @@
 
 
 # test
-mock
-nose
+pytest
+pytest-mock
 
 
 # compile doc

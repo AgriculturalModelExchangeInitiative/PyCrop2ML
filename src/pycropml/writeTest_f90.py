@@ -12,8 +12,8 @@ Problems:
 - name of a model unit?
 
 """
-from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import print_function
 from path import Path
 from six.moves import range
 
@@ -42,13 +42,13 @@ class Model2Package(object):
         self.dir = dir
 
         self.with_import = True
-    
+
     def run(self):
         """TODO."""
         self.generate_package()
         self.write_tests()
-    
-    
+
+
     def generate_package(self):
         """Generate a csharp package equivalent to the xml definition.
 
@@ -72,10 +72,10 @@ class Model2Package(object):
         count = 0
 
         for model in self.models:
-            
+
 
             self.generate_component(model)
-            
+
             ext = '' if count == 0 else str(count)
             filename = self.dir/"%s.cs"%signature(model)
 
@@ -90,7 +90,7 @@ class Model2Package(object):
         return files
 
 
-    
+
     def generate_component(self, model_unit):
         """ Todo
         """
@@ -105,7 +105,7 @@ class Model2Package(object):
     def generate_function_doc(self, model_unit):
 
         desc = model_unit.description
-        
+
         _doc = """/*
      %s
 
@@ -113,7 +113,7 @@ class Model2Package(object):
     Reference: %s
     Instituton: %s
     Abstract: %s
-    
+
 """%(desc.Title, desc.Author, desc.Reference, desc.Institution, desc.Abstract)+"*/"
 
         code = '\n'
@@ -129,113 +129,113 @@ class Model2Package(object):
         output_declaration = ""
         tab = ' '*4
         list_inputs=[]
-        
-        
+
+
         """ we  declare all outputs which are not in inputs"""
-        
+
         for inp in inputs:
             list_inputs.append(inp.name)
         for out in outputs:
             sig+=out.name+","
             if out.name not in list_inputs:
                 output_declaration += tab*2+self.DATATYPE[out.datatype]+" "+out.name+";\n"
-        
+
         """ we select the algorithm if the language is specified or not"""
-        
-        for algorithm in model_unit.algorithms: 
-                                
+
+        for algorithm in model_unit.algorithms:
+
             if (algorithm.language =="C#")or(algorithm.language==" "):
                 algo = algorithm
                 break
-        development = algo.development 
-          
+        development = algo.development
+
         if algo.filename==None:
-       
+
 
             code = output_declaration
-                
+
             lines = [l.strip() for l in development.split('\n') if l.strip()]
             for line in lines:
                 if (line[len(line)-1] !=";")and(algo.language==" "): line = line+";"
                 code += tab*2+line+'\n'
-                
+
             code += tab*2+ 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
-                
+
             code+=tab+'}\n'
             code+='}\n'
-                
-        else: 
+
+        else:
             #print(Path.getcwd()/algo.filename) I will improve it to import code part
             code=output_declaration+"\n"
             lines = [tab*2+l for l in development.split('\n') if l.split()]
-            code += '\n'.join(lines)            
+            code += '\n'.join(lines)
             code += '\n'+tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
-                
-            code+=tab+'}\n'  
-            code+='}\n'        
-                                                  
- 
+
+            code+=tab+'}\n'
+            code+='}\n'
+
+
         self.code = code
 
         return self.code
 
     # documentation
-    
+
     def generate_public_class(self, model_unit):
-        
+
         outputs = model_unit.outputs
-        
+
         tab=' '*4
 
         code ="public class " + signature(model_unit) +'\n{\n'
 
         for out in outputs:
             code+=tab+"public"+" "+self.DATATYPE[out.datatype.strip()]+" "+out.name + ';\n'
-        
+
         code+=tab+"public" +" "+model_unit.name+"("
         sig = ""
         for out in outputs:
             sig+= self.DATATYPE[out.datatype.strip()]+" "+"_"+out.name+","
-            
+
         code+=sig[:-1]+')\n'+tab+'{\n'
 
         for out in outputs:
             code+=tab*2+out.name+"="+ "_"+out.name+';\n'
-        
+
         code+=tab+'}\n}'
-        
+
         self.code = code
         return self.code
-        
-        
+
+
     def generate_estimation(self, model_unit):
         outputs=model_unit.outputs
         inputs = model_unit.inputs
-        
+
         tab=' '*4
 
         code ="public static class Estimation_" + signature(model_unit) +'\n{\n'
-      
-        
+
+
         code+=tab+"public static "+ model_unit.name+ " Calculate"+signature(model_unit)+"("
         sig = ""
-                
+
         for inp in inputs:
-            
+
             sig+= self.DATATYPE[inp.datatype]+" "+inp.name+","
-        """            
+        """
             if "default" not in inp.__dict__:
-                sig+= self.DATATYPE[inp.datatype]+" "+inp.name+"," 
+                sig+= self.DATATYPE[inp.datatype]+" "+inp.name+","
         for inp in inputs:
             if "default" in inp.__dict__:
                 sig+= self.DATATYPE[inp.datatype]+" "+inp.name+ ","
-        """      
-                    
+        """
+
         code+=sig[:-1]+')\n'+tab+'{\n'
         self.code = code
-        
-        return self.code    
-        
+
+        return self.code
+
 
 
 
@@ -293,38 +293,38 @@ class Model2Package(object):
 
                     for j, k in enumerate(m.outputs):
                         if  k.datatype.strip() in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
-                        
+
                             code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
-                            
+
                             test_codes.append(code)
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                        
+
                             test_codes.append(code)
                             code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                        
+
                             test_codes.append(code)
-                                                   
+
                         if k.datatype.strip() in ("STRING", "BOOL", "INT", "DATE"):
                             code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
                             test_codes.append(code)
-                       
+
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
                             test_codes.append(code)
-                       
+
                             code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
                             test_codes.append(code)
-                       
-                           
+
+
                         if k.datatype.strip() in ("DOUBLELIST", "DOUBLEARRAY"):
                             code = tab + "%s_estimated = np.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
                             test_codes.append(code)
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
                             test_codes.append(code)
-                       
+
                             code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
                             test_codes.append(code)
-                           
-                           
+
+
                         if k.datatype.strip() in ("INTLIST", "INTARRAY"):
                             code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
                             test_codes.append(code)
@@ -336,10 +336,10 @@ class Model2Package(object):
                         if k.datatype.strip() == "DOUBLE":
                             code = tab + "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
                             test_codes.append(code)
-                           
+
                             code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
                             test_codes.append(code)
-                           
+
                             code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
                             test_codes.append(code)
 
@@ -367,14 +367,14 @@ class Model2Package(object):
                 files.append(filename)
             count +=1
         return files
-    
+
 def signature(model):
     name = model.name
     name = name.strip()
     name = name.replace(' ', '_')
 
-    return name   
-    
+    return name
+
 def signature(model):
     name = model.name
     name = name.strip()
@@ -391,8 +391,8 @@ def transfDate(type, elem):
     ser = elem.split("/")
     year, month, day = ser[2], ser[1], ser[0]
     return "new %s (%s, %s, %s) "%(type, year, month, day)
-    
-def transfString(type, elem): 
+
+def transfString(type, elem):
     return '"%s"'%elem
 
 def transfDateList(type, elem):
@@ -410,7 +410,7 @@ def transf(type, elem):
         return transfString(type, elem)
     elif type=="int":
         return elem
-    elif type=="List<DateTime>": 
+    elif type=="List<DateTime>":
         print(elem)
         return transfDateList(type, eval(elem))
     elif type in ("List<string>","List<double>","List<int>"):
