@@ -45,21 +45,20 @@ setup_kwds = dict(
 
     packages=pkgs,
     package_dir={'': 'src'},
-
-
+    
+    
     package_data=pkg_data,
     setup_requires=[
+        "pytest-runner",
         ],
     install_requires=[
         ],
     tests_require=[
-        "mock",
-        "nose",
+        "pytest",
+        "pytest-mock",
         ],
     entry_points={},
     keywords='',
-
-    test_suite='nose.collector',
     )
 # #}
 # change setup_kwds below before the next pkglts tag

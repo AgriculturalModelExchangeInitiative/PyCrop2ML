@@ -24,6 +24,8 @@ requirements:
     - six
 
 test:
+  requires:
+    pytest
   commands:
     - cyml -h
 

@@ -51,7 +51,7 @@
     "theme": "default"
   },
   "test": {
-    "suite_name": "nose"
+    "suite_name": "pytest"
   },
   "version": {
     "major": 0,
