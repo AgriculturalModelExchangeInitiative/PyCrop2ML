@@ -97,7 +97,7 @@ class Model2Package(object):
 
             dir2 = cwd/'py'
 
-            with open(filename, "w") as python_file:
+            with open(filename, "wb") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
                 files.append(filename)
 
