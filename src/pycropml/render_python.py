@@ -438,7 +438,7 @@ class Model2Package(object):
 
             codetest = "'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
-            with open(filename, "w") as python_file:
+            with open(filename, "wb") as python_file:
                 python_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1
