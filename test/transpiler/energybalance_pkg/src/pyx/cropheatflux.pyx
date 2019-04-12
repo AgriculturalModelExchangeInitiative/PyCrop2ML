@@ -6,7 +6,6 @@ def cropheatflux_(float netRadiationEquivalentEvaporation=638.142,
                   float potentialTranspiration=1.413):
     """
 
-
     CropHeatFlux Model
     Author: Pierre Martre
     Reference: abModelling energy balance in the wheat crop model SiriusQuality2:

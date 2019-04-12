@@ -261,29 +261,30 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - unit : 
-        IF(isVernalizable .EQ. 1 .AND. vernaprog .LT. 1.0) THEN
+        IF(isVernalizable .EQ. 1) .AND. vernaprog .LT. 1.0))) THEN
             tt = deltaTT
-            IF(tt .GE. minTvern .AND. tt .LE. intTvern) THEN
-                vernaprog = vernaprog + vAI * tt + vBEE
+            IF(tt .GE. minTvern) .AND. tt .LE. intTvern))) THEN
+                vernaprog = vernaprog + (vAI * tt)) + vBEE)
             END IF
-            IF(tt .GT. intTvern) THEN
-                maxVernaProg = vAI * intTvern + vBEE
+            IF(tt .GT. intTvern)) THEN
+                maxVernaProg = vAI * intTvern) + vBEE)
                 dLverna = MAX(minDL, MIN(maxDL, dayLength))
-                vernaprog = vernaprog + MAX(0.0, maxVernaProg * (1.0 + (intTvern -  &
-                        tt) / (maxTvern - intTvern) * (dLverna - minDL) / (maxDL - minDL)))
+                vernaprog = vernaprog + MAX(0.0, maxVernaProg * ((1.0 + ((intTvern -  &
+                        tt)) / ((maxTvern - intTvern))) * ((dLverna - minDL)) / ((maxDL -  &
+                        minDL)))))))))
             END IF
-            primordno = 2.0 * leafNumber + pNini
+            primordno = 2.0 * leafNumber) + pNini)
             minLeafNumber = minFinalNumber
-            IF(vernaprog .GE. 1.0 .OR. primordno .GE. aMXLFNO) THEN
+            IF(vernaprog .GE. 1.0) .OR. primordno .GE. aMXLFNO))) THEN
                 minFinalNumber = MAX(primordno, minFinalNumber)
                 call Add(calendarMoments, 'EndVernalisation')
                 call Add(calendarCumuls, cumulTT)
                 call Add(calendarDates, currentdate)
                 vernaprog = MAX(1.0, vernaprog)
             ELSE
-                potlfno = aMXLFNO - (aMXLFNO - minLeafNumber) * vernaprog
-                IF(primordno .GE. potlfno) THEN
-                    minFinalNumber = MAX((potlfno + primordno) / 2.0, minFinalNumber)
+                potlfno = aMXLFNO - ((aMXLFNO - minLeafNumber)) * vernaprog))
+                IF(primordno .GE. potlfno)) THEN
+                    minFinalNumber = MAX((potlfno + primordno)) / 2.0), minFinalNumber)
                     vernaprog = MAX(1.0, vernaprog)
                     call Add(calendarMoments, 'EndVernalisation')
                     call Add(calendarCumuls, cumulTT)

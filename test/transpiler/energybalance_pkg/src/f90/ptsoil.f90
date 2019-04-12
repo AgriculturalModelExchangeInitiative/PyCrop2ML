@@ -1,15 +1,15 @@
 MODULE Ptsoil_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE ptsoil_(evapoTranspirationPriestlyTaylor, &
+        Alpha, &
         tau, &
         tauAlpha, &
         energyLimitedEvaporation)
         REAL, INTENT(OUT) :: energyLimitedEvaporation
         REAL:: AlphaE
         REAL, INTENT(IN) :: evapoTranspirationPriestlyTaylor
-        REAL, PARAMETER :: Alpha = 1.5
+        REAL, INTENT(IN) :: Alpha
         REAL, INTENT(IN) :: tau
         REAL, INTENT(IN) :: tauAlpha
         !- Description:
@@ -69,12 +69,13 @@ CONTAINS
     !                          - max : 5000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        IF(tau .LT. tauAlpha) THEN
+        IF(tau .LT. tauAlpha)) THEN
             AlphaE = 1.0
         ELSE
-            AlphaE = Alpha - (Alpha - 1.0) * (1.0 - tau) / (1.0 - tauAlpha)
+            AlphaE = Alpha - ((Alpha - 1.0)) * ((1.0 - tau))) / ((1.0 -  &
+                    tauAlpha))))
         END IF
-        energyLimitedEvaporation = evapoTranspirationPriestlyTaylor / Alpha *  &
-                AlphaE * tau
+        energyLimitedEvaporation = evapoTranspirationPriestlyTaylor / Alpha)  &
+                * AlphaE) * tau)
     END SUBROUTINE ptsoil_
 END MODULE

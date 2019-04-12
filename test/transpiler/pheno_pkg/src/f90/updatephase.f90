@@ -1,5 +1,4 @@
 MODULE Updatephase_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE updatephase_(cumulTT, &
@@ -331,68 +330,68 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1
     !                          - unit : 
-        IF(phase .GE. 0.0 .AND. phase .LT. 1.0) THEN
-            IF(cumulTT .GE. dse) THEN
+        IF(phase .GE. 0.0) .AND. phase .LT. 1.0))) THEN
+            IF(cumulTT .GE. dse)) THEN
                 phase = 1.0
             END IF
-        ELSE IF ( phase .GE. 1.0 .AND. phase .LT. 2.0) THEN
-            IF(isVernalizable .EQ. 1 .AND. vernaprog .GE. 1.0 .OR. isVernalizable  &
-                    .EQ. 0) THEN
-                IF(dayLength .GT. maxDL) THEN
+        ELSE IF ( phase .GE. 1.0) .AND. phase .LT. 2.0))) THEN
+            IF(isVernalizable .EQ. 1) .AND. vernaprog .GE. 1.0)) .OR.  &
+                    isVernalizable .EQ. 0))) THEN
+                IF(dayLength .GT. maxDL)) THEN
                     finalLeafNumber = minFinalNumber
                     hasLastPrimordiumAppeared = 1
                 ELSE
-                    appFLN = minFinalNumber + sLDL * (maxDL - dayLength)
-                    IF(appFLN / 2.0 .LE. leafNumber) THEN
+                    appFLN = minFinalNumber + (sLDL * ((maxDL - dayLength))))
+                    IF(appFLN / 2.0) .LE. leafNumber)) THEN
                         finalLeafNumber = appFLN
                         hasLastPrimordiumAppeared = 1
                     END IF
                 END IF
-                IF(hasLastPrimordiumAppeared .EQ. 1) THEN
+                IF(hasLastPrimordiumAppeared .EQ. 1)) THEN
                     phase = 2.0
                 END IF
             END IF
-        ELSE IF ( phase .GE. 2.0 .AND. phase .LT. 4.0) THEN
-            IF(isMomentRegistredZC_39 .EQ. 1) THEN
-                IF(phase .LT. 3.0) THEN
+        ELSE IF ( phase .GE. 2.0) .AND. phase .LT. 4.0))) THEN
+            IF(isMomentRegistredZC_39 .EQ. 1)) THEN
+                IF(phase .LT. 3.0)) THEN
                     ttFromLastLeafToHeading = 0.0
-                    IF(choosePhyllUse .EQ. 'Default') THEN
-                        ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH) * fixPhyll
-                    ELSE IF ( choosePhyllUse .EQ. 'PTQ') THEN
-                        ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH) * phyllochron
-                    ELSE IF ( choosePhyllUse .EQ. 'Test') THEN
-                        ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH) * p
+                    IF(choosePhyllUse .EQ. 'Default')) THEN
+                        ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH)) * fixPhyll)
+                    ELSE IF ( choosePhyllUse .EQ. 'PTQ')) THEN
+                        ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH)) * phyllochron)
+                    ELSE IF ( choosePhyllUse .EQ. 'Test')) THEN
+                        ttFromLastLeafToHeading = (pFLLAnth - pHEADANTH)) * p)
                     END IF
-                    IF(cumulTTFromZC_39 .GE. ttFromLastLeafToHeading) THEN
+                    IF(cumulTTFromZC_39 .GE. ttFromLastLeafToHeading)) THEN
                         phase = 3.0
                     END IF
                 END IF
                 ttFromLastLeafToAnthesis = 0.0
-                IF(choosePhyllUse .EQ. 'Default') THEN
-                    ttFromLastLeafToAnthesis = pFLLAnth * fixPhyll
-                ELSE IF ( choosePhyllUse .EQ. 'PTQ') THEN
-                    ttFromLastLeafToAnthesis = pFLLAnth * phyllochron
-                ELSE IF ( choosePhyllUse .EQ. 'Test') THEN
-                    ttFromLastLeafToAnthesis = pFLLAnth * p
+                IF(choosePhyllUse .EQ. 'Default')) THEN
+                    ttFromLastLeafToAnthesis = pFLLAnth * fixPhyll)
+                ELSE IF ( choosePhyllUse .EQ. 'PTQ')) THEN
+                    ttFromLastLeafToAnthesis = pFLLAnth * phyllochron)
+                ELSE IF ( choosePhyllUse .EQ. 'Test')) THEN
+                    ttFromLastLeafToAnthesis = pFLLAnth * p)
                 END IF
-                IF(cumulTTFromZC_39 .GE. ttFromLastLeafToAnthesis) THEN
+                IF(cumulTTFromZC_39 .GE. ttFromLastLeafToAnthesis)) THEN
                     phase = 4.0
                 END IF
             END IF
-        ELSE IF ( phase .EQ. 4.0) THEN
-            IF(grainCumulTT .GE. dcd) THEN
+        ELSE IF ( phase .EQ. 4.0)) THEN
+            IF(grainCumulTT .GE. dcd)) THEN
                 phase = 4.5
             END IF
-        ELSE IF ( phase .EQ. 4.5) THEN
-            IF(grainCumulTT .GE. dgf .OR. gai .LE. 0.0) THEN
+        ELSE IF ( phase .EQ. 4.5)) THEN
+            IF(grainCumulTT .GE. dgf) .OR. gai .LE. 0.0))) THEN
                 phase = 5.0
             END IF
-        ELSE IF ( phase .GE. 5.0 .AND. phase .LT. 6.0) THEN
+        ELSE IF ( phase .GE. 5.0) .AND. phase .LT. 6.0))) THEN
             localDegfm = degfm
             IF(ignoreGrainMaturation) THEN
                 localDegfm = -1.0
             END IF
-            IF(cumulTTFromZC_91 .GE. localDegfm) THEN
+            IF(cumulTTFromZC_91 .GE. localDegfm)) THEN
                 phase = 6.0
             END IF
         END IF

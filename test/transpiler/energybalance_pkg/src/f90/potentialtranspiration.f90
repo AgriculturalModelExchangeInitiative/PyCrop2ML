@@ -1,5 +1,4 @@
 MODULE Potentialtranspiration_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE potentialtranspiration_(evapoTranspiration, &
@@ -46,6 +45,6 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        potentialTranspiration = evapoTranspiration * (1 - tau)
+        potentialTranspiration = evapoTranspiration * ((1 - tau)))
     END SUBROUTINE potentialtranspiration_
 END MODULE

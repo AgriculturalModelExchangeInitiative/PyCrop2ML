@@ -1,5 +1,4 @@
 MODULE Leafnumber_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE leafnumber_(deltaTT, &
@@ -76,14 +75,14 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : leaf
     !                          - uri : some url
-        IF(phase .GE. 1.0 .AND. phase .LT. 4.0) THEN
-            IF(hasFlagLeafLiguleAppeared .EQ. 0) THEN
-                IF(phyllochron .EQ. 0.0) THEN
+        IF(phase .GE. 1.0) .AND. phase .LT. 4.0))) THEN
+            IF(hasFlagLeafLiguleAppeared .EQ. 0)) THEN
+                IF(phyllochron .EQ. 0.0)) THEN
                     phyllochron_ = 0.0000001
                 ELSE
                     phyllochron_ = phyllochron
                 END IF
-                leafNumber = leafNumber + MIN(deltaTT / phyllochron_, 0.999)
+                leafNumber = leafNumber + MIN(deltaTT / phyllochron_), 0.999))
             END IF
         END IF
     END SUBROUTINE leafnumber_

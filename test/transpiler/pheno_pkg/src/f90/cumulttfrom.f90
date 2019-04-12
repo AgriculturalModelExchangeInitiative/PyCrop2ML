@@ -74,15 +74,15 @@ CONTAINS
         cumulTTFromZC_91 = 0.0
         IF(ANY(calendarMoments .EQ. 'Anthesis')) THEN
             cumulTTFromZC_65 = cumulTT - calendarCumuls(indice(calendarMoments,  &
-                    'Anthesis'))
+                    'Anthesis')))
         END IF
         IF(ANY(calendarMoments .EQ. 'FlagLeafLiguleJustVisible')) THEN
             cumulTTFromZC_39 = cumulTT - calendarCumuls(indice(calendarMoments,  &
-                    'FlagLeafLiguleJustVisible'))
+                    'FlagLeafLiguleJustVisible')))
         END IF
         IF(ANY(calendarMoments .EQ. 'EndGrainFilling')) THEN
             cumulTTFromZC_91 = cumulTT - calendarCumuls(indice(calendarMoments,  &
-                    'EndGrainFilling'))
+                    'EndGrainFilling')))
         END IF
     END SUBROUTINE cumulttfrom_
 END MODULE

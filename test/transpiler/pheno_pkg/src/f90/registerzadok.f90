@@ -203,70 +203,70 @@ CONTAINS
     !                          - variablecategory : auxiliary
     !                          - datatype : DOUBLELIST
     !                          - unit : °C d
-        roundedFinalLeafNumber = INT(finalLeafNumber + 0.5)
-        IF(leafNumber .GE. 4.0 .AND. ALL(calendarMoments .NE.  &
-                'MainShootPlus1Tiller')) THEN
+        roundedFinalLeafNumber = INT(finalLeafNumber + 0.5))
+        IF(leafNumber .GE. 4.0) .AND. ALL(calendarMoments .NE.  &
+                'MainShootPlus1Tiller'))) THEN
             call Add(calendarMoments, 'MainShootPlus1Tiller')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = 'MainShootPlus1Tiller'
-        ELSE IF ( leafNumber .GE. 5.0 .AND. ALL(calendarMoments .NE.  &
-                'MainShootPlus2Tiller')) THEN
+        ELSE IF ( leafNumber .GE. 5.0) .AND. ALL(calendarMoments .NE.  &
+                'MainShootPlus2Tiller'))) THEN
             call Add(calendarMoments, 'MainShootPlus2Tiller')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = 'MainShootPlus2Tiller'
-        ELSE IF ( leafNumber .GE. 6.0 .AND. ALL(calendarMoments .NE.  &
-                'MainShootPlus3Tiller')) THEN
+        ELSE IF ( leafNumber .GE. 6.0) .AND. ALL(calendarMoments .NE.  &
+                'MainShootPlus3Tiller'))) THEN
             call Add(calendarMoments, 'MainShootPlus3Tiller')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = 'MainShootPlus3Tiller'
-        ELSE IF ( finalLeafNumber .GT. 0.0 .AND. leafNumber .GE. slopeTSFLN *  &
-                finalLeafNumber - intTSFLN .AND. ALL(calendarMoments .NE.  &
-                'TerminalSpikelet')) THEN
+        ELSE IF ( finalLeafNumber .GT. 0.0) .AND. (leafNumber .GE.  &
+                (slopeTSFLN * finalLeafNumber) - intTSFLN)) .AND. ALL(calendarMoments  &
+                .NE. 'TerminalSpikelet')))) THEN
             call Add(calendarMoments, 'TerminalSpikelet')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = 'TerminalSpikelet'
-        ELSE IF ( leafNumber .GE. roundedFinalLeafNumber - 4.0 .AND.  &
-                roundedFinalLeafNumber - 4 .GT. 0 .AND. ALL(calendarMoments .NE.  &
-                'PseudoStemErection')) THEN
+        ELSE IF ( leafNumber .GE. (roundedFinalLeafNumber - 4.0)) .AND.  &
+                roundedFinalLeafNumber - 4) .GT. 0)) .AND. ALL(calendarMoments .NE.  &
+                'PseudoStemErection'))) THEN
             call Add(calendarMoments, 'PseudoStemErection')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = 'PseudoStemErection'
-        ELSE IF ( leafNumber .GE. roundedFinalLeafNumber - 3.0 .AND.  &
-                roundedFinalLeafNumber - 3 .GT. 0 .AND. ALL(calendarMoments .NE.  &
-                '1stNodeDetectable')) THEN
+        ELSE IF ( leafNumber .GE. (roundedFinalLeafNumber - 3.0)) .AND.  &
+                roundedFinalLeafNumber - 3) .GT. 0)) .AND. ALL(calendarMoments .NE.  &
+                '1stNodeDetectable'))) THEN
             call Add(calendarMoments, '1stNodeDetectable')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = '1stNodeDetectable'
-        ELSE IF ( leafNumber .GE. roundedFinalLeafNumber - 2.0 .AND.  &
-                roundedFinalLeafNumber - 2 .GT. 0 .AND. ALL(calendarMoments .NE.  &
-                '2ndNodeDetectable')) THEN
+        ELSE IF ( leafNumber .GE. (roundedFinalLeafNumber - 2.0)) .AND.  &
+                roundedFinalLeafNumber - 2) .GT. 0)) .AND. ALL(calendarMoments .NE.  &
+                '2ndNodeDetectable'))) THEN
             call Add(calendarMoments, '2ndNodeDetectable')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = '2ndNodeDetectable'
-        ELSE IF ( leafNumber .GE. roundedFinalLeafNumber - 1.0 .AND.  &
-                roundedFinalLeafNumber - 1 .GT. 0 .AND. ALL(calendarMoments .NE.  &
-                'FlagLeafJustVisible')) THEN
+        ELSE IF ( leafNumber .GE. (roundedFinalLeafNumber - 1.0)) .AND.  &
+                roundedFinalLeafNumber - 1) .GT. 0)) .AND. ALL(calendarMoments .NE.  &
+                'FlagLeafJustVisible'))) THEN
             call Add(calendarMoments, 'FlagLeafJustVisible')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
             hasZadokStageChanged = 1
             currentZadokStage = 'FlagLeafJustVisible'
-        ELSE IF ( ALL(calendarMoments .NE. 'MidGrainFilling') .AND. phase  &
-                .EQ. 4.5 .AND. cumulTTFromZC_65 .GE. der) THEN
+        ELSE IF ( ALL(calendarMoments .NE. 'MidGrainFilling') .AND. (phase  &
+                .EQ. 4.5) .AND. cumulTTFromZC_65 .GE. der)))) THEN
             call Add(calendarMoments, 'MidGrainFilling')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)

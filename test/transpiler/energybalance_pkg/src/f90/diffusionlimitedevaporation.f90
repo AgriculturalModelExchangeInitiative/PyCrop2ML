@@ -1,5 +1,4 @@
 MODULE Diffusionlimitedevaporation_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE diffusionlimitedevaporation_(deficitOnTopLayers, &
@@ -45,12 +44,12 @@ CONTAINS
     !                          - max : 5000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        IF(deficitOnTopLayers / 1000.0 .LE. 0.0) THEN
-            diffusionLimitedEvaporation = 8.3 * 1000
+        IF(deficitOnTopLayers / 1000.0) .LE. 0.0)) THEN
+            diffusionLimitedEvaporation = 8.3 * 1000)
         ELSE
-            IF(deficitOnTopLayers / 1000 .LT. 25.0) THEN
-                diffusionLimitedEvaporation = 2 * soilDiffusionConstant *  &
-                        soilDiffusionConstant / deficitOnTopLayers / 1000.0 * 1000.0
+            IF(deficitOnTopLayers / 1000) .LT. 25.0)) THEN
+                diffusionLimitedEvaporation = 2 * soilDiffusionConstant) *  &
+                        soilDiffusionConstant) / (deficitOnTopLayers / 1000.0)) * 1000.0)
             ELSE
                 diffusionLimitedEvaporation = 0.0
             END IF

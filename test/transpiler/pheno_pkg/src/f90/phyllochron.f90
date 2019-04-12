@@ -1,5 +1,4 @@
 MODULE Phyllochron_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE phyllochron_(fixPhyll, &
@@ -195,32 +194,32 @@ CONTAINS
     !                          - min : 0
     !                          - max : 10000
     !                          - unit : m2 m-2
-        IF(choosePhyllUse .EQ. 'Default') THEN
-            IF(leafNumber .LT. ldecr) THEN
-                phyllochron = fixPhyll * pdecr
-            ELSE IF ( leafNumber .GE. ldecr .AND. leafNumber .LT. lincr) THEN
+        IF(choosePhyllUse .EQ. 'Default')) THEN
+            IF(leafNumber .LT. ldecr)) THEN
+                phyllochron = fixPhyll * pdecr)
+            ELSE IF ( leafNumber .GE. ldecr) .AND. leafNumber .LT. lincr))) THEN
                 phyllochron = fixPhyll
             ELSE
-                phyllochron = fixPhyll * pincr
+                phyllochron = fixPhyll * pincr)
             END IF
         END IF
-        IF(choosePhyllUse .EQ. 'PTQ') THEN
+        IF(choosePhyllUse .EQ. 'PTQ')) THEN
             gai_ = MAX(pastMaxAI, gai)
             pastMaxAI = gai_
-            IF(gai_ .GT. 0.0) THEN
-                phyllochron = phylPTQ1 * gai_ * kl / (1 - EXP(-kl * gai_)) / (ptq +  &
-                        aPTQ)
+            IF(gai_ .GT. 0.0)) THEN
+                phyllochron = phylPTQ1 * (gai_ * kl) / ((1 - EXP(-kl * gai_)))))) /  &
+                        ((ptq + aPTQ)))
             ELSE
                 phyllochron = phylPTQ1
             END IF
         END IF
-        IF(choosePhyllUse .EQ. 'Test') THEN
-            IF(leafNumber .LT. ldecr) THEN
-                phyllochron = p * pdecr
-            ELSE IF ( leafNumber .GE. ldecr .AND. leafNumber .LT. lincr) THEN
+        IF(choosePhyllUse .EQ. 'Test')) THEN
+            IF(leafNumber .LT. ldecr)) THEN
+                phyllochron = p * pdecr)
+            ELSE IF ( leafNumber .GE. ldecr) .AND. leafNumber .LT. lincr))) THEN
                 phyllochron = p
             ELSE
-                phyllochron = p * pincr
+                phyllochron = p * pincr)
             END IF
         END IF
     END SUBROUTINE phyllochron_

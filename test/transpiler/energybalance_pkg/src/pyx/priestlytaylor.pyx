@@ -7,7 +7,6 @@ def priestlytaylor_(float netRadiationEquivalentEvaporation=638.142,
                     float Alpha=1.5):
     """
 
-
     evapoTranspirationPriestlyTaylor  Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

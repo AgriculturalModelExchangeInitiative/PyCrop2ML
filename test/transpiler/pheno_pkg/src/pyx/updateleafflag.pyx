@@ -12,7 +12,6 @@ def updateleafflag_(float cumulTT=741.510096671757,
                     float phase=1.0):
     """
 
-
     UpdateLeafFlag Model
     Author: Pierre MARTRE
     Reference: Modeling development phase in the 

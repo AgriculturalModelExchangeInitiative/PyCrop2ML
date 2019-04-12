@@ -17,7 +17,6 @@ def phyllochron_(float fixPhyll=5.0,
                  str choosePhyllUse='Default'):
     """
 
-
     Phyllochron Model
     Author: Pierre Martre
     Reference: Modeling development phase in the 

@@ -1,11 +1,13 @@
 MODULE Canopytemperature_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE canopytemperature_(minTair, &
         maxTair, &
         cropHeatFlux, &
         conductance, &
+        lambdaV, &
+        rhoDensityAir, &
+        specificHeatCapacityAir, &
         minCanopyTemperature, &
         maxCanopyTemperature)
         REAL, INTENT(OUT) :: minCanopyTemperature
@@ -14,9 +16,9 @@ CONTAINS
         REAL, INTENT(IN) :: maxTair
         REAL, INTENT(IN) :: cropHeatFlux
         REAL, INTENT(IN) :: conductance
-        REAL, PARAMETER :: lambdaV = 2.454
-        REAL, PARAMETER :: rhoDensityAir = 1.225
-        REAL, PARAMETER :: specificHeatCapacityAir = 0.00101
+        REAL, INTENT(IN) :: lambdaV
+        REAL, INTENT(IN) :: rhoDensityAir
+        REAL, INTENT(IN) :: specificHeatCapacityAir
         !- Description:
     !            - Model Name: CanopyTemperature Model
     !            - Author: Pierre Martre
@@ -106,9 +108,9 @@ CONTAINS
     !                          - max : 45
     !                          - unit : °C
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        minCanopyTemperature = minTair + cropHeatFlux / rhoDensityAir *  &
-                specificHeatCapacityAir * conductance / lambdaV * 1000
-        maxCanopyTemperature = maxTair + cropHeatFlux / rhoDensityAir *  &
-                specificHeatCapacityAir * conductance / lambdaV * 1000
+        minCanopyTemperature = minTair + (cropHeatFlux / (rhoDensityAir *  &
+                specificHeatCapacityAir) * conductance) / lambdaV) * 1000)))
+        maxCanopyTemperature = maxTair + (cropHeatFlux / (rhoDensityAir *  &
+                specificHeatCapacityAir) * conductance) / lambdaV) * 1000)))
     END SUBROUTINE canopytemperature_
 END MODULE

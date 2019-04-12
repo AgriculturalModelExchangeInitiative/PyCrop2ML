@@ -10,7 +10,6 @@ def canopytemperature_(float minTair=0.7,
                        float specificHeatCapacityAir=0.00101):
     """
 
-
     CanopyTemperature Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

@@ -483,6 +483,9 @@ class AstTransformer():
                     PSEUDON_BUILTIN_TYPES[class_type],
                     prepare_table(TYPED_API[class_type], ORIGINAL_METHODS.get(class_type)).strip()))
         if isinstance(api, Standard):
+            #print(args,class_type, base, message)
+            if base["pseudo_type"]=="list": 
+                self.type_env.top[base["name"]]=["list",args[0]["pseudo_type"]]
             return api.expand([base] + args)
         else:
             for count, b  in api.items():

@@ -8,7 +8,6 @@ def leafnumber_(float deltaTT=23.5895677277199,
                 float phase=1.0):
     """
 
-
     CalculateLeafNumber Model
     Author: Pierre MARTRE
     Reference: Modeling development phase in the 

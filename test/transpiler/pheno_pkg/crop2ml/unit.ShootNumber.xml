@@ -13,7 +13,7 @@
     <Inputs>
         <Input name="canopyShootNumber" description="shoot number for the whole canopy" variablecategory="auxiliary" datatype="DOUBLE" min="0" max="10000" default="288.0" unit="shoot m-2" inputtype="variable"/>
         <Input name="leafNumber" description="Leaf number " variablecategory="state" inputtype ="variable" datatype="DOUBLE" min="0" max="10000" default="0" unit="leaf" />
-        <Input name="sowingDensity" description="number of plant /m²" parametercategory="species" datatype="INT" min="0" max="500" default="288" unit="plant m-2"  inputtype = "parameter"/>
+        <Input name="sowingDensity" description="number of plant /m²" parametercategory="species" datatype="DOUBLE" min="0" max="500" default="288" unit="plant m-2"  inputtype = "parameter"/>
         <Input name="targetFertileShoot" description="max value of shoot number for the canopy" variablecategory="auxiliary" datatype="DOUBLE" min="280" max="1000" default="600" unit="shoot" inputtype = "variable"/>
         <Input name="tilleringProfile" description=" store the amount of new tiller created at each time a new tiller appears" variablecategory="auxiliary" datatype="DOUBLELIST"  default="[288.0]" unit=""  inputtype="variable"/>
 		<Input name="leafTillerNumberArray" description="store the number of tiller for each leaf layer" variablecategory="auxiliary"  datatype="INTLIST" unit="leaf" default ="[1]"  inputtype="variable"/>
@@ -27,7 +27,7 @@
         <Output name="tillerNumber" description=" store the amount of new tiller created at each time a new tiller appears" variablecategory="auxiliary"  datatype="INT" min="0" max="10000"  unit="" />
    	
     </Outputs>
-    
+    <Initialization name="initShootNumber" language="Cyml" filename="algo/pyx/init.ShootNumber.pyx" description="initialize shoot Number" />    
     <Function name = "fibonacci" language="Cyml" type="external" filename="algo/pyx/Fibonacci.pyx" description="calculate fibonacci number"/>  
 
 

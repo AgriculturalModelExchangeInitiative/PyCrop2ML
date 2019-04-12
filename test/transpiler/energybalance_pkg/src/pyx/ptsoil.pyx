@@ -7,7 +7,6 @@ def ptsoil_(float evapoTranspirationPriestlyTaylor=120.0,
             float tauAlpha=0.3):
     """
 
-
     PtSoil EnergyLimitedEvaporation Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

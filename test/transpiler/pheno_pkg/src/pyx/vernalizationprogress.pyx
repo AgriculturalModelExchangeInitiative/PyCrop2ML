@@ -23,7 +23,6 @@ def vernalizationprogress_(float dayLength=12.3037621834005,
                            float minFinalNumber=5.5):
     """
 
-
     VernalizationProgress Model
     Author: Pierre MARTRE
     Reference: Modeling development phase in the 

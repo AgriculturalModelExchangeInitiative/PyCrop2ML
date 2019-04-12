@@ -12,7 +12,6 @@ def penman_(float evapoTranspirationPriestlyTaylor=449.367,
             float conductance=598.685):
     """
 
-
     Penman Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

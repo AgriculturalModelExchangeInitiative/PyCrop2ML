@@ -6,7 +6,6 @@ def soilheatflux_(float netRadiationEquivalentEvaporation=638.142,
                   float soilEvaporation=448.24):
     """
 
-
     SoilHeatFlux Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

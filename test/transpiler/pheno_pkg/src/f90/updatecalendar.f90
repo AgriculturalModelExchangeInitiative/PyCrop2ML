@@ -86,38 +86,38 @@ CONTAINS
     !                          - description :  list containing for each stage occured its cumulated thermal times
     !                          - datatype : DOUBLELIST
     !                          - unit : °C d
-        IF(phase .GE. 1.0 .AND. phase .LT. 2.0 .AND. ALL(calendarMoments .NE.  &
-                'Emergence')) THEN
+        IF(phase .GE. 1.0) .AND. phase .LT. 2.0)) .AND. ALL(calendarMoments  &
+                .NE. 'Emergence'))) THEN
             call Add(calendarMoments, 'Emergence')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
-        ELSE IF ( phase .GE. 2.0 .AND. phase .LT. 3.0 .AND.  &
-                ALL(calendarMoments .NE. 'FloralInitiation')) THEN
+        ELSE IF ( phase .GE. 2.0) .AND. phase .LT. 3.0)) .AND.  &
+                ALL(calendarMoments .NE. 'FloralInitiation'))) THEN
             call Add(calendarMoments, 'FloralInitiation')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
-        ELSE IF ( phase .GE. 3.0 .AND. phase .LT. 4.0 .AND.  &
-                ALL(calendarMoments .NE. 'Heading')) THEN
+        ELSE IF ( phase .GE. 3.0) .AND. phase .LT. 4.0)) .AND.  &
+                ALL(calendarMoments .NE. 'Heading'))) THEN
             call Add(calendarMoments, 'Heading')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
-        ELSE IF ( phase .EQ. 4.0 .AND. ALL(calendarMoments .NE. 'Anthesis'))  &
-                THEN
+        ELSE IF ( phase .EQ. 4.0) .AND. ALL(calendarMoments .NE.  &
+                'Anthesis'))) THEN
             call Add(calendarMoments, 'Anthesis')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
-        ELSE IF ( phase .EQ. 4.5 .AND. ALL(calendarMoments .NE.  &
-                'EndCellDivision')) THEN
+        ELSE IF ( phase .EQ. 4.5) .AND. ALL(calendarMoments .NE.  &
+                'EndCellDivision'))) THEN
             call Add(calendarMoments, 'EndCellDivision')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
-        ELSE IF ( phase .GE. 5.0 .AND. phase .LT. 6.0 .AND.  &
-                ALL(calendarMoments .NE. 'EndGrainFilling')) THEN
+        ELSE IF ( phase .GE. 5.0) .AND. phase .LT. 6.0)) .AND.  &
+                ALL(calendarMoments .NE. 'EndGrainFilling'))) THEN
             call Add(calendarMoments, 'EndGrainFilling')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)
-        ELSE IF ( phase .GE. 6.0 .AND. phase .LT. 7.0 .AND.  &
-                ALL(calendarMoments .NE. 'Maturity')) THEN
+        ELSE IF ( phase .GE. 6.0) .AND. phase .LT. 7.0)) .AND.  &
+                ALL(calendarMoments .NE. 'Maturity'))) THEN
             call Add(calendarMoments, 'Maturity')
             call Add(calendarCumuls, cumulTT)
             call Add(calendarDates, currentdate)

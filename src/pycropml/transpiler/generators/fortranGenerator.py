@@ -4,6 +4,25 @@ from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.fortranRules import FortranRules
 from pycropml.transpiler.interface import middleware
 from pycropml.transpiler.generators.docGenerator import DocGenerator
+from pycropml.transpiler import lib
+import os
+from path import Path
+import shutil
+
+
+# get the path of fortran subroutine list_sub
+# This subroutine is used to hnndle dynamic arrays
+
+'''dir_lib = Path(os.path.dirname(lib.__file__))
+
+list_path=dir_lib/"f90"/"list_sub.f90"
+  
+f_src = open(list_path, 'rb')
+
+file_dest = dir_lib  
+#f_dest = open(file_dest, 'wb')
+'''
+#shutil.copyfileobj(f_src, f_dest) 
 
 
 class FortranGenerator(CodeGenerator, FortranRules):
@@ -25,11 +44,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.index=[]
         if self.model: 
             self.doc= DocGenerator(model, '!')
-            for inp in self.model.inputs: # get constant parameters in models
+            '''for inp in self.model.inputs: # get constant parameters in models
                 if inp.inputtype=="parameter":
                     #print(inp.name, model.name)
                     if inp.parametercategory=="constant":
-                        self.mod_parameters.append(inp.name)     
+                        self.mod_parameters.append(inp.name)'''
             #print(self.mod_parameters)
     def body(self, statements):
         self.new_line = True
@@ -256,9 +275,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write("MODULE %smod"%node.name.capitalize())
         self.newline(node)
         self.indentation += 1        
-        self.newline(node)        
-        self.write("USE list_sub")
-        self.newline(node)          
+        self.newline(node)
+        if "list" in self.z.dependencies:      
+            self.write("USE list_sub")
+            self.newline(node)           
         if self.z.dependencies and "list" not in self.z.dependencies:
             for dependency in self.z.dependencies:
                 self.write("USE %smod" %dependency)

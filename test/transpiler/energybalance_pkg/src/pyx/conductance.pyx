@@ -10,7 +10,6 @@ def conductance_(float vonKarman=0.42,
                  float wind=124000.0):
     """
 
-
     Conductance Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

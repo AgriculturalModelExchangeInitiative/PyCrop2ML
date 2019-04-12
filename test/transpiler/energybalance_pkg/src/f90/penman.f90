@@ -1,21 +1,25 @@
 MODULE Penman_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE penman_(evapoTranspirationPriestlyTaylor, &
         hslope, &
         VPDair, &
+        psychrometricConstant, &
+        Alpha, &
+        lambdaV, &
+        rhoDensityAir, &
+        specificHeatCapacityAir, &
         conductance, &
         evapoTranspirationPenman)
         REAL, INTENT(OUT) :: evapoTranspirationPenman
         REAL, INTENT(IN) :: evapoTranspirationPriestlyTaylor
         REAL, INTENT(IN) :: hslope
         REAL, INTENT(IN) :: VPDair
-        REAL, PARAMETER :: psychrometricConstant = 0.66
-        REAL, PARAMETER :: Alpha = 1.5
-        REAL, PARAMETER :: lambdaV = 2.454
-        REAL, PARAMETER :: rhoDensityAir = 1.225
-        REAL, PARAMETER :: specificHeatCapacityAir = 0.00101
+        REAL, INTENT(IN) :: psychrometricConstant
+        REAL, INTENT(IN) :: Alpha
+        REAL, INTENT(IN) :: lambdaV
+        REAL, INTENT(IN) :: rhoDensityAir
+        REAL, INTENT(IN) :: specificHeatCapacityAir
         REAL, INTENT(IN) :: conductance
         !- Description:
     !            - Model Name: Penman Model
@@ -123,8 +127,8 @@ CONTAINS
     !                          - max : 5000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        evapoTranspirationPenman = evapoTranspirationPriestlyTaylor / Alpha +  &
-                1000 * rhoDensityAir * specificHeatCapacityAir * VPDair * conductance  &
-                / lambdaV * (hslope + psychrometricConstant)
+        evapoTranspirationPenman = evapoTranspirationPriestlyTaylor / Alpha)  &
+                + (1000 * (rhoDensityAir * specificHeatCapacityAir) * VPDair) *  &
+                conductance) / (lambdaV * ((hslope + psychrometricConstant))))))
     END SUBROUTINE penman_
 END MODULE

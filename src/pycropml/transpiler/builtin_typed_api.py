@@ -31,7 +31,11 @@ def builtin_type_check(namespace, function, receiver, args):
     
     a = namespace + '#' + function if receiver else namespace + ':' + function
     if namespace == 'list' or namespace == 'array':
-        generics = {'@t': receiver['pseudo_type'][1]}
+        if not isinstance(receiver['pseudo_type'], list):
+            generics = {'@t': args[0]['pseudo_type']}
+            if receiver['pseudo_type']=="list": receiver["pseudo_type"]=["list",args[0]['pseudo_type']]
+        else:
+            generics = {'@t': receiver['pseudo_type'][1]}
     elif namespace == 'dict':
         generics = {'@k': receiver['pseudo_type'][1], '@v': receiver['pseudo_type'][2]}
     else:

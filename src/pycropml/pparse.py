@@ -38,9 +38,10 @@ class ModelParser(Parser):
         xmlrep = Path(self.crop2ml_dir/'crop2ml')
         self.algorep = Path(self.crop2ml_dir/'crop2ml')
         
-        fn = xmlrep.glob('unit*.xml')+xmlrep.glob('function*.xml')
+        fn = xmlrep.glob('unit*.xml')+xmlrep.glob('function*.xml')+xmlrep.glob('init*.xml')
         try:
             for f in fn:
+                print(f)
             
         # Current proxy node for managing properties
             
