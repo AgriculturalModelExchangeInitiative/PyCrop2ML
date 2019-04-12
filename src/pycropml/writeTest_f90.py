@@ -3,8 +3,8 @@
 Created on Thu Mar 28 15:39:28 2019
 
 @author: midingoy
-"""
-"""Add License, Header.
+
+Add License, Header.
 
 Use pkglts
 
