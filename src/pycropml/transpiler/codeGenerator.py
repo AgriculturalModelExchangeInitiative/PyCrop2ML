@@ -127,10 +127,12 @@ class CodeGenerator(NodeVisitor):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op":
+            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
                 self.write("(")
-            self.visit(node.right)
-            self.write(")")
+                self.visit(node.right)
+                self.write(")")
+            else:
+                self.visit(node.right)
         else:
             self.visit(node.right)
         self.operator_exit()
