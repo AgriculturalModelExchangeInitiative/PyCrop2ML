@@ -192,7 +192,7 @@ class Model2Package(object):
                     ins = inouts['inputs']
                     outs = inouts['outputs']
                     decl_ins= [ tab + self.my_input(var) for var in list_inouts]
-                    code = "PROGRAM test_%s_%s:"%(tname,m.name)
+                    code = "PROGRAM test_%s_%s "%(tname,m.name)
                     test_codes.append(code)
                     test_codes.append('\n'.join(decl_ins))                                          
                     run_param = params.copy()
