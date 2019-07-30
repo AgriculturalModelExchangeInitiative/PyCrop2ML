@@ -2,6 +2,11 @@
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.pythonRules import PythonRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
+import os
+from pycropml.render_cyml import signature
+from path import Path
+from pycropml.transpiler.Parser import parser
+from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 
 class PythonGenerator(CodeGenerator, PythonRules):
     """This class contains the specific properties of 
@@ -14,7 +19,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.tree=tree
         self.model=model
         self.indent_with=' '*4 
-        if self.model: self.doc=DocGenerator(self.model, "#")
+        self.imp=True
+        if self.model: 
+            self.doc=DocGenerator(self.model, "#")
 
     def comment(self,doc):
         list_com = [self.indent_with + '#'+x for x in doc.split('\n')]
@@ -22,7 +29,11 @@ class PythonGenerator(CodeGenerator, PythonRules):
         return com
     
     def visit_import(self, node):
-        self.write(u"import %s" % node.module)
+        if self.imp:
+            self.write(u"import %s" % node.module)
+
+    def visit_notAnumber(self, node):
+        self.write("float('nan')")
 
     def visit_assignment(self, node):
         self.newline(node)
@@ -71,7 +82,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(node.value)
+        self.write(str(node.value))
 
     def visit_str(self, node):
         self.safe_double(node)
@@ -141,24 +152,72 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.write(u":")
             self.visit(node.args[1])
         self.write(u"]")
-          
+
+
+    def visit_module(self, node):
+        self.newline(extra=1)
+        self.newline(node)
+        self.write("# coding: utf8")
+        self.newline(node)
+        self.visit(node.body)
+
+        
+    def visit_comparison(self, node):
+        #self.write('(')
+        self.visit_binary_op(node)
+        #self.write(')')
+
+    def visit_method_call(self, node):
+        "%s.%s"%(self.visit(node.receiver),self.write(node.message))  
+              
+    def visit_binary_op(self, node):
+        op = node.op
+        prec = self.binop_precedence.get(op, 0)
+        self.operator_enter(prec)
+        self.visit(node.left)
+        self.write(u" %s " % self.binary_op[op].replace('_', ' '))
+        if "type" in dir(node.right):
+            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+                self.write("(")
+                self.visit(node.right)
+                self.write(")")
+            else:
+                self.visit(node.right)
+        else:
+            self.visit(node.right)
+        self.operator_exit()
+    
+    def visit_unary_op(self, node):
+        op = node.operator
+        prec = self.unop_precedence[op]
+        self.operator_enter(prec)
+        self.write(u"%s" % self.unary_op[op])
+        self.visit(node.value)
+        self.operator_exit()
+
     def visit_function_definition(self, node):
         self.newline(extra=1)
         self.newline(node)
         self.write('def %s(' % node.name)
         for i, pa in enumerate(node.params):
-            self.visit(pa)
+            if pa.type == "local":
+                self.visit(pa) 
+            else:
+                self.write(pa.name)
+                self.write(" = ")
+                self.visit(pa)  
             if i!= (len(node.params)-1):
-                self.write(',')
+                self.write(',\n         ')
         self.write('):')
         self.newline(node)
-        if self.model:
+        if self.model and node.name.split("model_")[1]==signature(self.model):
             self.write(self.doc.desc)
             self.newline(node)
             self.write(self.doc.inputs_doc)
             self.newline(node)
             self.write(self.doc.outputs_doc)
             self.newline(node)
+            self.model = None
         self.body(node.block)
         
     def visit_implicit_return(self, node):
@@ -168,7 +227,6 @@ class PythonGenerator(CodeGenerator, PythonRules):
         else:
             self.write('return ')
         self.visit(node.value)
-
 
     def visit_declaration(self, node):
         self.newline(node)
@@ -191,8 +249,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
             elif 'elements' in dir(n) and n.type in ("list", "tuple"):
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = ")                 
-                self.visit_list(n)
+                self.write(" = ") 
+                if n.type=="list":                
+                    self.visit_list(n)
+                else: self.visit_tuple(n)
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.newline(node)
                 self.write(n.name)
@@ -234,18 +294,20 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write(')')
     
     def visit_standard_call(self, node):
-        self.visit_call(node)  
+        node.function = self.functions[node.namespace][node.function]
+        self.visit_call(node) 
         
     def visit_importfrom(self, node):
-        self.newline(node)
-        if node.namespace=="math":
-            self.write("from math import *")  
-        else:
-            self.write('from %s import ' % (node.namespace))
-            for idx, item in enumerate(node.name):
-                if idx:
-                    self.write(', ')
-                self.write(item)
+        if self.imp:
+            self.newline(node)
+            if node.namespace=="math":
+                self.write("from math import *")  
+            else:
+                self.write('from %s import ' % (node.namespace))
+                for idx, item in enumerate(node.name):
+                    if idx:
+                        self.write(', ')
+                    self.write(item)
     
     def visit_for_statement(self, node):
         self.newline(node)
@@ -300,6 +362,13 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.body_or_else(node)
 
 
-
+class PythonCompo(PythonGenerator):
+    """ This class used to generates states, rates and auxiliary classes
+        for C# languages.
+    """
+    def __init__(self, tree, model=None):
+        self.tree = tree
+        self.model=model
+        PythonGenerator.__init__(self,tree, model)
             
         

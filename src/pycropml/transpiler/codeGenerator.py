@@ -65,12 +65,6 @@ class CodeGenerator(NodeVisitor):
     def visit_int(self, node):
         self.write(node.value)
     
-        
-    def visit_comparison(self, node):
-        #self.write('(')
-        self.visit_binary_op(node)
-        #self.write(')')
-    
     def visit_ExprStatNode(self, node):
         self.newline(node)
         self.visit(node.expr)
@@ -120,30 +114,6 @@ class CodeGenerator(NodeVisitor):
             repr_val = repr_val[1:]
         self.write(u"%s%s" % (prefix, repr_val))  
     
-    def visit_binary_op(self, node):
-        op = node.op
-        prec = self.binop_precedence.get(op, 0)
-        self.operator_enter(prec)
-        self.visit(node.left)
-        self.write(u" %s " % self.binary_op[op].replace('_', ' '))
-        if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
-                self.write("(")
-                self.visit(node.right)
-                self.write(")")
-            else:
-                self.visit(node.right)
-        else:
-            self.visit(node.right)
-        self.operator_exit()
-    
-    def visit_unary_op(self, node):
-        op = node.operator
-        prec = self.unop_precedence[op]
-        self.operator_enter(prec)
-        self.write(u"%s" % self.unary_op[op])
-        self.visit(node.value)
-        self.operator_exit()
         
     def safe_double(self, node):
         if  sys.version_info.major<3:

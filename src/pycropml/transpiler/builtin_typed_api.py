@@ -25,10 +25,10 @@ def builtin_type_check(namespace, function, receiver, args):
         fs = TYPED_API['_%s' % namespace]
     # print(namespace, function, receiver, args, TYPED_API[namespace])
     # input(0)
-    if function not in fs:
+    if function not in fs:        
         raise  PseudoCythonTypeCheckError('wrong usage of %s' % str(function))
     x = fs[function]
-    
+
     a = namespace + '#' + function if receiver else namespace + ':' + function
     if namespace == 'list' or namespace == 'array':
         if not isinstance(receiver['pseudo_type'], list):
@@ -40,6 +40,7 @@ def builtin_type_check(namespace, function, receiver, args):
         generics = {'@k': receiver['pseudo_type'][1], '@v': receiver['pseudo_type'][2]}
     else:
         generics = {}
+
     
     s = []
     if x[0][0] == '*':
@@ -223,9 +224,10 @@ TYPED_API = {
     },
 
     'dict': {
-        'keys':       ['list', '@k'],
+        'keys':       ['list'],
         'values':     ['list', '@v'],
-        'length':     ['int']
+        'len':     ['int'],
+        'get':     ['@v','@k']
     },
     'str': {
         'find':       ['str', 'int'],
@@ -237,15 +239,17 @@ TYPED_API = {
         'title':      ['str'],
         'center':     ['int', 'str', 'str'],
         'find_from':  ['str', 'int', 'int'],
-        'length':     ['int'],
+        'len':     ['int'],
+        'float':['float']
     },
 
     'int': {'int': ['int'], 'float': ['float']},
     'float': {'int': ['int'], 'float': ['float']},
     'array': {
-        'length':      ['int'],
+        'len':      ['int'],
         'index':       ['@t', 'int'],
-        'count':       ['@t', 'int']
+        'count':       ['@t', 'int'],
+        'append':       ['@t', ['array', '@t']]
     },
 
     '_generic_list':    ['list', '@t'],
@@ -288,7 +292,8 @@ ORIGINAL_METHODS = {
         'keys':       'keys',
         'values':     'values',
         'length':     'len',
-        'copy':'copy'
+        'copy':'copy',
+        'get': 'get(element)'
     },
 
     'int': {
@@ -317,7 +322,8 @@ ORIGINAL_METHODS = {
     'array': {
         'length':      'len',
         'find':        'find(element)',
-        'count':       'count(element)'
+        'count':       'count(element)',
+        'append':       'append(element)'
     },
 
     'tuple': {
@@ -337,6 +343,7 @@ BUILTIN_TYPES = {
     'dict':     'dict',
     'tuple':    'tuple',
     'bool':     'bool',
+    'array':    'array'
 }
 
 PSEUDON_BUILTIN_TYPES = {v: k for k, v in BUILTIN_TYPES.items()}
