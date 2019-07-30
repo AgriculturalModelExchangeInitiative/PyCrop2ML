@@ -5,7 +5,6 @@ def soilevaporation_(float diffusionLimitedEvaporation=6605.505,
                      float energyLimitedEvaporation=448.24):
     """
 
-
     SoilEvaporation Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

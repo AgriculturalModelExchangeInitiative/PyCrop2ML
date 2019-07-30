@@ -1,5 +1,4 @@
 MODULE Fibonacci_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE fibonacci_(n, &
@@ -29,7 +28,7 @@ CONTAINS
         DO i = 1 , n, 1
             temp = result
             result = b
-            b = temp + b
+            b = temp + b)
         END DO
     END SUBROUTINE fibonacci_
 END MODULE

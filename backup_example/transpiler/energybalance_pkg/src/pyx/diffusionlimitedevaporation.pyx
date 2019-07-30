@@ -5,7 +5,6 @@ def diffusionlimitedevaporation_(float deficitOnTopLayers=5341.0,
                                  float soilDiffusionConstant=4.2):
     """
 
-
     DiffusionLimitedEvaporation Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

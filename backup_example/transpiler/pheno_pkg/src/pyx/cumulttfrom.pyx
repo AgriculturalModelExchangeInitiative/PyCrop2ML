@@ -6,7 +6,6 @@ def cumulttfrom_(list calendarMoments=['Sowing'],
                  float cumulTT=8.0):
     """
 
-
     CumulTTFrom Model
     Author: Pierre Martre
     Reference: Modeling development phase in the 

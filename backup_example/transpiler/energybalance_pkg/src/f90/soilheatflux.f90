@@ -1,5 +1,4 @@
 MODULE Soilheatflux_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE soilheatflux_(netRadiationEquivalentEvaporation, &
@@ -57,7 +56,7 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        soilHeatFlux = tau * netRadiationEquivalentEvaporation -  &
-                soilEvaporation
+        soilHeatFlux = tau * netRadiationEquivalentEvaporation) -  &
+                soilEvaporation)
     END SUBROUTINE soilheatflux_
 END MODULE

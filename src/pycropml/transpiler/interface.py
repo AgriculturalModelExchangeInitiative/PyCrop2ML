@@ -21,6 +21,15 @@ class TreeInterface():
                 self.nbForSeq =self.nbForSeq+1 
             if tree.type == "custom_call" and tree.function not in self.dependencies:
                 self.dependencies.append(tree.function)
+            if tree.type=="list" and "list" not in self.dependencies:
+                self.dependencies.append("list")
+            if tree.type=="function_definition":
+                for inp in tree.params:
+                    if isinstance(inp.pseudo_type, list):
+                        if inp.pseudo_type[0]=="list" and "list" not in self.dependencies:
+                            self.dependencies.append("list")                   
+            if tree.type=="importfrom":
+                self.dependencies.append(tree.name[0])
             else:
                 tree = self.transform_default(tree)
             return tree

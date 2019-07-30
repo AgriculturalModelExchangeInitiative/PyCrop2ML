@@ -30,7 +30,6 @@ def updatephase_(float cumulTT=354.582294511779,
                  float finalLeafNumber=0.0):
     """
 
-
     UpdatePhase Model
     Author: Pierre MARTRE
     Reference: Modeling development phase in the 

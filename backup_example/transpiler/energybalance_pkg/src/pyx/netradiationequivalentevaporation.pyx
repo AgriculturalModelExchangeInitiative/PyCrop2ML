@@ -5,7 +5,6 @@ def netradiationequivalentevaporation_(float lambdaV=2.454,
                                        float netRadiation=1.566):
     """
 
-
     NetRadiationEquivalentEvaporation Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

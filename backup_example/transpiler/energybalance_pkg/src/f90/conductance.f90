@@ -1,18 +1,21 @@
 MODULE Conductance_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
-    SUBROUTINE conductance_(heightWeatherMeasurements, &
+    SUBROUTINE conductance_(vonKarman, &
+        heightWeatherMeasurements, &
+        zm, &
+        zh, &
+        d, &
         plantHeight, &
         wind, &
         conductance)
         REAL, INTENT(OUT) :: conductance
         REAL:: h
-        REAL, PARAMETER :: vonKarman = 0.42
+        REAL, INTENT(IN) :: vonKarman
         REAL, INTENT(IN) :: heightWeatherMeasurements
-        REAL, PARAMETER :: zm = 0.13
-        REAL, PARAMETER :: zh = 0.013
-        REAL, PARAMETER :: d = 0.67
+        REAL, INTENT(IN) :: zm
+        REAL, INTENT(IN) :: zh
+        REAL, INTENT(IN) :: d
         REAL, INTENT(IN) :: plantHeight
         REAL, INTENT(IN) :: wind
         !- Description:
@@ -103,9 +106,9 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : m d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        h = MAX(10, plantHeight) / 100.0
-        conductance = wind *  (vonKarman ** 2) /  &
-                LOG((heightWeatherMeasurements - d * h) / zm * h) *  &
-                LOG((heightWeatherMeasurements - d * h) / zh * h)
+        h = MAX(10, plantHeight) / 100.0)
+        conductance = wind *  (vonKarman ** 2))) /  &
+                (LOG((heightWeatherMeasurements - (d * h))) / (zm * h))) *  &
+                LOG((heightWeatherMeasurements - (d * h))) / (zh * h)))))
     END SUBROUTINE conductance_
 END MODULE

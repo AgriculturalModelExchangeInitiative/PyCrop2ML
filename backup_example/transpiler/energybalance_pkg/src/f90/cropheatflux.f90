@@ -1,5 +1,4 @@
 MODULE Cropheatflux_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE cropheatflux_(netRadiationEquivalentEvaporation, &
@@ -56,7 +55,7 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        cropHeatFlux = netRadiationEquivalentEvaporation - soilHeatFlux -  &
-                potentialTranspiration
+        cropHeatFlux = netRadiationEquivalentEvaporation - soilHeatFlux) -  &
+                potentialTranspiration)
     END SUBROUTINE cropheatflux_
 END MODULE

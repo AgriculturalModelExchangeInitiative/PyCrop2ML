@@ -4,7 +4,6 @@ from math import *
 def fibonacci_(int n):
     """
 
-
     fibonacci function
     Author: Pierre Martre
     Reference:  to write in package

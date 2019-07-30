@@ -17,7 +17,6 @@ def registerzadok_(float cumulTT=354.582294511779,
                    int hasZadokStageChanged=0):
     """
 
-
     RegisterZadok Model
     Author: Pierre MARTRE
     Reference: Modeling development phase in the 

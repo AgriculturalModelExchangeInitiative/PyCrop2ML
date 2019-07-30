@@ -10,7 +10,6 @@ def phylsowingdatecorrection_(int sowingDay=1,
                               float p=120.0):
     """
 
-
     PhylSowingDateCorrection Model
     Author: Loic Manceau
     Reference: Modeling development phase in the 

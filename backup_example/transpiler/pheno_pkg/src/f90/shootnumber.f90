@@ -1,6 +1,5 @@
 MODULE Shootnumber_mod
     USE list_sub
-    USE fibonacci_mod
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE shootnumber_(canopyShootNumber, &
@@ -18,7 +17,7 @@ CONTAINS
         INTEGER:: i
         REAL, INTENT(INOUT) :: canopyShootNumber
         REAL, INTENT(IN) :: leafNumber
-        INTEGER, INTENT(IN) :: sowingDensity
+        REAL, INTENT(IN) :: sowingDensity
         REAL, INTENT(IN) :: targetFertileShoot
         REAL, ALLOCATABLE , DIMENSION(:), INTENT(INOUT) :: tilleringProfile
         INTEGER, ALLOCATABLE , DIMENSION(:), INTENT(INOUT) ::  &
@@ -54,7 +53,7 @@ CONTAINS
     !            - name: sowingDensity
     !                          - description : number of plant /m²
     !                          - parametercategory : species
-    !                          - datatype : INT
+    !                          - datatype : DOUBLE
     !                          - min : 0
     !                          - max : 500
     !                          - default : 288
@@ -125,13 +124,12 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : 
         oldCanopyShootNumber = canopyShootNumber
-        emergedLeaves = INT(MAX(1.0, REAL(CEILING(leafNumber - 1))))
+        emergedLeaves = INT(MAX(1.0, REAL(CEILING(leafNumber - 1)))))
         call fibonacci_(emergedLeaves,shoots)
-        canopyShootNumber = MIN(REAL(shoots * sowingDensity),  &
-                targetFertileShoot)
-        averageShootNumberPerPlant = canopyShootNumber / sowingDensity
-        IF(canopyShootNumber .NE. oldCanopyShootNumber) THEN
-            call Add(tilleringProfile, canopyShootNumber - oldCanopyShootNumber)
+        canopyShootNumber = MIN(shoots * sowingDensity), targetFertileShoot)
+        averageShootNumberPerPlant = canopyShootNumber / sowingDensity)
+        IF(canopyShootNumber .NE. oldCanopyShootNumber)) THEN
+            call Add(tilleringProfile, canopyShootNumber - oldCanopyShootNumber))
         END IF
         tillerNumber = SIZE(tilleringProfile)
         DO i = SIZE(leafTillerNumberArray) + 1  ,  &

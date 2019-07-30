@@ -1,12 +1,12 @@
 MODULE Evapotranspiration_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
-    SUBROUTINE evapotranspiration_(evapoTranspirationPriestlyTaylor, &
+    SUBROUTINE evapotranspiration_(isWindVpDefined, &
+        evapoTranspirationPriestlyTaylor, &
         evapoTranspirationPenman, &
         evapoTranspiration)
         REAL, INTENT(OUT) :: evapoTranspiration
-        INTEGER, PARAMETER :: isWindVpDefined = 1
+        INTEGER, INTENT(IN) :: isWindVpDefined
         REAL, INTENT(IN) :: evapoTranspirationPriestlyTaylor
         REAL, INTENT(IN) :: evapoTranspirationPenman
         !- Description:
@@ -59,7 +59,7 @@ CONTAINS
     !                          - max : 10000
     !                          - unit : mm
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        IF(isWindVpDefined .EQ. 1) THEN
+        IF(isWindVpDefined .EQ. 1)) THEN
             evapoTranspiration = evapoTranspirationPenman
         ELSE
             evapoTranspiration = evapoTranspirationPriestlyTaylor

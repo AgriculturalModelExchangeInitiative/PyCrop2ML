@@ -4,7 +4,6 @@ from math import *
 def ismomentregistredzc_39_(list calendarMoments=['Sowing']):
     """
 
-
     IsMomentRegistredZC39 Model
     Author: Pierre Martre
     Reference: Modeling development phase in the 

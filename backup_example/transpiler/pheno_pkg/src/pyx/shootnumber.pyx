@@ -4,13 +4,12 @@ from math import *
 from fibonacci import fibonacci_ 
 def shootnumber_(float canopyShootNumber=288.0,
                  float leafNumber=0.0,
-                 int sowingDensity=288,
+                 float sowingDensity=288.0,
                  float targetFertileShoot=600.0,
                  list tilleringProfile=[288.0],
                  list leafTillerNumberArray=[1],
                  int tillerNumber=1):
     """
-
 
     CalculateShootNumber Model
     Author: Pierre MARTRE
@@ -27,7 +26,7 @@ def shootnumber_(float canopyShootNumber=288.0,
     oldCanopyShootNumber = canopyShootNumber
     emergedLeaves = int(max(1.0, ceil(leafNumber - 1)))
     shoots = fibonacci_(emergedLeaves)
-    canopyShootNumber = min(float(shoots * sowingDensity), targetFertileShoot)
+    canopyShootNumber = min(shoots * sowingDensity, targetFertileShoot)
     averageShootNumberPerPlant = canopyShootNumber / sowingDensity       
     if (canopyShootNumber != oldCanopyShootNumber):
         tilleringProfile.append(canopyShootNumber - oldCanopyShootNumber)         

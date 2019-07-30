@@ -2,13 +2,15 @@ import pycropml.transpiler.generators
 import pycropml.transpiler.generators.csharpGenerator
 import pycropml.transpiler.generators.pythonGenerator
 import pycropml.transpiler.generators.fortranGenerator
+import pycropml.transpiler.generators.javaGenerator
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+import os
 
 
 
-languages = ['cs','py', 'f90']
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran'}
+languages = ['cs','py', 'f90', 'java']
+NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java'}
 
 GENERATORS = {
     format: getattr(
@@ -16,6 +18,15 @@ GENERATORS = {
                     pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[format]),
                 '%sGenerator' % NAMES[format].capitalize())
+    for format in languages
+}
+
+COMPOSERS = {
+    format: getattr(
+                getattr(
+                    pycropml.transpiler.generators,
+                    '%sGenerator' % NAMES[format]),
+                '%sCompo' % NAMES[format].capitalize())
     for format in languages
 }
 
@@ -64,7 +75,8 @@ class Main():
     def __init__(self, file,language, models=None):
         self.file = file
         self.language=language
-        self.models = models          
+        self.models = models 
+        self.path = os.path.abspath(file)      
 
     def parse(self):
         self.tree= parser(self.file)
@@ -78,9 +90,20 @@ class Main():
 
     def to_source(self):
         generator = GENERATORS[self.language](self.nodeAst,self.models)
-        node = self.nodeAst.body
+        #node = self.nodeAst.body
+        node = self.nodeAst
         generator.visit(node)
         z= ''.join(generator.result)
         if self.language=='f90':
             z = formater(z)
         return z
+    
+    def translate(self):
+        generator = COMPOSERS[self.language](self.nodeAst,self.models)
+        #node = self.nodeAst.body
+        node = self.nodeAst
+        generator.visit(node)
+        z= ''.join(generator.result)
+        if self.language=='f90':
+            z = formater(z)
+        return z 

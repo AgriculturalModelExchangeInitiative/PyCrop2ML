@@ -9,7 +9,6 @@ def updatecalendar_(float cumulTT=741.510096671757,
                     float phase=1.0):
     """
 
-
     Calendar Model
     Author: Pierre Martre
     Reference: Modeling development phase in the 

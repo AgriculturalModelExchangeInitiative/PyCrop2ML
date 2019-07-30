@@ -1,4 +1,4 @@
-# coding: utf-8
+# coding: utf8
 ##########################################
 from __future__ import absolute_import
 from __future__ import print_function
@@ -94,7 +94,10 @@ def len_expander(type, message, args):
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'arg_count', 'args': [], 'pseudo_type': 'Int'}
     else:
         q = builtin_type_check(a, message, args[0], args[1:])
-        return {'type': 'standard_method_call', 'receiver':args[0], 'args': [], 'message': message, 'pseudo_type': q[-1]}
+        if a =="str" and message =="float" and args[0]["value"]==b"nan":
+            return {"type":'notAnumber', 'value' : 'nan', 'pseudo_type':'float'}
+        else: 
+            return {'type': 'standard_method_call', 'receiver':args[0], 'args': [], 'message': message, 'pseudo_type': q[-1]}
 
 def min_expander(type, message, args):
     if len(args)==1:
@@ -114,8 +117,9 @@ def abs_expander(type, message, args):
 def pow_expander(type, message, args):
     x1 = args[0]["pseudo_type"]
     x2 = args[1]["pseudo_type"]
-    if x1=="int" and x2=="int":
-        if int(args[1]["value"])<0:
+    if x1=="int" and x2=="int": 
+        val = -(int(args[1]["value"]["value"])) if args[1]["type"]=="unary_op" else args[1]["value"] 
+        if int(val)<0:
             q="float"
         else:
             q="int"
@@ -192,11 +196,13 @@ METHOD_API = {
     'dict': {
         'keys':     StandardMethodCall('dict', 'keys'),
         'values':   StandardMethodCall('dict', 'values'),
+        'get':    StandardMethodCall('dict', 'get'),
         '[]':       StandardMethodCall('dict', 'getitem'),
         '[]=':      StandardMethodCall('dict', 'setitem')
     },
 
     'array': {
+            'append':   StandardMethodCall('array', 'append')
     },
 
     'tuple': {

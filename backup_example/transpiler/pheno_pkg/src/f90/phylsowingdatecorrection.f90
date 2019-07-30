@@ -1,5 +1,4 @@
 MODULE Phylsowingdatecorrection_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
     SUBROUTINE phylsowingdatecorrection_(sowingDay, &
@@ -104,15 +103,15 @@ CONTAINS
     !                          - min : 0
     !                          - max : 1000
     !                          - unit : °C d leaf-1
-        IF(latitude .LT. 0.0) THEN
-            IF(sowingDay .GT. sDsa_sh) THEN
-                fixPhyll = p * (1 - rp * MIN((sowingDay - sDsa_sh), sDws))
+        IF(latitude .LT. 0.0)) THEN
+            IF(sowingDay .GT. sDsa_sh)) THEN
+                fixPhyll = p * ((1 - (rp * MIN((sowingDay - sDsa_sh)), sDws)))))
             ELSE
                 fixPhyll = p
             END IF
         ELSE
-            IF(sowingDay .LT. sDsa_nh) THEN
-                fixPhyll = p * (1 - rp * MIN(sowingDay, sDws))
+            IF(sowingDay .LT. sDsa_nh)) THEN
+                fixPhyll = p * ((1 - (rp * MIN(sowingDay, sDws)))))
             ELSE
                 fixPhyll = p
             END IF

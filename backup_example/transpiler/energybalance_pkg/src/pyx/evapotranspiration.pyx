@@ -6,7 +6,6 @@ def evapotranspiration_(int isWindVpDefined=1,
                         float evapoTranspirationPenman=830.958):
     """
 
-
     Evapotranspiration Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

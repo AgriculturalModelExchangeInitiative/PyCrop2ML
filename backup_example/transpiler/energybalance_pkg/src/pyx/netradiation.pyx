@@ -11,7 +11,6 @@ def netradiation_(float minTair=0.7,
                   float extraSolarRadiation=11.7):
     """
 
-
     NetRadiation Model
     Author: Pierre Martre
     Reference: Modelling energy balance in the wheat crop model SiriusQuality2:

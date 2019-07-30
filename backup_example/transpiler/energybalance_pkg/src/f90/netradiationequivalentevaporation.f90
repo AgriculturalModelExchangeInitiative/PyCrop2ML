@@ -1,11 +1,11 @@
 MODULE Netradiationequivalentevaporation_mod
-    USE list_sub
     IMPLICIT NONE
 CONTAINS
-    SUBROUTINE netradiationequivalentevaporation_(netRadiation, &
+    SUBROUTINE netradiationequivalentevaporation_(lambdaV, &
+        netRadiation, &
         netRadiationEquivalentEvaporation)
         REAL, INTENT(OUT) :: netRadiationEquivalentEvaporation
-        REAL, PARAMETER :: lambdaV = 2.454
+        REAL, INTENT(IN) :: lambdaV
         REAL, INTENT(IN) :: netRadiation
         !- Description:
     !            - Model Name: NetRadiationEquivalentEvaporation Model
@@ -43,6 +43,6 @@ CONTAINS
     !                          - max : 5000
     !                          - unit : g m-2 d-1
     !                          - uri : http://www1.clermont.inra.fr/siriusquality/?page_id=547
-        netRadiationEquivalentEvaporation = netRadiation / lambdaV * 1000.0
+        netRadiationEquivalentEvaporation = netRadiation / lambdaV) * 1000.0)
     END SUBROUTINE netradiationequivalentevaporation_
 END MODULE

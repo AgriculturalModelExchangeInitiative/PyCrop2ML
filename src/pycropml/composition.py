@@ -6,6 +6,8 @@ from __future__ import print_function
 from path import Path
 import xml.etree.ElementTree as xml
 import six
+from pycropml.modelunit import ModelUnit
+from pycropml import pparse
 
 class ModelDefinition(object):
     """
@@ -30,6 +32,8 @@ class ModelComposition(ModelDefinition):
         self.inputlink=[]
         self.outputlink=[]
         self.internallink=[]
+        self.inputs=[]
+        self.outputs=[]
  
 
     def add_description(self, description):
@@ -57,12 +61,13 @@ class Description(object):
         self.Reference = ''
         self.Abstract = ''
 
-class Models(object):
-          
-    def __init__(self, name, id, file):
+class Models(ModelComposition, ModelUnit):           
+    def __init__(self, name, modelid, file, package_name=None):  
         self.name=name
-        self.id=id
+        self.modelid=modelid
         self.file=file
+        self.package_name = package_name
+
  
  
 class Parser(object):
@@ -135,11 +140,13 @@ class ModelParser(Parser):
         print('Model')
         
         name=elt.attrib["name"]
-        id=elt.attrib["id"]
+        modelid=elt.attrib["id"]
         file = elt.attrib["filename"]
+        if "package_name" in elt.attrib:
+            package_name=elt.attrib["package_name"]
+        else: package_name=None
         
-        
-        mod = Models(name, id, file)
+        mod = Models(name, modelid, file, package_name)
         
         self._modelcompo.model.append(mod)
     
@@ -157,11 +164,15 @@ class ModelParser(Parser):
         for input in inputs:
             inp = input.attrib
             self._modelcompo.inputlink.append(inp)
+            if inp["source"] not in self._modelcompo.inputs:
+                self._modelcompo.inputs.append(inp["source"])
         
         for output in outputs: 
             
             out = output.attrib        
             self._modelcompo.outputlink.append(out)
+            if out["target"] not in self._modelcompo.outputs:
+                self._modelcompo.outputs.append(out["target"])
         
         for internal in internals : 
             
@@ -179,4 +190,3 @@ def model_parser(fn):
     return parser.parse(fn)
     
 
-    
