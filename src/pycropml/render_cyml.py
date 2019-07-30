@@ -10,6 +10,7 @@ import numpy
 from datetime import datetime
 import os.path
 import six
+import shutil
 from . import error
 
 class Model2Package(object):
@@ -43,6 +44,7 @@ class Model2Package(object):
         if pkg_name is None:
             self.pkg_name = "CropModel"
         else: self.pkg_name = pkg_name
+        self.cwd = Path(self.dir)
 
     def run(self):
         """TODO."""
@@ -60,8 +62,8 @@ class Model2Package(object):
         """
 
         # Create a directory (mymodel)
-        cwd = Path(self.dir)
-        directory=cwd/'pyx'
+        
+        directory=self.cwd/'pyx'
         if (directory).isdir() :
             self.dir = directory
         else:
@@ -71,7 +73,7 @@ class Model2Package(object):
         for model in self.models:          
             self.generate_component(model)            
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"%s.pyx"%signature(model)                     
+            filename = self.dir/"%s.pyx"%signature(model).capitalize()                     
             with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
                 cyml_file.write(self.code.encode('utf-8'))
@@ -82,18 +84,21 @@ class Model2Package(object):
         
     def generate_component(self, model_unit):
         """ Todo
-        """
+        """      
+            
         self.code= "import numpy as np \n" + "from math import *\n\n"
    
+        self.code += self.generate_function_signature(model_unit)
+        self.code += self.generate_function_doc(model_unit)
+        self.code += self.generate_algorithm(model_unit)  
+            
         if model_unit.function:
             for function in model_unit.function:
                 if function.language in ("Cyml", "cyml"):
-                    #module=os.path.splitext(function.filename)[0]
-                    self.code +="from %s import %s_ \n"%(function.name.lower(),function.name.lower()) 
-                    break
-        self.code += self.generate_function_signature(model_unit)
-        self.code += self.generate_function_doc(model_unit)
-        self.code += self.generate_algorithm(model_unit)        
+                    filefunc = Path(os.path.dirname(self.cwd))/"crop2ml"/function.filename
+                    with open(filefunc.encode('utf-8'), 'r') as f:
+                        source = f.read()
+                        self.code += source       
         return self.code
 
     def generate_algorithm(self, model_unit):
@@ -141,7 +146,9 @@ class Model2Package(object):
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         #name = desc.Title
-        func_name = "%s_"%signature(model_unit)
+        if model_unit.modelid.split(".")[0]!="function":
+            func_name = "model_%s"%signature(model_unit)
+        else : func_name = signature(model_unit)
         code = 'def %s('%(func_name,)
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
@@ -171,16 +178,16 @@ class Model2Package(object):
                     return '%s %s=%s'%(self.DATATYPE[_type], name, default)
             else:
                 if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
-                    len = _input.len
-                    print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
-                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, len))
+                    length = _input.len
+                    #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
+                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, length))
                 else:
                     return ("%s %s"%(self.DATATYPE[_type], name))
         else:
                 if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
-                    len = _input.len
-                    print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
-                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, len))
+                    length = _input.len
+                    #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
+                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, length))
                 else:
                     return ("%s %s"%(self.DATATYPE[_type], name))            
 
@@ -308,7 +315,7 @@ class Model2Package(object):
             ext = '' if count == 0 else str(count)
             filename = self.dir/"test_%s.py"%signature(model)
 
-            codetest = "'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
+            codetest = "#'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
             with open(filename, "wb") as cyml_file:
                 cyml_file.write(codetest.encode('utf-8'))

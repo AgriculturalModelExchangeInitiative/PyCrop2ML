@@ -14,49 +14,36 @@ from . import algorithm
 from . import function
 from . import initialization
 import os.path
+import os
 from path import Path
 
 class Parser(object):
     """ Read an XML file and transform it in our object model.
     """
-
     def parse(self, crop2ml_dir):
         raise Exception('Not Implemented')
-
-
     def dispatch(self, elt):
         return self.__getattribute__(elt.tag)(elt)
-
 
 class ModelParser(Parser):
     """ Read an XML file and transform it in our object model.
     """
-
     def parse(self, crop2ml_dir):
         self.models = []
         self.crop2ml_dir = crop2ml_dir
-        xmlrep = Path(self.crop2ml_dir/'crop2ml')
-        self.algorep = Path(self.crop2ml_dir/'crop2ml')
-        
+        xmlrep = Path(self.crop2ml_dir)/'crop2ml'
+        self.algorep = Path(self.crop2ml_dir)/'crop2ml'  
         fn = xmlrep.glob('unit*.xml')+xmlrep.glob('function*.xml')+xmlrep.glob('init*.xml')
         try:
-            for f in fn:
-                print(f)
-            
-        # Current proxy node for managing properties
-            
+            for f in fn:           
+        # Current proxy node for managing properties            
                 doc = xml.parse(f)
                 root = doc.getroot()
-
-                self.dispatch(root)
-                
+                self.dispatch(root)               
         except Exception as e:
-            print(("%s is NOT in CropML Format ! %s" % (f, e)))
-            
+            print(("%s is NOT in CropML Format ! %s" % (f, e)))         
         return self.models
            
-            
-    
     def dispatch(self, elt):
         #try:
         return self.__getattribute__(elt.tag)(elt)
@@ -71,29 +58,24 @@ class ModelParser(Parser):
         #print('ModelUnit')
         kwds = elts.attrib
         self._model = munit.ModelUnit(kwds)
+        self._model.path = os.path.abspath(self.crop2ml_dir)   
         self.models.append(self._model)
-
         for elt in list(elts):
             self.dispatch(elt)
-
 
     def Description(self, elts):
         """ Description (Title,Author,Institution,Reference,Abstract)
         """
         #print('Description')
-
         desc = description.Description()
-
         for elt in list(elts):
             self.name = desc.__setattr__(elt.tag, elt.text)
-
         self._model.add_description(desc)
 
     def Inputs(self, elts):
         """ Inputs (Input)
         """
         #print('Inputs')
-
         for elt in list(elts):
             self.dispatch(elt)
 

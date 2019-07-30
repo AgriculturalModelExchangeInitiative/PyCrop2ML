@@ -111,8 +111,8 @@ class Model2Package(object):
     def generate_wralea(self):
         """Generate wralea factories from the meta-information of the the model units."""
 
-        if not has_openalea:
-            return
+        '''if not has_openalea:
+            return'''
 
         # TODO
         metainfo = {'version': '0.0.1',
@@ -124,7 +124,7 @@ class Model2Package(object):
                     'icon': ''}
 
         _package = package.UserPackage(self.pkg_name, metainfo, self.dir)
-
+        print(self.dir)
         for model in self.models:
 
             _factory = self.generate_factory(model)
@@ -135,8 +135,8 @@ class Model2Package(object):
 
     def generate_factory(self, model):
         """Create a Node Factory from CropML model unit."""
-        if not has_openalea:
-            return
+        '''if not has_openalea:
+            return'''
 
         inputs = []
         for input in model.inputs:
@@ -167,8 +167,8 @@ class Model2Package(object):
 
         _factory = node.Factory(name=model.name,
                                 description=model.description.Abstract,
-                                nodemodule=model.module_name,
-                                nodeclass=signature(model),
+                                nodemodule=signature(model),
+                                nodeclass=signature(model)+"_",
                                 inputs=inputs,
                                 outputs=outputs,
                                 )

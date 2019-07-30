@@ -192,7 +192,8 @@ class Model2Package(object):
                     ins = inouts['inputs']
                     outs = inouts['outputs']
                     decl_ins= [ tab + self.my_input(var) for var in list_inouts]
-                    code = "PROGRAM test_%s_%s "%(tname,m.name)
+                    code = "PROGRAM test_%s_%s \n"%(tname,m.name)
+                    code += tab+ "USE" + " %smod"%model_unit.name.capitalize()                    
                     test_codes.append(code)
                     test_codes.append('\n'.join(decl_ins))                                          
                     run_param = params.copy()
@@ -204,7 +205,7 @@ class Model2Package(object):
                         code = "    %s = %s\n"%(k,v)
                         test_codes.append(code)
                         
-                    code="    call %s_(%s)"%(model_name, ','.join(list_var))
+                    code="    call modelunit_%s(%s)"%(model_name, ','.join(list_var))
                     test_codes.append(code)
                     code = "    print *,%s"%','.join([out.name for out in m.outputs])
                     test_codes.append(code)
@@ -269,7 +270,7 @@ class Model2Package(object):
         for model in self.models:
             codetest = self.generate_test(model)
             filename = Path(self.dir/"test_%s.f90"%signature(model))
-            codetest = "!Test generation'\n\n"+codetest
+            codetest = "!Test generation\n\n"+codetest
             with open(filename, "wb") as f90_file:
                 f90_file.write(codetest.encode('utf-8'))
                 files.append(filename)

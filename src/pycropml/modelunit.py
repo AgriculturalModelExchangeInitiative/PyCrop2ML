@@ -27,6 +27,7 @@ class ModelUnit(ModelDefinition):
         self.algorithms = []
         self.parametersets = {}
         self.testsets = []
+        self.path=None
 
     def add_description(self, description):
         """ TODO """
