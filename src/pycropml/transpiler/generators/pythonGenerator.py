@@ -200,10 +200,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(node)
         self.write('def %s(' % node.name)
         for i, pa in enumerate(node.params):
-            if pa.type == "local":
-                self.visit(pa) 
-            else:
-                self.write(pa.name)
+            #if pa.type == "local": 
+            self.write(pa.name)
+            if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
+                #self.write(pa.name)
                 self.write(" = ")
                 self.visit(pa)  
             if i!= (len(node.params)-1):

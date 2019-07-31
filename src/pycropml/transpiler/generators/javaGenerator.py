@@ -433,7 +433,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         for n in node.decl:
             self.newline(node)
             if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array"):
-                self.write(self.types[n.type])
+                self.write(self.types[n.pseudo_type])
                 self.write(' %s;'%n.name) 
                 #self.write('%s %s;'%(self.types[n.type],n.name)) 
             if 'elements' not in dir(n) and n.type in ("list","array"):

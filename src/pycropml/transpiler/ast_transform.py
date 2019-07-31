@@ -721,7 +721,7 @@ class AstTransformer():
         name = declarator.base.name if isinstance(
             declarator, Nodes.CArrayDeclaratorNode) else declarator.name
         if default is None:
-            decl = {"name": name, "type": self.visit_node(base_type)[0]}
+            decl = {"name": name, "type": self.visit_node(base_type)[1]}
         else:
             decl = {"name": name, "type": base_type.name}
         if default and type(default) not in ( ExprNodes.ListNode, ExprNodes.DictNode, ExprNodes.TupleNode):
@@ -789,7 +789,7 @@ class AstTransformer():
             "float":["local","float"],
             "str":["local","str"],
             "bool":["local","bool"],
-            "list":["list","list"],
+            "list":["local","list"],
             "array":["array","array"]}
         return tt
         
@@ -805,9 +805,11 @@ class AstTransformer():
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.name)
                 decl = {"name": de.name,
-                        "type": self.visit_node(base_type)[0], "lineno": location}
+                        "type": self.visit_node(base_type)[0] if de.default is None else base_type.name, "lineno": location}
                 if de.default is None:
+                    #self.type_env[de.name] = base_type.name
                     self.type_env[de.name] = self.visit_node(base_type)[1]
+                    #decl["pseudo_type"] = decl["type"]
                     decl["pseudo_type"] = self.visit_node(base_type)[1]
                 if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
                     value_node = self.visit_node(de.default)
