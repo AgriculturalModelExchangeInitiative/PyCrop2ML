@@ -721,7 +721,7 @@ class AstTransformer():
         name = declarator.base.name if isinstance(
             declarator, Nodes.CArrayDeclaratorNode) else declarator.name
         if default is None:
-            decl = {"name": name, "type": self.visit_node(base_type)[1]}
+            decl = {"name": name, "type": self.visit_node(base_type)[0]}
         else:
             decl = {"name": name, "type": base_type.name}
         if default and type(default) not in ( ExprNodes.ListNode, ExprNodes.DictNode, ExprNodes.TupleNode):
@@ -784,11 +784,11 @@ class AstTransformer():
             "doublelist":["list", ["list", "double"]],
             "booleanlist":["list", ["list","bool"]],
             "stringlist":["list",["list","string"]],
-            "int":["int","int"],
-            "double":["float","float"],
-            "float":["float","float"],
-            "str":["str","str"],
-            "bool":["bool","bool"],
+            "int":["local","int"],
+            "double":["local","float"],
+            "float":["local","float"],
+            "str":["local","str"],
+            "bool":["local","bool"],
             "list":["list","list"],
             "array":["array","array"]}
         return tt
@@ -807,9 +807,7 @@ class AstTransformer():
                 decl = {"name": de.name,
                         "type": self.visit_node(base_type)[0], "lineno": location}
                 if de.default is None:
-                    #self.type_env[de.name] = base_type.name
                     self.type_env[de.name] = self.visit_node(base_type)[1]
-                    #decl["pseudo_type"] = decl["type"]
                     decl["pseudo_type"] = self.visit_node(base_type)[1]
                 if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
                     value_node = self.visit_node(de.default)
@@ -819,7 +817,7 @@ class AstTransformer():
                     decl["pseudo_type"] = value_node["pseudo_type"]
                     self.type_env[de.name] = decl["pseudo_type"]
                     self._compatible_types(
-                        decl['type'], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+                        self.visit_node(base_type)[1], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
 
                 if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
                     arglist = []
