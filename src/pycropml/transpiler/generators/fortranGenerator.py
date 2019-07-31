@@ -122,10 +122,6 @@ class FortranGenerator(CodeGenerator, FortranRules):
         pass
 
     def visit_assignment(self, node):
-        '''if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
-            name  = node.value.function.split('model_')[1]
-            self.write("CALL model_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
-            self.newline(node)'''
         if node.value.type=="cond_expr_node":
             self.visit_cond_expr_node(node)
         elif node.value.type == "custom_call":
@@ -363,18 +359,6 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.indentation += 1    
         self.visit(node.body)
         self.newline(extra=1)
-        '''if self.model:
-            if "function" in dir(self.model) and self.model.function:
-                func_name = os.path.split(self.model.function[0].filename)[1]
-                func_path = os.path.join(self.model.path,"src","pyx", func_name)
-                func_tree=parser(Path(func_path))  
-                newtree = AstTransformer(func_tree, func_path)
-                dictAst = newtree.transformer()
-                nodeAst= transform_to_syntax_tree(dictAst)
-                self.model=None
-                self.imp=False
-                self.newline(extra=1)
-                self.visit(nodeAst.body)'''
         self.indentation -= 1        
         self.newline(node)
         self.indentation -= 1        
@@ -547,8 +531,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
     
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
-        self.write(" , DIMENSION(") 
-        self.comma_separated_list(node.elts)
+        self.write(" , DIMENSION(")
+        if node.dim == 0: self.write(":")
+        else: self.comma_separated_list(node.elts)
         self.write(" )")  
 
     def visit_float_decl(self, node):
