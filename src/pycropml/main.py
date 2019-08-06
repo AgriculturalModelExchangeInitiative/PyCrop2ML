@@ -34,6 +34,7 @@ Example
         py for python
         cs for csharp
         f90 for fortran
+        java for java
 
 """
 #TODO
