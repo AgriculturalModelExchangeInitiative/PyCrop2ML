@@ -157,6 +157,7 @@ class Topology():
             else: return False
                  
     def load_pkge(self, name):
+        module=None
         try:
             module = importlib.import_module(name)
         except Exception as e:
@@ -240,8 +241,8 @@ class Topology():
     def write_png(self):
         a=to_pydot(self.createGraph())
         a.write_png("img.png")
-        from networkx.drawing.nx_pydot import graphviz_layout
-        print(graphviz_layout(self.createGraph()))
+        #from networkx.drawing.nx_pydot import graphviz_layout
+        #print(graphviz_layout(self.createGraph()))
     
     def display_wf(self):
         a=to_pydot(self.createGraph())
@@ -309,10 +310,8 @@ class Topology():
                     list_var.append(var)
                     mod_outputs.append(out)
                 else:
-                    print("o", var)
                     #pa, mc = self.retrive(self.pkg_m(mc, mod))
                     name=self.pkg_m(mc, mod)
-                    print(var, name)
                     #out = self.get_mu_out(pa, mod, var)
                     out = self.get_mu_out(name, var)
                     mod_outputs.append(out)
@@ -337,13 +336,13 @@ class Topology():
             if mod.name == m:
                 pkg_name = mod.package_name
         return pkg_name
-
+    """
     #get the path of the package    
     def path_pkg(self, mc,m):
         name = self.pkg_m(mc,m)
         ppkg = PackageManager(self.path).get_path(name)
         return ppkg
- 
+    """
     # get the info of an input of a model unit from its name and the name of the input
     def info_inputs_mu(self,ppkg,mu,varname):
         mod =  model_parser(ppkg)
@@ -436,7 +435,7 @@ class Topology():
     def translate_all(self, model):
         for mod in model.model:
             if mod.package_name is not None:
-                T= Topology(mod.package_name)
+                T= Topology(mod.package_name)cd
                 #print(T.algo2cyml())
                 model = self.retrive(mod.package_name)[1]
                 self.translate_all(model)
@@ -452,8 +451,8 @@ class Topology():
 '''
 from pycropml.topology import Topology
 from pycropml.transpiler.generators.csharpGenerator import CsharpCompo
-pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/pheno_pkg"
-T = Topology(name='pheno_pkg', pkg=pkg1) 
+pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/test"
+T = Topology(name='test', pkg=pkg1) 
 a =CsharpCompo(tree =None, model = T.model)
 
 print(T.compotranslate('cs'))
