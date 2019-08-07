@@ -435,7 +435,7 @@ class Topology():
     def translate_all(self, model):
         for mod in model.model:
             if mod.package_name is not None:
-                T= Topology(mod.package_name)cd
+                T= Topology(mod.package_name)
                 #print(T.algo2cyml())
                 model = self.retrive(mod.package_name)[1]
                 self.translate_all(model)
@@ -451,7 +451,7 @@ class Topology():
 '''
 from pycropml.topology import Topology
 from pycropml.transpiler.generators.csharpGenerator import CsharpCompo
-pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/test"
+pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/testA"
 T = Topology(name='test', pkg=pkg1) 
 a =CsharpCompo(tree =None, model = T.model)
 
