@@ -14,11 +14,12 @@ class JavaGenerator(CodeGenerator,JavaRules):
     code source from a well formed syntax tree.
     """
     
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name=None):
         CodeGenerator.__init__(self)
         JavaRules.__init__(self)
         self.tree = tree
         self.model=model
+        self.name = name
         self.indent_with=' '*4
         self.initialValue=[] 
         self.index=False
@@ -341,7 +342,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_%s("%self.model.name.lower())
-            self.write('state s, rate r, auxiliary a)')
+            self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -692,6 +693,11 @@ class JavaTrans(CodeGenerator,JavaRules):
                 if out.name not in varnames:
                     variables.append(out)
                     varnames.append(out.name)
+            if "ext" in dir(m):
+                for ex in m.ext:
+                    if ex.name not in varnames:
+                        variables.append(ex)
+                        varnames.append(ex.name) 
         #print(len(variables))
         for var in variables:
             if "variablecategory" in dir(var):
@@ -864,30 +870,28 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.newline()
 
 
-def to_struct_java(models, rep):
+def to_struct_java(models, rep, name):
     generator = JavaTrans(models)
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
     generator.model2Node()
     states = generator.node_states
-    generator.generate(states, "state")
+    generator.generate(states, "%sState"%name.capitalize())
     z= ''.join(generator.result)
-    filename = rep/"state.java"
+    filename = Path(os.path.join(rep,"%sState.java"%name.capitalize()))
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
-    generator.generate(rates, "rate")
+    generator.generate(rates, "%sRate"%name.capitalize())
     z1= ''.join(generator.result)
-    filename = rep/"rate.java"
+    filename = Path(os.path.join(rep, "%sRate.java"%name.capitalize()))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
     auxiliary = generator.node_auxiliary
-    #aux1=[aux.name for aux in auxiliary ]
-    #print(aux1)
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
-    generator.generate(auxiliary, "auxiliary")
+    generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
     z2= ''.join(generator.result)
-    filename = rep/"auxiliary.java"
+    filename = Path(os.path.join(rep/"%sAuxiliary.java"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))  
     return 0
@@ -897,16 +901,21 @@ def to_struct_java(models, rep):
 ''' Java composite'''
 
 
-class JavaCompo(JavaGenerator, JavaTrans):
+class JavaCompo(JavaTrans, JavaGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for java language.
     """
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name=None):
         self.tree = tree
         self.model=model
-        JavaGenerator.__init__(self,tree, model)
+        self.name = name
+        JavaGenerator.__init__(self,tree, model, self.name)
         JavaTrans.__init__(self,[model])
         self.params = [pa for pa in self.model.inputs if "parametercategory" in dir(pa)]
+        self.model2Node()
+        self.statesName = [st.name for st in self.states]
+        self.ratesName = [rt.name for rt in self.rates]
+        self.auxiliaryName = [au.name for au in self.auxiliary]
        # self.model2Node()
 
     def visit_module(self, node):
@@ -941,13 +950,13 @@ class JavaCompo(JavaGenerator, JavaTrans):
                 self.gettype(arg)
                 self.write(" %s)"%arg.name)                    
                 self.write(self.set_properties_compo%(b))
-            self.newline(node)      
-            self.write("public void ")
-            self.write(" Calculate_%s("%self.model.name.lower())
-            self.write('state s, rate r, auxiliary a)')
-            self.newline(node)
-            self.write('{') 
-            self.newline(node)
+        self.newline(node)      
+        self.write("public void ")
+        self.write(" Calculate_%s("%self.model.name.lower())
+        self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
+        self.newline(node)
+        self.write('{') 
+        self.newline(node)
         self.body(node.block)
         self.newline(node)
         self.visit_return(node)
@@ -969,6 +978,28 @@ class JavaCompo(JavaGenerator, JavaTrans):
     def visit_return(self, node):
         self.newline(node)
     
+    def visit_assignment(self, node):
+       
+        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
+            name  = node.value.function.split('model_')[1]
+            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.newline(node)
+        else:
+            self.newline(node)        
+            if node.target.name in self.statesName:
+                self.write('s.set%s('%(node.target.name))
+            if node.target.name in self.ratesName:
+                self.write('r.set%s('%(node.target.name))
+            if node.target.name in self.auxiliaryName:
+                self.write('a.set%s('%(node.target.name))
+            if node.value.name in self.statesName:
+                self.write('s.get%s());'%(node.value.name))
+            if node.value.name in self.ratesName:
+                self.write('r.get%s());'%(node.value.name))
+            if node.value.name in self.auxiliaryName:
+                self.write('a.get%s());'%(node.value.name))
+            self.newline(node)
+
     def setCompo(self, p):
         a=[]
         mo = self.get_mo(p)

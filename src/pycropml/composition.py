@@ -105,20 +105,16 @@ class ModelParser(Parser):
         
         """ ModelComposition (Description, Models, Inputlink,Outputlink,externallink)                 
         """
-        print('ModelComposition')
         kwds = elts.attrib
         self._modelcompo = ModelComposition(kwds)
         self.modelcompos.append(self._modelcompo)
         
-
         for elt in list(elts):
             self.dispatch(elt)
-   
-    
+       
     def Description(self, elts):
         """ Description (Title,Author,Institution,Reference,Abstract)
         """
-        print('Description')
 
         desc = Description()
 
@@ -129,7 +125,6 @@ class ModelParser(Parser):
         
     
     def Composition(self, elts):
-        print('Composition')
         
         for elt in list(elts):
             self.dispatch(elt)
@@ -137,8 +132,7 @@ class ModelParser(Parser):
     def Model(self, elt):
         """ Models
         """
-        print('Model')
-        
+       
         name=elt.attrib["name"]
         modelid=elt.attrib["id"]
         file = elt.attrib["filename"]
@@ -155,8 +149,7 @@ class ModelParser(Parser):
         """
             Retrieve different types of links
         """
-        print("link")
-        
+       
         inputs = elt.findall("InputLink")
         outputs = elt.findall("OutputLink")
         internals = elt.findall("InternalLink")
