@@ -67,8 +67,7 @@ class Model2Nb(object):
 
         elif language == "f90" :
             list_sub =  Path(os.path.join(tg_rep, "list_sub.f90"))
-            if list_sub.isfile:
-                print("yes") 
+            if os.path.isfile(list_sub):
                 with open(list_sub, "r") as fi:
                     sub = fi.read()                
                 self.code = sub + self.code        
