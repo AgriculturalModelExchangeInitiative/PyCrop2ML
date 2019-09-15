@@ -13,11 +13,12 @@ class PythonGenerator(CodeGenerator, PythonRules):
     python language and use the NodeVisitor to generate a python
     code source from a well formed syntax tree.
     """
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name = None):
         CodeGenerator.__init__(self)
         PythonRules.__init__(self)
         self.tree=tree
         self.model=model
+        self.name = name
         self.indent_with=' '*4 
         self.imp=True
         if self.model: 
@@ -366,9 +367,10 @@ class PythonCompo(PythonGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for C# languages.
     """
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name=None):
         self.tree = tree
-        self.model=model
-        PythonGenerator.__init__(self,tree, model)
+        self.model = model
+        self.name = name
+        PythonGenerator.__init__(self,tree, model, self.name)
             
         

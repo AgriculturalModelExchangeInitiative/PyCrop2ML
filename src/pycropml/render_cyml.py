@@ -45,6 +45,7 @@ class Model2Package(object):
             self.pkg_name = "CropModel"
         else: self.pkg_name = pkg_name
         self.cwd = Path(self.dir)
+        self.rep = os.path.abspath(os.path.dirname(self.cwd))
 
     def run(self):
         """TODO."""
@@ -68,12 +69,17 @@ class Model2Package(object):
             self.dir = directory
         else:
             self.dir = directory.mkdir()
+
+        
+
+
+
         files = []
         count = 0
         for model in self.models:          
             self.generate_component(model)            
             ext = '' if count == 0 else str(count)
-            filename = self.dir/"%s.pyx"%signature(model).capitalize()                     
+            filename = Path(os.path.join(self.dir,"%s.pyx"%signature(model).capitalize() ))                    
             with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
                 cyml_file.write(self.code.encode('utf-8'))
@@ -86,7 +92,7 @@ class Model2Package(object):
         """ Todo
         """      
             
-        self.code= "import numpy as np \n" + "from math import *\n\n"
+        self.code= "import numpy \n" + "from math import *\n\n"
    
         self.code += self.generate_function_signature(model_unit)
         self.code += self.generate_function_doc(model_unit)
@@ -308,15 +314,15 @@ class Model2Package(object):
     def write_tests(self):
         """ TODO: Manage several models rather than just one.
         """
+        self.rep = Path(os.path.join(self.rep,'test', 'pyx'))
+        if not self.rep.isdir():
+            self.rep.mkdir()
         files = []
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            ext = '' if count == 0 else str(count)
-            filename = self.dir/"test_%s.py"%signature(model)
-
-            codetest = "#'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
-
+            filename = Path(os.path.join(self.rep,"test_%s.pyx"%signature(model)))
+            codetest = "#'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy \n\n" + codetest
             with open(filename, "wb") as cyml_file:
                 cyml_file.write(codetest.encode('utf-8'))
                 files.append(filename)

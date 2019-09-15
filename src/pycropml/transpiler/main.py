@@ -72,24 +72,25 @@ def formaterNext(line):
     return code
 
 class Main():
-    def __init__(self, file,language, models=None):
+    def __init__(self, file,language, models=None, name=None):
         self.file = file
         self.language=language
         self.models = models 
-        self.path = os.path.abspath(file)      
+        self.path = os.path.abspath(file)   
+        self.name = name   
 
     def parse(self):
         self.tree= parser(self.file)
         return self.tree
 
     def to_ast(self, source):
-        self.newtree = AstTransformer(self.tree, source)
+        self.newtree = AstTransformer(self.tree, source, self.models)
         self.dictAst = self.newtree.transformer()
         self.nodeAst= transform_to_syntax_tree(self.dictAst)
         return self.nodeAst
 
     def to_source(self):
-        generator = GENERATORS[self.language](self.nodeAst,self.models)
+        generator = GENERATORS[self.language](self.nodeAst,self.models, self.name)
         #node = self.nodeAst.body
         node = self.nodeAst
         generator.visit(node)
@@ -99,7 +100,7 @@ class Main():
         return z
     
     def translate(self):
-        generator = COMPOSERS[self.language](self.nodeAst,self.models)
+        generator = COMPOSERS[self.language](self.nodeAst,self.models, self.name)
         #node = self.nodeAst.body
         node = self.nodeAst
         generator.visit(node)

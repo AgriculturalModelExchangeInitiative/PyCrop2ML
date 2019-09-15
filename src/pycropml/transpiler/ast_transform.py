@@ -9,14 +9,23 @@ from pycropml.transpiler.errors import PseudoCythonTypeCheckError, PseudoCythonN
 from pycropml.transpiler.api_transform import FUNCTION_API, METHOD_API, Standard
 from Cython.Compiler.StringEncoding import EncodedString
 from pycropml.transpiler.helpers import *
+import unyt as u
 from six.moves import map
 from six.moves import zip
 
 class AstTransformer():
-    def __init__(self, tree, code):
+    def __init__(self, tree, code, model=None):
         self.tree = tree
         self.lines = [''] + code.split('\n')  # to access line of instruction
         self.type_env = Env(dict(list(TYPED_API.items())), None)
+        self.model = model
+        self.inp_unit={}
+        if self.model:
+            for inp in self.model.inputs:
+                self.inp_unit[inp.name]=inp.unit
+            for out in self.model.outputs:
+                if out.name not in self.inp_unit:
+                    self.inp_unit[out.name]=out.unit
 
     def transformer(self):
         self.base = 0
@@ -249,6 +258,9 @@ class AstTransformer():
                 location, self.lines[:location[1]])
         else:
             z = {'type': 'local', 'name': id, 'pseudo_type': id_type}
+            if id in self.inp_unit:
+                z['unit'] = self.inp_unit[id]
+
             if z in self._tuple_assigned:
                 if not any(a[0] == '_old_%s' % id for a in self._tuple_used):
                     self._tuple_used.append(('_old_%s' % id, z))
@@ -779,11 +791,11 @@ class AstTransformer():
         tt={"intarray":["array",["array", "int"]],
             "doublearray":["array", ["array", "double"]],
             "booleanarray":["array", ["array","bool"]],
-            "stringarray":["array",["array","string"]],
+            "stringarray":["array",["array","str"]],
             "intlist":["list",["list", "int"]],
             "doublelist":["list", ["list", "double"]],
             "booleanlist":["list", ["list","bool"]],
-            "stringlist":["list",["list","string"]],
+            "stringlist":["list",["list","str"]],
             "int":["local","int"],
             "double":["local","float"],
             "float":["local","float"],

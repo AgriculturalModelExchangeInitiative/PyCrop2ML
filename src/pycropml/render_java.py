@@ -10,315 +10,102 @@ from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
 import numpy
-
+import six
+import os
+from pycropml.composition import model_parser
 
 class Model2Package(object):
-    """ TODO
-
-    """
-
     DATATYPE = {}
     DATATYPE['INT'] = "int"
     DATATYPE['STRING'] = "String"
     DATATYPE['DOUBLE'] = "double"
-    DATATYPE['DOUBLELIST'] = "List<Double>"
-    DATATYPE['STRINGLIST'] = "List<String>"
-    DATATYPE['INTLIST'] = "List<Integer>"
+    DATATYPE['DOUBLELIST'] = "Arrays.asList"
+    DATATYPE['STRINGLIST'] = "Arrays.asList"
+    DATATYPE['INTLIST'] = "Arrays.asList"
     DATATYPE['BOOLEAN'] = "boolean"
-    DATATYPE['DATE'] = "Date"
-    DATATYPE['DATELIST'] = "List<Date>"
-
+    DATATYPE['DATE'] = "String"
+    DATATYPE['DATELIST'] = "Arrays.asList"
     num = 0
 
     def __init__(self, models, dir=None):
-        """TODO."""
         self.models = models
         self.dir = dir
         self.alg=""
-
         self.with_import = True
-    
-    def run(self):
-        """TODO."""
-        self.generate_package()
-        self.write_tests()
-    
-    
-    def generate_package(self):
-        """Generate a java package equivalent to the xml definition.
-
-        Args:
-        - models : a list of model
-        - dir: the directory where the code is generated.
-
-        Returns:
-        - None or status
-        """
-
-        # Create a directory (mymodel)
-        cwd = Path(self.dir)
-        directory=cwd/'java_model'
-        if (directory).isdir() :
-            self.dir = directory
-        else:
-            self.dir = directory.mkdir()
-
-        files = []
-        files2 = []        
-        count = 0
-        
-        dir2= cwd/'java'
-
-        for model in self.models:
-            
-
-            self.generate_component(model)
-            
-            ext = '' if count == 0 else str(count)
-            filename = self.dir/"%s.java"%signature(model)           
-
-            with open(filename, "w") as python_file:
-                python_file.write(self.code.encode('utf-8','ignore'))
-                files.append(filename)
-
-                model.module_name = str(Path(filename).namebase)
-                
-
-
-        return files
-
-
-    
-    def generate_component(self, model_unit):
-        """ Todo
-        """
-        self.code = "import java.util.List;\nimport java.util.ArrayList;\nimport java.math.BigDecimal;\n"
-        self.code += self.generate_public_class(model_unit)+'\n\n'
-        self.code += self.generate_estimation(model_unit)+'\n'
-        self.code +=self.generate_function_doc(model_unit)+'\n'
-
-        self.code += self.generate_algorithm(model_unit) + '\n'
-
-        return self.code
-# documentation
-    def generate_function_doc(self, model_unit):
-
-        desc = model_unit.description
-        
-        _doc = """/*
-     %s
-
-    Author: %s
-    Reference: %s
-    Instituton: %s
-    Abstract: %s
-    
-"""%(desc.Title, desc.Author, desc.Reference, desc.Institution, desc.Abstract)+"*/"
-
-        code = '\n'
-        code += _doc
-
-        return code
-
-    def generate_algorithm(self, model_unit):
-
-        outputs = model_unit.outputs
-        inputs = model_unit.inputs
-        sig = ""
-        output_declaration = ""
-        tab = ' '*4
-        list_inputs=[]
-        for inp in inputs:
-            list_inputs.append(inp.name)
-        for out in outputs:
-            sig+=out.name+","
-            if out.name not in list_inputs:
-                output_declaration += tab*2+self.DATATYPE[out.datatype]+" "+out.name+";\n"
-        
-        for algorithm in model_unit.algorithms:                                  
-            if (algorithm.language=="Java")|(algorithm.language==" "):
-                algo = algorithm
-                break
-        development = algo.development    
-        if algo.filename==None:
-            development = algo.development
-
-            code = output_declaration
-                
-            lines = [l.strip() for l in development.split('\n') if l.strip()]
-            for line in lines:
-                if (line[len(line)-1] !=";")and(algo.language==" "): line = line+";"
-                code += tab*2+line+'\n'
-            
-            self.alg = code    
-            code += tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
-                
-            code+=tab+'}\n}\n'
-        
-                    
-        else:
-            code=output_declaration+"\n"
-            lines = [tab*2+l for l in development.split('\n') if l.split()]
-            code += '\n'.join(lines)               
-            code += '\n'+tab*2 + 'return ' + 'new '+model_unit.name+"("+sig[:-1]+");\n"
-                
-            code+=tab+'}\n\n}'          
-                                    
-                   
- 
-        self.code = code
-
-        return self.code
-
-    
-    
-    def generate_public_class(self, model_unit):
-        
-        outputs = model_unit.outputs
-        
-        tab=' '*4
-        paro='{'
-        parc = '}'
-        
-        code ="public class " + signature(model_unit) +'\n'
-    
-        code+=paro+'\n'
-        
-        for out in outputs:
-            code+=tab+"public"+" "+self.DATATYPE[out.datatype.strip()]+" "+out.name + ';\n'
-        
-        code+=tab+"public" +" "+model_unit.name+"("
-        sig = ""
-        for out in outputs:
-            sig+= self.DATATYPE[out.datatype.strip()]+" "+"_"+out.name+","
-            
-        code+=sig[:-1]+')\n'
-        code+=tab*1+paro+'\n'
-        for out in outputs:
-            code+=tab*2+"this." + out.name+"="+ "_"+out.name+';\n'
-        
-        code+=tab+parc+'\n'+parc
-        
-        self.code = code
-        return self.code
-        
-        
-    def generate_estimation(self, model_unit):
-        outputs=model_unit.outputs
-        inputs = model_unit.inputs
-        
-        tab=' '*4
-        paro="{"
-        parc="}"
-        code ="class Estimation_" + signature(model_unit) +'\n'
-    
-        code+=paro+'\n'
-        
-        
-        code+=tab+"public static "+ model_unit.name+ " Calculate"+signature(model_unit)+"("
-        sig = ""
-                
-        for inp in inputs:
-            sig+= self.DATATYPE[inp.datatype]+" "+inp.name+"," 
-                
-        code+=sig[:-1]+')\n'
-        
-        code+=tab+paro+'\n'
-      
-        self.code = code
-        
-        return self.code    
-        
-
-
     def generate_test(self, model_unit):
-
         tab = ' '*4
         m = model_unit
         sig = ""
         inputs = m.inputs
         outputs=m.outputs
-        num=0
-      
+        num=0  
+        dir_crop2ml = Path(os.path.join(m.path,"crop2ml"))
+        dir_compo = dir_crop2ml.glob("composition*.xml")[0]
+        name_mc = model_parser(dir_compo)[0].name            
         psets = m.parametersets
         self.codetest = ""
-        
-        code = "public static class Test\n{\n"
-        
+        self.runtest = "Test t = new Test();\n"
+        code = "class Test\n{\n"     
+        code += tab + "%sState s = new %sState();\n"%(name_mc.capitalize(), name_mc.capitalize())
+        code += tab + "%sRate r = new %sRate();\n"%(name_mc.capitalize(), name_mc.capitalize())
+        code += tab + "%sAuxiliary a = new %sAuxiliary();\n"%(name_mc.capitalize(), name_mc.capitalize())
+        code += tab + "%s mod = new %s();\n"%(m.name.capitalize(), m.name.capitalize())
+        def categ(k, inout):
+            state = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="state"]
+            rate = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="rate"]
+            auxiliary = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="auxiliary"]
+            parameter = [m.name for m in inout if "parametercategory" in dir(m)]
+            if k in state: return "s"
+            elif k in rate: return  "r"
+            elif k in auxiliary: return  "a"
+            elif k in parameter: return "mod"
+            else: raise Exception("error")    
         for inp in inputs:            
             sig+= inp.name+"," 
-   
-    
         for v_tests in m.testsets:
-
             test_name = v_tests.name  # name of tests
-            code +=tab+"//%s"%test_name+");\n"
-            
+            code +=tab+"//%s"%test_name+");\n"    
             test_runs = v_tests.test  
             test_paramsets = v_tests.parameterset  # name of paramsets
-
         # map the paramsets
-            params = {}
-
-            if   test_paramsets not in list(psets.keys()):
-                print('Unknown parameter %s'%test_paramsets)
+            params = {}            
+            if   test_paramsets.strip()!="" and test_paramsets not in list(psets.keys()):
+                print(' Unknow parameter %s'%test_paramsets)
             else:
-                params.update(psets[test_paramsets].params)
-               
+                if   test_paramsets.strip()!="" :  params.update(psets[test_paramsets].params)                     
                 for each_run in test_runs :
-       
-                    des = ""
-                
+                    des = ""                    
+                    # make a function that transforms a title into a function name
                     tname = list(each_run.keys())[0].replace(' ', '_')
-                    tname = tname.replace('-', '_')
-                    
-                    code +=tab+"//%s"%tname+");\n"
-                    
-                    code +="\n"+tab+"public static void %s()"%tname + "\n"+tab+ "{\n"
-
-
+                    tname = tname.replace('-', '_')                   
+                    self.runtest += "t.%s();\n"%tname                    
+                    code +=tab+"//%s"%tname+"\n"                    
+                    code +="\n"+tab+"public void %s()"%tname + "\n"+tab+ "{\n"
                     (run, inouts) = list(each_run.items())[0]
-
                     ins = inouts['inputs']
-                    outs = inouts['outputs']
-                    
+                    outs = inouts['outputs']                          
                     run_param = params.copy()
- 
-
-                    run_param.update(ins)
-                    
-                    declaration=""
+                    run_param.update(ins)                   
                     for testinp in inputs:
                         if testinp.name not in list(run_param.keys()):
-                            run_param[testinp.name]=testinp.default
-                        declaration+= tab*2+self.DATATYPE[testinp.datatype]+" "+testinp.name + " = "+ run_param[testinp.name]+";\n"
-
-                    code += declaration +"\n"    
-                    code += tab*2+signature(m)+" res%s = Estimation_%s.Calculate"%(num,signature(m))+signature(m)+"("+sig[:-1]+");\n"
-                    
-                    
-                    code+=tab*2+"System.out.println("
-
-                    for out in outputs:
-                        des+='" %s: "'%out.name+ "+"+"res%s."%num+out.name+"+"
-                    
-                    code+=des[:-1]+");\n\n"                    
-                    
-                    
-                    for k, v in outs.items():
-                        type_v=[out.datatype for out in outputs if out.name==k]
-                        if len(v)==2:
-                            print(k)
-                            code+=tab*2+ "System.out.println(((new BigDecimal(res%s.%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)).equals((new BigDecimal(%s)).setScale(%s, BigDecimal.ROUND_HALF_DOWN)));\n"%(num,k,v[1],v[0],v[1])
-                        else: code+=tab*2+"System.out.println((new BigDecimal(res%s.%s)).equals(new BigDecimal(%s)));\n"%(num,k,v[0])
-
-         
+                            run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)
+                    for k, v in six.iteritems(run_param):
+                        type_v = [inp.datatype for inp in inputs if inp.name==k][0]
+                        code += 2*tab + "%s.set%s(%s);\n"%(categ(k, inputs),k,transf(type_v, v))                     
+                    code+=tab*2+"mod.Calculate_%s(s, r, a);\n"%(m.name.lower())
+                    for k, v in six.iteritems(outs):
+                        type_o = [out.datatype for out in outputs if out.name==k][0]     
+                        code += 2*tab + "//%s: %s;\n"%(k, v[0]) 
+                        code += 2*tab + 'System.out.println("%s estimated :");\n'%(k)
+                        if type_o.find("LIST")!=-1:
+                            code += 2*tab +"for (int i=0; i<%s.get%s().size(); i++) System.out.println(%s.get%s().get(i));\n"%(categ(k, outputs),k, categ(k, outputs), k) 
+                        else:
+                            code += 2*tab + "System.out.println(%s.get%s());\n"%(categ(k, outputs),k)                  
                     num = num+1                  
-                    code+=tab+"}\n"    
-                              
+                    code+=tab+"}\n"                              
         code+="}\n"
-       
-        self.codetest= code
+        code += self.runtest
+        self.codetest += code
         return self.codetest
 
 
@@ -348,4 +135,38 @@ def signature(model):
 
     return name
 
+DATATYPE = {}
+DATATYPE['INT'] = "int"
+DATATYPE['STRING'] = "String"
+DATATYPE['DOUBLE'] = "double"
+DATATYPE['DOUBLELIST'] = "Arrays.asList"
+DATATYPE['STRINGLIST'] = "Arrays.asList"
+DATATYPE['INTLIST'] = "Arrays.asList"
+DATATYPE['BOOLEAN'] = "boolean"
+DATATYPE['DATE'] = "String"
+DATATYPE['DATELIST'] = "Arrays.asList"
+
+
+def transfDouble(type_v,elem):
+    return str(elem)
+def transfDate(type_v, elem):
+    ser = elem.split("/")
+    year, month, day = ser[2], ser[1], ser[0]
+    return "%s(%s, %s, %s) "%(DATATYPE[type_v], year, month, day)   
+def transfString(type_v, elem): 
+    return ('"%s"'%elem).replace('""', '"')
+def transfList(type_v, elem):
+    res = ",".join(list(map(transf,[type_v.split("LIST")[0]]*len(elem),elem )))
+    return "new ArrayList<>(%s(%s))"%(DATATYPE[type_v],res)
+def transf(type_v, elem):
+    if type_v == "BOOLEAN":
+        return elem.lower()
+    if type_v=="DOUBLE":
+        return transfDouble(DATATYPE[type_v], elem)
+    elif type_v in ("STRING", "DATE"):
+        return transfString(DATATYPE[type_v], elem)
+    elif type_v=="INT":
+        return str(elem)
+    elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST", "DATELIST"):
+        return transfList(type_v,eval(elem))
 

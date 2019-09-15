@@ -129,7 +129,7 @@ import importlib
 class Topology():
     pkgs={}
     def __init__(self, name, pkg=None):
-        self.name=name 
+        self.name=name
         if pkg is None:
             if self.isPackage(self.name):
                 self.pkg = self.load_pkge(self.name).crop2mlpath
@@ -145,6 +145,7 @@ class Topology():
         self.pkgs[self.name]=[self.pkg, self.model]
         self.model.inputs = self.meta_inp(self.name)
         self.model.outputs = self.meta_out(self.name)
+        self.model.ext = self.meta_ext(self.name)
         self.model.path = Path(self.pkg)
          
     def isPackage(self, name):
@@ -191,7 +192,7 @@ class Topology():
     def info_minout(self):
         inout={}
         for m in self.model.model:
-            if m.file.split(".")[0]=="unit":
+            if m.file.split(".")[0]=="unit" and m.package_name is None:
                 for mo in self.mu:
                     if mo.name==m.name:
                         inout[mo.name] = (mo.inputs, mo.outputs)
@@ -204,7 +205,7 @@ class Topology():
     def minout(self):
         inout={}
         for m in self.model.model:
-            if m.file.split(".")[0]=="unit":
+            if m.file.split(".")[0]=="unit" and m.package_name is None:
                 for mo in self.mu:
                     if mo.name==m.name:
                         inp = [m.name for m in mo.inputs]
@@ -252,9 +253,11 @@ class Topology():
     def algo2cyml(self):
         code=''
         tab=' '*4
+        #print(self.meta_inp(self.name))
         for mod in self.model.model:
             code+= 'from %s import model_%s\n'%(signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s import model_%s\n'%(signature(mod), signature(mod))
         name =self.model.name.strip().replace(' ','_').lower()
+
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"
         code += self.decl(defa=False)
@@ -290,10 +293,51 @@ class Topology():
                     mod_inputs.append(inp)
                 else:
                     name=self.pkg_m(mc, mod)
-                    inp = self.get_mu_inp(name, var)
+                    pos = [j for j,k in enumerate(mc.model) if k.name == mod][0]
+                    if mc.model[pos].file.split(".")[0]=="unit":
+                        mc_path = self.retrive(name)[1].path
+                        mod_path = Path(os.path.join(mc_path, "crop2ml",mc.model[pos].file))
+                        inps = [m.inputs for m in model_parser(mc_path) if m.name == mod][0]
+                        inp = [k for k in inps if k.name == var][0]
+                    else:
+                        inp = self.get_mu_inp(name, var)
                     mod_inputs.append(inp)
                     list_var.append(var)                           
         return mod_inputs
+
+    def meta_ext(self, pkgname):
+        pkg, mc = self.retrive(pkgname)        
+        list_var=[]
+        mod_ext=[]
+        for inter in mc.internallink: 
+            vars = inter["source"].split(".")[1]
+            mods = inter["source"].split(".")[0]
+            vart = inter["target"].split(".")[1]
+            modt = inter["target"].split(".")[0]
+
+            if vars not in list_var:
+                if self.check_compo(mc, mods)!=True:
+                    ext = self.info_outputs_mu(pkg,mods,vars)
+                    list_var.append(vars)
+                    mod_ext.append(ext)
+                else:
+                    name=self.pkg_m(mc, mods)
+                    ext = self.get_mu_out(name, vars)
+                    mod_ext.append(ext)
+                    list_var.append(vars)
+
+            if vart not in list_var:
+                if self.check_compo(mc, modt)!=True:
+                    ext = self.info_inputs_mu(pkg,modt,vart)
+                    list_var.append(vart)
+                    mod_ext.append(ext)
+                else:
+                    name=self.pkg_m(mc, modt)
+                    ext = self.get_mu_inp(name, vart)
+                    mod_ext.append(ext)
+                    list_var.append(vart)                           
+        return mod_ext
+
 
 
     def meta_out(self, pkgname):
@@ -324,7 +368,7 @@ class Topology():
         test=False
         for mod in mc.model:
             if mod.name == m:
-                if mod.file.split(".")[0] == "composition":
+                if mod.file.split(".")[0] == "composition" or mod.package_name:
                     test = True
                     break
         return test
@@ -413,6 +457,7 @@ class Topology():
         tab = ' '*4
         for k, v in info_var.items():
             for j in v[0]:
+                #print(j)
                 if j.name not in inp:
                     declaration += tab+"cdef "+my_input(j, defa)+"\n"
                     inp.append(j.name)
@@ -426,7 +471,7 @@ class Topology():
                      
     def compotranslate(self, language):
         d= self.algo2cyml()
-        test=Main(d, language, models=self.model)
+        test=Main(d, language, self.model,self.model.name)
         test.parse()
         test.to_ast(d)
         code=test.translate()  
@@ -436,7 +481,6 @@ class Topology():
         for mod in model.model:
             if mod.package_name is not None:
                 T= Topology(mod.package_name)
-                #print(T.algo2cyml())
                 model = self.retrive(mod.package_name)[1]
                 self.translate_all(model)
                 
@@ -450,8 +494,8 @@ class Topology():
 #from pycropml.topology import Topology
 '''
 from pycropml.topology import Topology
-from pycropml.transpiler.generators.csharpGenerator import CsharpCompo
-pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/testA"
+#from pycropml.transpiler.generators.csharpGenerator import CsharpCompo
+pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/test"
 T = Topology(name='test', pkg=pkg1) 
 a =CsharpCompo(tree =None, model = T.model)
 

@@ -7,6 +7,7 @@ import os
 from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+from pycropml import code2nbk
 
 class CsharpGenerator(CodeGenerator,CsharpRules):
     """ This class contains the specific properties of
@@ -14,7 +15,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
     code source from a well formed syntax tree.
     """
     
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name=None):
         CodeGenerator.__init__(self)
         CsharpRules.__init__(self)
         self.tree = tree
@@ -22,6 +23,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.indent_with=' '*4
         self.initialValue=[] 
         self.write(u"using System;\nusing System.Collections.Generic;\n")
+        self.name= name
         if self.model: 
             self.doc= DocGenerator(model, '//')
             self.generator = CsharpTrans([model])
@@ -330,7 +332,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_%s("%self.model.name.lower())
-            self.write('state s, rate r, auxiliary a)')
+            self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -677,6 +679,12 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                 if out.name not in varnames:
                     variables.append(out)
                     varnames.append(out.name)
+            if "ext" in dir(m):
+                for ex in m.ext:
+                    if ex.name not in varnames:
+                        variables.append(ex)
+                        varnames.append(ex.name) 
+
         #print(len(variables))
         for var in variables:
             if "variablecategory" in dir(var):
@@ -837,30 +845,35 @@ class CsharpTrans(CodeGenerator,CsharpRules):
         self.newline()
 
 
-def to_struct_cs(models, rep):
+def to_struct_cs(models, rep, name):
+    rep_n = rep.split(os.path.sep)[0]
+    rep_nb = Path(os.path.join(rep_n,"notebook","cs"))
     generator = CsharpTrans(models)
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.model2Node()
     states = generator.node_states
-    generator.generate(states, "state")
+    generator.generate(states, "%sState"%name.capitalize())
     z= ''.join(generator.result)
-    filename = rep/"states.cs"
+    filename = Path(os.path.join(rep, "%sState.cs"%name.capitalize()))
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
+    #code2nbk.generate_notebook(z, "%sSate"%name.capitalize(), rep_nb)
     rates = generator.node_rates
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
-    generator.generate(rates, "rate")
+    generator.generate(rates, "%sRate"%name.capitalize())
     z1= ''.join(generator.result)
-    filename = rep/"rates.cs"
+    filename = Path(os.path.join(rep, "%sRate.cs"%name.capitalize()))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
+    #code2nbk.generate_notebook(z1, "%sRate"%name.capitalize(), rep_nb)        
     auxiliary = generator.node_auxiliary
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
-    generator.generate(auxiliary, "auxiliary")
+    generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
     z2= ''.join(generator.result)
-    filename = rep/"auxiliary.cs"
+    filename = Path(os.path.join(rep, "%sAuxiliary.cs"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
-        tg2_file.write(z2.encode('utf-8'))  
+        tg2_file.write(z2.encode('utf-8'))
+    #code2nbk.generate_notebook(z2, "%sAuxiliary"%name.capitalize(), rep_nb) 
     return 0
 
 
@@ -868,17 +881,22 @@ def to_struct_cs(models, rep):
 ''' Csharp composite'''
 
 
-class CsharpCompo(CsharpGenerator):
+class CsharpCompo(CsharpTrans,CsharpGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for C# languages.
     """
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name=None):
         self.tree = tree
         self.model=model
-        CsharpGenerator.__init__(self,tree, model)
+        self.name = name
+        CsharpGenerator.__init__(self,tree, model, self.name)
+        CsharpTrans.__init__(self,[model])
         self.params = [pa for pa in self.model.inputs if "parametercategory" in dir(pa)]
-        self.Trans = CsharpTrans([self.model])
-        self.Trans.model2Node()
+        #self.Trans = CsharpTrans([self.model])
+        self.model2Node()
+        self.statesName = [st.name for st in self.states]
+        self.ratesName = [rt.name for rt in self.rates]
+        self.auxiliaryName = [au.name for au in self.auxiliary]
 
     def visit_module(self, node):
         self.write("public class %s"%self.model.name.capitalize())
@@ -917,17 +935,17 @@ class CsharpCompo(CsharpGenerator):
                 b="\n            ".join(self.setCompo(arg.name))
                 self.write(self.public_properties_compo%(self.get_mo(arg.name)[0].capitalize(),arg.name,b))
             self.newline(node)      
-            self.write("public void ")
-            self.write(" Calculate_%s("%self.model.name.lower())
-            self.write('state s, rate r, auxiliary a)')
-            self.newline(node)
-            self.write('{') 
-            self.newline(node)
-            '''self.write(self.doc.desc)
-            self.newline(node)
-            self.write(self.doc.inputs_doc)
-            self.newline(node)
-            self.write(self.doc.outputs_doc)'''
+        self.write("public void ")
+        self.write(" Calculate_%s("%self.model.name.lower())
+        self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+        self.newline(node)
+        self.write('{') 
+        self.newline(node)
+        '''self.write(self.doc.desc)
+        self.newline(node)
+        self.write(self.doc.inputs_doc)
+        self.newline(node)
+        self.write(self.doc.outputs_doc)'''
             #self.newline(node)
             #self.indentation += 1        
             #self.indentation -= 1 
@@ -944,7 +962,28 @@ class CsharpCompo(CsharpGenerator):
         self.newline(extra=1)
         self.write('}') 
         self.newline(node)
-    
+
+    def visit_assignment(self, node):
+        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
+            name  = node.value.function.split('model_')[1]
+            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.newline(node)
+        else:
+            self.newline(node)        
+            if node.target.name in self.statesName:
+                self.write('s.%s = '%(node.target.name))
+            if node.target.name in self.ratesName:
+                self.write('r.%s = '%(node.target.name))
+            if node.target.name in self.auxiliaryName:
+                self.write('a.%s = '%(node.target.name))
+            if node.value.name in self.statesName:
+                self.write('s.%s;'%(node.value.name))
+            if node.value.name in self.ratesName:
+                self.write('r.%s;'%(node.value.name))
+            if node.value.name in self.auxiliaryName:
+                self.write('a.%s;'%(node.value.name))
+            self.newline(node)
+
     def visit_declaration(self, node):
         pass
     

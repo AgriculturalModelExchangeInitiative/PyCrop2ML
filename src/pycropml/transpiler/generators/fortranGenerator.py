@@ -33,12 +33,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
     code source from a well formed syntax tree.
     """
    
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name = None):
         CodeGenerator.__init__(self)
         FortranRules.__init__(self)
         self.tree = tree
         self.indent_with=' '*4 
         self.model=model           # crop2ml models
+        self.name = name
         self.initialValue=[] 
         self.z = middleware(self.tree)
         self.z.transform(self.tree)
@@ -729,10 +730,11 @@ class FortranCompo(FortranGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for Fortran90 language.
     """
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name = None):
         self.tree = tree
         self.model=model
-        FortranGenerator.__init__(self,tree, model)
+        self.name = name
+        FortranGenerator.__init__(self,tree, model, self.name)
     
     '''def visit_function_definition(self, node):
         pass'''
