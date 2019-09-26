@@ -25,11 +25,11 @@ class Model2Package(object):
     DATATYPE['INTLIST'] = "list"
     DATATYPE['STRINGLIST'] = "list"
     DATATYPE['CHARLIST'] = "list"
-    DATATYPE['DATELIST'] = "list"
+    DATATYPE['DATELIST'] = "datelist"
     DATATYPE['DOUBLEARRAY'] = "float"
     DATATYPE['INTARRAY'] = "int"
     DATATYPE['BOOLEAN'] = "bool"
-    DATATYPE['DATE'] = "str"
+    DATATYPE['DATE'] = "datetime"
  
     
 
@@ -70,15 +70,10 @@ class Model2Package(object):
         else:
             self.dir = directory.mkdir()
 
-        
-
-
-
         files = []
         count = 0
         for model in self.models:          
-            self.generate_component(model)            
-            ext = '' if count == 0 else str(count)
+            self.generate_component(model) 
             filename = Path(os.path.join(self.dir,"%s.pyx"%signature(model).capitalize() ))                    
             with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
@@ -91,10 +86,14 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """      
-            
-        self.code= "import numpy \n" + "from math import *\n\n"
+        if model_unit.modelid.split(".")[0]!="function":
+            func_name = "model_%s"%signature(model_unit)
+        else : func_name = signature(model_unit)
+        types = [inp.datatype for inp in model_unit.inputs] +[out.datatype for out in model_unit.outputs]  
+        self.code= "import numpy \n" + "from math import *\n"
+        if "DATE" in types or "DATELIST" in types: self.code += "from datetime import datetime\n\n" 
    
-        self.code += self.generate_function_signature(model_unit)
+        self.code += self.generate_function_signature(func_name, model_unit)
         self.code += self.generate_function_doc(model_unit)
         self.code += self.generate_algorithm(model_unit)  
             
@@ -104,7 +103,8 @@ class Model2Package(object):
                     filefunc = Path(os.path.dirname(self.cwd))/"crop2ml"/function.filename
                     with open(filefunc.encode('utf-8'), 'r') as f:
                         source = f.read()
-                        self.code += source       
+                        self.code += source 
+        if model_unit.initialization is not None: self.code += self.initialization(model_unit)      
         return self.code
 
     def generate_algorithm(self, model_unit):
@@ -138,6 +138,38 @@ class Model2Package(object):
             raise error.Error("algorithm is not defined in model unit")
         return self.code
 
+    def initialization(self, model_unit):
+        outputs = model_unit.outputs
+        inputs = model_unit.inputs
+        tab = ' '*4
+        list_inputs=[]        
+        
+        """ we  declare all outputs which are not in inputs"""
+        output_declaration=""
+        for inp in inputs:
+            list_inputs.append(inp.name)
+        for out in outputs:
+            if out.name not in list_inputs:
+                output_declaration += tab+"cdef "+self.my_input(out)+"\n"
+        code =""
+        if model_unit.initialization:
+            file_init = model_unit.initialization[0].filename
+            path_init = Path(os.path.join(model_unit.path,"crop2ml", file_init))
+        
+            with open(path_init, 'r') as f:
+                code_init = f.read() 
+            if code_init is not None :         
+                lines = [tab+l for l in code_init.split('\n') if l.split()]
+                code += self.generate_function_signature("init_%s"%signature(model_unit),model_unit) +'\n'
+                code += output_declaration
+                code += '\n'.join(lines)
+                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'            
+        return code
+
+            
+
+
+
     # documentation
     def generate_function_doc(self, model_unit):
         doc='''
@@ -146,15 +178,11 @@ class Model2Package(object):
 '''%generate_doc(model_unit)
         return doc
 
-    def generate_function_signature(self, model_unit):
-        desc = model_unit.description
+    def generate_function_signature(self, func_name,model_unit):
         inputs = model_unit.inputs
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         #name = desc.Title
-        if model_unit.modelid.split(".")[0]!="function":
-            func_name = "model_%s"%signature(model_unit)
-        else : func_name = signature(model_unit)
         code = 'def %s('%(func_name,)
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
@@ -173,12 +201,16 @@ class Model2Package(object):
                 default = _input.default              
                 if self.DATATYPE[_type]  == "bool":
                     val = default.capitalize()
-                    return "bool %s=%s"%(name, val)                    
+                    return "bool %s=%s"%(name, val.lower().capitalize())                    
                 elif self.DATATYPE[_type] == "list":
                     val = eval(default)
-                    return 'list %s=%s'%(name, val)              
+                    return 'list %s=%s'%(name, val) 
+                elif self.DATATYPE[_type] == "datelist":
+                    return 'list %s=%s'%(name, transfDateList(type, default))                  
                 elif self.DATATYPE[_type] == "str":                   
-                    return "str %s='%s'"%(name, default)                
+                    return "str %s='%s'"%(name, default)
+                elif self.DATATYPE[_type] == "datetime":                   
+                    return "datetime %s=%s"%(name, transfDate(_type,default))                               
                 elif _type in self.DATATYPE:                   
                     default = float(default) if self.DATATYPE[_type]=="float" else int(default)                                     
                     return '%s %s=%s'%(self.DATATYPE[_type], name, default)
@@ -202,13 +234,12 @@ class Model2Package(object):
         tab = ' '*4
         m = model_unit
 
-        model_name = name = signature(m)
+        model_name = signature(m)
 
         psets = m.parametersets
         self.codetest = ""
         for v_tests in m.testsets:
 
-            test_name = v_tests.name  # name of tests
             test_runs = v_tests.test  # different run in the thest
             test_paramsets = v_tests.parameterset  # name of paramsets
 
@@ -354,3 +385,36 @@ def generate_doc(model):
 
     return code
 
+def transfDate(type, elem):
+    ser = elem.split("/")
+    if len(ser)==3:
+        year, month, day = ser[0], ser[1], ser[2]
+        return "datetime(%s, %s, %s) "%( year, month, day)
+    if len(ser)==4:
+        year, month, day, hour= ser[0], ser[1], ser[2], ser[3]
+        return "datetime(%s, %s, %s,%s ) "%( year, month, day, hour)
+    if len(ser)==5:
+        year, month, day, hour, min = ser[0], ser[1], ser[2],ser[3], ser[4]
+        return "datetime(%s, %s, %s, %s, %s) "%( year, month, day, hour, min) 
+    if len(ser)==6:
+        year, month, day, hour, min, sec = ser[0], ser[1], ser[2],ser[3], ser[4], ser[5]
+        return "datetime(%s, %s, %s,%s,%s,%s) "%( year, month, day, hour, min, sec)   
+
+def transfDateList(type, elem):
+    res=""
+    for dat in eval(elem):
+        t = transfDate("DateTime",dat)
+        res+=t+","
+    return "[%s]"%(res)
+
+def transBool(type, elem):
+    return elem.lower().capitalize()
+
+def transf(type_, elem):
+    if type_=="DATE":
+        return transfDate(type_, elem)
+    elif type_=="DATELIST":
+        return transfDateList(type_, elem)
+    elif type_ =="BOOLEAN":
+        return transBool(type_, elem)
+    else: return elem

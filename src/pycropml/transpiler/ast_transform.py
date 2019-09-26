@@ -30,6 +30,7 @@ class AstTransformer():
     def transformer(self):
         self.base = 0
         self.body = []
+        self._attr_index = {}
         self.arguments = []
         self.returnValue = []
         self.declarations = []
@@ -140,6 +141,17 @@ class AstTransformer():
                 "pseudo_type": ['Tuple']+[self.visit_node(arg)["pseudo_type"] for arg in arg_tuple.args]}
 
     def visit_singleassignmentnode(self, node, lhs, rhs, location):
+        if isinstance (rhs, ExprNodes.ListNode) and not rhs.args:
+            return {
+                'type': 'assignment',
+                'target': {
+                        'type': 'local',
+                        'name': lhs.name,
+                        'pseudo_type': self.type_env[lhs.name]
+                },
+                'value': {'type': 'list', 'elements': [], 'pseudo_type': self.type_env[lhs.name]},
+                'pseudo_type': 'Void'
+            }            
         if isinstance(rhs, Nodes.Node) and not isinstance(rhs, ExprNodes.ImportNode):
             value_node = self.visit_node(rhs)
         elif isinstance(rhs, ExprNodes.ImportNode):
@@ -154,7 +166,7 @@ class AstTransformer():
             elif e:
                 if e in ("list", "dict", "tuple", "array"):
                     a = self._compatible_types(
-                        e, value_node['type'], "can't change the type of variable %s in %s " % (name, self.function_name))
+                        e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
                     a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
                         name, self.function_name, location[0]))
@@ -417,6 +429,91 @@ class AstTransformer():
                     accidentaly_homogeneous = element_type is not True
         return (element_nodes, element_type) if homogeneous else (element_nodes, accidentaly_homogeneous, element_type if accidentaly_homogeneous else element_types)
 
+
+    def visit_attributenode(self, node, obj, location):
+        value = obj
+        value_node = self.visit_node(value)
+        if not isinstance(value_node['pseudo_type'], str):
+            raise type_check_error(
+                "you can't access attr of %s, only of normal objects or modules" % serialize_type(value_node['pseudo_type']),
+                (value.lineno, value.col_offset), self.lines[value.lineno],
+                suggestions='[2].s is invalid',
+                right='h = H()\nh.y',
+                wrong='h = (2, H())\nh.hm')
+
+        if value_node['pseudo_type'] == 'library':
+            if value_node['name'] == 'sys' and node.attribute == 'argv':
+                return {
+                    'type': 'standard_call',
+                    'namespace': 'system',
+                    'function': 'args',
+                    'args': [],
+                    'pseudo_type': ['List', 'String'],
+                    'special': None
+                }
+            else:
+                return {
+                    'type': 'library_function',
+                    'library': value_node['name'],
+                    'function': node.attribute,
+                    'pseudo_type': 'library'
+                }
+        else:
+            value_general_type = self._general_type(value_node['pseudo_type'])
+            attr_type = self._attr_index.get(value_general_type, {}).get(node.attribute)
+            if attr_type is None:
+                m = METHOD_API.get(value_general_type, {}).get(node.attribute)
+                if m:
+                    attr_type = m.expand()["pseudo_type"] #'builtin_method[%s]' % serialize_type(m)
+                else:
+                    m = self.type_env.top.values.get(value_general_type, {}).get(node.attribute)
+                    if m:
+                        attr_type = m #'user_method[%s]' % serialize_type(m)
+
+                if not m:
+                    value_type = value_node['pseudo_type']
+                    value_general_type = self._general_type(value_type)
+                    show_type = serialize_type(TYPED_API.get('_generic_%s' % value_general_type, value_type))
+                    raise translation_error(
+                        "CyML can\'t infer the type of %s#%s"  % (serialize_type(value_type), node.attribute),
+                        location, self.lines[location[0]],
+                        suggestions='CyML knows about those %s methods:\n%s' % (
+                            show_type,
+                            prepare_table(self.type_env.top[value_general_type], ORIGINAL_METHODS.get(value_general_type))))
+
+            else:
+                attr_type = attr_type[0]['pseudo_type']
+
+            if value_node['type'] == 'this':
+                result = {
+                    'type': 'instance_variable',
+                    'name': node.attribute,
+                    'pseudo_type': attr_type
+                }
+                if result in self._tuple_assigned:
+                    if not any(a[0] == '_old_self_%s' % node.attribute for a in self._tuple_used):
+                        self._tuple_used.append(('_old_self_%s' % node.attribute, result))
+
+
+                    result = {'type': 'local', 'name': '_old_self_%s' % node.attribute, 'pseudo_type': attr_type}
+                return result
+            else:
+                result = {
+                    'type': 'attr',
+                    'object': value_node,
+                    'attr': node.attribute,
+                    'pseudo_type': attr_type
+                }
+                if result in self._tuple_assigned:
+                    if not any(a[0] == '_old_%s' % node.attribute for a in self._tuple_used):
+                        self._tuple_used.append(('_old_%s' % node.attribute, result))
+                    result = {'type': 'local', 'name': '_old_%s' % node.attribute, 'pseudo_type': attr_type}
+                return result
+
+
+
+
+
     def visit_simplecallnode(self, node, function, coerced_self, args, arg_tuple, location):
 
         if isinstance(function, ExprNodes.NameNode) and function.name in BUILTIN_FUNCTIONS:
@@ -531,7 +628,7 @@ class AstTransformer():
                     prepare_table(TYPED_API[class_type], ORIGINAL_METHODS.get(class_type)).strip()))
         if isinstance(api, Standard):
             #print(args,class_type, base, message)
-            if base["pseudo_type"] == "list":
+            if base["pseudo_type"] =="list":
                 self.type_env.top[base["name"]] = [
                     "list", args[0]["pseudo_type"]]
             return api.expand([base] + args)
@@ -742,7 +839,7 @@ class AstTransformer():
                 decl["value"] = str(-float(de["value"]["value"]))
             elif isinstance(default, ExprNodes.NameNode): 
                 decl["value"] = de["name"] 
-            else: decl["value"] = de["value"] 
+            else: decl["value"] = de["value"] if de['pseudo_type']!='datetime' else de['args']
             decl["pseudo_type"] = de["pseudo_type"]
             if not isinstance(default, ExprNodes.NameNode):
                 self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (
@@ -793,7 +890,7 @@ class AstTransformer():
             "booleanarray":["array", ["array","bool"]],
             "stringarray":["array",["array","str"]],
             "intlist":["list",["list", "int"]],
-            "doublelist":["list", ["list", "double"]],
+            "floatlist":["list", ["list", "float"]],
             "booleanlist":["list", ["list","bool"]],
             "stringlist":["list",["list","str"]],
             "int":["local","int"],
@@ -802,7 +899,8 @@ class AstTransformer():
             "str":["local","str"],
             "bool":["local","bool"],
             "list":["local","list"],
-            "array":["array","array"]}
+            "array":["array","array"],
+            "datetime":["local", "datetime"]}
         return tt
         
         

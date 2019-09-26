@@ -9,6 +9,7 @@ from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml import code2nbk
 
+
 class CsharpGenerator(CodeGenerator,CsharpRules):
     """ This class contains the specific properties of
     Csharp language and use the NodeVisitor to generate a csharp
@@ -33,6 +34,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
+        self.funcname = ""
 
     def visit_notAnumber(self, node):
         self.write("Double.NaN")
@@ -299,8 +301,8 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
     def visit_function_definition(self, node):      
         self.newline(node)
         self.add_features(node)
-        if self.model is None or not node.name.startswith("model_") :
-            self.model=None
+        self.funcname = node.name
+        if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
             self.write("public static ")
             self.visit_decl(node.return_type)
             self.write(" %s("%node.name)
@@ -314,7 +316,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.write('{') 
             self.newline(node)
         else:
-            if self.node_param:
+            if self.node_param and not node.name.startswith("init_") :
                 for arg in self.node_param: 
                     self.newline(node) 
                     self.write ('private ') 
@@ -328,20 +330,23 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     self.visit_decl(arg.pseudo_type)
                     self.write(' ' +arg.name)
                     self.write(self.public_properties%(arg.name,arg.name))
-            self.write(self.constructor%self.model.name.capitalize()) 
+            self.write(self.constructor%self.model.name.capitalize()) if not node.name.startswith("init_") else ""
             self.newline(node)      
             self.write("public void ")
-            self.write(" Calculate_%s("%self.model.name.lower())
+            self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
             self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
-            self.write(self.doc.desc)
-            self.newline(node)
-            self.write(self.doc.inputs_doc)
-            self.newline(node)
-            self.write(self.doc.outputs_doc)
-            self.newline(node)
+            if not node.name.startswith("init_"):
+                self.write(self.doc.header)
+                self.newline(node)
+                self.write(self.doc.desc)
+                self.newline(node)
+                self.write(self.doc.inputs_doc)
+                self.newline(node)
+                self.write(self.doc.outputs_doc)
+                self.newline(node)
             self.indentation += 1 
             for arg in self.add_features(node) :
                 if "feat" in dir(arg):
@@ -378,7 +383,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
 
     def visit_implicit_return(self, node):
         self.newline(node)
-        if self.model is None :
+        if (not self.funcname.startswith("model_") and not self.funcname.startswith("init_")) :
             self.newline(node)
             if node.value is None:
                 self.write('return')
@@ -846,8 +851,6 @@ class CsharpTrans(CodeGenerator,CsharpRules):
 
 
 def to_struct_cs(models, rep, name):
-    rep_n = rep.split(os.path.sep)[0]
-    rep_nb = Path(os.path.join(rep_n,"notebook","cs"))
     generator = CsharpTrans(models)
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.model2Node()
@@ -857,15 +860,13 @@ def to_struct_cs(models, rep, name):
     filename = Path(os.path.join(rep, "%sState.cs"%name.capitalize()))
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
-    #code2nbk.generate_notebook(z, "%sSate"%name.capitalize(), rep_nb)
     rates = generator.node_rates
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.generate(rates, "%sRate"%name.capitalize())
     z1= ''.join(generator.result)
     filename = Path(os.path.join(rep, "%sRate.cs"%name.capitalize()))
     with open(filename, "wb") as tg1_file:
-        tg1_file.write(z1.encode('utf-8'))
-    #code2nbk.generate_notebook(z1, "%sRate"%name.capitalize(), rep_nb)        
+        tg1_file.write(z1.encode('utf-8'))       
     auxiliary = generator.node_auxiliary
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
@@ -873,7 +874,6 @@ def to_struct_cs(models, rep, name):
     filename = Path(os.path.join(rep, "%sAuxiliary.cs"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))
-    #code2nbk.generate_notebook(z2, "%sAuxiliary"%name.capitalize(), rep_nb) 
     return 0
 
 
@@ -922,6 +922,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_function_definition(self, node):      
         self.newline(node)
         self.add_features(node)
+        self.funcname = node.name
         self.write(self.constructor%self.model.name.capitalize())
         self.newline(extra=1)          
         self.write(self.instanceModels())     
@@ -1028,5 +1029,11 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
 
     def initCompo(self):
         pass
+    
+    def wrapper(self):
+        self.write("public class %sWrapper"%self.model.name.capitalize())
+        self.newline(1)
+        self.write("{") 
+        self.newline(1)
+        self.indentation += 1 
 
- 

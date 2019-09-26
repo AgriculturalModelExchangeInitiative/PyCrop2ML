@@ -224,11 +224,25 @@ TYPED_API = {
     },
 
     'dict': {
-        'keys':       ['list'],
-        'values':     ['list', '@v'],
+        'keys':       [['list','@k']],
+        'values':     [['list', '@v']],
         'len':     ['int'],
         'get':     ['@v','@k']
     },
+
+    'datetime': {
+        'datetime':['datetime'],
+        'year':     ['int'],
+        'month':    ['int'],
+        'day':     ['int'],
+        'hour':    ['int'],
+        'minute':    ['int'],
+        'second':     ['int']
+
+    },
+
+
+
     'str': {
         'find':       ['str', 'int'],
         'int':     ['int'],
@@ -343,7 +357,8 @@ BUILTIN_TYPES = {
     'dict':     'dict',
     'tuple':    'tuple',
     'bool':     'bool',
-    'array':    'array'
+    'array':    'array',
+    "datetime": 'datetime'
 }
 
 PSEUDON_BUILTIN_TYPES = {v: k for k, v in BUILTIN_TYPES.items()}
