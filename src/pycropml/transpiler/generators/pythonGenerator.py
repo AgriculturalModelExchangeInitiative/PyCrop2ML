@@ -105,7 +105,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
     
     def visit_list(self, node):
         self.emit_sequence(node.elements, u"[]")
-    
+
+    def visit_datetime(self, node):
+        self.emit_sequence(node.value, u"()")
+
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
         if isinstance(l, list):
@@ -254,6 +257,11 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 if n.type=="list":                
                     self.visit_list(n)
                 else: self.visit_tuple(n)
+            elif 'args' in dir(n) and n.type=='datetime':
+                self.newline(node)
+                self.write(n.name)
+                self.write(" = datetime") 
+                self.visit_datetime               
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.newline(node)
                 self.write(n.name)
@@ -261,6 +269,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.visit_dict(n)
             elif n.type=="array" and 'elements' in dir(n):       
                 self.visit_array(n)
+            elif n.type in ("list", "array"):
+                self.newline(node)
+                self.write(n.name)
+                self.write(" = []")                  
 
 
     def visit_array(self,node): 

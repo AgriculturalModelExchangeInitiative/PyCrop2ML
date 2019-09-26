@@ -1,6 +1,7 @@
 from pycropml import render_fortran
 from pycropml import render_java
 from pycropml import render_csharp
+from pycropml.render_cyml import transf
 import six
 def generate_test_py(model,dir=None):
     tab = ' '*4
@@ -44,7 +45,8 @@ def generate_test_py(model,dir=None):
                 run_param.update(ins)
 
                 for k, v in six.iteritems(run_param):
-                    code = tab + "%s = %s," % (k, v)
+                    type = [inp.datatype for inp in m.inputs if inp.name==k][0]
+                    code = tab + "%s = %s," % (k, transf(type, v)) 
                     test_codes.append(code)
                 code = "     )"
                 test_codes.append(code)
@@ -61,7 +63,7 @@ def generate_test_py(model,dir=None):
                         test_codes.append(code)
 
                     if k.datatype in ("STRING", "BOOL", "INT", "DATE"):
-                        code = "print('%s_estimated =')" % k.name
+                        code = "print('%s_estimated =')" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
                         test_codes.append(code)
                         code = "print(params[%s])" % (j) if len(
                             m.outputs) > 1 else "print(params)"

@@ -90,12 +90,8 @@ class Model2Package(object):
 
             self.generate_component(model)
 
-            ext = '' if count == 0 else str(count)
             #filename = self.dir/"model%s.py"%ext
             filename = self.dir/"%s.py"%signature(model)
-
-
-            dir2 = cwd/'py'
 
             with open(filename, "wb") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
@@ -177,7 +173,6 @@ class Model2Package(object):
     def generate_component(self, model_unit):
         """ Todo
         """
-        name = model_unit.name
         self.code= "import numpy as np \n" + "from copy import copy\n" + "from math import *\n\n"
 
         if model_unit.function:
@@ -203,7 +198,6 @@ class Model2Package(object):
         code=""
         algo = None
         for algorithm in model_unit.algorithms:
-            lang = algorithm.language.lower()
             if ((algorithm.language == "python_ext") or
                 (algorithm.language == " ") or
                 (algorithm.language=="python")):
@@ -261,13 +255,12 @@ class Model2Package(object):
 
     def generate_function_signature(self, model_unit):
 
-        desc = model_unit.description
         inputs = model_unit.inputs
 
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         #name = desc.Title
-        func_name = name = signature(model_unit)
+        func_name = signature(model_unit)
 
         code = 'def %s('%(func_name,)
 
@@ -317,13 +310,13 @@ class Model2Package(object):
         tab = ' '*4
         m = model_unit
 
-        model_name = name = signature(m)
+        model_name =  signature(m)
 
         psets = m.parametersets
         self.codetest = ""
         for v_tests in m.testsets:
 
-            test_name = v_tests.name  # name of tests
+            #test_name = v_tests.name  # name of tests
             test_runs = v_tests.test  # different run in the thest
             test_paramsets = v_tests.parameterset  # name of paramsets
 
@@ -353,7 +346,7 @@ class Model2Package(object):
 
                     code = "def test_%s():"%(tname)
                     test_codes.append(code)
-                    code = "    params= %s("%model_name
+                    code = "    params= model_%s("%model_name
                     test_codes.append(code)
 
                     run_param = params.copy()
@@ -433,10 +426,9 @@ class Model2Package(object):
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            ext = '' if count == 0 else str(count)
             filename = self.dir/"test_%s.py"%signature(model)
 
-            codetest = "'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
+            codetest = "'Test generation'\n\n"+"from %s"%signature(model).capitalize() + " import *\n"+ "from math import *\n"+"import numpy as np\n\n" + codetest
 
             with open(filename, "wb") as python_file:
                 python_file.write(codetest.encode('utf-8'))

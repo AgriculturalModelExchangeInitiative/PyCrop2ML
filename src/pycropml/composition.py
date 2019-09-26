@@ -8,6 +8,7 @@ import xml.etree.ElementTree as xml
 import six
 from pycropml.modelunit import ModelUnit
 from pycropml import pparse
+from . import initialization
 
 class ModelDefinition(object):
     """
@@ -29,6 +30,7 @@ class ModelComposition(ModelDefinition):
         ModelDefinition.__init__(self, kwds)  
         self.description = None
         self.model = []
+        self.initialization = []
         self.inputlink=[]
         self.outputlink=[]
         self.internallink=[]
@@ -60,6 +62,7 @@ class Description(object):
         self.Institution = ''
         self.Reference = ''
         self.Abstract = ''
+
 
 class Models(ModelComposition, ModelUnit):           
     def __init__(self, name, modelid, file, package_name=None):  
@@ -122,7 +125,14 @@ class ModelParser(Parser):
             self.name = desc.__setattr__(elt.tag, elt.text)
 
         self._modelcompo.add_description(desc)
-        
+
+    def Initialization(self, elt):
+        language=elt.attrib["language"]
+        name=elt.attrib["name"]
+        filename=elt.attrib["filename"]
+        #description =elt.attrib["description"]
+        code = initialization.Initialization(name,language, filename)
+        self._modelcompo.initialization.append(code)        
     
     def Composition(self, elts):
         

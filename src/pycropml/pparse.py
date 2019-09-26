@@ -108,9 +108,8 @@ class ModelParser(Parser):
         language=elt.attrib["language"]
         name=elt.attrib["name"]
         filename=elt.attrib["filename"]
-        description =elt.attrib["description"]
-        file = Path(self.algorep/ filename)
-        code = initialization.Initialization(name,language, filename, description)
+        #description =elt.attrib["description"]
+        code = initialization.Initialization(name,language, filename)
         self._model.initialization.append(code)
         
         

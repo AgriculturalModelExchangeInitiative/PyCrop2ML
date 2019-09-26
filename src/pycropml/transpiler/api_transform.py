@@ -5,6 +5,7 @@ from __future__ import print_function
 from pycropml.transpiler.builtin_typed_api import builtin_type_check
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError
 from pycropml.transpiler.pseudo_tree import  Node
+from datetime import datetime
 
 class Standard:
     '''
@@ -39,10 +40,10 @@ class StandardCallAttrib(Standard):
         self.function  = function
         self.expander = expander
 
-    def expand(self, args):
+    def expand(self, args=[]):
         if not self.expander:
-            q = builtin_type_check(self.namespace, self.function, None, args)[-1]
-            return {'type': 'standard_call', 'namespace': self.namespace, 'function': self.function, 'args': args, 'pseudo_type': q}
+            q = builtin_type_check(self.namespace, self.function, None, args=[])[-1]
+            return {'type': 'standard_call', 'namespace': self.namespace, 'function': self.function, 'args': [], 'pseudo_type': q}
         else:
             return self.expander(self.namespace, self.function, args)
 class StandardMethodCall(Standard):
@@ -114,6 +115,20 @@ def max_expander(type, message, args):
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
 
+def datetime_expander(type, message, args):
+    if len(args)==3:
+        a = datetime(eval(args[0]["value"]),eval(args[1]["value"]),eval(args[2]["value"]) )
+    elif len(args)==4:
+        a = datetime(eval(args[0]["value"]),eval(args[1]["value"]),eval(args[2]["value"]),eval(args[3]["value"]) )
+    elif len(args)==5:
+        a = datetime(eval(args[0]["value"]),eval(args[1]["value"]),eval(args[2]["value"]),eval(args[3]["value"]),eval(args[4]["value"]) )
+    elif len(args)==6:
+        a = datetime(eval(args[0]["value"]),eval(args[1]["value"]),eval(args[2]["value"]),eval(args[3]["value"]),eval(args[4]["value"]),eval(args[5]["value"]) )
+    else: raise PseudoCythonTypeCheckError('datetime expects 3, 4, 5 or 6 args')
+    
+    return {'type': 'standard_call', 'namespace': 'datetime', 'function': 'datetime', 'args': args, 'pseudo_type': 'datetime'}
+
+
 def pow_expander(type, message, args):
     x1 = args[0]["pseudo_type"]
     x2 = args[1]["pseudo_type"]
@@ -162,6 +177,10 @@ FUNCTION_API = {
         'sqrt':     StandardCall('math', 'sqrt'),
         'ceil':     StandardCall('math', 'ceil'),
         'exp':      StandardCall('math', 'exp')
+    },
+    'datetime':{
+        'datetime': StandardMethodCall('datetime', 'datetime', expander = datetime_expander )
+
     }
 }
 
@@ -199,6 +218,16 @@ METHOD_API = {
         'get':    StandardMethodCall('dict', 'get'),
         '[]':       StandardMethodCall('dict', 'getitem'),
         '[]=':      StandardMethodCall('dict', 'setitem')
+    },
+
+    'datetime': {
+        'year':     StandardCallAttrib('datetime', 'year'),
+        'month':     StandardCallAttrib('datetime', 'month'),
+        'day':     StandardCallAttrib('datetime', 'day'),
+        'hour':     StandardCallAttrib('datetime', 'hour'),
+        'minute':     StandardCallAttrib('datetime', 'minute'),
+        'second':     StandardCallAttrib('datetime', 'second')
+
     },
 
     'array': {

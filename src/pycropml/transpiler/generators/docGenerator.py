@@ -14,6 +14,7 @@ class DocGenerator(CodeGenerator):
         self.tag = tag
         self.inputs_doc = self.comment(self.doc(self.model.inputs, "inputs"))
         self.outputs_doc = self.comment(self.doc(self.model.outputs, "outputs"))
+        self.header = self.comment(self.generate_header(self.model))
         self.desc = self.comment(self.generate_desc(self.model))
         
     def comment(self,doc):
@@ -26,23 +27,27 @@ class DocGenerator(CodeGenerator):
         
         for z in x:
             doc+=('''
-            - name: %s'''%z.name)
+            * name: %s'''%z.name)
             for j, k in z.__dict__['_attributes'].items() :
                 if j!="name":
                     doc+=('''
-                          - %s : %s'''%(j,k))
+                          ** %s : %s'''%(j,k))
         return doc
     
     def generate_desc(self,model):
         desc = model.description
-        _doc="- Description:"           
+        _doc = "- Description:"           
         _doc += """
-            - Model Name: %s
-            - Author: %s
-            - Reference: %s
-            - Institution: %s
-            - Abstract: %s""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+            * Title: %s
+            * Author: %s
+            * Reference: %s
+            * Institution: %s
+            * Abstract: %s""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
         
+        return _doc
+    
+    def generate_header(self, model):
+        _doc = "- Name: %s -Version: %s, -Time step: %s"%(model.name, model.version, model.timestep)
         return _doc
     
 
