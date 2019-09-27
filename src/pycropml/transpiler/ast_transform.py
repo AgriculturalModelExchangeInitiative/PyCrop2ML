@@ -164,7 +164,7 @@ class AstTransformer():
             if e is None:
                 self.notdeclared(name, location[0])
             elif e:
-                if e in ("list", "dict", "tuple", "array"):
+                if e in ("list", "dict", "tuple", "array", "intlist"):
                     a = self._compatible_types(
                         e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
