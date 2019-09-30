@@ -3,14 +3,15 @@ import pycropml.transpiler.generators.csharpGenerator
 import pycropml.transpiler.generators.pythonGenerator
 import pycropml.transpiler.generators.fortranGenerator
 import pycropml.transpiler.generators.javaGenerator
+import pycropml.transpiler.generators.simplaceGenerator
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 import os
 
 
 
-languages = ['cs','py', 'f90', 'java']
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java'}
+languages = ['cs','py', 'f90', 'java', 'simplace']
+NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace'}
 
 GENERATORS = {
     format: getattr(

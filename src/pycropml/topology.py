@@ -257,13 +257,27 @@ class Topology():
         for mod in self.model.model:
             code+= 'from %s import model_%s\n'%(signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s import model_%s\n'%(signature(mod), signature(mod))
         name =self.model.name.strip().replace(' ','_').lower()
-
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"
         code += self.decl(defa=False)
         lines = [tab+l for l in self.algorithm().split('\n') if l.split()]
         code += '\n'.join(lines)
-        code += "\n" + tab + "return " + ", ".join([out.name for out in self.model.outputs]) 
+        code += "\n" + tab + "return " + ", ".join([out.name for out in self.model.outputs])
+        '''
+        if self.model.initialization:
+            file_init = self.model.initialization[0].filename
+            path_init = Path(os.path.join(self.pkg,"crop2ml", file_init))
+        
+            with open(path_init, 'r') as f:
+                code_init = f.read()
+            if code_init is not None :         
+                lines = [tab+l for l in code_init.split('\n') if l.split()]
+                code += self.generate_function_signature("init_%s"%signature(self.model),self.model) +'\n'
+                code += self.decl(defa=False)
+                code += '\n'.join(lines)
+                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in self.model.outputs]) + '\n'            
+        '''
+ 
         return code
 
 
@@ -289,6 +303,7 @@ class Topology():
             if var not in list_var:
                 if self.check_compo(mc, mod)!=True:
                     inp = self.info_inputs_mu(pkg,mod,var)
+                    if inp is None : print(mod, var)
                     list_var.append(var)
                     mod_inputs.append(inp)
                 else:
@@ -296,7 +311,6 @@ class Topology():
                     pos = [j for j,k in enumerate(mc.model) if k.name == mod][0]
                     if mc.model[pos].file.split(".")[0]=="unit":
                         mc_path = self.retrive(name)[1].path
-                        mod_path = Path(os.path.join(mc_path, "crop2ml",mc.model[pos].file))
                         inps = [m.inputs for m in model_parser(mc_path) if m.name == mod][0]
                         inp = [k for k in inps if k.name == var][0]
                     else:
@@ -495,7 +509,7 @@ class Topology():
 '''
 from pycropml.topology import Topology
 #from pycropml.transpiler.generators.csharpGenerator import CsharpCompo
-pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/test"
+pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/pheno_pkg"
 T = Topology(name='test', pkg=pkg1) 
 a =CsharpCompo(tree =None, model = T.model)
 

@@ -48,7 +48,9 @@ class CsharpRules(GeneralRule):
         "list": "List",
         "tuple": "Tuple",
         "str": "string",
-        "dict": "Dictionary"
+        "dict": "Dictionary",
+        "datetime":"DateTime",
+        "DateTime":"DateTime"
     }
 
     functions = {
@@ -78,7 +80,10 @@ class CsharpRules(GeneralRule):
             'min': 'Math.Min',
             'max': 'Math.Max',
             'abs': 'Math.Abs',
-            'pow': 'Math.Pow'}
+            'pow': 'Math.Pow'},
+        'datetime':{
+            'datetime': ' new DateTime'
+        }
     }
 
     methods = {
@@ -126,7 +131,9 @@ class CsharpRules(GeneralRule):
             this._%s= value;
         } 
     }'''
-    
+
+    public_properties_wrap = '''{ get { return %s.%s}} 
+     '''  
     constructor = '''
     public %s()
     {

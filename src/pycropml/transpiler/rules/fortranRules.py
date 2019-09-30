@@ -50,7 +50,8 @@ class FortranRules(GeneralRule):
            "bool":"LOGICAL",
            "str":"CHARACTER(65)",
            "list": "%s,DIMENSION (:), ALLOCATABLE::",
-           "array":"%s, DIMENSION(%s)"
+           "array":"%s, DIMENSION(%s)",
+           "datetime":"CHARACTER(65)"
            }
     
     functions = {

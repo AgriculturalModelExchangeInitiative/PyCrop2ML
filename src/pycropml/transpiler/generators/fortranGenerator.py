@@ -130,6 +130,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             node =Node("subroutine", receiver = node.target,function=node.value.function, args=node.value.args ) 
             self.write('call ')
             self.visit(node)
+        elif node.value.type =="list" and not node.value.elements:
+            self.write("\n        deallocate(%s)\n"%node.target.name)
         elif node.value.type == "notAnumber":
             self.visit_notAnumber(node)
         else:
@@ -385,7 +387,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         newNode = self.add_features(node)
         self.visit_declaration(newNode) #self.visit_decl(node)           
         if self.initialValue:
-            for n in self.initialValue:
+            for n in self.initialValue and len(eval(n.value))>=1:
                 self.write("%s = " %n.name)
                 self.write(u'(/')
                 self.comma_separated_list(n.value)
@@ -528,7 +530,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
             node = node[1]
             self.write(self.types[node[1]])
             self.write(', ALLOCATABLE')
-            self.write(", DIMENSION(:,:) ")   
+            self.write(", DIMENSION(:,:) ") 
+
+    def visit_datetime_decl(self, node):
+        return self.visit_str_decl(node)  
+    
+    def visit_datetime(self, node):
+        return self.visit_str(node)
     
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
@@ -564,6 +572,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             if node=="str":
                 self.visit_str_decl(node) 
             if node=="bool":
+                self.visit_str_decl(node)
+            if node=="datetime":
                 self.visit_str_decl(node)                 
         
     def visit_call(self, node):
@@ -730,7 +740,7 @@ class FortranCompo(FortranGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for Fortran90 language.
     """
-    def __init__(self, tree, model=None, name = None):
+    def __init__(self, tree=None, model=None, name = None):
         self.tree = tree
         self.model=model
         self.name = name

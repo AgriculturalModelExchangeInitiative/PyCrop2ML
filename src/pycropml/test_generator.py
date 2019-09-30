@@ -115,3 +115,6 @@ def generate_test_cs(model, dir):
 
 def generate_test_java(model,directory=None):
     return [render_java.Model2Package(model, directory).generate_test(model)]
+
+def generate_test_simplace(model,dir=None):
+    pass

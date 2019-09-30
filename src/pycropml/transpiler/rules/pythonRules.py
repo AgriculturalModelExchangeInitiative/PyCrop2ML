@@ -45,7 +45,7 @@ class PythonRules(GeneralRule):
         "tuple": "tuple",
         "str": "str",
         "dict": "dict",
-        "datetme":"datetime"
+        "datetime":"datetime"
     }
 
     functions = {
