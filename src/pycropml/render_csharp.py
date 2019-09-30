@@ -144,18 +144,37 @@ DATATYPE['INT'] = "int"
 DATATYPE['STRING'] = "string"
 DATATYPE['DOUBLE'] = "double"
 DATATYPE['BOOLEAN'] = "bool"
-DATATYPE['DATE'] = "string"
+DATATYPE['DATE'] = "DateTime"
 DATATYPE['STRINGLIST'] = "List<string>"
 DATATYPE['DOUBLELIST'] = "List<double>"
 DATATYPE['INTLIST'] = "List<int>"
-DATATYPE['DATELIST']="List<string>"
+DATATYPE['DATELIST']="List<DateTime>"
 
 def transfDouble(type_v,elem):
     return str(elem)+'D'
-def transfDate(type_v, elem):
+
+def transfDate(type, elem):
     ser = elem.split("/")
-    year, month, day = ser[2], ser[1], ser[0]
-    return "new %s (%s, %s, %s) "%(DATATYPE[type_v], year, month, day)   
+    if len(ser)==3:
+        year, month, day = ser[0], ser[1], ser[2]
+        return "new DateTime(%s, %s, %s) "%( year, month, day)
+    if len(ser)==4:
+        year, month, day, hour= ser[0], ser[1], ser[2], ser[3]
+        return "new DateTime(%s, %s, %s,%s ) "%( year, month, day, hour)
+    if len(ser)==5:
+        year, month, day, hour, min = ser[0], ser[1], ser[2],ser[3], ser[4]
+        return "new DateTime(%s, %s, %s, %s, %s) "%( year, month, day, hour, min) 
+    if len(ser)==6:
+        year, month, day, hour, min, sec = ser[0], ser[1], ser[2],ser[3], ser[4], ser[5]
+        return "new DateTime(%s, %s, %s,%s,%s,%s) "%( year, month, day, hour, min, sec)   
+
+def transfDateList(type, elem):
+    res=""
+    for dat in eval(elem):
+        t = transfDate("DateTime",dat)
+        res+=t+","
+    return "new List<DateTime>{%s}"%(res)
+  
 def transfString(type_v, elem): 
     return ('"%s"'%elem).replace('""', '"')
 def transfList(type_v, elem):
@@ -166,11 +185,15 @@ def transf(type_v, elem):
         return elem.lower()
     if type_v=="DOUBLE":
         return transfDouble(DATATYPE[type_v], elem)
-    elif type_v in ("STRING", "DATE"):
+    elif type_v in ("STRING"):
         return transfString(DATATYPE[type_v], elem)
+    elif type_v =="DATE":
+        return transfDate(DATATYPE[type_v], elem)        
     elif type_v=="INT":
         return str(elem)
-    elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST", "DATELIST"):
+    elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST"):
         return transfList(type_v,eval(elem))
+    elif type_v == "DATELIST":
+        return transfDateList(type_v,elem)
 
 

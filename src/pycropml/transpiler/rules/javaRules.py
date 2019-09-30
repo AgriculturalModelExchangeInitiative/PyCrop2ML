@@ -4,7 +4,13 @@ from pycropml.transpiler.rules.generalRule import GeneralRule
 from pycropml.transpiler.pseudo_tree import Node
 
 def translateLenList(node): return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
-def translateSum(node): return Node("method_call", receiver=node.receiver, message=".Sum()", args=[], pseudo_type=node.pseudo_type)
+def translateSum(node): 
+    if node.pseudo_type=="float":
+        return Node("method_call", receiver=node.receiver, message=".stream().mapToDouble(Double::doubleValue).sum()", args=[], pseudo_type=node.pseudo_type)
+    elif node.pseudo_type=="int":
+        return Node("method_call", receiver=node.receiver, message=".stream().mapToInt(Int::intValue).sum()", args=[], pseudo_type=node.pseudo_type)
+
+def trans_format_parse(node): return Node("standard_call", args=Node(type="str", value=argsToStr(node.args), pseudo_type="str"), function="format.parse", pseudo_type=node.pseudo_type)
 def translateNotContains(node): return Node("unary_op", operator="not", value=Node("standard_method_call", receiver=node.receiver, message="contains?", args=node.args, pseudo_type=node.pseudo_type))
 def translateLenDict(node): return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 def translateLenArray(node): return Node("method_call", receiver=node.receiver, message=".length", args=[], pseudo_type=node.pseudo_type)
@@ -43,13 +49,16 @@ class JavaRules(GeneralRule):
         "list": "List",
         "tuple": "Tuple",
         "str": "String",
-        "dict": "TreeMap"
+        "dict": "TreeMap",
+        "datetime": "Date"
     }
     types2 = {
         "int": "Integer",
         "float": "Double",
         "str": "String",
-        "bool":"Boolean"
+        "bool":"Boolean",
+        "datetime":"Date",
+        "Date":"Date"
     }
 
     functions = {
@@ -73,7 +82,11 @@ class JavaRules(GeneralRule):
             'min': 'Math.min',
             'max': 'Math.max',
             'abs': 'Math.abs',
-            'pow': 'Math.pow'}
+            'pow': 'Math.pow'
+        },
+        'datetime':{
+                'datetime':"format.parse"#trans_format_parse
+        }
     }
 
     methods = {
@@ -154,3 +167,9 @@ class JavaRules(GeneralRule):
     public %s(%s toCopy) // copy constructor 
     {'''
 
+
+def argsToStr(args):
+    t=[]
+    for arg in args:
+        t.append(arg.value)
+    return '"%s"'%('/'.join(t))

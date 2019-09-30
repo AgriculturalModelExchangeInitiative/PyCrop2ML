@@ -900,7 +900,8 @@ class AstTransformer():
             "bool":["local","bool"],
             "list":["local","list"],
             "array":["array","array"],
-            "datetime":["local", "datetime"]}
+            "datetime":["local", "datetime"],
+            "datelist":["list", ["list","datetime"]]}
         return tt
         
         

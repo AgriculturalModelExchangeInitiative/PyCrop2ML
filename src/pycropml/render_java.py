@@ -81,6 +81,9 @@ class Model2Package(object):
                     self.runtest += "t.%s();\n"%tname                    
                     code +=tab+"//%s"%tname+"\n"                    
                     code +="\n"+tab+"public void %s()"%tname + "\n"+tab+ "{\n"
+                    type_param = [ins.datatype for ins in inputs]
+                    if "DATE" in type_param or "DATELIST" in type_param:
+                        code += tab*2+'SimpleDateFormat format=new SimpleDateFormat("yyyy/MM/dd");\n'
                     (run, inouts) = list(each_run.items())[0]
                     ins = inouts['inputs']
                     outs = inouts['outputs']                          
@@ -91,7 +94,13 @@ class Model2Package(object):
                             run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)
                     for k, v in six.iteritems(run_param):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
-                        code += 2*tab + "%s.set%s(%s);\n"%(categ(k, inputs),k,transf(type_v, v))                     
+                        if type_v not in ("DATE", "DATELIST"):
+                            code += 2*tab + "%s.set%s(%s);\n"%(categ(k, inputs),k,transf(type_v, v)) 
+                        else:
+                            if type_v=="DATE":
+                                code += 2*tab + "%s\n"%(transfDate(categ(k, inputs),k, v)) 
+                            if type_v=="DATELIST":
+                                    code += 2*tab + "%s\n"%(transfDateList(categ(k, inputs),k, v)) 
                     code+=tab*2+"mod.Calculate_%s(s, r, a);\n"%(m.name.lower())
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
@@ -148,11 +157,7 @@ DATATYPE['DATELIST'] = "Arrays.asList"
 
 
 def transfDouble(type_v,elem):
-    return str(elem)
-def transfDate(type_v, elem):
-    ser = elem.split("/")
-    year, month, day = ser[2], ser[1], ser[0]
-    return "%s(%s, %s, %s) "%(DATATYPE[type_v], year, month, day)   
+    return str(elem)   
 def transfString(type_v, elem): 
     return ('"%s"'%elem).replace('""', '"')
 def transfList(type_v, elem):
@@ -170,3 +175,28 @@ def transf(type_v, elem):
     elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST", "DATELIST"):
         return transfList(type_v,eval(elem))
 
+def transfDate(categ,name, elem):
+    return """
+        try{
+            %s.set%s(format.parse("%s"));
+        }
+        catch (ParseException e){
+        }
+"""%(categ,name, elem)
+
+def transfDateList(categ,name, elem):
+    return """
+        try{
+            %s.set%s(new ArrayList<>(Arrays.asList(%s)));
+        }
+        catch (ParseException e){
+        }
+"""%(categ, name, formatDateList(elem))
+
+def formatDate(elem):
+    return 'format.parse("%s")'%elem
+def formatDateList(elem):
+    t=[]
+    for el in eval(elem):
+        t.append(formatDate(str(el)))
+    return ','.join(t)

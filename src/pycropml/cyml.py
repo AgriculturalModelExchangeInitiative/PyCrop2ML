@@ -11,12 +11,12 @@ from pycropml.transpiler.main import Main
 from pycropml import render_cyml
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
-from pycropml.transpiler.generators.csharpGenerator import to_struct_cs
+from pycropml.transpiler.generators.csharpGenerator import to_struct_cs, to_wrapper_cs
 from pycropml.transpiler.generators.javaGenerator import to_struct_java
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
 
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java'}
+NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace'}
 
 def transpile_file(source, language):
     sourcef = source
@@ -79,6 +79,7 @@ def transpile_package(package, language):
         getattr(getattr(pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[language]),
                 'to_struct_%s' % language)([T.model],tg_rep, namep)
+        to_wrapper_cs(T.model,tg_rep, namep) if language =="cs" else ""
 
     filename = Path(os.path.join(tg_rep, "%s.%s"%(namep.capitalize(), language)))
     
