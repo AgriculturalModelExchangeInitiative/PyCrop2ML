@@ -31,8 +31,8 @@ class ModelParser(Parser):
     def parse(self, crop2ml_dir):
         self.models = []
         self.crop2ml_dir = crop2ml_dir
-        xmlrep = Path(self.crop2ml_dir)/'crop2ml'
-        self.algorep = Path(self.crop2ml_dir)/'crop2ml'  
+        xmlrep = Path(os.path.join(self.crop2ml_dir,'crop2ml'))
+        self.algorep = Path(os.path.join(self.crop2ml_dir,'crop2ml'))  
         fn = xmlrep.glob('unit*.xml')+xmlrep.glob('function*.xml')+xmlrep.glob('init*.xml')
         try:
             for f in fn:           
@@ -135,7 +135,7 @@ class ModelParser(Parser):
         if "filename" in elt.attrib:
             filename=elt.attrib["filename"]
             #file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
-            file = self.algorep/filename
+            file = Path(os.path.join(self.algorep,filename))
             with open(file, 'r') as f:
                 development = f.read()
             algo = algorithm.Algorithm(language, development, platform, filename)
