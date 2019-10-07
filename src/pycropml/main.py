@@ -35,6 +35,8 @@ Example
         cs for csharp
         f90 for fortran
         java for java
+        simplace for simplace
+        sirius for sirius
 
 """
 #TODO
@@ -46,6 +48,8 @@ Example
         f90 for fortran
         java  for java
         r for R
+        simplace for simplace
+        sirius for sirius
 """
 
     parser = OptionParser(usage=usage)

@@ -9,9 +9,11 @@ from pycropml.render_cyml import signature
 import os
 import sys
 from pycropml.transpiler.main import Main
+from copy import copy
+from pycropml.render_cyml import my_input, DATATYPE
 
 
-DATATYPE = {}
+'''DATATYPE = {}
 DATATYPE['INT'] = "int"
 DATATYPE['STRING'] = "str"
 DATATYPE['DOUBLE'] = "float"
@@ -20,11 +22,27 @@ DATATYPE['INTLIST'] = "list"
 DATATYPE['STRINGLIST'] = "list"
 DATATYPE['CHARLIST'] = "list"
 DATATYPE['DATELIST'] = "list"
-DATATYPE['DOUBLEARRAY'] = "float"
-DATATYPE['INTARRAY'] = "int"
+DATATYPE['DOUBLEARRAY'] = "array"
+DATATYPE['INTARRAY'] = "array"
 DATATYPE['BOOLEAN'] = "bool"
-DATATYPE['DATE'] = "str"
-def my_input(_input, defa=True):
+DATATYPE['DATE'] = "datetime"
+'''
+
+DATATYPE2= {}
+DATATYPE2['INT'] = "int %s = 0"
+DATATYPE2['STRING'] = "str %s = 0"
+DATATYPE2['DOUBLE'] = "float %s = 0"
+DATATYPE2['DOUBLELIST'] = "floatlist %s"
+DATATYPE2['INTLIST'] = "intlist %s"
+DATATYPE2['STRINGLIST'] = "stringlist %s"
+DATATYPE2['CHARLIST'] = "charlist %s"
+DATATYPE2['DATELIST'] = "datelist %s"
+DATATYPE2['DOUBLEARRAY'] = "floatarray %s"
+DATATYPE2['INTARRAY'] = "intarray %s"
+DATATYPE2['BOOLEAN'] = "bool %s"
+DATATYPE2['DATE'] = "datetime()"
+
+"""def my_input(_input, defa=True):
     name = _input.name
     _type = _input.datatype      
     if 'default' in dir(_input) and defa:
@@ -39,7 +57,7 @@ def my_input(_input, defa=True):
             elif DATATYPE[_type] == "str":                   
                 return "str %s='%s'"%(name, default)                
             elif _type in DATATYPE:                   
-                default = float(default) if DATATYPE[_type]=="float" else int(default)                                     
+                default = float(eval(default)) if DATATYPE[_type]=="float" else int(eval(default))                                     
                 return '%s %s=%s'%(DATATYPE[_type], name, default)
             else:
                 if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
@@ -54,7 +72,7 @@ def my_input(_input, defa=True):
             #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
             return ("%s %s[%s]"%(DATATYPE[_type], name, length))
         else:
-            return ("%s %s"%(DATATYPE[_type], name))            
+            return ("%s %s"%(DATATYPE[_type], name))    """        
 
        
 class Package():
@@ -251,7 +269,7 @@ class Topology():
         display(Image(d))
      
     def algo2cyml(self):
-        code=''
+        code='from datetime import datetime\nfrom math import *\n'
         tab=' '*4
         #print(self.meta_inp(self.name))
         for mod in self.model.model:
@@ -263,22 +281,79 @@ class Topology():
         lines = [tab+l for l in self.algorithm().split('\n') if l.split()]
         code += '\n'.join(lines)
         code += "\n" + tab + "return " + ", ".join([out.name for out in self.model.outputs])
-        '''
+        out_states=[out for out in self.model.outputs if out.variablecategory=="state"]
         if self.model.initialization:
             file_init = self.model.initialization[0].filename
             path_init = Path(os.path.join(self.pkg,"crop2ml", file_init))
-        
+            print(self.pkg, path_init)
             with open(path_init, 'r') as f:
                 code_init = f.read()
             if code_init is not None :         
                 lines = [tab+l for l in code_init.split('\n') if l.split()]
-                code += self.generate_function_signature("init_%s"%signature(self.model),self.model) +'\n'
-                code += self.decl(defa=False)
+                code += self.generate_function_signature(self.model) +'\n'
+                code += self.val_init(self.model)
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in self.model.outputs]) + '\n'            
-        '''
- 
+                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in out_states]) + '\n'                
         return code
+
+    def generate_function_signature(self,model):
+        tab=[]
+        # initialization inputs
+        for inp in model.inputs:
+            if "variablecategory" in dir(inp) and inp.variablecategory in ("auxiliary"):
+                tab.append(inp)
+            if "parametercategory" in dir(inp):
+                tab.append(inp)
+        init_inp = tab.copy()
+        inputs = init_inp
+        # Compute name from title.
+        # We need an explicit name rather than infering it from Title
+        #name = desc.Title
+        code = '\n\ndef init_%s('%(signature(model))
+        code_size = len(code)
+        #_input_names = [inp.name.lower() for inp in inputs]
+        ins = [ my_input(inp) for inp in inputs]
+        separator = ',\n'+ code_size*' '
+        code += separator.join(ins)
+        code+= '):\n'
+        return code
+    
+    def val_init(self, model):
+        inputs = model.inputs
+        outputs = model.outputs
+        inout = inputs + outputs
+        tab=""
+        listab=[]
+        for inp in inout:
+            if 'variablecategory' in dir(inp) and inp.variablecategory=="state" and inp.name not in listab:
+                name = inp.name
+                listab.append(name)
+                if inp.datatype=="INT":
+                    tab +="    cdef int %s = 0\n"%(name)
+                if inp.datatype=="DOUBLE":
+                    tab +="    cdef float %s = 0.0\n"%(name)
+                if inp.datatype=="STRING":
+                    tab +="    cdef str %s ='' \n"%(name)
+                if inp.datatype=="BOOLEAN":
+                    tab +="    cdef bool %s = FALSE\n"%(name)
+                if inp.datatype=="INTLIST":
+                    tab +="    cdef intlist %s\n"%(name)
+                if inp.datatype=="DOUBLELIST":
+                    tab +="    cdef floatlist %s\n" %(name)
+                if inp.datatype=="STRINGLIST":
+                    tab +="    cdef stringlist %s\n" %(name)
+                if inp.datatype=="DATELIST":
+                    tab +="    cdef list %s = [datetime(2000,1,1)]\n"%(name)
+                if inp.datatype=="DATE":
+                    tab +="    cdef datetime %s = datetime(2000,1,1)\n"%(name)
+                if inp.datatype=="INTARRAY":
+                    tab +="    cdef intarray %s\n"%(name)           
+                if inp.datatype=="DOUBLEARRAY":
+                    tab +="    cdef doublarray %s\n" %(name) 
+                if inp.datatype=="STRINGARRAY":
+                    tab +="    cdef stringarray %s\n" %(name) 
+        return tab       
+
 
 
     def retrive(self, pkgname):

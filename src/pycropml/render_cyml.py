@@ -13,25 +13,22 @@ import six
 import shutil
 from . import error
 
+DATATYPE = {}
+DATATYPE['INT'] = "int"
+DATATYPE['STRING'] = "str"
+DATATYPE['DOUBLE'] = "float"
+DATATYPE['DOUBLELIST'] = "list"
+DATATYPE['INTLIST'] = "list"
+DATATYPE['STRINGLIST'] = "list"
+DATATYPE['CHARLIST'] = "list"
+DATATYPE['DATELIST'] = "datelist"
+DATATYPE['DOUBLEARRAY'] = "float"
+DATATYPE['INTARRAY'] = "int"
+DATATYPE['BOOLEAN'] = "bool"
+DATATYPE['DATE'] = "datetime"
 class Model2Package(object):
     """ TODO
     """
-
-    DATATYPE = {}
-    DATATYPE['INT'] = "int"
-    DATATYPE['STRING'] = "str"
-    DATATYPE['DOUBLE'] = "float"
-    DATATYPE['DOUBLELIST'] = "list"
-    DATATYPE['INTLIST'] = "list"
-    DATATYPE['STRINGLIST'] = "list"
-    DATATYPE['CHARLIST'] = "list"
-    DATATYPE['DATELIST'] = "datelist"
-    DATATYPE['DOUBLEARRAY'] = "float"
-    DATATYPE['INTARRAY'] = "int"
-    DATATYPE['BOOLEAN'] = "bool"
-    DATATYPE['DATE'] = "datetime"
- 
-    
 
     num = 0
 
@@ -120,7 +117,7 @@ class Model2Package(object):
             list_inputs.append(inp.name)
         for out in outputs:
             if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+self.my_input(out)+"\n"
+                output_declaration += tab+"cdef "+my_input(out)+"\n"
 
         for algorithm in model_unit.algorithms:                                  
             if (algorithm.language=="Cyml") or (algorithm.language=="cyml"):
@@ -150,7 +147,7 @@ class Model2Package(object):
             list_inputs.append(inp.name)
         for out in outputs:
             if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+self.my_input(out)+"\n"
+                output_declaration += tab+"cdef "+my_input(out)+"\n"
         code =""
         if model_unit.initialization:
             file_init = model_unit.initialization[0].filename
@@ -186,48 +183,12 @@ class Model2Package(object):
         code = 'def %s('%(func_name,)
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
-        ins = [ self.my_input(inp) for inp in inputs]
+        ins = [ my_input(inp) for inp in inputs]
         separator = ',\n'+ code_size*' '
         code += separator.join(ins)
         code+= '):'
         return code
 
-    def my_input(self,_input):
-        name = _input.name
-        _type = _input.datatype
-        
-        if 'default' in dir(_input):
-            if _input.default :
-                default = _input.default              
-                if self.DATATYPE[_type]  == "bool":
-                    val = default.capitalize()
-                    return "bool %s=%s"%(name, val.lower().capitalize())                    
-                elif self.DATATYPE[_type] == "list":
-                    val = eval(default)
-                    return 'list %s=%s'%(name, val) 
-                elif self.DATATYPE[_type] == "datelist":
-                    return 'list %s=%s'%(name, transfDateList(type, default))                  
-                elif self.DATATYPE[_type] == "str":                   
-                    return "str %s='%s'"%(name, default)
-                elif self.DATATYPE[_type] == "datetime":                   
-                    return "datetime %s=%s"%(name, transfDate(_type,default))                               
-                elif _type in self.DATATYPE:                   
-                    default = float(default) if self.DATATYPE[_type]=="float" else int(default)                                     
-                    return '%s %s=%s'%(self.DATATYPE[_type], name, default)
-            else:
-                if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
-                    length = _input.len
-                    #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
-                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, length))
-                else:
-                    return ("%s %s"%(self.DATATYPE[_type], name))
-        else:
-                if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
-                    length = _input.len
-                    #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
-                    return ("%s %s[%s]"%(self.DATATYPE[_type], name, length))
-                else:
-                    return ("%s %s"%(self.DATATYPE[_type], name))            
 
     def generate_test(self, model_unit):
 
@@ -418,3 +379,41 @@ def transf(type_, elem):
     elif type_ =="BOOLEAN":
         return transBool(type_, elem)
     else: return elem
+
+
+def my_input(_input, defa=True):
+    name = _input.name
+    _type = _input.datatype
+        
+    if 'default' in dir(_input):
+        if _input.default :
+            default = _input.default              
+            if DATATYPE[_type]  == "bool":
+                val = default.capitalize()
+                return "bool %s=%s"%(name, val.lower().capitalize())                    
+            elif DATATYPE[_type] == "list":
+                val = eval(default)
+                return 'list %s=%s'%(name, val) 
+            elif DATATYPE[_type] == "datelist":
+                return 'list %s=%s'%(name, transfDateList(type, default))                  
+            elif DATATYPE[_type] == "str":                
+                return "str %s='%s'"%(name, default)
+            elif DATATYPE[_type] == "datetime":                   
+                return "datetime %s=%s"%(name, transfDate(_type,default))                               
+            elif _type in DATATYPE:                  
+                default = float(default) if DATATYPE[_type]=="float" else int(default)                                    
+                return '%s %s=%s'%(DATATYPE[_type], name, default)
+        else:
+            if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
+                length = _input.len
+                    #print("%s %s[%s]"%(DATATYPE[_type], name,len))
+                return ("%s %s[%s]"%(DATATYPE[_type], name, length))
+            else:
+                return ("%s %s"%(DATATYPE[_type], name))
+    else:
+            if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
+                length = _input.len
+                    #print("%s %s[%s]"%(DATATYPE[_type], name,len))
+                return ("%s %s[%s]"%(DATATYPE[_type], name, length))
+            else:
+                return ("%s %s"%(DATATYPE[_type], name))            
