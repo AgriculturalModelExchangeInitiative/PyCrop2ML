@@ -55,8 +55,8 @@
     "suite_name": "pytest"
   },
   "version": {
-    "major": 0,
+    "major": 1,
     "minor": 1,
-    "post": 1
+    "post": 0
   }
 }
