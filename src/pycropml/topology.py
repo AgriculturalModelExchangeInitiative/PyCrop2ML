@@ -12,69 +12,7 @@ from pycropml.transpiler.main import Main
 from copy import copy
 from pycropml.render_cyml import my_input, DATATYPE
 
-
-'''DATATYPE = {}
-DATATYPE['INT'] = "int"
-DATATYPE['STRING'] = "str"
-DATATYPE['DOUBLE'] = "float"
-DATATYPE['DOUBLELIST'] = "list"
-DATATYPE['INTLIST'] = "list"
-DATATYPE['STRINGLIST'] = "list"
-DATATYPE['CHARLIST'] = "list"
-DATATYPE['DATELIST'] = "list"
-DATATYPE['DOUBLEARRAY'] = "array"
-DATATYPE['INTARRAY'] = "array"
-DATATYPE['BOOLEAN'] = "bool"
-DATATYPE['DATE'] = "datetime"
-'''
-
-DATATYPE2= {}
-DATATYPE2['INT'] = "int %s = 0"
-DATATYPE2['STRING'] = "str %s = 0"
-DATATYPE2['DOUBLE'] = "float %s = 0"
-DATATYPE2['DOUBLELIST'] = "floatlist %s"
-DATATYPE2['INTLIST'] = "intlist %s"
-DATATYPE2['STRINGLIST'] = "stringlist %s"
-DATATYPE2['CHARLIST'] = "charlist %s"
-DATATYPE2['DATELIST'] = "datelist %s"
-DATATYPE2['DOUBLEARRAY'] = "floatarray %s"
-DATATYPE2['INTARRAY'] = "intarray %s"
-DATATYPE2['BOOLEAN'] = "bool %s"
-DATATYPE2['DATE'] = "datetime()"
-
-"""def my_input(_input, defa=True):
-    name = _input.name
-    _type = _input.datatype      
-    if 'default' in dir(_input) and defa:
-        if _input.default :
-            default = _input.default              
-            if DATATYPE[_type]  == "bool":
-                val = default.capitalize()
-                return "bool %s=%s"%(name, val)                    
-            elif DATATYPE[_type] == "list":
-                val = eval(default)
-                return 'list %s=%s'%(name, val)              
-            elif DATATYPE[_type] == "str":                   
-                return "str %s='%s'"%(name, default)                
-            elif _type in DATATYPE:                   
-                default = float(eval(default)) if DATATYPE[_type]=="float" else int(eval(default))                                     
-                return '%s %s=%s'%(DATATYPE[_type], name, default)
-            else:
-                if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
-                    length = _input.len
-                    #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
-                    return ("%s %s[%s]=%s"%(DATATYPE[_type], name, length, default))
-                else:
-                    return ("%s %s=%s"%(DATATYPE[_type], name, default))
-    else:
-        if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
-            length = _input.len
-            #print("%s %s[%s]"%(self.DATATYPE[_type], name,len))
-            return ("%s %s[%s]"%(DATATYPE[_type], name, length))
-        else:
-            return ("%s %s"%(DATATYPE[_type], name))    """        
-
-       
+ 
 class Package():
     def __init__(self, name, metainfo, path=None):
         self.name=name
@@ -152,7 +90,7 @@ class Topology():
             if self.isPackage(self.name):
                 self.pkg = self.load_pkge(self.name).crop2mlpath
             else: 
-                self.pkg=input("Give the path of package")
+                self.pkg=input("Give the path of package %s"%self.name)
         else:
             self.pkg=pkg
         self.data = Path(self.pkg)/"crop2ml"
@@ -165,9 +103,14 @@ class Topology():
         self.model.outputs = self.meta_out(self.name)
         self.model.ext = self.meta_ext(self.name)
         self.model.path = Path(self.pkg)
+        self.minout()
+        self.path_pkg = None
          
     def isPackage(self, name):
-        pkg=importlib.util.find_spec(name)   #### Python>=3
+        if sys.version_info[0]>=3:
+            pkg=importlib.util.find_spec(name)   #### Python>=3
+        else: 
+            if name not in sys.modules: pkg=None
         if pkg is None:
             return False
         else:
@@ -219,21 +162,43 @@ class Topology():
                 inout[m.name] = (self.meta_inp(pkgname), self.meta_out(pkgname))
         return inout
  
-    @property
+
     def minout(self):
         inout={}
-        for m in self.model.model:
+        i=0
+        for m in self.model.model:        
             if m.file.split(".")[0]=="unit" and m.package_name is None:
                 for mo in self.mu:
                     if mo.name==m.name:
                         inp = [m.name for m in mo.inputs]
                         out = [m.name for m in mo.outputs]
                         inout[mo.name] = (inp, out)
+                        self.model.model[i].inputs = mo.inputs
+                        self.model.model[i].outputs = mo.outputs
+                        self.model.model[i].description = mo.description
+                        self.model.model[i].parametersets = mo.parametersets
+                        self.model.model[i].testsets = mo.testsets
+                        self.model.model[i].path = mo.path
+
             else:
                 pkgname = m.package_name
                 inp = [p.name for p in self.meta_inp(pkgname)]
                 out = [p.name for p in self.meta_out(pkgname)]
                 inout[m.name] = (inp, out)
+                self.model.model[i].inputs = self.meta_inp(pkgname)
+                self.model.model[i].outputs = self.meta_out(pkgname)
+                data = Path(os.path.join(self.path_pkg,"crop2ml"))
+                composite_file = data.glob("composition*.xml")[0]
+                mc, = composition.model_parser(composite_file)
+                self.model.model[i].description = mc.description
+                self.model.model[i].inputlink = mc.inputlink
+                self.model.model[i].outputlink = mc.outputlink
+                self.model.model[i].internallink = mc.internallink
+                self.model.model[i].path = self.path_pkg
+                self.model.model[i].model, = composition.model_parser(composite_file)
+                #self.model.model[i].parametersets = mc.parametersets
+                #self.model.model[i].testsets = mc.testsets                
+            i = i+1
         return inout
 
     def algorithm(self):
@@ -242,9 +207,9 @@ class Topology():
         edge = self.create_edgeInOut()
         for v in W:
             if not self.check_compo(self.model,v):
-                code += "%s = model_%s( %s)\n"%(', '.join(self.minout[v][1]),v.strip().replace(' ','_').lower(),','.join(self.minout[v][0]))
+                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[v][1]),v.strip().replace(' ','_').lower(),','.join(self.minout()[v][0]))
             else:
-                code += "%s = model_%s( %s)\n"%(', '.join(self.minout[v][1]),v.strip().replace(' ','_').lower(),','.join(self.minout[v][0]))
+                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[v][1]),v.strip().replace(' ','_').lower(),','.join(self.minout()[v][0]))
                 
             if len(edge)!=0:
                 if v in list(edge.keys()):
@@ -285,7 +250,6 @@ class Topology():
         if self.model.initialization:
             file_init = self.model.initialization[0].filename
             path_init = Path(os.path.join(self.pkg,"crop2ml", file_init))
-            print(self.pkg, path_init)
             with open(path_init, 'r') as f:
                 code_init = f.read()
             if code_init is not None :         
@@ -297,22 +261,26 @@ class Topology():
         return code
 
     def generate_function_signature(self,model):
+        print(model.name)
+        input = model.inputs
+        output = model.outputs
+        inout = input + output
+        outname = [o.name for o in output]
         tab=[]
         # initialization inputs
-        for inp in model.inputs:
-            if "variablecategory" in dir(inp) and inp.variablecategory in ("auxiliary"):
-                tab.append(inp)
-            if "parametercategory" in dir(inp):
-                tab.append(inp)
-        init_inp = tab.copy()
-        inputs = init_inp
+        for inp in inout:
+            if inp.name not in outname:
+                if inp.name not in tab:
+                    tab.append(inp)
+        if  sys.version_info[0]>=3: init_inp = tab.copy()
+        else: init_inp = tab   
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         #name = desc.Title
         code = '\n\ndef init_%s('%(signature(model))
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
-        ins = [ my_input(inp) for inp in inputs]
+        ins = [ my_input(inp) for inp in init_inp]
         separator = ',\n'+ code_size*' '
         code += separator.join(ins)
         code+= '):\n'
@@ -343,9 +311,9 @@ class Topology():
                 if inp.datatype=="STRINGLIST":
                     tab +="    cdef stringlist %s\n" %(name)
                 if inp.datatype=="DATELIST":
-                    tab +="    cdef list %s = [datetime(2000,1,1)]\n"%(name)
+                    tab +="    cdef datelist %s \n"%(name)
                 if inp.datatype=="DATE":
-                    tab +="    cdef datetime %s = datetime(2000,1,1)\n"%(name)
+                    tab +="    cdef datetime %s\n"%(name)
                 if inp.datatype=="INTARRAY":
                     tab +="    cdef intarray %s\n"%(name)           
                 if inp.datatype=="DOUBLEARRAY":
@@ -378,7 +346,6 @@ class Topology():
             if var not in list_var:
                 if self.check_compo(mc, mod)!=True:
                     inp = self.info_inputs_mu(pkg,mod,var)
-                    if inp is None : print(mod, var)
                     list_var.append(var)
                     mod_inputs.append(inp)
                 else:
@@ -391,7 +358,8 @@ class Topology():
                     else:
                         inp = self.get_mu_inp(name, var)
                     mod_inputs.append(inp)
-                    list_var.append(var)                           
+                    list_var.append(var) 
+        self.path_pkg = pkg                         
         return mod_inputs
 
     def meta_ext(self, pkgname):
@@ -548,7 +516,7 @@ class Topology():
             for j in v[0]:
                 #print(j)
                 if j.name not in inp:
-                    declaration += tab+"cdef "+my_input(j, defa)+"\n"
+                    declaration += tab+"cdef "+my_input(j, defa=False)+"\n"
                     inp.append(j.name)
             for w in v[1]:
                 if w.name not in inp:
@@ -583,11 +551,11 @@ class Topology():
 #from pycropml.topology import Topology
 '''
 from pycropml.topology import Topology
-#from pycropml.transpiler.generators.csharpGenerator import CsharpCompo
-pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/pheno_pkg"
-T = Topology(name='test', pkg=pkg1) 
-a =CsharpCompo(tree =None, model = T.model)
-
+from pycropml.transpiler.generators.openaleaGenerator import OpenaleaCompo
+pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/test"
+ T = Topology(name='test', pkg=pkg1)
+a =OpenCompo(tree =None, model = T.model)
+"C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/testA"
 print(T.compotranslate('cs'))
 T.translate()
 algo = T.algo2cyml

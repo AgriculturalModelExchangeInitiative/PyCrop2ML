@@ -22,7 +22,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.indent_with=' '*4 
         self.imp=True
         if self.model: 
-            self.doc=DocGenerator(self.model, "#")
+            self.doc=DocGenerator(self.model, " ")
 
     def comment(self,doc):
         list_com = [self.indent_with + '#'+x for x in doc.split('\n')]
@@ -107,6 +107,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.emit_sequence(node.elements, u"[]")
 
     def visit_datetime(self, node):
+        self.write("datetime")
         self.emit_sequence(node.value, u"()")
 
     def visit_standard_method_call(self, node):
@@ -215,11 +216,14 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write('):')
         self.newline(node)
         if self.model and node.name.split("model_")[1]==signature(self.model):
+            self.write('    """\n')
             self.write(self.doc.desc)
             self.newline(node)
             self.write(self.doc.inputs_doc)
             self.newline(node)
             self.write(self.doc.outputs_doc)
+            self.newline(node)
+            self.write('    """\n')
             self.newline(node)
             self.model = None
         self.body(node.block)

@@ -1,7 +1,15 @@
 from __future__ import absolute_import
 from __future__ import print_function
-from openalea.core.external import *
-from openalea.core.pkgmanager import PackageManager
+try:
+    from openalea.core.external import *
+    from openalea.core.pkgmanager import PackageManager
+    from openalea.core import node
+except:
+    inter = None
+    package = None
+    node = None
+    has_openalea = False
+    
 from pycropml.render_python import generate_doc
 from pycropml.pparse import model_parser
 
@@ -37,12 +45,19 @@ class XmlToWf(object):
         self.pkg.add_factory(wf_factory)
 
         self.pkg.write()
+        print(self.compoPack("A"))
 
     def retrievePackage(self, name):
          pm = PackageManager()
          pm.init(self.dir, False)
          pkg = pm[name]
          return pkg
+
+    def compoPack(self, name):
+        for model in self.xmlwf.model:
+            if model.name == name and model.package_name:
+                dir = model.path
+        
 
     def compareInterface(self,interfaces):
         test= True
@@ -82,15 +97,9 @@ class XmlToWf(object):
                 try:
                     for j in links_sameName:
                         model= j["target"].split('.')[0]
-                        #print(j)
-                        #print(model)
-                        #print(self.pkg[model])
                         inputs = self.pkg[model].inputs
-                        #print(inputs)
                         interface=[inp["interface"] for inp in inputs if inp["name"]==name]
-                        #print(interface)
                         interfaces.append(interface[0])
-
                     #assert self.compareInterface(interfaces)== True
                 except AssertionError:
                     print(("inequal interface: %s %s"% (interfaces, links_sameName)))
@@ -98,31 +107,28 @@ class XmlToWf(object):
                     if inp["name"]==name and "value" in inp:
                         value=inp["value"]
                         break
-
                 if value:
                     din=dict(name=name, interface = interfaces[0], value=value)
                 else:
                     din=dict(name=name, interface = interfaces[0])
                 ins.append(din)
-                self.inputs.append(name)
-        
+                self.inputs.append(name) 
             else:
                 value=None
                 model= links_sameName[0]["target"].split('.')[0]
-                inputs = self.pkg[model].inputs
-                #print(inputs)
-                interface=[inp["interface"] for inp in inputs if inp["name"]==name]
-                #print(interface)
-                for inp in inputs:
-                    if inp["name"]==name and "value" in inp:
-                        value=inp["value"]
-                        break
-                if value:
-                    din=dict(name=name, interface = interface[0], value=value)
-                else:
-                    din=dict(name=name, interface = interface[0])
-                ins.append(din)
-                self.inputs.append(name)
+                if model in self.pkg:
+                    inputs = self.pkg[model].inputs
+                    interface=[inp["interface"] for inp in inputs if inp["name"]==name]
+                    for inp in inputs:
+                        if inp["name"]==name and "value" in inp:
+                            value=inp["value"]
+                            break
+                    if value:
+                        din=dict(name=name, interface = interface[0], value=value)
+                    else:
+                        din=dict(name=name, interface = interface[0])
+                    ins.append(din)
+                    self.inputs.append(name)
 
         self.inputs_wf = ins
 
@@ -135,11 +141,12 @@ class XmlToWf(object):
         for link in self.outputLinks:
             name =  link["target"]
             model_src, out_src= link["source"].split('.')
-            outputs = self.pkg[model_src].outputs
-            interface=[out["interface"] for out in outputs if out["name"]==name]
-            dout= dict(name=name, interface = interface[0])
-            outs.append(dout)
-            self.outputs.append(name)
+            if model_src in self.pkg:
+                outputs = self.pkg[model_src].outputs
+                interface=[out["interface"] for out in outputs if out["name"]==name]
+                dout= dict(name=name, interface = interface[0])
+                outs.append(dout)
+                self.outputs.append(name)
 
         self.outputs_wf = outs
 
@@ -147,57 +154,58 @@ class XmlToWf(object):
     def createNodes(self):
         self.nodes = {}
         for m in self.xmlwf.model:
-            nf = self.pkg[m.name].instantiate()
-            nid =  self.wf.add_node(nf)
-            self.nodes[m.name] = nid
+            if m.name in self.pkg:
+                nf = self.pkg[m.name].instantiate()
+                nid =  self.wf.add_node(nf)
+                self.nodes[m.name] = nid
 
     def connectInputs(self):
         for link in self.inputLinks:
             src, tgt = link['source'], link['target']
             port_out = src
             name_tgt, port_in = tgt.split('.')
-
-            ns, nt = self.wf.id_in, self.nodes[name_tgt]
-            try:
-                pout, pin = self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
-            except KeyError:
-                if port_out not in self.wf.node(ns).map_index_out:
-                    print('Error input link src : ', src)
-                else:
-                    print(('Error input link tgt: ', tgt))
-                continue
-            self.wf.connect(ns, pout, nt, pin)
+            if name_tgt in self.nodes:
+                ns, nt = self.wf.id_in, self.nodes[name_tgt]
+                try:
+                    pout, pin = self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
+                except KeyError:
+                    if port_out not in self.wf.node(ns).map_index_out:
+                        print('Error input link src : ', src)
+                    else:
+                        print(('Error input link tgt: ', tgt))
+                    continue
+                self.wf.connect(ns, pout, nt, pin)
 
     def connectOutputs(self):
         for link in self.outputLinks:
             src, tgt = link['source'], link['target']
             name_src, port_out = src.split('.')
             port_in = tgt
-
-            ns, nt = self.nodes[name_src], self.wf.id_out
-            try:
-                pout, pin = self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
-            except KeyError:
-                if port_out not in self.wf.node(ns).map_index_out:
-                    print('Error output link src: ', src)
-                else:
-                    print(('Error output link tgt: ', tgt))
-                continue
-            self.wf.connect(ns, pout, nt, pin)
+            if name_src in self.nodes:
+                ns, nt = self.nodes[name_src], self.wf.id_out
+                try:
+                    pout, pin = self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
+                except KeyError:
+                    if port_out not in self.wf.node(ns).map_index_out:
+                        print('Error output link src: ', src)
+                    else:
+                        print(('Error output link tgt: ', tgt))
+                    continue
+                self.wf.connect(ns, pout, nt, pin)
 
     def connectInternal(self):
         for link in self.internalLinks:
             src, tgt = link['source'], link['target']
             name_src, port_out = src.split('.')
             name_tgt, port_in = tgt.split('.')
-
-            ns, nt = self.nodes[name_src], self.nodes[name_tgt]
-            try:
-                pout, pin =self. wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
-            except KeyError:
-                if port_out not in self.wf.node(ns).map_index_out:
-                    print('Error : ', src)
-                else:
-                    print(('Error : ', tgt))
-                continue
-            self.wf.connect(ns, pout, nt, pin)
+            if name_tgt in self.nodes and name_src in self.nodes:
+                ns, nt = self.nodes[name_src], self.nodes[name_tgt]
+                try:
+                    pout, pin =self. wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
+                except KeyError:
+                    if port_out not in self.wf.node(ns).map_index_out:
+                        print('Error : ', src)
+                    else:
+                        print(('Error : ', tgt))
+                    continue
+                self.wf.connect(ns, pout, nt, pin)

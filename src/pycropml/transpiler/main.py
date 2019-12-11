@@ -4,14 +4,18 @@ import pycropml.transpiler.generators.pythonGenerator
 import pycropml.transpiler.generators.fortranGenerator
 import pycropml.transpiler.generators.javaGenerator
 import pycropml.transpiler.generators.simplaceGenerator
+import pycropml.transpiler.generators.siriusGenerator
+import pycropml.transpiler.generators.checkGenerator
+import sys
+import pycropml.transpiler.generators.openaleaGenerator
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 import os
+from path import Path
 
 
-
-languages = ['cs','py', 'f90', 'java', 'simplace']
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace'}
+languages = ['cs','py', 'f90', 'java', 'simplace', 'sirius', "openalea", "check"]
+NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius', "openalea":"openalea", "check":"check"}
 
 GENERATORS = {
     format: getattr(
@@ -77,7 +81,10 @@ class Main():
         self.file = file
         self.language=language
         self.models = models 
-        self.path = os.path.abspath(file)   
+        if sys.version_info[0]>3: self.path = os.path.abspath(file) 
+        else : 
+            self.path = Path(self.file)
+            self.file =(self.file)
         self.name = name   
 
     def parse(self):
