@@ -37,7 +37,7 @@ class Model2Nb(object):
 
     def generate_nb(self, language, tg_rep, namep):
         
-        text = '''\
+        text = u'''\
 # Automatic generation of Notebook using PyCropML
     This notebook implements a crop model.'''
 
@@ -51,12 +51,12 @@ class Model2Nb(object):
                     fi = var_file.read()
                 namev = "%s%s"%(namep.capitalize(),v)
 
-                text = """\
+                text = u"""\
 ### Domain Class %s"""%namev
                 _cells.append(nbf.v4.new_markdown_cell(text))
                 _cells.append(nbf.v4.new_code_cell(fi)) 
 
-        text = """\
+        text = u"""\
 ### Model %s"""%self.name
         _cells.append(nbf.v4.new_markdown_cell(text))
         code_tests = getattr(pycropml.test_generator,"generate_test_%s"%language)(self.model,self.dir)
@@ -81,6 +81,8 @@ class Model2Nb(object):
             with open(file = fname, mode ="w", encoding='utf-8') as f:
                 nbf.write(self.nb, f) 
         else:
+            reload(sys)
+            sys.setdefaultencoding('utf-8')
             with open(fname,  "w") as f:
                 nbf.write(self.nb, f) 
 
