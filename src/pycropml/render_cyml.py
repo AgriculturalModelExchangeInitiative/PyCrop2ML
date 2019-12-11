@@ -62,7 +62,7 @@ class Model2Package(object):
 
         # Create a directory (mymodel)
         
-        directory=os.path.join(self.cwd,'pyx')
+        directory=Path(os.path.join(self.cwd,'pyx'))
         if (directory).isdir() :
             self.dir = directory
         else:
