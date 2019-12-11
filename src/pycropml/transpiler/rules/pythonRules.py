@@ -44,7 +44,8 @@ class PythonRules(GeneralRule):
         "list": "list",
         "tuple": "tuple",
         "str": "str",
-        "dict": "dict"
+        "dict": "dict",
+        "datetime":"datetime"
     }
 
     functions = {
@@ -67,7 +68,10 @@ class PythonRules(GeneralRule):
             'min': 'min',
             'max': 'max',
             'abs': 'abs',
-            'pow': 'pow'}
+            'pow': 'pow'},
+        'datetime':{
+            'datetime': 'datetime'
+        }
     }
 
     methods = {
@@ -90,6 +94,10 @@ class PythonRules(GeneralRule):
             'contains?': lambda node: Node("simpleCall", op='in', value=node.args, sequence=node.receiver, pseudo_type='Boolean'),
             'not contains?': translateNotContains,
             'index': '.index'
+        },
+        'datetime':{
+            'datetime':'datetime',
+            'day':'day'
         },
         'array': {
             'len': 'len'

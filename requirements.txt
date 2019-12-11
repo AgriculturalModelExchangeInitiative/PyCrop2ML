@@ -26,5 +26,9 @@ path.py
 six
 nbformat
 numpy
-cython
+Cython
 nbsphinx
+networkx
+pyyaml
+unyt
+IPython

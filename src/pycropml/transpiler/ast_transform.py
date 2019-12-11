@@ -9,18 +9,28 @@ from pycropml.transpiler.errors import PseudoCythonTypeCheckError, PseudoCythonN
 from pycropml.transpiler.api_transform import FUNCTION_API, METHOD_API, Standard
 from Cython.Compiler.StringEncoding import EncodedString
 from pycropml.transpiler.helpers import *
+import unyt as u
 from six.moves import map
 from six.moves import zip
 
 class AstTransformer():
-    def __init__(self, tree, code):
+    def __init__(self, tree, code, model=None):
         self.tree = tree
         self.lines = [''] + code.split('\n')  # to access line of instruction
         self.type_env = Env(dict(list(TYPED_API.items())), None)
+        self.model = model
+        self.inp_unit={}
+        if self.model:
+            for inp in self.model.inputs:
+                self.inp_unit[inp.name]=inp.unit
+            for out in self.model.outputs:
+                if out.name not in self.inp_unit:
+                    self.inp_unit[out.name]=out.unit
 
     def transformer(self):
         self.base = 0
         self.body = []
+        self._attr_index = {}
         self.arguments = []
         self.returnValue = []
         self.declarations = []
@@ -130,7 +140,23 @@ class AstTransformer():
                 "elements": [self.visit_node(arg) for arg in arg_tuple.args],
                 "pseudo_type": ['Tuple']+[self.visit_node(arg)["pseudo_type"] for arg in arg_tuple.args]}
 
+    
+    def visit_pyclassdefnode(self, node, location):
+        pass
+    
+    
     def visit_singleassignmentnode(self, node, lhs, rhs, location):
+        if isinstance (rhs, ExprNodes.ListNode) and not rhs.args:
+            return {
+                'type': 'assignment',
+                'target': {
+                        'type': 'local',
+                        'name': lhs.name,
+                        'pseudo_type': self.type_env[lhs.name]
+                },
+                'value': {'type': 'list', 'elements': [], 'pseudo_type': self.type_env[lhs.name]},
+                'pseudo_type': 'Void'
+            }            
         if isinstance(rhs, Nodes.Node) and not isinstance(rhs, ExprNodes.ImportNode):
             value_node = self.visit_node(rhs)
         elif isinstance(rhs, ExprNodes.ImportNode):
@@ -143,10 +169,11 @@ class AstTransformer():
             if e is None:
                 self.notdeclared(name, location[0])
             elif e:
-                if e in ("list", "dict", "tuple", "array"):
+                if e in ("list", "dict", "tuple", "array", "intlist"):
                     a = self._compatible_types(
-                        e, value_node['type'], "can't change the type of variable %s in %s " % (name, self.function_name))
+                        e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
+                    if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
                     a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
                         name, self.function_name, location[0]))
             return {
@@ -213,7 +240,7 @@ class AstTransformer():
                 if z['pseudo_type'] != value_node['pseudo_type']:
                     raise type_check_error(
                         'expected %s' % serialize_type(z['pseudo_type']),
-                        getattr(value, 'location',
+                        getattr(rhs, 'location',
                                 location), self.lines[location[0]],
                         wrong_type=value_node['pseudo_type'])
                 z['message'] = 'set_%s' % z['message']
@@ -249,6 +276,9 @@ class AstTransformer():
                 location, self.lines[:location[1]])
         else:
             z = {'type': 'local', 'name': id, 'pseudo_type': id_type}
+            if id in self.inp_unit:
+                z['unit'] = self.inp_unit[id]
+
             if z in self._tuple_assigned:
                 if not any(a[0] == '_old_%s' % id for a in self._tuple_used):
                     self._tuple_used.append(('_old_%s' % id, z))
@@ -323,7 +353,11 @@ class AstTransformer():
             }
             return result
         else:
-            return self._translate_slice(receiver=value_node, upper=slice.upper, step=slice.step, lower=slice.lower, location=location)
+            print("todo")
+            """
+            TODO
+            """
+            #return self._translate_slice(receiver=value_node, upper=slice.upper, step=slice.step, lower=slice.lower, location=location)
 
     def visit_unicodenode(self, node, location):
         return {'type': 'unicode', 'value':  node.value, 'pseudo_type': 'str'}
@@ -401,6 +435,91 @@ class AstTransformer():
                     accidentaly_homogeneous = element_type is not True
         return (element_nodes, element_type) if homogeneous else (element_nodes, accidentaly_homogeneous, element_type if accidentaly_homogeneous else element_types)
 
+
+    def visit_attributenode(self, node, obj, location):
+        value = obj
+        value_node = self.visit_node(value)
+        if not isinstance(value_node['pseudo_type'], str):
+            raise type_check_error(
+                "you can't access attr of %s, only of normal objects or modules" % serialize_type(value_node['pseudo_type']),
+                (value.lineno, value.col_offset), self.lines[value.lineno],
+                suggestions='[2].s is invalid',
+                right='h = H()\nh.y',
+                wrong='h = (2, H())\nh.hm')
+
+        if value_node['pseudo_type'] == 'library':
+            if value_node['name'] == 'sys' and node.attribute == 'argv':
+                return {
+                    'type': 'standard_call',
+                    'namespace': 'system',
+                    'function': 'args',
+                    'args': [],
+                    'pseudo_type': ['List', 'String'],
+                    'special': None
+                }
+            else:
+                return {
+                    'type': 'library_function',
+                    'library': value_node['name'],
+                    'function': node.attribute,
+                    'pseudo_type': 'library'
+                }
+        else:
+            value_general_type = self._general_type(value_node['pseudo_type'])
+            attr_type = self._attr_index.get(value_general_type, {}).get(node.attribute)
+            if attr_type is None:
+                m = METHOD_API.get(value_general_type, {}).get(node.attribute)
+                if m:
+                    attr_type = m.expand()["pseudo_type"] #'builtin_method[%s]' % serialize_type(m)
+                else:
+                    m = self.type_env.top.values.get(value_general_type, {}).get(node.attribute)
+                    if m:
+                        attr_type = m #'user_method[%s]' % serialize_type(m)
+
+                if not m:
+                    value_type = value_node['pseudo_type']
+                    value_general_type = self._general_type(value_type)
+                    show_type = serialize_type(TYPED_API.get('_generic_%s' % value_general_type, value_type))
+                    raise translation_error(
+                        "CyML can\'t infer the type of %s#%s"  % (serialize_type(value_type), node.attribute),
+                        location, self.lines[location[0]],
+                        suggestions='CyML knows about those %s methods:\n%s' % (
+                            show_type,
+                            prepare_table(self.type_env.top[value_general_type], ORIGINAL_METHODS.get(value_general_type))))
+
+            else:
+                attr_type = attr_type[0]['pseudo_type']
+
+            if value_node['type'] == 'this':
+                result = {
+                    'type': 'instance_variable',
+                    'name': node.attribute,
+                    'pseudo_type': attr_type
+                }
+                if result in self._tuple_assigned:
+                    if not any(a[0] == '_old_self_%s' % node.attribute for a in self._tuple_used):
+                        self._tuple_used.append(('_old_self_%s' % node.attribute, result))
+
+
+                    result = {'type': 'local', 'name': '_old_self_%s' % node.attribute, 'pseudo_type': attr_type}
+                return result
+            else:
+                result = {
+                    'type': 'attr',
+                    'object': value_node,
+                    'attr': node.attribute,
+                    'pseudo_type': attr_type
+                }
+                if result in self._tuple_assigned:
+                    if not any(a[0] == '_old_%s' % node.attribute for a in self._tuple_used):
+                        self._tuple_used.append(('_old_%s' % node.attribute, result))
+                    result = {'type': 'local', 'name': '_old_%s' % node.attribute, 'pseudo_type': attr_type}
+                return result
+
+
+
+
+
     def visit_simplecallnode(self, node, function, coerced_self, args, arg_tuple, location):
 
         if isinstance(function, ExprNodes.NameNode) and function.name in BUILTIN_FUNCTIONS:
@@ -453,6 +572,7 @@ class AstTransformer():
                 if len(c[message]) == 2 or len(c[message]) > 2 and c[message][1]:
                     g = self.type_env.top.values.get("functions", {}).get(message)[1:]
                     q = self._type_check(g,message, param_types)[-1]
+
                 else:
                     v = self.function_name
                     x = [f for f in self.signature if f.name == message]
@@ -487,7 +607,7 @@ class AstTransformer():
             elif self._general_type(value_node['pseudo_type']) in PSEUDON_BUILTIN_TYPES:
                 return self._translate_builtin_method_call(self._general_type(value_node['pseudo_type']), value_node, function, self.visit_node(args), location)
             else:
-                node_type = 'method_call'
+                print('TODO method_call')
 
     def retrieve_library(self, func):
         for lib, meth in self._fromimport.items():
@@ -515,7 +635,7 @@ class AstTransformer():
                     prepare_table(TYPED_API[class_type], ORIGINAL_METHODS.get(class_type)).strip()))
         if isinstance(api, Standard):
             #print(args,class_type, base, message)
-            if base["pseudo_type"] == "list":
+            if base["pseudo_type"] =="list":
                 self.type_env.top[base["name"]] = [
                     "list", args[0]["pseudo_type"]]
             return api.expand([base] + args)
@@ -692,12 +812,14 @@ class AstTransformer():
         env = {a["name"]: a["pseudo_type"] for a in arg_nodes}
         self.type_env, old_type_env = self.type_env.top.child_env(
             env), self.type_env
-        domain_func = []
+        
+        domain_func = list(env.values())
+        '''domain_func = []
         for arg in args:
             if isinstance(arg.declarator, Nodes.CArrayDeclaratorNode):
                 domain_func.append(["array", arg.base_type.name])
             else:
-                domain_func.append(arg.base_type.name)
+                domain_func.append(arg.base_type.name)'''
         self.type_env.top["functions"][node.name][1:-1] = domain_func
         children = self.visit_node(body)
         self.type_env = old_type_env
@@ -715,7 +837,7 @@ class AstTransformer():
         name = declarator.base.name if isinstance(
             declarator, Nodes.CArrayDeclaratorNode) else declarator.name
         if default is None:
-            decl = {"name": name, "type": "local"}
+            decl = {"name": name, "type": self.visit_node(base_type)[1]}
         else:
             decl = {"name": name, "type": base_type.name}
         if default and type(default) not in ( ExprNodes.ListNode, ExprNodes.DictNode, ExprNodes.TupleNode):
@@ -724,10 +846,10 @@ class AstTransformer():
                 decl["value"] = str(-float(de["value"]["value"]))
             elif isinstance(default, ExprNodes.NameNode): 
                 decl["value"] = de["name"] 
-            else: decl["value"] = de["value"] 
+            else: decl["value"] = de["value"] if de['pseudo_type']!='datetime' else de['args']
             decl["pseudo_type"] = de["pseudo_type"]
             if not isinstance(default, ExprNodes.NameNode):
-                a = self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (
+                self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (
                 name, self.function_name))
         elif default and (isinstance(default, ExprNodes.ListNode)or isinstance(default, ExprNodes.TupleNode)):
             arglist = []
@@ -735,8 +857,8 @@ class AstTransformer():
                 arglist.append(self.visit_node(arg))
             decl["elements"] = arglist
             if type(default) == ExprNodes.ListNode:
-                decl["pseudo_type"] = ["list"]+[arg["pseudo_type"]
-                                                for arg in arglist]
+                self.visit_node(default)
+                decl["pseudo_type"] = ["list"]+[arglist[0]["pseudo_type"]]
             else:
                 decl["pseudo_type"] = ["tuple"]+[arg["pseudo_type"]
                                                  for arg in arglist]
@@ -752,6 +874,9 @@ class AstTransformer():
             
             elif isinstance(de.dimension, ExprNodes.IntNode):
                 elts = [ {'type': 'int', 'value': de.dimension.value, 'pseudo_type': 'int'}]
+            
+            elif de.dimension is None:
+                elts = []
             else:
                 elts = []
                 for d in self.visit_node(de.dimension.args):
@@ -761,7 +886,7 @@ class AstTransformer():
                     "elts": elts, "pseudo_type": ["array", base_type.name]}
             #self.type_env[de.base.name]= decl["pseudo_type"]
         else:
-            decl["pseudo_type"] = self.visit_node(base_type.name)
+            decl["pseudo_type"] = self.visit_node(base_type)[1]
         self.arguments.append(decl)
         return decl
 
@@ -770,18 +895,20 @@ class AstTransformer():
         tt={"intarray":["array",["array", "int"]],
             "doublearray":["array", ["array", "double"]],
             "booleanarray":["array", ["array","bool"]],
-            "stringarray":["array",["array","string"]],
+            "stringarray":["array",["array","str"]],
             "intlist":["list",["list", "int"]],
-            "doublelist":["list", ["list", "double"]],
+            "floatlist":["list", ["list", "float"]],
             "booleanlist":["list", ["list","bool"]],
-            "stringlist":["list",["list","string"]],
-            "int":["int","int"],
-            "double":["float","float"],
-            "float":["float","float"],
-            "str":["str","str"],
-            "bool":["bool","bool"],
-            "list":["list","list"],
-            "array":["array","array"]}
+            "stringlist":["list",["list","str"]],
+            "int":["local","int"],
+            "double":["local","float"],
+            "float":["local","float"],
+            "str":["local","str"],
+            "bool":["local","bool"],
+            "list":["local","list"],
+            "array":["array","array"],
+            "datetime":["local", "datetime"],
+            "datelist":["list", ["list","datetime"]]}
         return tt
         
         
@@ -790,13 +917,14 @@ class AstTransformer():
 
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
+        
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if self.type_env[de.name]:
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.name)
                 decl = {"name": de.name,
-                        "type": self.visit_node(base_type)[0], "lineno": location}
+                        "type": self.visit_node(base_type)[0] if de.default is None else base_type.name, "lineno": location}
                 if de.default is None:
                     #self.type_env[de.name] = base_type.name
                     self.type_env[de.name] = self.visit_node(base_type)[1]
@@ -809,15 +937,19 @@ class AstTransformer():
                     else: decl["value"] = value_node["value"] 
                     decl["pseudo_type"] = value_node["pseudo_type"]
                     self.type_env[de.name] = decl["pseudo_type"]
-                    a = self._compatible_types(
-                        decl['type'], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
-
+                    self._compatible_types(
+                        self.visit_node(base_type)[1], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+                if type(de.default==ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "datetime":
+                    decl["pseudo_type"]="datetime"
+                    self.type_env[de.name] = decl["pseudo_type"]
+                    decl["elts"] = self.visit_node(de.default)
                 if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
                     arglist = []
                     for arg in de.default.args:
                         arglist.append(self.visit_node(arg))
                     decl["elements"] = arglist
                     if type(de.default) == ExprNodes.ListNode:
+                        self.visit_node(de.default)
                         decl["pseudo_type"] = ["list", self.visit_node(arglist[0])[
                             "pseudo_type"]]
                     else:
@@ -836,7 +968,9 @@ class AstTransformer():
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.base.name)
                 if isinstance(de.dimension, ExprNodes.NameNode) or isinstance(de.dimension, ExprNodes.IntNode):
-                    elts = [self.visit_node(de.dimension)]
+                    elts = [self.visit_node(de.dimension)]                    
+                if de.dimension is None:
+                    elts = []
                 else:
                     elts = self.visit_node(de.dimension)#[]
                     #for d in self.visit_node(de.dimension.args):
@@ -897,7 +1031,8 @@ class AstTransformer():
                 if len(k.args) < 2 or not isinstance(target, ExprNodes.TupleNode) or len(k.args) != len(target.args):
                     raise PseudoCythonTypeCheckError(
                         'zip expected 2 or more args and the same number of indices not %d' % len(k.args))
-                return self._translate_zip(target.args, k.args)
+                print("TO DO")
+                #return self._translate_zip(target.args, k.args)
 
         sequence_node = self.visit_node(k)       
         self._confirm_iterable(sequence_node['pseudo_type'])

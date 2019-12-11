@@ -8,7 +8,7 @@ from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 
-class PythonGenerator(CodeGenerator, PythonRules):
+class CheckGenerator(CodeGenerator, PythonRules):
     """This class contains the specific properties of 
     python language and use the NodeVisitor to generate a python
     code source from a well formed syntax tree.
@@ -19,42 +19,38 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.tree=tree
         self.model=model
         self.name = name
-        self.indent_with=' '*4 
+        #self.indent_with=' '*4 
         self.imp=True
         if self.model: 
             self.doc=DocGenerator(self.model, " ")
-
-    def comment(self,doc):
-        list_com = [self.indent_with + '#'+x for x in doc.split('\n')]
-        com = '\n'.join(list_com)
-        return com
     
     def visit_import(self, node):
-        if self.imp:
-            self.write(u"import %s" % node.module)
+        pass
+
+    def visit_local(self, node):
+        if 'unit' in dir(node):
+            self.write(node.unit)
+        else: self.write(node.name)
 
     def visit_notAnumber(self, node):
-        self.write("float('nan')")
+        pass
 
     def visit_assignment(self, node):
-        self.newline(node)
-        self.visit(node.target)
-        self.write(' = ')
-        self.visit(node.value)
+        if "value" not in dir(node.value):
+            self.newline(node)
+            self.visit(node.target)
+            self.write(' == ')
+            self.visit(node.value)
 
     def visit_cond_expr_node(self, node):
         self.visit(node.true_val)
-        self.write(u" if ")
         self.visit(node.test)
-        self.write(u" else ")
         self.visit(node.false_val)  
         
 
     def visit_if_statement(self, node):
         self.newline(node)
-        self.write('if ')
         self.visit(node.test)
-        self.write(':')
         self.body(node.block)
         while True:
             else_ = node.otherwise
@@ -69,46 +65,40 @@ class PythonGenerator(CodeGenerator, PythonRules):
     
     def visit_elseif_statement(self, node):
         self.newline()
-        self.write('elif ')
         self.visit(node.test)
-        self.write(':')
         self.body(node.block)
 
     def visit_else_statement(self, node):
         self.newline()
-        self.write('else:')
         self.body(node.block)
     
     def visit_float(self, node):
         self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(str(node.value))
+        self.write(node.value)
 
     def visit_str(self, node):
-        self.safe_double(node)
+        self.write(node.value)
     
     def visit_tuple(self, node):
-        self.emit_sequence(node.elements, u"()")
+        pass
         
     def visit_dict(self, node):
-        self.emit_sequence(node.pairs, u"{}")
+        pass
         
     def visit_pair(self, node):
-        self.visit(node.key)
-        self.write(u": ")
-        self.visit(node.value)         
+        pass        
 
     def visit_ExprStatNode(self, node):
         self.newline(node)
         self.visit(node.expr)
     
     def visit_list(self, node):
-        self.emit_sequence(node.elements, u"[]")
+        pass
 
     def visit_datetime(self, node):
-        self.write("datetime")
-        self.emit_sequence(node.value, u"()")
+        pass
 
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
@@ -135,28 +125,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
 
     def visit_index(self, node):
-        self.visit(node.sequence)
-        self.write(u"[")
-        if isinstance(node.index.type, tuple):
-            self.emit_sequence(node.index)
-        else:
-            self.visit(node.index)
-        self.write(u"]") 
+        pass
     
     def visit_sliceindex(self, node):
-        self.visit(node.receiver)
-        self.write(u"[")
-        if node.message=="sliceindex_from":
-            self.visit(node.args)
-            self.write(u":")
-        if node.message=="sliceindex_to":
-            self.write(u":")
-            self.visit(node.args)
-        if node.message=="sliceindex":
-            self.visit(node.args[0])
-            self.write(u":")
-            self.visit(node.args[1])
-        self.write(u"]")
+        pass
 
 
     def visit_module(self, node):
@@ -168,12 +140,13 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
         
     def visit_comparison(self, node):
-        #self.write('(')
-        self.visit_binary_op(node)
-        #self.write(')')
+        if "value" not in dir(node.right):
+            #self.write('(')
+            self.visit_binary_op(node)
+            #self.write(')')
 
     def visit_method_call(self, node):
-        "%s.%s"%(self.visit(node.receiver),self.write(node.message))  
+        pass 
               
     def visit_binary_op(self, node):
         op = node.op
@@ -201,40 +174,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.operator_exit()
 
     def visit_function_definition(self, node):
-        self.newline(extra=1)
-        self.newline(node)
-        self.write('def %s(' % node.name)
-        for i, pa in enumerate(node.params):
-            #if pa.type == "local": 
-            self.write(pa.name)
-            if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
-                #self.write(pa.name)
-                self.write(" = ")
-                self.visit(pa)  
-            if i!= (len(node.params)-1):
-                self.write(',\n         ')
-        self.write('):')
-        self.newline(node)
-        if self.model and node.name.split("model_")[1]==signature(self.model):
-            self.write('    """\n')
-            self.write(self.doc.desc)
-            self.newline(node)
-            self.write(self.doc.inputs_doc)
-            self.newline(node)
-            self.write(self.doc.outputs_doc)
-            self.newline(node)
-            self.write('    """\n')
-            self.newline(node)
-            self.model = None
         self.body(node.block)
         
     def visit_implicit_return(self, node):
-        self.newline(node)
-        if node.value is None:
-            self.write('return')
-        else:
-            self.write('return ')
-        self.visit(node.value)
+        pass
 
     def visit_declaration(self, node):
         self.newline(node)
@@ -281,17 +224,13 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
     def visit_array(self,node): 
         self.write(node.name)
-        '''self.write(" =np.ndarray((")
-        self.comma_separated_list(node.elts)
-        self.write("),dtype=%s)"%node.pseudo_type[-1])'''
+
 
     def visit_continuestatnode(self, node):
-        self.newline(node)
-        self.write('continue')
+        pass
         
     def visit_breakstatnode(self, node):
-        self.newline(node)
-        self.write('break')              
+        pass              
         
     def visit_call(self, node):
         want_comma = []
@@ -315,71 +254,36 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.visit_call(node) 
         
     def visit_importfrom(self, node):
-        if self.imp:
-            self.newline(node)
-            if node.namespace=="math":
-                self.write("from math import *")  
-            else:
-                self.write('from %s import ' % (node.namespace))
-                for idx, item in enumerate(node.name):
-                    if idx:
-                        self.write(', ')
-                    self.write(item)
+        pass
     
     def visit_for_statement(self, node):
         self.newline(node)
-        self.write("for ")
-        if "iterators" in dir(node):
-            self.visit(node.iterators) 
-        if "sequences" in dir(node):
-            self.visit(node.sequences)
         self.body(node.block)
 
     
     def visit_for_iterator_with_index(self, node):
-        self.visit(node.index)
-        self.write(' , ')
-        self.visit(node.iterator)        
+        pass       
 
     def visit_for_sequence_with_index(self, node):
-        
-        self.write(" in enumerate(")
-        self.visit(node.sequence)
-        self.write('):')
+        pass
     
     def visit_for_iterator(self, node):
-        self.visit(node.iterator)
-        self.write(" in ")
+        pass
         
     def visit_for_sequence(self, node):
-        self.visit(node.sequence)
-        self.write(":")
+        pass
         
         
     
     def visit_for_range_statement(self, node):
-        self.newline(node)
-        self.write("for ")
-        self.visit(node.index)
-        self.write(" in range(")
-        self.visit(node.start)
-        self.write(' , ')
-        self.visit(node.end)
-        if node.step.value!=1:
-            self.write(' , ')
-            self.visit(node.step)
-        self.write('):')
-        self.body(node.block)
+        pass
         
     def visit_while_statement(self, node):
-        self.newline(node)
-        self.write('while ')
         self.visit(node.test)
-        self.write(':')
         self.body_or_else(node)
 
 
-class PythonCompo(PythonGenerator):
+class CheckCompo(CheckGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for C# languages.
     """
@@ -387,6 +291,6 @@ class PythonCompo(PythonGenerator):
         self.tree = tree
         self.model = model
         self.name = name
-        PythonGenerator.__init__(self,tree, model, self.name)
+        CheckGenerator.__init__(self,tree, model, self.name)
             
         

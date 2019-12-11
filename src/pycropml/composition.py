@@ -6,6 +6,10 @@ from __future__ import print_function
 from path import Path
 import xml.etree.ElementTree as xml
 import six
+from pycropml.modelunit import ModelUnit
+from pycropml import pparse
+import os
+from . import initialization
 
 class ModelDefinition(object):
     """
@@ -27,9 +31,13 @@ class ModelComposition(ModelDefinition):
         ModelDefinition.__init__(self, kwds)  
         self.description = None
         self.model = []
+        self.initialization = []
         self.inputlink=[]
         self.outputlink=[]
         self.internallink=[]
+        self.inputs=[]
+        self.outputs=[]
+        self.path = None
  
 
     def add_description(self, description):
@@ -57,12 +65,19 @@ class Description(object):
         self.Reference = ''
         self.Abstract = ''
 
-class Models(object):
-          
-    def __init__(self, name, id, file):
+
+class Models(ModelComposition, ModelUnit):           
+    def __init__(self, name, modelid, file, package_name=None):  
         self.name=name
-        self.id=id
+        self.modelid=modelid
         self.file=file
+        self.package_name = package_name
+        self.inputs = None
+        self.outputs = None
+        self.description = None
+        self.parametersets = None
+        self.testsets = None
+
  
  
 class Parser(object):
@@ -83,6 +98,7 @@ class ModelParser(Parser):
 
     def parse(self, fn):
         self.modelcompos = []
+        self.path_mc =retrieve_path(fn)
           
         # Current proxy node for managing properties
         doc = xml.parse(fn)
@@ -100,20 +116,17 @@ class ModelParser(Parser):
         
         """ ModelComposition (Description, Models, Inputlink,Outputlink,externallink)                 
         """
-        print('ModelComposition')
         kwds = elts.attrib
         self._modelcompo = ModelComposition(kwds)
+        self._modelcompo.path = self.path_mc
         self.modelcompos.append(self._modelcompo)
         
-
         for elt in list(elts):
             self.dispatch(elt)
-   
-    
+       
     def Description(self, elts):
         """ Description (Title,Author,Institution,Reference,Abstract)
         """
-        print('Description')
 
         desc = Description()
 
@@ -121,10 +134,16 @@ class ModelParser(Parser):
             self.name = desc.__setattr__(elt.tag, elt.text)
 
         self._modelcompo.add_description(desc)
-        
+
+    def Initialization(self, elt):
+        language=elt.attrib["language"]
+        name=elt.attrib["name"]
+        filename=elt.attrib["filename"]
+        #description =elt.attrib["description"]
+        code = initialization.Initialization(name,language, filename)
+        self._modelcompo.initialization.append(code)        
     
     def Composition(self, elts):
-        print('Composition')
         
         for elt in list(elts):
             self.dispatch(elt)
@@ -132,14 +151,15 @@ class ModelParser(Parser):
     def Model(self, elt):
         """ Models
         """
-        print('Model')
-        
+       
         name=elt.attrib["name"]
-        id=elt.attrib["id"]
+        modelid=elt.attrib["id"]
         file = elt.attrib["filename"]
+        if "package_name" in elt.attrib:
+            package_name=elt.attrib["package_name"]
+        else: package_name=None
         
-        
-        mod = Models(name, id, file)
+        mod = Models(name, modelid, file, package_name)
         
         self._modelcompo.model.append(mod)
     
@@ -148,8 +168,7 @@ class ModelParser(Parser):
         """
             Retrieve different types of links
         """
-        print("link")
-        
+       
         inputs = elt.findall("InputLink")
         outputs = elt.findall("OutputLink")
         internals = elt.findall("InternalLink")
@@ -157,11 +176,15 @@ class ModelParser(Parser):
         for input in inputs:
             inp = input.attrib
             self._modelcompo.inputlink.append(inp)
+            if inp["source"] not in self._modelcompo.inputs:
+                self._modelcompo.inputs.append(inp["source"])
         
         for output in outputs: 
             
             out = output.attrib        
             self._modelcompo.outputlink.append(out)
+            if out["target"] not in self._modelcompo.outputs:
+                self._modelcompo.outputs.append(out["target"])
         
         for internal in internals : 
             
@@ -179,4 +202,6 @@ def model_parser(fn):
     return parser.parse(fn)
     
 
-    
+def retrieve_path(fn):
+    path_ = Path.splitpath(Path(fn))[0]
+    return os.path.dirname(path_)

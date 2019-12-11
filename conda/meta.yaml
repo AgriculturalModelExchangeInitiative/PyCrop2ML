@@ -26,6 +26,10 @@ requirements:
     - numpy
     - pyyaml
     - six
+    - networkx
+    - unyt
+    - nbformat
+    - IPython
 
 test:
   requires:

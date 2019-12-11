@@ -50,7 +50,8 @@ class FortranRules(GeneralRule):
            "bool":"LOGICAL",
            "str":"CHARACTER(65)",
            "list": "%s,DIMENSION (:), ALLOCATABLE::",
-           "array":"%s, DIMENSION(%s)"
+           "array":"%s, DIMENSION(%s)",
+           "datetime":"CHARACTER(65)"
            }
     
     functions = {
@@ -77,8 +78,12 @@ class FortranRules(GeneralRule):
                     'modulo':   "modulo"
 
                     },
+            'datetime':{
+                   'datetime': lambda node : Node(type="str", value=argsToStr(node.args))
+
+           }
             
-            }
+        }
 
     methods = {
             
@@ -92,6 +97,8 @@ class FortranRules(GeneralRule):
                     'int':'INT',
                     'find': translateFind
                     },
+
+           
             'list':{
                     'len':'SIZE',
                     'append': translateAppend,
@@ -123,3 +130,8 @@ class FortranRules(GeneralRule):
     def method(self):
         pass
 
+def argsToStr(args):
+    t=[]
+    for arg in args:
+        t.append(arg.value)
+    return "%s"%('/'.join(t))

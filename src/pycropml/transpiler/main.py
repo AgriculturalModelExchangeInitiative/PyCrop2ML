@@ -3,14 +3,19 @@ import pycropml.transpiler.generators.csharpGenerator
 import pycropml.transpiler.generators.pythonGenerator
 import pycropml.transpiler.generators.fortranGenerator
 import pycropml.transpiler.generators.javaGenerator
+import pycropml.transpiler.generators.simplaceGenerator
+import pycropml.transpiler.generators.siriusGenerator
+import pycropml.transpiler.generators.checkGenerator
+import sys
+import pycropml.transpiler.generators.openaleaGenerator
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 import os
+from path import Path
 
 
-
-languages = ['cs','py', 'f90', 'java']
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java'}
+languages = ['cs','py', 'f90', 'java', 'simplace', 'sirius', "openalea", "check"]
+NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius', "openalea":"openalea", "check":"check"}
 
 GENERATORS = {
     format: getattr(
@@ -72,24 +77,28 @@ def formaterNext(line):
     return code
 
 class Main():
-    def __init__(self, file,language, models=None):
+    def __init__(self, file,language, models=None, name=None):
         self.file = file
         self.language=language
         self.models = models 
-        self.path = os.path.abspath(file)      
+        if sys.version_info[0]>3: self.path = os.path.abspath(file) 
+        else : 
+            self.path = Path(self.file)
+            self.file =(self.file)
+        self.name = name   
 
     def parse(self):
         self.tree= parser(self.file)
         return self.tree
 
     def to_ast(self, source):
-        self.newtree = AstTransformer(self.tree, source)
+        self.newtree = AstTransformer(self.tree, source, self.models)
         self.dictAst = self.newtree.transformer()
         self.nodeAst= transform_to_syntax_tree(self.dictAst)
         return self.nodeAst
 
     def to_source(self):
-        generator = GENERATORS[self.language](self.nodeAst,self.models)
+        generator = GENERATORS[self.language](self.nodeAst,self.models, self.name)
         #node = self.nodeAst.body
         node = self.nodeAst
         generator.visit(node)
@@ -99,7 +108,7 @@ class Main():
         return z
     
     def translate(self):
-        generator = COMPOSERS[self.language](self.nodeAst,self.models)
+        generator = COMPOSERS[self.language](self.nodeAst,self.models, self.name)
         #node = self.nodeAst.body
         node = self.nodeAst
         generator.visit(node)

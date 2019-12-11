@@ -7,8 +7,8 @@ from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler import lib
 import os
 from path import Path
-from pycropml.transpiler.Parser import parser
-from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+#from pycropml.transpiler.Parser import parser
+#from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 import shutil
 
 
@@ -33,12 +33,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
     code source from a well formed syntax tree.
     """
    
-    def __init__(self, tree, model=None):
+    def __init__(self, tree, model=None, name = None):
         CodeGenerator.__init__(self)
         FortranRules.__init__(self)
         self.tree = tree
         self.indent_with=' '*4 
         self.model=model           # crop2ml models
+        self.name = name
         self.initialValue=[] 
         self.z = middleware(self.tree)
         self.z.transform(self.tree)
@@ -122,10 +123,6 @@ class FortranGenerator(CodeGenerator, FortranRules):
         pass
 
     def visit_assignment(self, node):
-        '''if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
-            name  = node.value.function.split('model_')[1]
-            self.write("CALL model_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
-            self.newline(node)'''
         if node.value.type=="cond_expr_node":
             self.visit_cond_expr_node(node)
         elif node.value.type == "custom_call":
@@ -133,6 +130,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             node =Node("subroutine", receiver = node.target,function=node.value.function, args=node.value.args ) 
             self.write('call ')
             self.visit(node)
+        elif node.value.type =="list" and not node.value.elements:
+            self.write("\n        deallocate(%s)\n"%node.target.name)
         elif node.value.type == "notAnumber":
             self.visit_notAnumber(node)
         else:
@@ -363,18 +362,6 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.indentation += 1    
         self.visit(node.body)
         self.newline(extra=1)
-        '''if self.model:
-            if "function" in dir(self.model) and self.model.function:
-                func_name = os.path.split(self.model.function[0].filename)[1]
-                func_path = os.path.join(self.model.path,"src","pyx", func_name)
-                func_tree=parser(Path(func_path))  
-                newtree = AstTransformer(func_tree, func_path)
-                dictAst = newtree.transformer()
-                nodeAst= transform_to_syntax_tree(dictAst)
-                self.model=None
-                self.imp=False
-                self.newline(extra=1)
-                self.visit(nodeAst.body)'''
         self.indentation -= 1        
         self.newline(node)
         self.indentation -= 1        
@@ -401,11 +388,12 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit_declaration(newNode) #self.visit_decl(node)           
         if self.initialValue:
             for n in self.initialValue:
-                self.write("%s = " %n.name)
-                self.write(u'(/')
-                self.comma_separated_list(n.value)
-                self.write(u'/)')
-                self.newline(node) 
+                if len(n.value)>=1:
+                    self.write("%s = " %n.name)
+                    self.write(u'(/')
+                    self.comma_separated_list(n.value)
+                    self.write(u'/)')
+                    self.newline(node) 
         self.indentation -=1
         self.newline(node)
         if self.model and node.name.startswith("model_"):
@@ -543,12 +531,19 @@ class FortranGenerator(CodeGenerator, FortranRules):
             node = node[1]
             self.write(self.types[node[1]])
             self.write(', ALLOCATABLE')
-            self.write(", DIMENSION(:,:) ")   
+            self.write(", DIMENSION(:,:) ") 
+
+    def visit_datetime_decl(self, node):
+        return self.visit_str_decl(node)  
+    
+    def visit_datetime(self, node):
+        return self.visit_str(node)
     
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
-        self.write(" , DIMENSION(") 
-        self.comma_separated_list(node.elts)
+        self.write(" , DIMENSION(")
+        if node.dim == 0: self.write(":")
+        else: self.comma_separated_list(node.elts)
         self.write(" )")  
 
     def visit_float_decl(self, node):
@@ -578,6 +573,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             if node=="str":
                 self.visit_str_decl(node) 
             if node=="bool":
+                self.visit_str_decl(node)
+            if node=="datetime":
                 self.visit_str_decl(node)                 
         
     def visit_call(self, node):
@@ -744,10 +741,11 @@ class FortranCompo(FortranGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for Fortran90 language.
     """
-    def __init__(self, tree, model=None):
+    def __init__(self, tree=None, model=None, name = None):
         self.tree = tree
         self.model=model
-        FortranGenerator.__init__(self,tree, model)
+        self.name = name
+        FortranGenerator.__init__(self,tree, model, self.name)
     
     '''def visit_function_definition(self, node):
         pass'''
