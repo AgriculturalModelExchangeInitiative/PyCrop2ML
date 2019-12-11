@@ -11,6 +11,7 @@ import pycropml.test_generator
 from pycropml import render_fortran
 import os
 from . import render_python as rp
+import sys
 
 # The package used to generate Notebook
 import nbformat as nbf
@@ -76,7 +77,11 @@ class Model2Nb(object):
                 _cells.append(nbf.v4.new_code_cell(code)) 
 
         fname = Path(os.path.join(self.dir, "%s.ipynb" % self.name))
-        with open(file = fname, mode ="w", encoding='utf-8') as f:
-            nbf.write(self.nb, f) 
+        if sys.version_info[0]>=3:
+            with open(file = fname, mode ="w", encoding='utf-8') as f:
+                nbf.write(self.nb, f) 
+        else:
+            with open(fname,  "w") as f:
+                nbf.write(self.nb, f) 
 
 

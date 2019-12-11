@@ -140,6 +140,11 @@ class AstTransformer():
                 "elements": [self.visit_node(arg) for arg in arg_tuple.args],
                 "pseudo_type": ['Tuple']+[self.visit_node(arg)["pseudo_type"] for arg in arg_tuple.args]}
 
+    
+    def visit_pyclassdefnode(self, node, location):
+        pass
+    
+    
     def visit_singleassignmentnode(self, node, lhs, rhs, location):
         if isinstance (rhs, ExprNodes.ListNode) and not rhs.args:
             return {
@@ -168,6 +173,7 @@ class AstTransformer():
                     a = self._compatible_types(
                         e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
+                    if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
                     a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
                         name, self.function_name, location[0]))
             return {
@@ -566,6 +572,7 @@ class AstTransformer():
                 if len(c[message]) == 2 or len(c[message]) > 2 and c[message][1]:
                     g = self.type_env.top.values.get("functions", {}).get(message)[1:]
                     q = self._type_check(g,message, param_types)[-1]
+
                 else:
                     v = self.function_name
                     x = [f for f in self.signature if f.name == message]
@@ -910,6 +917,7 @@ class AstTransformer():
 
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
+        
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if self.type_env[de.name]:
@@ -931,7 +939,10 @@ class AstTransformer():
                     self.type_env[de.name] = decl["pseudo_type"]
                     self._compatible_types(
                         self.visit_node(base_type)[1], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
-
+                if type(de.default==ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "datetime":
+                    decl["pseudo_type"]="datetime"
+                    self.type_env[de.name] = decl["pseudo_type"]
+                    decl["elts"] = self.visit_node(de.default)
                 if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
                     arglist = []
                     for arg in de.default.args:

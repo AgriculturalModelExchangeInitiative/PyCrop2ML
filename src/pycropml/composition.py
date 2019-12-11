@@ -8,6 +8,7 @@ import xml.etree.ElementTree as xml
 import six
 from pycropml.modelunit import ModelUnit
 from pycropml import pparse
+import os
 from . import initialization
 
 class ModelDefinition(object):
@@ -36,6 +37,7 @@ class ModelComposition(ModelDefinition):
         self.internallink=[]
         self.inputs=[]
         self.outputs=[]
+        self.path = None
  
 
     def add_description(self, description):
@@ -70,6 +72,11 @@ class Models(ModelComposition, ModelUnit):
         self.modelid=modelid
         self.file=file
         self.package_name = package_name
+        self.inputs = None
+        self.outputs = None
+        self.description = None
+        self.parametersets = None
+        self.testsets = None
 
  
  
@@ -91,6 +98,7 @@ class ModelParser(Parser):
 
     def parse(self, fn):
         self.modelcompos = []
+        self.path_mc =retrieve_path(fn)
           
         # Current proxy node for managing properties
         doc = xml.parse(fn)
@@ -110,6 +118,7 @@ class ModelParser(Parser):
         """
         kwds = elts.attrib
         self._modelcompo = ModelComposition(kwds)
+        self._modelcompo.path = self.path_mc
         self.modelcompos.append(self._modelcompo)
         
         for elt in list(elts):
@@ -193,3 +202,6 @@ def model_parser(fn):
     return parser.parse(fn)
     
 
+def retrieve_path(fn):
+    path_ = Path.splitpath(Path(fn))[0]
+    return os.path.dirname(path_)

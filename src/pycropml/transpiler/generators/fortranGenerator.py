@@ -7,8 +7,8 @@ from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler import lib
 import os
 from path import Path
-from pycropml.transpiler.Parser import parser
-from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+#from pycropml.transpiler.Parser import parser
+#from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 import shutil
 
 
@@ -387,12 +387,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
         newNode = self.add_features(node)
         self.visit_declaration(newNode) #self.visit_decl(node)           
         if self.initialValue:
-            for n in self.initialValue and len(eval(n.value))>=1:
-                self.write("%s = " %n.name)
-                self.write(u'(/')
-                self.comma_separated_list(n.value)
-                self.write(u'/)')
-                self.newline(node) 
+            for n in self.initialValue:
+                if len(n.value)>=1:
+                    self.write("%s = " %n.name)
+                    self.write(u'(/')
+                    self.comma_separated_list(n.value)
+                    self.write(u'/)')
+                    self.newline(node) 
         self.indentation -=1
         self.newline(node)
         if self.model and node.name.startswith("model_"):

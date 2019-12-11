@@ -33,6 +33,9 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
         self.funcname = ""
+        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\n")
+
+
 
     def visit_notAnumber(self, node):
         self.write("Double.NaN")
@@ -72,8 +75,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
 
          
     def visit_import(self, node):
-        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\n")
-
+        pass
 
     def visit_cond_expr_node(self, node):
         self.visit(node.test)
@@ -919,6 +921,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.tree = tree
         self.model=model
         self.name = name
+        self.init=False
         JavaGenerator.__init__(self,tree, model, self.name)
         JavaTrans.__init__(self,[model])
         self.params = [pa for pa in self.model.inputs if "parametercategory" in dir(pa)]
@@ -929,13 +932,23 @@ class JavaCompo(JavaTrans, JavaGenerator):
        # self.model2Node()
 
     def visit_module(self, node):
-        self.write("public class %s"%self.model.name.capitalize())
+        self.write("public class %sComponent"%self.model.name.capitalize())
+        self.init = False
         self.newline(node)
         self.write("{") 
         self.newline(node)
         self.indentation += 1     
         self.visit(node.body)
         self.newline(node)
+        if "function" in dir(self.model) and self.model.function:
+            func_name = os.path.split(self.model.function[0].filename)[1]
+            func_path = os.path.join(self.model.path,"src","pyx", func_name)
+            func_tree=parser(Path(func_path))  
+            newtree = AstTransformer(func_tree, func_path)
+            dictAst = newtree.transformer()
+            nodeAst= transform_to_syntax_tree(dictAst)
+            self.model=None
+            self.visit(nodeAst.body)
         self.indentation -= 1        
         self.newline(node)
         self.write("}")         
@@ -943,11 +956,11 @@ class JavaCompo(JavaTrans, JavaGenerator):
     def visit_function_definition(self, node):      
         self.newline(node)
         self.add_features(node)
-        self.write(self.constructor%self.model.name.capitalize())
+        self.write(self.constructor%("%sComponent"%self.model.name.capitalize())) if not node.name.startswith("init_") else self.write("")
         self.newline(extra=1)          
-        self.write(self.instanceModels())     
+        self.write(self.instanceModels())  if not node.name.startswith("init_") else self.write("")     
         self.newline(extra=1)
-        if self.node_param:
+        if self.node_param and not node.name.startswith("init_"):
             for arg in self.node_param:                          
                 self.newline(extra=1)
                 self.write("public ")
@@ -962,7 +975,11 @@ class JavaCompo(JavaTrans, JavaGenerator):
                 self.write(self.set_properties_compo%(b))
         self.newline(node)      
         self.write("public void ")
-        self.write(" Calculate_%s("%self.model.name.lower())
+        if not node.name.startswith("init_"):
+            self.write(" Calculate_%s("%self.model.name.lower())
+        else:
+            self.write("Init(")
+            self.init=True
         self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
         self.newline(node)
         self.write('{') 
@@ -974,41 +991,65 @@ class JavaCompo(JavaTrans, JavaGenerator):
         #self.indentation -= 1 
         self.write('}') 
         self.newline(node)
-        self.private(self.node_param)
-        typ = self.model.name.capitalize()
-        self.write(self.copy_constr_compo%(typ,typ))###### copy constructor 
-        self.copyconstructor(self.node_param)
-        self.newline(extra=1)
-        self.write('}') 
+        if not node.name.startswith("init_"):
+            self.private(self.node_param)
+            typ = self.model.name.capitalize()+"Component"
+            self.write(self.copy_constr_compo%(typ,typ))###### copy constructor 
+            self.copyconstructor(self.node_param)
+            self.newline(extra=1)
+            self.write('}') 
+        else: 
+            self.init = True
+            for arg in self.add_features(node):
+                if "feat" in dir(arg):
+                    if arg.feat in ("OUT", "INOUT"):
+                        self.newline(node) 
+                        if arg.name in self.states:
+                            self.write("s.set%s(%s);"%(arg.name,arg.name))
+                        if arg.name in self.rates:
+                            self.write("r.set%s(%s);"%(arg.name,arg.name))
+                        if arg.name in self.auxiliary:
+                            self.write("a.set%s(%s);"%(arg.name,arg.name))
+            self.write("")
         self.newline(node)
     
     def visit_declaration(self, node):
-        pass
+        print(node.type, self.init)
+        if self.init is True:
+            return JavaGenerator(self.tree).visit_declaration(node)
+        else: 
+            pass
+            
     
     def visit_return(self, node):
         self.newline(node)
     
+    def visit_implicit_return(self, node):
+        pass
+
+    """def visit_local(self, node):
+        if node.name in self.statesName:
+            self.write("s.set%s"%node.name)
+        elif node.name in self.ratesName:
+            self.write("r.set%s"%node.name)
+        elif node.name in self.auxiliaryName:
+            self.write("a.set%s"%node.name)
+        else: self.write(node.name)"""
+
     def visit_assignment(self, node):
        
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
             self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
             self.newline(node)
-        else:
-            self.newline(node)        
-            if node.target.name in self.statesName:
-                self.write('s.set%s('%(node.target.name))
-            if node.target.name in self.ratesName:
-                self.write('r.set%s('%(node.target.name))
-            if node.target.name in self.auxiliaryName:
-                self.write('a.set%s('%(node.target.name))
-            if node.value.name in self.statesName:
-                self.write('s.get%s());'%(node.value.name))
-            if node.value.name in self.ratesName:
-                self.write('r.get%s());'%(node.value.name))
-            if node.value.name in self.auxiliaryName:
-                self.write('a.get%s());'%(node.value.name))
+        else:    
             self.newline(node)
+            self.visit(node.target)
+            self.write(' = ')
+            self.visit(node.value) 
+            self.write(";")
+            self.newline(node)
+
 
     def setCompo(self, p):
         a=[]

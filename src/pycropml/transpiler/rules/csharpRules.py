@@ -132,7 +132,7 @@ class CsharpRules(GeneralRule):
         } 
     }'''
 
-    public_properties_wrap = '''{ get { return %s.%s}} 
+    public_properties_wrap = '''{ get { return %s.%s;}} 
      '''  
     constructor = '''
     public %s()

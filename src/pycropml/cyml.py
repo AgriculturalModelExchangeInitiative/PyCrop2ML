@@ -15,8 +15,9 @@ from pycropml.transpiler.generators.csharpGenerator import to_struct_cs, to_wrap
 from pycropml.transpiler.generators.javaGenerator import to_struct_java
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
+from pycropml.transpiler.generators.siriusGenerator import to_struct_sirius,to_wrapper_sirius
 
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace'}
+NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check"}
 
 def transpile_file(source, language):
     sourcef = source
@@ -65,32 +66,25 @@ def transpile_package(package, language):
     m2p.write_tests()
 
 
-    # generate
+    # generate cyml functions
     cyml_rep = Path(os.path.join(output, 'pyx')) # cyml model directory in output
 
+    # cretae topology of composite model
     T = Topology(namep,package)
-    T_pyx = T.algo2cyml()
     namep = T.model.name.lower()
-    fileT = Path(os.path.join(cyml_rep, "%s.pyx"%namep))
-    with open(fileT, "wb") as tg_file:
-        tg_file.write(T_pyx.encode('utf-8'))  
 
-    if language in ("cs", "java"):
+    # domain class
+    if language in ("cs", "java", 'sirius'):
         getattr(getattr(pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[language]),
                 'to_struct_%s' % language)([T.model],tg_rep, namep)
-        to_wrapper_cs(T.model,tg_rep, namep) if language =="cs" else ""
+        if language =="cs":  to_wrapper_cs(T.model,tg_rep, namep) 
+        if language =="sirius":  to_wrapper_sirius(T.model,tg_rep, namep)
 
-    filename = Path(os.path.join(tg_rep, "%s.%s"%(namep.capitalize(), language)))
-    
-    with open(filename, "wb") as tg_file:
-        tg_file.write(T.compotranslate(language).encode('utf-8'))      
-    
+    # Transform model unit to languages and platforms
     for k, file in enumerate(cyml_rep.files()):
-        #print(file)
         with open(file, 'r') as fi:
             source = fi.read()
-
         name = os.path.split(file)[1].split(".")[0]
         for model in models:                         # in the case we have'nt the same order
             if name.lower() == model.name.lower() and prefix(model)!="function":
@@ -98,12 +92,23 @@ def transpile_package(package, language):
                 test.parse()
                 test.to_ast(source)
                 code=test.to_source()
-                filename = Path(os.path.join(tg_rep, "%s.%s"%(name.capitalize(), language)))
+                filename = Path(os.path.join(tg_rep, "%s.%s"%(name.capitalize(), ext(language))))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                 Model2Nb(model,code,name,dir_test_lang).generate_nb(language,tg_rep,namep)
                 #code2nbk.generate_notebook(code, name, dir_nb_lang)
 
+    # Create Cyml Composite model
+    T_pyx = T.algo2cyml()
+    fileT = Path(os.path.join(cyml_rep, "%sComponent.pyx"%namep))
+    with open(fileT, "wb") as tg_file:
+        tg_file.write(T_pyx.encode('utf-8'))  
+
+    filename = Path(os.path.join(tg_rep, "%sComponent.%s"%(namep.capitalize(), ext(language))))
+    
+    with open(filename, "wb") as tg_file:
+        tg_file.write(T.compotranslate(language).encode('utf-8'))      
+    
 
     # writeTest
     '''TODO'''
@@ -112,3 +117,9 @@ def transpile_package(package, language):
 
     status = 0
     return status
+
+def ext(language):
+    if language=="sirius": return "cs"
+    elif language =="simplace": return "java"
+    elif language =="openalea": return "py"
+    else: return language

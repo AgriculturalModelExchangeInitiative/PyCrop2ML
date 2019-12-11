@@ -12,6 +12,7 @@ import os.path
 import six
 import shutil
 from . import error
+import sys
 
 DATATYPE = {}
 DATATYPE['INT'] = "int"
@@ -47,7 +48,7 @@ class Model2Package(object):
     def run(self):
         """TODO."""
         self.generate_package()
-        self.write_tests()
+        #self.write_tests()
 
 
     def generate_package(self):
@@ -61,7 +62,7 @@ class Model2Package(object):
 
         # Create a directory (mymodel)
         
-        directory=self.cwd/'pyx'
+        directory=os.path.join(self.cwd,'pyx')
         if (directory).isdir() :
             self.dir = directory
         else:
@@ -71,7 +72,7 @@ class Model2Package(object):
         count = 0
         for model in self.models:          
             self.generate_component(model) 
-            filename = Path(os.path.join(self.dir,"%s.pyx"%signature(model).capitalize() ))                    
+            filename = Path(os.path.join(self.dir,"%s.pyx"%signature(model).capitalize() ))                   
             with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
                 cyml_file.write(self.code.encode('utf-8'))
@@ -92,12 +93,16 @@ class Model2Package(object):
    
         self.code += self.generate_function_signature(func_name, model_unit)
         self.code += self.generate_function_doc(model_unit)
-        self.code += self.generate_algorithm(model_unit)  
+        if  sys.version_info[0]>=3:
+            self.code += self.generate_algorithm(model_unit) 
+        else : self.code += self.generate_algorithm(model_unit).decode("utf-8") 
+
             
         if model_unit.function:
             for function in model_unit.function:
                 if function.language in ("Cyml", "cyml"):
-                    filefunc = Path(os.path.dirname(self.cwd))/"crop2ml"/function.filename
+                    filefunc = Path(os.path.join(model_unit.path,"crop2ml",function.filename))
+                    print(filefunc)
                     with open(filefunc.encode('utf-8'), 'r') as f:
                         source = f.read()
                         self.code += source 
