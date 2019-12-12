@@ -19,7 +19,7 @@
   }, 
   "doc/_static/nonempty.txt": {}, 
   "doc/conf.py": {
-    "sphinx": "9Es4xBjP4wNP42oYEuv0YtrjJd3GtgmcJwjQ8eqR0C5L3oviEvXYcjN1llUKtI++GsN63ZYh97vKwZNMldJiCw=="
+    "sphinx": "gH2ejqKE2tfDLnlBIdikVtfg3Q24v4eeWNuU0pDUJFQMZOvf1wevuVtbtuW/V77hT9U1xp8+uCEQWFGhc0GcQw=="
   }, 
   "doc/make.bat": {
     "sphinx": "E9sFsnXAm9uPYBn7f0Qb6edct0UKizsXRIJyjZISRCjHbT2HldXK4GIj1yO69R/OVSfnmdAX5lzXQ4wONQNFgA=="
@@ -38,13 +38,13 @@
   }, 
   "setup.py": {
     "pysetup.call": "t30iIuCMd/sWxStR2XNYb8bCBgwanhKt8YYn2VKACyAqL5cKFRUWpVRIpAR+uxXUZ9PYYy2csMmECcONnRZE8w==", 
-    "pysetup.kwds": "KGzI9FnrlIttIthe2/HGAD1nDHZ4zH3USpA/6lyBU1VBPukkTkvbGFt2nTZgkbZYYX5+8mq4R8XMchsMXrvHGQ=="
+    "pysetup.kwds": "vMDaRG0BFMU6BN0LCHqwapjFdmLHc9EIJ/5xYTcoogCKI6/yuRMLIDgb+g/jUNoXI+6D6Hy9TDUvXL+JNGhKPQ=="
   }, 
   "src/pycropml/__init__.py": {
     "base": "+GVGxVjJGifAp8dAR9V2W3aVPe7/D53bN7r0O5VxO9OUqG4vnGTZvnORu1objjjIwm86DgemQd7ax/IJpRa8Wg=="
   }, 
   "src/pycropml/version.py": {
-    "version": "LUfWWi6YGFd5aBPyVXJsi8S9WYGJB04teFuZx8ekMC0L1URqvAP8FQm3aeOl8JcKazpQ77c7iSLIkpiD/Usy1g=="
+    "version": "QCUO1pBTHH3DnYyLfaT7MIrQzf26p4kProdwI4tW7jKEedOTrF4UBlTND37aru8ZeJ5TQgtSgayTvxxvlCVS9A=="
   }, 
   "test/__init__.py": {}, 
   "test/conftest.py": {

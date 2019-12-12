@@ -34,7 +34,7 @@ pkg_data['pycropml'] = data_files
 
 setup_kwds = dict(
     name='pycropml',
-    version="0.1.1",
+    version="1.1.0",
     description=short_descr,
     long_description=readme + '\n\n' + history,
     author="Cyrille Ahmed Midingoyi",
@@ -45,8 +45,8 @@ setup_kwds = dict(
 
     packages=pkgs,
     package_dir={'': 'src'},
-
-
+    
+    
     package_data=pkg_data,
     setup_requires=[
         "pytest-runner",
