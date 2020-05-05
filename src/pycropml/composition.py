@@ -38,6 +38,7 @@ class ModelComposition(ModelDefinition):
         self.inputs=[]
         self.outputs=[]
         self.path = None
+        self.aPath=None
  
 
     def add_description(self, description):
@@ -77,6 +78,8 @@ class Models(ModelComposition, ModelUnit):
         self.description = None
         self.parametersets = None
         self.testsets = None
+        self.function = []
+        self.initialization = None
 
  
  
@@ -98,6 +101,7 @@ class ModelParser(Parser):
 
     def parse(self, fn):
         self.modelcompos = []
+        self.aPath=os.path.abspath(fn)
         self.path_mc =retrieve_path(fn)
           
         # Current proxy node for managing properties
@@ -119,6 +123,7 @@ class ModelParser(Parser):
         kwds = elts.attrib
         self._modelcompo = ModelComposition(kwds)
         self._modelcompo.path = self.path_mc
+        self._modelcompo.aPath = self.aPath
         self.modelcompos.append(self._modelcompo)
         
         for elt in list(elts):

@@ -37,6 +37,9 @@ Example
         java for java
         simplace for simplace
         sirius for sirius
+        openAlea
+        cpp for C++
+        r
 
 """
 #TODO

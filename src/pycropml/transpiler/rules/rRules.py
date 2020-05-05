@@ -4,22 +4,21 @@ from pycropml.transpiler.pseudo_tree import Node
 
 
 def translateNotContains(node):
-    return Node("simpleCall", op='not in', value=node.args, sequence=node.receiver, pseudo_type='Boolean')
+    return Node("call", function="!", args=[Node("simpleCall", op='%in%', value=node.args, sequence=node.receiver, pseudo_type='Boolean')])
 
 def translateDictkeys(node): return Node("method_call", receiver=node.receiver, message=".keys()", args=[], pseudo_type=node.pseudo_type)
-def translatePrint(node): return Node(type="ExprStatNode", expr=Node(type="call", function="print", args=node.args[0].elements))
+def translatePrint(node): return Node(type="ExprStatNode", expr=Node(type="custom_call", function="print", args= node.args if "elements" not in dir(node.args[0]) else [arg for arg in node.args[0].elements]))
 def translateModulo(node): return Node(type="binary_op", op="%", left=node.args[0], right=node.args[1])
 
 
-
-class PythonRules(GeneralRule):
+class RRules(GeneralRule):
 
     def __init__(self):
         GeneralRule.__init__(self)
 
-    binary_op = {"and": "and",
-                 "or": "or",
-                 "not": "not",
+    binary_op = {"and": "&&",
+                 "or": "||",
+                 "not": "!",
                  "<": "<",
                  ">": ">",
                  "==": "==",
@@ -30,7 +29,7 @@ class PythonRules(GeneralRule):
                  ">=": ">=",
                  "<=": "<=",
                  "!=": "!=",
-                 "%":"%"
+                 "%":"%%"
                  }
 
     unary_op = {
@@ -44,11 +43,9 @@ class PythonRules(GeneralRule):
         "int": "int",
         "float": "float",
         "bool": "bool",
-        "list": "list",
-        "tuple": "tuple",
+        "list": "vector",
         "str": "str",
-        "dict": "dict",
-        "datetime":"datetime"
+        "datetime":"str"
     }
 
     functions = {
@@ -62,7 +59,7 @@ class PythonRules(GeneralRule):
             'acos':        'acos',
             'atan':         'atan',
             'sqrt':         'sqrt',
-            'ceil':         'ceil',
+            'ceil':         'ceiling',
             'round':        'round',
             'exp':         'exp'
 
@@ -80,33 +77,33 @@ class PythonRules(GeneralRule):
             'pow': 'pow',
             'modulo': translateModulo},
         'datetime':{
-            'datetime': 'datetime'
+            'datetime':  lambda node : Node(type="str", value=argsToStr(node.args))
         }
     }
 
     methods = {
 
         'int': {
-            'float': 'float'
+            'float': 'as.double'
         },
         'float': {
-            'int': 'int'
+            'int': 'as.integer'
         },
         'str': {
-            'int': 'int',
+            'int': 'as.character',
             'find': '.index'
         },
         'list': {
-            'len': 'len',
-            'append': '.append',
+            'len': 'length',
+            'append': lambda node: Node(type="assignment", target=node.receiver, value=Node(type="call", function="c", args=[node.receiver,node.args])),
             'sum': 'sum',
             'pop': '.pop',
-            'contains?': lambda node: Node("simpleCall", op='in', value=node.args, sequence=node.receiver, pseudo_type='Boolean'),
+            'contains?': lambda node: Node("simpleCall", op='%in%', value=node.args, sequence=node.receiver, pseudo_type='Boolean'),
             'not contains?': translateNotContains,
-            'index': '.index'
+            'index': lambda node: Node("call", function="which", args=[Node("simpleCall", op='%in%', value=node.receiver, sequence=node.args, pseudo_type='Boolean')])
         },
         'datetime':{
-            'datetime':'datetime',
+            'datetime': lambda node : Node(type="str", value=argsToStr(node.args)),
             'day':'day'
         },
         'array': {
@@ -121,3 +118,9 @@ class PythonRules(GeneralRule):
         }
 
     }
+
+def argsToStr(args):
+    t=[]
+    for arg in args:
+        t.append(arg.value)
+    return "%s"%('/'.join(t))

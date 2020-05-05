@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
-from pycropml.transpiler.rules.pythonRules import PythonRules
+from pycropml.transpiler.rules.rRules import RRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 import os
 from pycropml.render_cyml import signature
@@ -8,21 +8,23 @@ from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 
-class PythonGenerator(CodeGenerator, PythonRules):
+class RGenerator(CodeGenerator, RRules):
     """This class contains the specific properties of 
-    python language and use the NodeVisitor to generate a python
+    R language and use the NodeVisitor to generate a R
     code source from a well formed syntax tree.
     """
     def __init__(self, tree, model=None, name = None):
         CodeGenerator.__init__(self)
-        PythonRules.__init__(self)
+        RRules.__init__(self)
         self.tree=tree
         self.model=model
         self.name = name
         self.indent_with=' '*4 
         self.imp=True
+        self.index=[]
+        self.funcname=None
         if self.model: 
-            self.doc=DocGenerator(self.model, " ")
+            self.doc= DocGenerator(model, "#'")
 
     def comment(self,doc):
         list_com = [self.indent_with + '#'+x for x in doc.split('\n')]
@@ -30,32 +32,36 @@ class PythonGenerator(CodeGenerator, PythonRules):
         return com
     
     def visit_import(self, node):
-        if self.imp:
-            self.write(u"import %s" % node.module)
+        pass
 
     def visit_notAnumber(self, node):
-        self.write("float('nan')")
+        self.write("NaN")
 
     def visit_assignment(self, node):
         self.newline(node)
         self.visit(node.target)
-        self.write(' = ')
+        self.write(' <- ')
         self.visit(node.value)
 
     def visit_cond_expr_node(self, node):
-        self.visit(node.true_val)
-        self.write(u" if ")
+        self.write(u" if (")
         self.visit(node.test)
+        self.write(")")
+        self.visit(node.true_val)
         self.write(u" else ")
-        self.visit(node.false_val)  
+        self.visit(node.false_val) 
         
 
     def visit_if_statement(self, node):
         self.newline(node)
-        self.write('if ')
+        self.write('if (')
         self.visit(node.test)
-        self.write(':')
+        self.write(')')
+        self.newline(node)
+        self.write('{')
         self.body(node.block)
+        self.newline(node)
+        self.write('}')
         while True:
             else_ = node.otherwise
             if len(else_) == 0:
@@ -66,34 +72,40 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.visit(else_)
                 break
             break
-    
+
     def visit_elseif_statement(self, node):
         self.newline()
-        self.write('elif ')
+        self.write('else if ( ')
         self.visit(node.test)
-        self.write(':')
+        self.write(')')
+        self.newline(node)
+        self.write('{')
         self.body(node.block)
+        self.newline(node)
+        self.write('}')  
 
     def visit_else_statement(self, node):
         self.newline()
-        self.write('else:')
+        self.write('else')
+        self.newline(node)
+        self.write('{')        
         self.body(node.block)
-    
+        self.newline(node)
+        self.write('}')
+
     def visit_float(self, node):
         self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(str(node.value))
+        self.write(str(node.value).upper())
 
     def visit_str(self, node):
-        self.safe_double(node)
+        self.emit_string(node)
+        #self.write("%s"%str(node.value))
     
     def visit_tuple(self, node):
         self.emit_sequence(node.elements, u"()")
-        
-    def visit_dict(self, node):
-        self.emit_sequence(node.pairs, u"{}")
-        
+              
     def visit_pair(self, node):
         self.visit(node.key)
         self.write(u": ")
@@ -104,23 +116,23 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.visit(node.expr)
     
     def visit_list(self, node):
-        self.emit_sequence(node.elements, u"[]")
+        if len(node.elements)==0: return self.write("vector()")
+        self.write("c")
+        self.emit_sequence(node.elements, u"()")
 
     def visit_datetime(self, node):
-        self.write("datetime")
-        self.emit_sequence(node.value, u"()")
-
+        self.write("'%s/%s/%s'"%(node.value[0].value,node.value[1].value,node.value[2].value))
+    
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
         if isinstance(l, list):
             l = l[0]
-        z = self.methods[l][node.message]
+        z = self.methods[l][node.message]        
         if callable(z):
             self.visit(z(node))
-        
         else:
             if not node.args:
-                self.write(node.message)
+                self.write(z)
                 self.write('(')
                 self.visit(node.receiver)
                 self.write(')')
@@ -129,9 +141,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.write("(")
                 self.comma_separated_list(node.args)
                 self.write(")")
-
-    def visit_custom_call(self, node):
-        self.visit_call(node)
+                
+    def visit_standard_call(self, node):
+        node.function = self.functions[node.namespace][node.function]
+        self.visit_call(node) 
 
 
     def visit_index(self, node):
@@ -139,9 +152,23 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write(u"[")
         if isinstance(node.index.type, tuple):
             self.emit_sequence(node.index)
+            self.write(u"]") 
         else:
-            self.visit(node.index)
-        self.write(u"]") 
+                if node.index.type=='standard_method_call':
+                    self.visit(node.index)
+                    if node.index.message=="index" :
+                        self.write(u"]")
+                elif node.index.type=="int":
+                    z=int(node.index.value)+1
+                    if z!=0: self.write(str(z))
+                    if int(node.index.value)<0:
+                        if z!=0: self.write("%z +")
+                        self.write(" SIZE(%s)"%node.sequence.name)
+                    self.write(u"]")
+                else:
+                    self.visit(node.index)
+                    self.write("+1]")
+        
     
     def visit_sliceindex(self, node):
         self.visit(node.receiver)
@@ -161,8 +188,6 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
     def visit_module(self, node):
         self.newline(extra=1)
-        self.newline(node)
-        self.write("# coding: utf8")
         self.newline(node)
         self.visit(node.body)
 
@@ -203,20 +228,18 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_function_definition(self, node):
         self.newline(extra=1)
         self.newline(node)
-        self.write('def %s(' % node.name)
-        for i, pa in enumerate(node.params):
-            #if pa.type == "local": 
+        self.funcname = node.name
+        self.write('%s <- function (' % node.name)
+        for i, pa in enumerate(node.params): 
             self.write(pa.name)
             if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
-                #self.write(pa.name)
                 self.write(" = ")
                 self.visit(pa)  
             if i!= (len(node.params)-1):
                 self.write(',\n         ')
-        self.write('):')
+        self.write('){')
         self.newline(node)
         if self.model and node.name.split("model_")[1]==signature(self.model):
-            self.write('    """\n')
             self.write(self.doc.header)
             self.newline(node)
             self.write(self.doc.desc)
@@ -225,18 +248,32 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.newline(node)
             self.write(self.doc.outputs_doc)
             self.newline(node)
-            self.write('    """\n')
-            self.newline(node)
             self.model = None
         self.body(node.block)
-        
+        self.newline(node)
+        self.write("}")
+
     def visit_implicit_return(self, node):
         self.newline(node)
         if node.value is None:
-            self.write('return')
+            pass
+        elif node.value.type=="tuple": 
+            self.write("return (list (")
+            self.multValreturn(node.value.elements)
+            self.write("))")
         else:
-            self.write('return ')
-        self.visit(node.value)
+            if self.funcname.startswith("model"):
+                self.write("return (list('%s' = %s))"%(node.value.name, node.value.name))                
+            else:
+                self.write('return( ')
+                self.visit(node.value)
+                self.write(')')
+
+    def multValreturn(self, node):
+        for n in node:
+            self.write('"%s" = %s'%(n. name, n.name))
+            if n!=node[len(node)-1]:
+                self.write(",")
 
     def visit_declaration(self, node):
         self.newline(node)
@@ -244,50 +281,40 @@ class PythonGenerator(CodeGenerator, PythonRules):
             if 'value' in dir(n) and n.type in ("int", "float"):
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = ")                 
+                self.write(" <- ")                 
                 self.write(n.value)
             elif 'value' in dir(n) and n.type=="bool":
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = ") 
-                self.write(str(n.value))        
+                self.write(" <- ") 
+                self.write(str(n.value).upper())        
             elif 'value' in dir(n) and n.type=="str":
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = ") 
-                self.emit_string(n)                
+                self.write(" <- ") 
+                self.emit_string(n) 
             elif 'elements' in dir(n) and n.type in ("list", "tuple"):
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = ") 
+                self.write(" <- ") 
                 if n.type=="list":                
                     self.visit_list(n)
                 else: self.visit_tuple(n)
-            elif 'args' in dir(n) and n.type=='datetime':
+            elif "elts" in dir(n) and n.type=='datetime':
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = datetime") 
-                self.visit_datetime               
-            elif 'pairs' in dir(n) and n.type=="dict":
+                self.write(" <- ") 
+                self.visit(n.elts)               
+            elif n.type=="array" and 'elements' in dir(n):       
+                self.visit_array(n)
+            elif n.type in ("list", "array"):
                 self.newline(node)
                 self.write(n.name)
-                self.write(" = ")                 
-                self.visit_dict(n)
-            elif n.type=="array" and 'elts' in dir(n):
-                if n.dim == 1:
-                    self.write(n.name)
-                    self.write(" = [0]*%s"%n.elts.value)               
-            elif n.type in ("list"):
-                self.newline(node)
-                self.write(n.name)
-                self.write(" = []")                  
+                self.write(" <- vector()")                  
 
 
     def visit_array(self,node): 
         self.write(node.name)
-        '''self.write(" =np.ndarray((")
-        self.comma_separated_list(node.elts)
-        self.write("),dtype=%s)"%node.pseudo_type[-1])'''
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -296,52 +323,24 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_breakstatnode(self, node):
         self.newline(node)
         self.write('break')              
-        
-    def visit_call(self, node):
-        want_comma = []
-        def write_comma():
-            if want_comma:
-                self.write(', ')
-            else:
-                want_comma.append(True)
-        if "attrib" in dir(node):
-             self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
-        else:
-            self.write(self.visit(node.function))
-        self.write('(')
-        for arg in node.args:
-            write_comma()
-            self.visit(arg)
-        self.write(')')
     
-    def visit_standard_call(self, node):
-        node.function = self.functions[node.namespace][node.function]
-        if callable(node.function):
-               self.visit(node.function(node)) 
-        else: self.visit_call(node)  
-        
     def visit_importfrom(self, node):
-        if self.imp:
-            self.newline(node)
-            if node.namespace=="math":
-                self.write("from math import *")  
-            else:
-                self.write('from %s import ' % (node.namespace))
-                for idx, item in enumerate(node.name):
-                    if idx:
-                        self.write(', ')
-                    self.write(item)
+        pass
     
     def visit_for_statement(self, node):
         self.newline(node)
-        self.write("for ")
+        self.write("for( ")
         if "iterators" in dir(node):
             self.visit(node.iterators) 
         if "sequences" in dir(node):
             self.visit(node.sequences)
+            self.write(')')
+            self.newline(node)
+        self.newline(node)
+        self.write('{')
         self.body(node.block)
+        self.write('}')
 
-    
     def visit_for_iterator_with_index(self, node):
         self.visit(node.index)
         self.write(' , ')
@@ -351,7 +350,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         
         self.write(" in enumerate(")
         self.visit(node.sequence)
-        self.write('):')
+        self.write('){')
     
     def visit_for_iterator(self, node):
         self.visit(node.iterator)
@@ -361,31 +360,35 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.visit(node.sequence)
         self.write(":")
         
-        
     
     def visit_for_range_statement(self, node):
         self.newline(node)
-        self.write("for ")
+        self.index.append(node.index.name)
+        self.write("for( ")
         self.visit(node.index)
-        self.write(" in range(")
+        self.write(" in seq(")
         self.visit(node.start)
-        self.write(' , ')
+        self.write(", ")
         self.visit(node.end)
+        self.write("-1")
         if node.step.value!=1:
-            self.write(' , ')
+            self.write(', ')
             self.visit(node.step)
-        self.write('):')
+        self.write(')){')
         self.body(node.block)
+        self.newline(node )
+        self.write('}')
         
     def visit_while_statement(self, node):
         self.newline(node)
-        self.write('while ')
+        self.write('while( ')
         self.visit(node.test)
-        self.write(':')
+        self.write('){')
         self.body_or_else(node)
+        self.write('}')
 
 
-class PythonCompo(PythonGenerator):
+class RCompo(RGenerator):
     """ This class used to generates states, rates and auxiliary classes
         for C# languages.
     """
@@ -393,6 +396,25 @@ class PythonCompo(PythonGenerator):
         self.tree = tree
         self.model = model
         self.name = name
-        PythonGenerator.__init__(self,tree, model, self.name)
-            
+        RGenerator.__init__(self,tree, model, self.name)
+        x = os.path.split(self.model.aPath)[0]
+        z=x.split('\\')#.pop()
+        z.pop()
+        sourcePath = "/".join(z)+"/src/r"
+        print(sourcePath)
+        self.write("library (gsubfn) ")
+        self.newline()
+        self.write("setwd('%s')"%sourcePath)
+        self.newline()
+        for m in self.model.model:
+            self.write("source('%s.r')"%m.name.lower().capitalize())
+            self.newline()
+
+    def visit_tuple(self,node):
+        self.write("list[")
+        for n in node.elements:
+            self.write(n.name)
+            if n!=node.elements[len(node.elements)-1]:
+                self.write(", ")
+        self.write("]")           
         

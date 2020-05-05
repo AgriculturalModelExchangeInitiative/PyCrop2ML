@@ -83,22 +83,39 @@ class SimplaceGenerator(JavaGenerator):
 
     def visit_function_definition(self, node):
         self.newline(node)
-        self.add_features(node)
         self.funcname = node.name
-        self.write("public void Process()")
         self.newline(node)
-        self.write('{')
-        self.newline(node)
-        self.indentation += 1
-        for arg in self.add_features(node):
-            if "feat" in dir(arg):
-                if arg.feat in ("IN", "OUT", "INOUT"):
-                    self.newline(1)
-                    if self.model :
-                        self.visit_decl(arg.pseudo_type)
-                        self.write(" t")
-                        self.write(arg.name)
-                        self.write(" = %s.getValue();" % arg.name)
+        if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
+            if node.name=="main":
+                self.write("public static void main(String[] args)") 
+            else:
+                self.write("public static ")
+                self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                self.write(" %s("%node.name)
+                for i, pa in enumerate(node.params):
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if i!= (len(node.params)-1):
+                        self.write(', ')
+                self.write(')')
+            self.newline(node)
+            self.write('{') 
+            self.newline(node)
+        else:
+            self.write("public void Process()")
+            self.newline(node)
+            self.write('{')
+            self.newline(node)
+            self.indentation += 1
+            for arg in self.add_features(node):
+                if "feat" in dir(arg):
+                    if arg.feat in ("IN", "OUT", "INOUT"):
+                        self.newline(1)
+                        if self.model :
+                            self.visit_decl(arg.pseudo_type)
+                            self.write(" t")
+                            self.write(arg.name)
+                            self.write(" = %s.getValue();" % arg.name)
         self.indentation -= 1
         self.body(node.block)
         self.newline(node)

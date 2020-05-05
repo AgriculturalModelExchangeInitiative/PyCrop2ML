@@ -179,6 +179,8 @@ class Topology():
                         self.model.model[i].parametersets = mo.parametersets
                         self.model.model[i].testsets = mo.testsets
                         self.model.model[i].path = mo.path
+                        self.model.model[i].function = mo.function
+                        self.model.model[i].initialization = mo.initialization
 
             else:
                 pkgname = m.package_name

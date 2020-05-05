@@ -114,11 +114,12 @@ def mul(l, r):
     else:
         raise PseudoCythonTypeCheckError("wrong types for *: %s and %s" % (serialize_type(l), serialize_type(r)))
 
-def div(l, r):
+def div(l, r, lo):
     if l == 'float' and r in ['float', 'int'] or r == 'float' and l in ['float', 'int']:
         return [l, r, 'float']
     elif l == 'int' and r == 'int':
-        return [l, r, 'int']
+        #○return [l, r, 'int']
+        raise PseudoCythonTypeCheckError("cast one variable at line %s position %s between /: %s and %s" % (lo[0], lo[1], serialize_type(l), serialize_type(r)))
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]    
     else:
@@ -169,6 +170,8 @@ def binary_or(l, r):
 
 
 TYPED_API = {
+        
+    '__name__':'str',
     # methods
     'global': {
         'exit':  ['int', 'Void'],
@@ -190,7 +193,7 @@ TYPED_API = {
         'ln':           ['Number', 'float'],
         'log':          ['Number', 'Number', 'float'],
         'sqrt':         ['Number', 'float'],
-        'ceil':         ['float', 'float'],
+        'ceil':         ['float', 'int'],
         'exp':          ['float','float']
         
         
@@ -227,7 +230,7 @@ TYPED_API = {
         'keys':       [['list','@k']],
         'values':     [['list', '@v']],
         'len':     ['int'],
-        'get':     ['@v','@k']
+        'get':     ['@k','@v']
     },
 
     'datetime': {
@@ -260,6 +263,7 @@ TYPED_API = {
     'int': {'int': ['int'], 'float': ['float']},
     'float': {'int': ['int'], 'float': ['float']},
     'array': {
+        'array': ['array'],
         'len':      ['int'],
         'index':       ['@t', 'int'],
         'count':       ['@t', 'int'],
@@ -374,7 +378,7 @@ KEY_TYPES = {'str', 'int', 'float', 'bool'}
 
 PSEUDO_KEY_TYPES = {'str', 'int', 'float', 'bool'}
 
-BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow'}
+BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow', "mean", "count"}
 
 FORBIDDEN_TOP_LEVEL_FUNCTIONS = {'map', 'filter'}
 
