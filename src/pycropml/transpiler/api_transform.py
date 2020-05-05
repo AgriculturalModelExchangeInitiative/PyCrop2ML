@@ -1,5 +1,8 @@
 # coding: utf8
 ##########################################
+
+# inspired from pseudo-python
+
 from __future__ import absolute_import
 from __future__ import print_function
 from pycropml.transpiler.builtin_typed_api import builtin_type_check
@@ -104,13 +107,23 @@ def min_expander(type, message, args):
     if len(args)==1:
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': args[0]["pseudo_type"][1]}
     else:
-        return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
+        for i in range(len(args)-1):
+            if args[i]["pseudo_type"]!=args[i+1]["pseudo_type"]:
+                pseudo = "float"
+                break
+            else: pseudo = args[i]["pseudo_type"]
+        return {'type': 'standard_call', 'namespace': 'system', 'function': 'min', 'args': args, 'pseudo_type': pseudo}
         
 def max_expander(type, message, args):
     if len(args)==1:
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'max', 'args': args, 'pseudo_type': args[0]["pseudo_type"][1]}
     else:
-        return {'type': 'standard_call', 'namespace': 'system', 'function': 'max', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
+        for i in range(len(args)-1):
+            if args[i]["pseudo_type"]!=args[i+1]["pseudo_type"]:
+                pseudo = "float"
+                break
+            else: pseudo = args[i]["pseudo_type"]
+        return {'type': 'standard_call', 'namespace': 'system', 'function': 'max', 'args': args, 'pseudo_type':pseudo}
   
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
@@ -127,6 +140,12 @@ def datetime_expander(type, message, args):
     else: raise PseudoCythonTypeCheckError('datetime expects 3, 4, 5 or 6 args')
     
     return {'type': 'standard_call', 'namespace': 'datetime', 'function': 'datetime', 'args': args, 'pseudo_type': 'datetime'}
+
+def array_expander(type, message, args):
+    print(args, message)
+
+    return {'type': 'standard_call', 'namespace': 'numpy', 'array': 'array', 'args': args, 'pseudo_type': 'array'}
+
 
 
 def pow_expander(type, message, args):
@@ -177,11 +196,17 @@ FUNCTION_API = {
         'sqrt':     StandardCall('math', 'sqrt'),
         'ceil':     StandardCall('math', 'ceil'),
         'exp':      StandardCall('math', 'exp')
+        
     },
     'datetime':{
         'datetime': StandardMethodCall('datetime', 'datetime', expander = datetime_expander )
+        
 
-    }
+    },
+    'array':{
+        'array': StandardMethodCall('numpy', 'array', expander = array_expander )
+    }    
+    
 }
 
 METHOD_API = {
@@ -192,7 +217,7 @@ METHOD_API = {
         'lower':      StandardMethodCall('str', 'lower'),
         'title':      StandardMethodCall('str', 'title'),
         'center':     StandardMethodCall('str', 'center', default={1: [{'type': 'str', 'value': ' ', 'pseudo_type': 'str'}]}),
-        'index':      {
+        'find':      {
             1:        StandardMethodCall('str', 'find'),
             2:        StandardMethodCall('str', 'find_from')
         }
@@ -237,6 +262,15 @@ METHOD_API = {
     'tuple': {
     }
 }
+
+CONSTANT_API = {
+      'math':{
+              
+              'pi':{'type':'constant', 'library':'math', 'pseudo_type':'float', 'name':'pi'}
+              
+              }  
+        
+        }
 
 OPERATOR_API = {
     'list':  {

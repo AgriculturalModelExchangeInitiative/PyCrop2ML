@@ -16,8 +16,10 @@ from pycropml.transpiler.generators.javaGenerator import to_struct_java
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
 from pycropml.transpiler.generators.siriusGenerator import to_struct_sirius,to_wrapper_sirius
+from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
 
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check"}
+
+NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check"}
 
 def transpile_file(source, language):
     sourcef = source
@@ -29,7 +31,6 @@ def transpile_file(source, language):
     test.parse()
     test.to_ast(source)
     code = test.to_source()
-    print(code)
     filename = "%s.%s" % (name, language)
     with open(filename, "wb") as tg_file:
         tg_file.write(code.encode('utf-8'))
@@ -74,7 +75,7 @@ def transpile_package(package, language):
     namep = T.model.name.lower()
 
     # domain class
-    if language in ("cs", "java", 'sirius'):
+    if language in ("cs", "java", 'sirius','cpp'):
         getattr(getattr(pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[language]),
                 'to_struct_%s' % language)([T.model],tg_rep, namep)
@@ -109,12 +110,6 @@ def transpile_package(package, language):
     with open(filename, "wb") as tg_file:
         tg_file.write(T.compotranslate(language).encode('utf-8'))      
     
-
-    # writeTest
-    '''TODO'''
-    #test = WriteTest(models,language,dir_test_lang)
-    #test.write()
-
     status = 0
     return status
 

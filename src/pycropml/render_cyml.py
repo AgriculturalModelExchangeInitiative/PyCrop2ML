@@ -91,7 +91,7 @@ class Model2Package(object):
         self.code= "import numpy \n" + "from math import *\n"
         if "DATE" in types or "DATELIST" in types: self.code += "from datetime import datetime\n\n" 
    
-        self.code += self.generate_function_signature(func_name, model_unit)
+        self.code += self.generate_function_signature(func_name, model_unit.inputs)
         self.code += self.generate_function_doc(model_unit)
         if  sys.version_info[0]>=3:
             self.code += self.generate_algorithm(model_unit) 
@@ -102,7 +102,6 @@ class Model2Package(object):
             for function in model_unit.function:
                 if function.language in ("Cyml", "cyml"):
                     filefunc = Path(os.path.join(model_unit.path,"crop2ml",function.filename))
-                    print(filefunc)
                     with open(filefunc.encode('utf-8'), 'r') as f:
                         source = f.read()
                         self.code += source 
@@ -148,21 +147,27 @@ class Model2Package(object):
         
         """ we  declare all outputs which are not in inputs"""
         output_declaration=""
+        z=[]
         for inp in inputs:
-            list_inputs.append(inp.name)
+            if "parametercategory" not in dir(inp):
+                list_inputs.append(inp.name)
+                output_declaration += tab+"cdef "+my_input(inp, defa=False)+"\n"
         for out in outputs:
             if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+my_input(out)+"\n"
+                output_declaration += tab+"cdef "+my_input(out, defa = False)+"\n"
         code =""
         if model_unit.initialization:
             file_init = model_unit.initialization[0].filename
             path_init = Path(os.path.join(model_unit.path,"crop2ml", file_init))
-        
+            par = []
+            for inp in inputs:
+                if "parametercategory" in dir(inp):
+                    par.append(inp)        
             with open(path_init, 'r') as f:
                 code_init = f.read() 
             if code_init is not None :         
                 lines = [tab+l for l in code_init.split('\n') if l.split()]
-                code += self.generate_function_signature("init_%s"%signature(model_unit),model_unit) +'\n'
+                code += self.generate_function_signature("init_%s"%signature(model_unit),par) +'\n'
                 code += output_declaration
                 code += '\n'.join(lines)
                 code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'            
@@ -180,8 +185,8 @@ class Model2Package(object):
 '''%generate_doc(model_unit)
         return doc
 
-    def generate_function_signature(self, func_name,model_unit):
-        inputs = model_unit.inputs
+    def generate_function_signature(self, func_name,inputs):
+        #inputs = model_unit.inputs
         # Compute name from title.
         # We need an explicit name rather than infering it from Title
         #name = desc.Title
@@ -390,7 +395,7 @@ def my_input(_input, defa=True):
     name = _input.name
     _type = _input.datatype
         
-    if 'default' in dir(_input):
+    if 'default' in dir(_input) and defa==True:
         if _input.default :
             default = _input.default              
             if DATATYPE[_type]  == "bool":
@@ -421,4 +426,18 @@ def my_input(_input, defa=True):
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return ("%s %s[%s]"%(DATATYPE[_type], name, length))
             else:
-                return ("%s %s"%(DATATYPE[_type], name))            
+                return ("%s %s"%(DATATYPE2[_type], name))            
+
+DATATYPE2 = {}
+DATATYPE2['INT'] = "int"
+DATATYPE2['STRING'] = "str"
+DATATYPE2['DOUBLE'] = "float"
+DATATYPE2['DOUBLELIST'] = "floatlist"
+DATATYPE2['INTLIST'] = "intlist"
+DATATYPE2['STRINGLIST'] = "stringlist"
+DATATYPE2['CHARLIST'] = "stringlist"
+DATATYPE2['DATELIST'] = "datelist"
+DATATYPE2['DOUBLEARRAY'] = "floatarray"
+DATATYPE2['INTARRAY'] = "intarray"
+DATATYPE2['BOOLEAN'] = "bool"
+DATATYPE2['DATE'] = "datetime"

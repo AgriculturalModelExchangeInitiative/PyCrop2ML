@@ -44,7 +44,7 @@ class Model2Nb(object):
         _cells = self.nb['cells'] = [nbf.v4.new_markdown_cell(text)]
 
         var = ["Auxiliary", "Rate", "State"] 
-        if language in ("cs", "java"):
+        if language in ("cs", "java","cpp"):
             for v in var:
                 fileVar = Path(os.path.join(tg_rep, "%s%s.%s"%(namep.capitalize(),v, language)))
                 with open(fileVar, "r") as var_file:
@@ -61,7 +61,7 @@ class Model2Nb(object):
         _cells.append(nbf.v4.new_markdown_cell(text))
         code_tests = getattr(pycropml.test_generator,"generate_test_%s"%language)(self.model,self.dir)
 
-        if language in ("cs", "java", "py"):
+        if language in ("cs", "java", "py","cpp","r"):
             _cells.append(nbf.v4.new_code_cell(self.code)) 
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))

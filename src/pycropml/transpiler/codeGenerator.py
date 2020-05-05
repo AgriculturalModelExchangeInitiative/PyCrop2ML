@@ -55,7 +55,32 @@ class CodeGenerator(NodeVisitor):
                 self.visit(item)
                 self.write(u", ")
             self.visit(items[-1])  
+
+    def visit_custom_call(self, node):
+        self.visit_call(node)
+
+    def visit_call(self, node):
+        want_comma = []
+        def write_comma():
+            if want_comma:
+                self.write(', ')
+            else:
+                want_comma.append(True)
+        if "attrib" in dir(node) and node.namespace!="math":
+             self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
+        else:
+            if callable(node.function):
+                self.visit(node.function(node))
+            else: 
+                self.write(node.function)
+                self.write('(')
+                for arg in node.args:
+                    write_comma()
+                    self.visit(arg)
+                self.write(')')
     
+
+
     def visit_for_sequence(self, node):
         self.visit(node.sequence)
     

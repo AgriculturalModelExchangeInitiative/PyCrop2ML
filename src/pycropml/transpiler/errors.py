@@ -48,4 +48,3 @@ def tab_aware(location, code):
     if tabs in beginning of code, add tabs for them, otherwise spaces
     '''
     return ''.join(' ' if c != '\t' else '\t' for c in code[:location])
-

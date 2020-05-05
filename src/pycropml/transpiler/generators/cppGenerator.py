@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
-from pycropml.transpiler.rules.csharpRules import CsharpRules
+from pycropml.transpiler.rules.cppRules import CppRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
 import os
@@ -11,26 +11,25 @@ from pycropml.transpiler.ast_transform import AstTransformer, transform_to_synta
 from pycropml import code2nbk
 from pycropml.render_cyml import my_input
 
-class CsharpGenerator(CodeGenerator,CsharpRules):
+class CppGenerator(CodeGenerator,CppRules):
     """ This class contains the specific properties of
-    Csharp language and use the NodeVisitor to generate a csharp
+    C++ language and use the NodeVisitor to generate a cpp
     code source from a well formed syntax tree.
     """
     
     def __init__(self, tree, model=None, name=None):
         CodeGenerator.__init__(self)
-        CsharpRules.__init__(self)
+        CppRules.__init__(self)
         self.tree = tree
         self.model=model
         self.indent_with=' '*4
         self.initialValue=[] 
-        self.write(u"using System;\nusing System.Collections.Generic;\nusing System.Linq;\n")
-        self.name= name
         self.z = middleware(self.tree)
         self.z.transform(self.tree)
+        self.name= name
         if self.model: 
             self.doc= DocGenerator(model, '//')
-            self.generator = CsharpTrans([model])
+            self.generator = CppTrans([model])
             self.generator.model2Node()
             self.states = [st.name for st in self.generator.states]  
             self.rates = [rt.name for rt in self.generator.rates ]
@@ -40,15 +39,12 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.funcname = ""
 
     def visit_notAnumber(self, node):
-        self.write("Double.NaN")
+        self.visit(Node(type="local", name="NAN"))
            
     def visit_comparison(self, node):
         #self.write('(')
         self.visit_binary_op(node)
         #self.write(')')
- 
-    def visit_constant(self, node):
-        self.write(self.constant[node.library][node.name])
         
     def visit_binary_op(self, node):
         op = node.op
@@ -66,7 +62,11 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         else:
             self.visit(node.right)
         self.operator_exit()
-    
+
+
+    def visit_constant(self, node):
+        self.write(self.constant[node.library][node.name])
+        
     def visit_unary_op(self, node):
         op = node.operator
         prec = self.unop_precedence[op]
@@ -97,6 +97,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.write(')')
         self.newline(node)
         self.write('{')
+        self.newline(node)
         self.body(node.block)
         self.newline(node)
         self.write('}')
@@ -131,12 +132,12 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.newline(node)
         self.write('}') 
 
-    def visit_print(self):
+    def visit_print(self, node):
         pass
+        
     
     def visit_float(self, node):
-        self.write(node.value)
-        self.write("d")
+        self.write("%sf"%node.value)
 
     def visit_array(self, node):
         self.write("new []")        
@@ -208,6 +209,18 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             name  = node.value.function.split('model_')[1]
             self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
             self.newline(node)
+        
+        elif node.value.type =="standard_method_call" and node.value.message in ["keys", "values"]:
+                self.write("%s.reserve(%s.size());"%(node.target.name, node.value.receiver.name))
+                self.newline(node)
+                self.write("for(auto const&i : %s)"%node.value.receiver.name)
+                self.newline(node)
+                self.write("{")
+                self.newline(node)
+                self.write("    %s.push_back(i.first);"%node.target.name) if node.value.message=="keys" else self.write("    %s.push_back(i.second);"%node.target.name)
+                self.newline(node)
+                self.write("}")
+                self.newline(node)
         else:
             self.newline(node)
             self.visit(node.target)
@@ -255,13 +268,32 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             node_params.append(pa)
         return node.params
     
-    '''def arginout(self, node):
-        arg=[self.retrieve_params(node)[0]]
-        inputs= self.retrieve_params(node)[1]
-        for out_0, out_1 in self.transform_return(node), :
-            if out_0 not in inputs:
-                arg.append(out_1)
-        return arg'''
+    def array_parameter(self, params):
+        dict_arrParamSize ={}
+        i=0
+        tplte=False
+        for pa in params:
+            if isinstance(pa.pseudo_type, list) and pa.pseudo_type[0]=="array":
+                if len(pa.elts)==0:
+                    tplte=True
+                    elt ="SIZE_%s"%i
+                    i=i+1
+                    dict_arrParamSize[pa.name] =elt
+                elif "name" in dir(pa.elts[0]):
+                    tplte=True
+                    elt=pa.elts[0].name
+                    dict_arrParamSize[pa.name] =elt
+        return dict_arrParamSize, tplte
+    
+    def templateArr(self, node):
+        def myfunc(n):
+            return "size_t %s"%n
+        narr=self.array_parameter(node)
+        uniq_val=[]
+        for k, v in narr[0].items():
+            if v not in uniq_val: uniq_val.append(v)
+        if narr[1]==True: self.write("template<%s>"%", ".join(map(myfunc,uniq_val)) )    
+        self.newline(node)
 
     def internal_declaration(self, node):
         statements  = node.block
@@ -307,31 +339,26 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         return newNode    
 
     def visit_module(self, node):
-        if self.model is not None:
-            self.write("public class %s"%self.model.name.capitalize())
-        else:
-            self.write("public class Test")
-        self.newline(node)
-        self.write("{") 
-        self.newline(node)
-        self.indentation += 1     
+        self.write(u'#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\n# include<numeric>\n# include<algorithm>\n# include<array>\n#include <map>\n# include <tuple>\n')
+        if self.model:
+            self.write('#include "%s.h"\nusing namespace std;\n'%self.model.name.capitalize())
+        else : self.write("using namespace std;\n")
         self.visit(node.body)
-        self.newline(node)
-        self.indentation -= 1        
-        self.newline(node)
-        self.write("}")                
+        self.newline(node)          
 
     def visit_function_definition(self, node):      
         self.newline(node)
-        #self.add_features(node)
         self.funcname = node.name
+        self.add_features(node)
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
-            self.write("public static ")
+            self.templateArr(node.params)
             self.visit_decl(node.return_type) if node.return_type else self.write("void")
-            self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
+            if self.model: self.write(" %s::"%self.model.name.capitalize())
+            self.write(" %s("%node.name)
             for i, pa in enumerate(node.params):
-                self.visit_decl(pa.pseudo_type)
-                self.write(" %s"%pa.name)
+                if pa.name in self.array_parameter(node.params)[0].values(): continue
+                if pa.feat=="IN" and pa.type in ["list","array"]: self.write("const ")
+                self.visit_decl(pa.pseudo_type, pa)
                 if i!= (len(node.params)-1):
                     self.write(', ')
             self.write(')')
@@ -339,25 +366,15 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.write('{') 
             self.newline(node)
         else:
+            self.write("%s::%s() { }"%(self.model.name.capitalize(),self.model.name.capitalize())) if not node.name.startswith("init_") else ""
+            self.newline(node) 
             if self.node_param and not node.name.startswith("init_") :
-                for arg in self.node_param: 
-                    self.newline(node) 
-                    self.write ('private ') 
-                    self.visit_decl(arg.pseudo_type)
-                    self.write(" _")
-                    self.write(arg.name) 
-                    self.write(";")                     
-                    #self.generator.private(self.node_param)        
-                    self.newline(node)
-                    self.write("public ")
-                    self.visit_decl(arg.pseudo_type)
-                    self.write(' ' +arg.name)
-                    self.write(self.public_properties%(arg.name,arg.name))
-            self.write(self.constructor%self.model.name.capitalize()) if not node.name.startswith("init_") else ""
-            self.newline(node)      
-            self.write("public void ")
-            self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+                self.getter(self.model.name.capitalize(),self.node_param)
+                self.newline(1)
+                self.setter(self.model.name.capitalize(),self.node_param)
+                self.newline(1)    
+            self.write("void %s::Calculate_Model("%self.model.name.capitalize()) if not node.name.startswith("init_") else self.write("void %s::Init("%self.model.name.capitalize())
+            self.write('%sState& s, %sRate& r, %sAuxiliary& a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -381,16 +398,16 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                             self.write(arg.name)
                             if not node.name.startswith("init_"):
                                 if arg.name in self.states:
-                                    self.write(" = s.%s"%arg.name)
+                                    self.write(" = s.get%s()"%arg.name)
                                 if arg.name in self.rates:
-                                    self.write(" = r.%s"%arg.name)
+                                    self.write(" = r.get%s()"%arg.name)
                                 if arg.name in self.auxiliary:
-                                    self.write(" = a.%s"%arg.name) 
+                                    self.write(" = a.get%s()"%arg.name) 
                             else:
                                 if arg.pseudo_type[0] =="list":
-                                    self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
+                                    self.write(" = vector<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                    self.write(" = array<%s,%s>"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
                             self.write(";")                   
             self.indentation -= 1 
         self.body(node.block)
@@ -400,6 +417,30 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.indentation -= 1 
         self.write('}') 
         self.newline(node)
+
+    def getter(self,m, node):
+        for arg in node:
+            self.newline(node)
+            self.visit_decl(arg.pseudo_type)
+            self.write(" %s::get%s()"%(m,arg.name)) if not isinstance(arg.pseudo_type, list) else self.write("& %s::get%s()"%(m,arg.name) )         
+            self.write (" {return this-> %s; }"%arg.name)
+
+    def setter(self,m, node):
+        for arg in node:
+            self.newline(node)
+            self.write("void %s::set%s("%(m,arg.name))
+            self.visit_decl(arg.pseudo_type)
+            if not isinstance(arg.pseudo_type, list):
+                self.write(" _%s) { this->%s = _%s; }"%(arg.name, arg.name, arg.name)) 
+            else:
+                self.write("& _%s){"%arg.name)
+                self.newline(1)
+                self.indentation +=1
+                self.write("this->%s = _%s;"%(arg.name, arg.name))
+                self.newline(1)
+                self.indentation -=1
+                self.write("}")
+
 
 
     def visit_custom_call(self, node):
@@ -420,7 +461,6 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
     
     def visit_return(self, node):
         if self.model:
-            print(self.model.name)
             self.newline(node)
             self.indentation += 1
             for arg in self.add_features(node):
@@ -428,24 +468,23 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     if arg.feat in ("OUT", "INOUT"):
                         self.newline(node) 
                         if arg.name in self.states:
-                            self.write("s.%s= %s;"%(arg.name,arg.name))
+                            self.write("s.set%s(%s);"%(arg.name,arg.name))
                         if arg.name in self.rates:
-                            self.write("r.%s = %s;"%(arg.name,arg.name))
+                            self.write("r.set%s(%s);"%(arg.name,arg.name))
                         if arg.name in self.auxiliary:
-                            self.write("a.%s= %s;"%(arg.name,arg.name))
+                            self.write("a.set%s(%s);"%(arg.name,arg.name))
         else:
             self.newline(node)
             self.indentation += 1
     
-    def visit_list(self, node):
-        self.write("new ")
+    def visit_list(self, node): 
         self.visit_decl(node.pseudo_type)
         self.write(u'{')
         self.comma_separated_list(node.elements)
         self.write(u'}')
     
     def visit_tuple(self,node):
-        self.write("Tuple.Create(")
+        self.write("make_tuple(")
         self.comma_separated_list(node.elements)
         self.write(")")
     
@@ -463,19 +502,15 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.newline(node)
         for n in node.decl:
             self.newline(node)
-            if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array", "datetime"):
+            if 'value' not in dir(n) and not isinstance(n.pseudo_type, list) and n.pseudo_type!="datetime":
                 self.write(self.types[n.pseudo_type])
                 self.write(' %s;'%n.name) 
-                #self.write('%s %s;'%(self.types[n.type],n.name)) 
             if 'elements' not in dir(n) and n.type in ("list","array"):
                 if n.type=="list":
-                    self.write("List<%s> %s = new List<%s>();"%(self.types[n.pseudo_type[1]],n.name, self.types[n.pseudo_type[1]]))
+                    self.write("vector<%s> %s;"%(self.types[n.pseudo_type[1]],n.name))
                 if n.type=="array":
-                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name, self.types[n.pseudo_type[1]]))
-                    #self.write("[%s];"%n.elts[0].value)
-                    self.write('[')
-                    self.visit(n.elts)
-                    self.write('];')
+                    self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts.name if "name" in dir(n.elts) else n.elts.value))
+                    self.write("%s;"%n.name)
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
@@ -495,33 +530,31 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 if n.type=="list":
                     self.visit_decl(n.pseudo_type)
                     self.write(n.name)
-                    self.write(" = new ") 
-                    self.visit_decl(n.pseudo_type)
+                    self.write(" = ") 
+                    self.write(u'{')
+                    self.comma_separated_list(n.elements)
+                    self.write(u'};')
                 if n.type=='tuple':
                     pass
-                self.write(u'{')
-                self.comma_separated_list(n.elements)
-                self.write(u'};')
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.visit_decl(n.pseudo_type)
-                self.write(n.name)
-                self.write(" = new ") 
-                self.visit_decl(n.pseudo_type)               
-                self.write(u'{')
+                self.write(n.name)             
+                self.write(u' = {')
                 self.comma_separated_list(n.pairs)
                 self.write(u'};')
             
                 
         self.newline(node)
     
-    def visit_list_decl(self, node):        
+    def visit_list_decl(self, node, pa=None):        
         if not isinstance(node[1], list):
             self.write(self.types[node[1]])
             self.write('>')
         else:
             node = node[1]
-            self.visit_decl(node)
+            self.visit_decl(node, pa)
             self.write('>')
+        if pa: self.write(" %s"%pa.name)
     
     def visit_dict_decl(self, node):  
         self.write(self.types[node[1]])
@@ -540,52 +573,67 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.visit_decl(n)
             self.write(",")
         self.visit_decl(node[-1])
-        self.write('> ')
+        self.write('>')
     
-    def visit_float_decl(self, node):
+    def visit_float_decl(self, node, pa=None):
         self.write(self.types[node])
+        self.write(" %s"%pa.name) if (pa and "name" in dir(pa)) else ''
 
     def visit_datetime_decl(self, node):
         self.write(self.types[node]) 
 
-    def visit_int_decl(self, node):
+    def visit_int_decl(self, node, pa=None):
         self.write(self.types[node])
+        self.write(" %s"%pa.name) if (pa and "name" in dir(pa)) else ''
 
-    def visit_str_decl(self, node):
+    def visit_str_decl(self, node, pa=None):
         self.write(self.types[node])
+        self.write(" %s"%pa.name) if (pa and "name" in dir(pa)) else ''
         
-    def visit_bool_decl(self, node):
-        self.write(self.types[node])        
+    def visit_bool_decl(self, node, pa=None):
+        self.write(self.types[node])
+        self.write(" %s"%pa.name) if (pa and "name" in dir(pa)) else ''        
 
-    def visit_array_decl(self, node):
-        self.visit_decl(node[1])
-        self.write("[]")
+    def visit_array_decl(self, node, pa=None):
+        v =self.array_parameter([pa])[0]
+        if pa.name in v: size = v[pa.name]
+        else: size = pa.elts[0].value
+        if not isinstance(node[1], list):
+            self.write("%s, %s"%(self.types[node[1]],size))
+            self.write('>& ')
+        else:
+            node = node[1]
+            self.visit_decl(node)
+            self.write('>& ')
+        self.write(pa.name)
         
-    def visit_decl(self, node):
+        
+    def visit_decl(self, node, pa=None):
         if isinstance(node, list):
             if node[0]=="list":
-                self.write('List<')
-                self.visit_list_decl(node)
+                self.write('vector<')
+                self.visit_list_decl(node, pa)
             if node[0] == "dict":
-                self.write("Dictionary<")
+                self.write("map<")
                 self.visit_dict_decl(node)
             if node[0]=="tuple":
-                self.write('Tuple<')
+                self.write('tuple<')
                 self.visit_tuple_decl(node)
             if node[0]=="array":
-                self.visit_array_decl(node)
+                self.write('array<')
+                self.visit_array_decl(node, pa)
         else:
             if node=="float":
-                self.visit_float_decl(node)
+                self.visit_float_decl(node, pa)
             if node =="int":
-                self.visit_int_decl(node)
+                self.visit_int_decl(node, pa)
             if node =="str":
-                self.visit_str_decl(node)
+                self.visit_str_decl(node, pa)
             if node =="bool":
-                self.visit_bool_decl(node) 
+                self.visit_bool_decl(node, pa) 
             if node in ("DateTime", "datetime"):
                 self.visit_datetime_decl(node)                              
-
+            
             
     def visit_pair(self, node):
         self.write(u'{')
@@ -601,44 +649,47 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 self.write(', ')
             else:
                 want_comma.append(True)
-        if "attrib" in dir(node) and node.namespace!="math":
-            self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
+        if "attrib" in dir(node):
+             self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
         else:
             if callable(node.function):
                 self.visit(node.function(node))
             else: 
                 self.write(node.function)
                 self.write('(')
-                for arg in node.args:
-                    write_comma()
-                    self.visit(arg)
+                if isinstance(node.args, list):
+                    for arg in node.args:
+                        write_comma()
+                        self.visit(arg)
+                else:self.visit(node.args)
                 self.write(')')
     
-    def visit_standard_call(self, node):        
+    def visit_standard_call(self, node):     
         node.function = self.functions[node.namespace][node.function]
-        self.visit_call(node)  
+        self.visit_call(node) 
+
         
     def visit_importfrom(self, node):
         pass
     
     def visit_for_statement(self, node):
         self.newline(node)
-        self.write("foreach(")
+        self.write("for(")
         if "iterators" in dir(node):
             self.visit(node.iterators) 
         if "sequences" in dir(node):
             self.visit(node.sequences)
             self.write(')')
         self.newline(node)
-        self.write('{') 
+        self.write('{')   
         if "iterators" in dir(node):
             self.newline(node)
             self.indentation += 1 
             self.write("%s = %s_cyml;"%(node.iterators.iterator.name, node.iterators.iterator.name))
-            self.indentation -= 1  
+            self.indentation -= 1
         self.body(node.block)
         self.newline(node)
-        self.write('}')  
+        self.write('}')   
           
     def visit_for_iterator_with_index(self, node):
         self.visit(node.index)
@@ -651,10 +702,11 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
 
     
     def visit_for_iterator(self, node):
-        self.write("%s "%node.iterator.pseudo_type)
+        #self.write("%s "%node.iterator.pseudo_type)
+        self.write("const auto& ")
         self.visit(node.iterator)
         self.write("_cyml")
-        self.write(" in ")
+        self.write(" : ")
            
     
     def visit_for_range_statement(self, node):
@@ -696,14 +748,14 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
 
 
 
-class CsharpTrans(CodeGenerator,CsharpRules):
+class CppTrans(CppGenerator):
     """ This class used to generates states, rates and auxiliary classes
-    for C# languages.
+    for C++ languages.
     """
     
-    def __init__(self, models):
-        CodeGenerator.__init__(self)
-        CsharpRules.__init__(self)
+    def __init__(self, models, tree=None):
+        CppGenerator.__init__(self, tree)
+        #CppRules.__init__(self)
         self.models=models
         self.states=[]
         self.rates=[]
@@ -714,16 +766,16 @@ class CsharpTrans(CodeGenerator,CsharpRules):
         "INT": "int",
         "DOUBLE": "float",
         "STRING":"str",
-        "DATEARRAY":["array","DateTime"],
+        "DATEARRAY":["array","str"],
         "INTARRAY":["array","int"],
         "DOUBLEARRAY":["array","float"],
         "STRINGARRAY":["array","str"],
         "STRINGLIST":["list","str"],
         "DOUBLELIST":["list","float"],
         "INTLIST":["list","int"],
-        "DATELIST":["list","DateTime"],
+        "DATELIST":["list","str"],
         "BOOLEAN":'bool',
-        "DATE":"DateTime"
+        "DATE":"str"
     }
     def model2Node(self):
         variables=[]
@@ -781,7 +833,53 @@ class CsharpTrans(CodeGenerator,CsharpRules):
         self.node_rates= create(self.rates)
         self.node_auxiliary= create(self.auxiliary) 
         self.node_param=create(self.modparam)       
+
+    def private_hpp(self, node):
+        self.write("private:")
+        self.indentation += 1
+        for arg in node:
+            self.newline(node)
+            self.visit_decl(arg.pseudo_type)
+            self.write(" %s;"%arg.name)
     
+    def public_hpp(self, node, typ, mc=None, h=None, init=False, iscompo=False):
+        self.write("public:")
+        self.indentation += 1
+        self.newline(1)
+        self.write("%s();"%typ)
+        self.newline(1)
+        if iscompo: self.write("%s(const %s& copy);"%(typ, typ))  # copy constructor
+        self.newline(1)
+        if mc: # except domain classes
+            self.write("void  Calculate_Model(%sState& s, %sRate& r, %sAuxiliary& a);"%(mc, mc, mc))
+        
+        if init: # initialization
+            self.newline(1)
+            self.write("void  Init(%sState& s, %sRate& r, %sAuxiliary& a);"%(mc, mc, mc))        
+        
+        if h:  # function externes
+            for i in h:
+                self.newline(1)
+                self.visit_decl(list(i.values())[0][0])
+                self.write(" %s("%list(i.keys())[0])
+                x=list(i.values())[0][1]
+                for pa in x:
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if pa!=x[len(x)-1]:
+                        self.write(",")
+                self.write(");")
+        for arg in node:
+            self.newline(node)
+            self.visit_decl(arg.pseudo_type)
+            self.write(" get%s();"%arg.name) if not isinstance(arg.pseudo_type, list) else self.write("& get%s();"%arg.name) 
+            self.newline(node)
+            self.write("void set%s("%arg.name)
+            self.visit_decl(arg.pseudo_type)
+            self.write(" _%s);"%arg.name) if not isinstance(arg.pseudo_type, list) else self.write("& _%s);"%arg.name)
+
+
+
     def private(self,node):
         for arg in node:
             self.newline(node) 
@@ -790,7 +888,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
             self.write(" _")
             self.write(arg.name) 
             if arg.pseudo_type[0] =="list":
-                self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
+                self.write("()")
             elif arg.pseudo_type[0] =="array":
                 self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
             self.write(";") 
@@ -814,7 +912,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
             self.newline(node)
             if isinstance(arg.pseudo_type, list):
                 if arg.pseudo_type[0] =="list":
-                    self.write("%s = new List<%s>();"%(arg.name, self.types[arg.pseudo_type[1]]))
+                    self.write("vector<%s> %s;"%(arg.name, self.types[arg.pseudo_type[1]]))
                     self.write(self.copy_constrList%(arg.name,arg.name,arg.name))
                 if arg.pseudo_type[0] =="array":
                     self.write("%s = new %s[%s];"%(arg.name, self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
@@ -822,208 +920,199 @@ class CsharpTrans(CodeGenerator,CsharpRules):
             else:
                 self.write("_%s = toCopy._%s;"%(arg.name, arg.name))
 
-
-    def visit_list_decl(self, node):
-        if not isinstance(node[1], list):
-            self.write(self.types[node[1]])
-            self.write('>')
-        else:
-            node = node[1]
-            self.visit_decl(node)
-            self.write('>')
-
-    def visit_dict_decl(self, node):
-        self.write(self.types[node[1]])
-        self.write(",")
-        if not isinstance(node[2], list):
-            self.write(self.types[node[2]])
-            self.write('>')
-        else:
-            node = node[2]
-            self.visit_decl(node)
-            self.write('>')
-
-    def visit_tuple_decl(self, node):
-        self.visit_decl(node[0])
-        for n in node[1:-1]:
-            self.visit_decl(n)
-            self.write(",")
-        self.visit_decl(node[-1])
-        self.write('> ')
-
-    def visit_DateTime(self, node):
-        self.write("new DateTime(")
-        self.comma_separated_list(node.elements)
-        self.write(")")
-
-    def visit_float_decl(self, node):
-        self.write(self.types[node])
-
-    def visit_int_decl(self, node):
-        self.write(self.types[node])
-
-    def visit_str_decl(self, node):
-        self.write(self.types[node])
-
-    def visit_bool_decl(self, node):
-        self.write(self.types[node])
-
-    def visit_datetime_decl(self, node):
-        self.write(self.types[node])
-
-    def visit_array_decl(self, node):
-        self.visit_decl(node[1])
-        self.write("[]")
-
-
-    def visit_decl(self, node):
-        if isinstance(node, list):
-            if node[0] == "list":
-                self.write('List<')
-                self.visit_list_decl(node)
-            if node[0] == "dict":
-                self.write("Dictionary<")
-                self.visit_dict_decl(node)
-            if node[0] == "tuple":
-                self.write('Tuple<')
-                self.visit_tuple_decl(node)
-            if node[0] == "array":
-                self.visit_array_decl(node)
-        else:
-            if node == "float":
-                self.visit_float_decl(node)
-            if node == "int":
-                self.visit_int_decl(node)
-            if node == "str":
-                self.visit_str_decl(node)
-            if node == "bool":
-                self.visit_bool_decl(node)
-            if node == "DateTime":
-                self.visit_datetime_decl(node)                
-
-
     def generate(self, nodes, typ): 
-        self.write("public class %s"%typ)
-        self.newline()
+        self.newline(1)
+        self.write("%s::%s() { }"%(typ,typ))
+        self.newline(extra=1)
+        self.getter(typ, nodes)
+        self.newline(extra = 1)
+        self.setter(typ, nodes)
+    
+    def generate_hpp(self, node, typ, dc=False, mc=None, h=None, init=False, iscompo=False):
+        self.write("class %s"%typ)
+        self.newline(1)
         self.write("{")
+        self.newline(node)
         self.indentation += 1        
-        self.newline()
-        self.private(nodes)
-        self.newline()
-        self.write(self.constructor%(typ))     ########### constructor
-        self.newline()
-        self.write(self.copy_constr%(typ,typ))###### copy constructor 
-        self.copyconstructor(nodes)
-        self.newline()
-        self.write('}')
-        self.newline()
-        self.write('}')     
-        self.getset(nodes)
+        self.newline(1)
+        self.private_hpp(node)
+        self.newline(node)
         self.indentation -= 1
-        self.newline()
-        self.write('}')
-        self.newline()
+        self.public_hpp(node, typ,mc,h, init, iscompo)
+        self.newline(extra = 1)
+        if iscompo: self.instanceModels()   
+        self.newline(extra=1)
+        self.indentation -= 2
+        self.write("};")
+        self.newline(1)
+        if dc: self.write("#endif")
+    
+    def instanceModels(self):
+        self.newline(extra = 1)
+        for m in self.models[0].model:
+            name = m.name.capitalize()
+            self.write("%s _%s;"%(name, name))
+            self.newline(1)
 
 
-def to_struct_cs(models, rep, name):
-    generator = CsharpTrans(models)
-    generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
+
+
+
+def to_struct_cpp(models, rep, name):
+    header_cpp(models, rep, name)
+    header_mu_cpp(models, rep, name)
+    headerCompo(models, rep, name)
+    generator = CppTrans(models)
+    generator.result=['#include "%sState.h"'%name.capitalize()]
     generator.model2Node()
     states = generator.node_states
     generator.generate(states, "%sState"%name.capitalize())
     z= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sState.cs"%name.capitalize()))
+    filename = Path(os.path.join(rep, "%sState.cpp"%name.capitalize()))
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
-    generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
+    generator.result=['#include "%sRate.h"'%name.capitalize()]
     generator.generate(rates, "%sRate"%name.capitalize())
     z1= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sRate.cs"%name.capitalize()))
+    filename = Path(os.path.join(rep, "%sRate.cpp"%name.capitalize()))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))       
     auxiliary = generator.node_auxiliary
-    generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
+    generator.result=['#include "%sAuxiliary.h"'%name.capitalize()]
     generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
     z2= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sAuxiliary.cs"%name.capitalize()))
+    filename = Path(os.path.join(rep, "%sAuxiliary.cpp"%name.capitalize()))
+    with open(filename, "wb") as tg2_file:
+        tg2_file.write(z2.encode('utf-8'))
+    return 0
+def header_cpp(models, rep, name):
+    generator = CppTrans(models)
+    generator.result=[u"#ifndef _%sState_\n#define _%sState_\n#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\nusing namespace std;\n"%(name.capitalize(),name.capitalize())]
+    generator.model2Node()
+    states = generator.node_states
+    generator.generate_hpp(states, "%sState"%name.capitalize(), dc=True)
+    z= ''.join(generator.result)
+    filename = Path(os.path.join(rep, "%sState.h"%name.capitalize()))
+    with open(filename, "wb") as tg_file:
+        tg_file.write(z.encode('utf-8'))
+    rates = generator.node_rates
+    generator.result=[u"#ifndef _%sRate_\n#define _%sRate_\n#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\nusing namespace std;\n"%(name.capitalize(),name.capitalize())]
+    generator.generate_hpp(rates, "%sRate"%name.capitalize(), dc=True)
+    z1= ''.join(generator.result)
+    filename = Path(os.path.join(rep, "%sRate.h"%name.capitalize()))
+    with open(filename, "wb") as tg1_file:
+        tg1_file.write(z1.encode('utf-8'))       
+    auxiliary = generator.node_auxiliary
+    generator.result=[u"#ifndef _%sAuxiliary_\n#define _%sAuxiliary_\n#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\nusing namespace std;\n"%(name.capitalize(),name.capitalize())]
+    generator.generate_hpp(auxiliary, "%sAuxiliary"%name.capitalize(), dc=True)
+    z2= ''.join(generator.result)
+    filename = Path(os.path.join(rep, "%sAuxiliary.h"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))
     return 0
 
 
+def header_mu_cpp(models, rep, name):
+    mc = models[0].name 
+    h = [] 
+    init=False
+    for m in models[0].model:
+        if m.function:
+            for mf in m.function:
+                file_func = mf.filename
+                path_func = Path(os.path.join(m.path,"crop2ml", file_func))
+                func_tree=parser(Path(path_func))  
+                newtree = AstTransformer(func_tree,path_func)
+                dictAst = newtree.transformer()
+                nodeAst= transform_to_syntax_tree(dictAst)
+                z ={nodeAst.body[0].name: [nodeAst.body[0].return_type,nodeAst.body[0].params]}
+                h.append(z) 
+        if m.initialization:
+                init = True
+        generator = CppTrans([m])
+        generator.result=[u'#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\n#include "%sState.h"\n#include "%sRate.h"\n#include "%sAuxiliary.h"\nusing namespace std;\n'%(name.capitalize(),name.capitalize(), name.capitalize())]
+        generator.model2Node()
+        param = generator.node_param
+        generator.generate_hpp(param, "%s"%m.name.capitalize(), mc=mc, h=h, init=init)
+        z= ''.join(generator.result)
+        filename = Path(os.path.join(rep, "%s.h"%m.name.capitalize()))
+        with open(filename, "wb") as tg_file:
+            tg_file.write(z.encode('utf-8'))
+        h=[]
 
-''' Csharp composite'''
+def headerCompo(models, rep, name):
+    ''' Header file of model composite'''
+    mc = models[0].name 
+    h = [] 
+    models_incl = ['#include "%s.h"'%m.name.capitalize() for m in models[0].model]
+    #domclass_inc = ['#include "%sState.h"'%name.capitalize(),'#include "%sRate.h"'%name.capitalize(),'#include "%sAuxiliary.h"'%name.capitalize()]   
+    includes = '\n'.join(models_incl)
+    generator = CppTrans(models)
+    generator.result=["%s"%includes + "\n" + "using namespace std;\n\n"]
+    generator.model2Node()
+    param = generator.node_param
+    generator.generate_hpp(param, "%sComponent"%mc.capitalize(), mc=mc, h=h, init=True, iscompo=True)
+    z= ''.join(generator.result)
+    filename = Path(os.path.join(rep, "%sComponent.h"%mc.capitalize()))
+    with open(filename, "wb") as tg_file:
+            tg_file.write(z.encode('utf-8'))
 
 
-class CsharpCompo(CsharpTrans,CsharpGenerator):
-    """ This class used to generates states, rates and auxiliary classes
-        for C# languages.
+class CppCompo(CppTrans):
+    """ This class generate the C++ composite class.
     """
-    def __init__(self, tree=None, model=None, name=None):
-        self.model=model
+    def __init__(self, tree=None, modelt=None, name=None):
+        CppTrans.__init__(self,[modelt]) 
+        self.modelt=modelt
         self.tree = tree
-        self.name = name
+        self.name = modelt.name
         self.init=False
-        CsharpGenerator.__init__(self,tree, model, self.name)
-        CsharpTrans.__init__(self,[model])
-        self.write("using System;\nusing System.Collections.Generic;\nusing System.Linq;\n") 
-        self.params = [pa for pa in self.model.inputs if "parametercategory" in dir(pa)]
-        #self.Trans = CsharpTrans([self.model])
+        self.write('#include "%sComponent.h"\n'%self.name.capitalize()) 
+        self.params = [pa for pa in self.modelt.inputs if "parametercategory" in dir(pa)]
         self.model2Node()
         self.statesName = [st.name for st in self.states]
         self.ratesName = [rt.name for rt in self.rates]
         self.auxiliaryName = [au.name for au in self.auxiliary]
-        self.aux = [link["source"].split(".")[1] for link in self.model.internallink]
-        self.realinp=[]        
+        self.aux = [link["source"].split(".")[1] for link in self.modelt.internallink]
+        self.realinp=[]  # determine the real inputs of the composite      
         for node in self.node_auxiliary:
             if node.name not in self.realinp and node.name not in self.aux:
                 self.realinp.append(node)
 
-    def visit_module(self, node):           
-        self.write("public class %sComponent"%self.model.name.capitalize())
-        self.newline(node)
-        self.write("{") 
-        self.newline(node)
-        self.indentation += 1     
+    def visit_module(self, node):        
         self.visit(node.body)
         self.newline(node)
-        if "function" in dir(self.model) and self.model.function:
-            func_name = os.path.split(self.model.function[0].filename)[1]
-            func_path = os.path.join(self.model.path,"src","pyx", func_name)
+        if "function" in dir(self.modelt) and self.modelt.function:
+            func_name = os.path.split(self.modelt.function[0].filename)[1]
+            func_path = os.path.join(self.modelt.path,"src","pyx", func_name)
             func_tree=parser(Path(func_path))  
             newtree = AstTransformer(func_tree, func_path)
             dictAst = newtree.transformer()
             nodeAst= transform_to_syntax_tree(dictAst)
-            self.model=None
+            self.modelt=None
             self.visit(nodeAst.body)
         self.indentation -= 1        
-        self.newline(node)
-        self.write("}")                 
+        self.newline(node)              
 
     def visit_function_definition(self, node):      
         self.add_features(node)
         self.funcname = node.name
-        self.write(self.constructor%("%sComponent"%self.model.name.capitalize())) if not node.name.startswith("init_") else self.write("")
+        self.write(self.constructor%("%sComponent"%self.modelt.name.capitalize(),"%sComponent"%self.modelt.name.capitalize())) if not node.name.startswith("init_") else self.write("")
         self.newline(extra=1)          
-        self.write(self.instanceModels())  if not node.name.startswith("init_") else self.write("")   
-        self.newline(extra=1)
+
         if self.node_param and not node.name.startswith("init_"):
-            for arg in self.node_param :                          
-                self.newline(node)
-                self.write("public ")
-                self.visit_decl(arg.pseudo_type)
-                self.write(' ' +arg.name)
-                b="\n            ".join(self.setCompo(arg.name))
-                self.write(self.public_properties_compo%(self.get_mo(arg.name)[0].capitalize(),arg.name,b)) if not node.name.startswith("init_") else self.write("")
+            self.getter( "%sComponent"%self.name.capitalize(),self.node_param)
+            self.newline(extra=1)
+            self.setter( "%sComponent"%self.name.capitalize(),self.node_param)
             self.newline(node)      
-        self.write("public void ")
+
         if not node.name.startswith("init_"):
-            self.write(" Calculate_%s("%self.model.name.lower()) 
+            self.write("void %sComponent::Calculate_Model("%self.name.capitalize())
         else:
-            self.write("Init(")
+            self.write("void %sComponent::Init("%self.name.capitalize())
             self.init=True
-        self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+        self.write('%sState& s, %sRate& r, %sAuxiliary& a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1034,9 +1123,11 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         #self.indentation -= 1 
         self.write('}') 
         self.newline(node)
-        typ = self.model.name.capitalize()+"Component"
+        typ = self.modelt.name.capitalize()+"Component"
         if not node.name.startswith("init_"):
-            self.write(self.copy_constr_compo%(typ,typ))  
+            self.write("%s::%s(const %s& toCopy)"%(typ, typ, typ))
+            self.newline(1)
+            self.write("{")
             self.copyconstructor(self.node_param)
             self.newline(node)
             self.write('}')  
@@ -1046,7 +1137,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.Calculate_Model(s, r, a);"%(name.capitalize()))
             self.newline(node)
         else:
             self.newline(node)
@@ -1058,7 +1149,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
 
     def visit_declaration(self, node):
         if self.init is True:
-            return CsharpGenerator(self.tree).visit_declaration(node)
+            return CppGenerator(self.tree).visit_declaration(node)
         else: 
             pass
 
@@ -1071,7 +1162,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     
     def tranAssignParam(self):
         from pycropml.transpiler.main import Main
-        snip =Main(self.assignParam(),"cs")
+        snip =Main(self.assignParam(),"cpp")
         a=snip.parse()    
         g=snip.to_ast(self.assignParam())  
         snip.dictAst
@@ -1080,6 +1171,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def format(self):
         code = self.tranAssignParam()
         lines = code.split("\n")
+        print(lines)
         lines = lines[5:-1]
         code = "\n".join(lines)
         return code
@@ -1100,30 +1192,41 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_return(self, node):
         self.newline(node)
     
-    def setCompo(self, p):
-        a=[]
-        mo = self.get_mo(p)
-        for m in mo:
-            a.append("_%s.%s = value;"%(m.capitalize(),p))
-        return a
+    def setter(self,m, node):
+        for arg in node:
+            self.newline(node)
+            self.write("void %s::set%s("%(m,arg.name))
+            self.visit_decl(arg.pseudo_type)
+            if not isinstance(arg.pseudo_type, list):
+                self.write(" _%s)"%arg.name)
+            else:
+                self.write("& _%s)"%arg.name)
+            self.newline(1)
+            self.write("{")
+            self.newline(1)
+            self.indentation += 1
+            mo = self.get_mo(arg.name)
+            for mi in mo:
+                self.write("_%s.set%s(_%s);"%(mi.capitalize(),arg.name, arg.name))            
+                self.newline(1)    
+            self.newline(1)
+            self.indentation -=1
+            self.write("}")
+
+        
+        
 
  
     def get_mo(self,varname):
         listmo=[]
-        for inp in self.model.inputlink:
+        for inp in self.modelt.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
             if var==varname:
                 listmo.append(mod)
         return listmo
     
-    def instanceModels(self):
-        inst=[]
-        for m in self.model.model:
-            name = m.name.capitalize()
-            inst.append("%s _%s = new %s();"%(name, name, name))
-        modinst = '\n    '.join(inst)
-        return modinst
+
       
     def copyconstructor(self,node):
         for arg in node:
@@ -1140,7 +1243,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         pass
     
     def wrapper(self):           
-        self.write("class %sWrapper"%self.model.name.capitalize())
+        self.write("class %sWrapper"%self.modelt.name.capitalize())
         self.newline(1)
         self.write("{") 
         self.newline(1)
@@ -1166,7 +1269,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
 
 
     def privateWrap(self) :
-        name = self.model.name
+        name = self.modelt.name
         self.write("private %sState s;"%(name.capitalize()))
         self.newline(1)
         self.write("private %sRate r;"%(name.capitalize()))
@@ -1177,7 +1280,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.newline(extra=1)
     
     def constrWrap(self):
-        name = self.model.name
+        name = self.modelt.name
         self.write("public %sWrapper()"%(name.capitalize()))
         self.newline(1)
         self.write("{") 
@@ -1197,7 +1300,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("}")
     
     def outputWrap(self):
-        out = [out.name for out in self.model.outputs]
+        out = [out.name for out in self.modelt.outputs]
         tabout=[]
         nodes =self.node_states+self.node_rates+self.node_auxiliary
         for node in nodes :
@@ -1206,7 +1309,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
                 tabout.append(node.name)
 
     def copyconstrWrap(self):
-        self.write("public %sWrapper(%sWrapper toCopy, bool copyAll) : this()"%(self.model.name.capitalize(),self.model.name.capitalize()))
+        self.write("public %sWrapper(%sWrapper toCopy, bool copyAll) : this()"%(self.modelt.name.capitalize(),self.modelt.name.capitalize()))
         self.newline(1)
         self.write("{")
         self.newline(1)
@@ -1236,7 +1339,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("{")
         self.newline(1)
         self.indentation += 1 
-        self.write("%sComponent.Init(s, r, a);"%(self.model.name.lower()))
+        self.write("%sComponent.Init(s, r, a);"%(self.modelt.name.lower()))
         self.newline(1)
         self.write("loadParameters();")
         self.newline(1)
@@ -1259,7 +1362,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("}")
     
     def estimateWrap(self):
-        self.write("public void Estimate%s("%(self.model.name.capitalize()))       
+        self.write("public void Estimate%s("%(self.modelt.name.capitalize()))       
         for node in self.realinp:
                 self.visit_decl(node.pseudo_type)
                 self.write(" ")
@@ -1273,19 +1376,19 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         for node in self.realinp:
             self.write("a.%s = %s;"%(node.name, node.name))
             self.newline(1)
-        self.write("%sComponent.Calculate_%s(s, r, a);"%(self.model.name.lower(),self.model.name.lower()))
+        self.write("%sComponent.Calculate_%s(s, r, a);"%(self.modelt.name.lower(),self.modelt.name.lower()))
         self.newline(1)
         self.indentation -= 1 
         self.write("}")
 
 
-def to_wrapper_cs(models, rep, name):
-    generator = CsharpCompo(model = models)
-    generator.result=[u"using System;\nusing System.Collections.Generic;\nusing System.Linq;\n"]
+def to_wrapper_cpp(models, rep, name):
+    generator = CppCompo(modelt =models)
+    generator.result=["#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\nusing namespace std;\n"]
     generator.model2Node()
     generator.wrapper()
     z= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sWrapper.cs"%name.capitalize()))
+    filename = Path(os.path.join(rep, "%sWrapper.cpp"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
     return 0

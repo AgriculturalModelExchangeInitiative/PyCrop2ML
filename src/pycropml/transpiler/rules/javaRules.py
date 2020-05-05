@@ -8,13 +8,35 @@ def translateSum(node):
     if node.pseudo_type=="float":
         return Node("method_call", receiver=node.receiver, message=".stream().mapToDouble(Double::doubleValue).sum()", args=[], pseudo_type=node.pseudo_type)
     elif node.pseudo_type=="int":
-        return Node("method_call", receiver=node.receiver, message=".stream().mapToInt(Int::intValue).sum()", args=[], pseudo_type=node.pseudo_type)
+        return Node("method_call", receiver=node.receiver, message=".stream().mapToInt(Integer::intValue).sum()", args=[], pseudo_type=node.pseudo_type)
 
-def trans_format_parse(node): return Node("standard_call", args=Node(type="str", value=argsToStr(node.args), pseudo_type="str"), function="format.parse", pseudo_type=node.pseudo_type)
+def translateDateTime(node): 
+    x="""
+        try{
+            %s = format.parse("%s");
+        }  catch (ParseException var4) {
+            var4.printStackTrace();
+        }
+    """   
+    return x
 def translateNotContains(node): return Node("unary_op", operator="not", value=Node("standard_method_call", receiver=node.receiver, message="contains?", args=node.args, pseudo_type=node.pseudo_type))
 def translateLenDict(node): return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 def translateLenArray(node): return Node("method_call", receiver=node.receiver, message=".length", args=[], pseudo_type=node.pseudo_type)
 def translateDictkeys(node): return Node("method_call", receiver=node.receiver, message=".keySet()", args=[], pseudo_type=node.pseudo_type)
+def translateDictValues(node): return Node("method_call", receiver=node.receiver, message=".values()", args=[], pseudo_type=node.pseudo_type)
+def translatePrint(node):
+    if node.args[0].type=="tuple":
+        x=[]
+        for n in node.args[0].elements:
+            if "value" in dir(n) and n.value in [b'\r', b'\t', b'\n']: continue
+            x.append(Node(type="ExprStatNode", expr=Node(type="custom_call", function="System.out.println", args=[n])))
+        return x
+    else:
+        return Node(type="ExprStatNode", expr=Node(type="custom_call", function="System.out.println", args=node.args))
+def translatePow(node): 
+    if node.pseudo_type=="int":
+        return Node(type="custom_call", function="(int) Math.pow", args=node.args)
+    return Node(type="custom_call", function="Math.pow", args=node.args)
 
 class JavaRules(GeneralRule):
     def __init__(self):
@@ -47,9 +69,9 @@ class JavaRules(GeneralRule):
         "bool": "boolean",
         "array": "%s[] %s= new %s",
         "list": "List",
-        "tuple": "Tuple",
+        "tuple": "Pair",
         "str": "String",
-        "dict": "TreeMap",
+        "dict": "HashMap",
         "datetime": "Date"
     }
     types2 = {
@@ -72,22 +94,39 @@ class JavaRules(GeneralRule):
             'acos':        'Math.acos',
             'atan':         'Math.atan',
             'sqrt':         'Math.sqrt',
-            'ceil':         'Math.ceil',
+            'ceil':         '(int) Math.ceil',
             'round':        'Math.round',
             'exp':         'Math.exp',
             'pow':          'Math.pow'
 
         },
+        'io': {
+            'print':    translatePrint,
+            'read':       'readLine',
+            'read_file':  'File.ReadAllText',
+            'write_file': 'File.WriteAllText'
+        },
         'system': {
             'min': 'Math.min',
             'max': 'Math.max',
             'abs': 'Math.abs',
-            'pow': 'Math.pow'
+            'pow': translatePow
         },
         'datetime':{
-                'datetime':"format.parse"#trans_format_parse
+                'datetime':translateDateTime #trans_format_parse
         }
     }
+    
+    constant = {
+            
+        'math':{
+                
+            'pi': 'Math.PI'
+                
+                }            
+        }
+    
+    
 
     methods = {
 
@@ -99,7 +138,7 @@ class JavaRules(GeneralRule):
             'float':'(double)'
         },
         'str': {
-            'int': '(int)',
+            'int': 'Integer.parseInt',
             'find': '.IndexOf',
             'float': 'Double.'
         },
@@ -115,7 +154,8 @@ class JavaRules(GeneralRule):
         },
         'dict': {
             'len': translateLenDict,
-            'keys': translateDictkeys,
+            'keys': translateDictkeys, # in assignment
+            'values':translateDictValues, # in assignment
             'get':'.get'
         },
         'array':{
@@ -124,19 +164,12 @@ class JavaRules(GeneralRule):
                 }
     }
     get_properties = '''
-    {
-        return %s;
-    }'''
+    { return %s; }'''
     set_properties = '''
-    {
-        this.%s= _%s;
-    } 
+    { this.%s= _%s; } 
     '''
     constructor = '''
-    public %s()
-    {
-           
-    }'''
+    public %s() { }'''
 
     copy_constr = '''
     public %s(%s toCopy, boolean copyAll) // copy constructor 
@@ -155,13 +188,9 @@ class JavaRules(GeneralRule):
             _%s[i] = toCopy._%s[i];
         }'''
     get_properties_compo = '''
-    {
-        return _%s.get%s();
-    }'''
+    { return _%s.get%s(); }'''
     set_properties_compo = '''
-    {
-        %s
-    } '''
+    { %s } '''
 
     copy_constr_compo = '''
     public %s(%s toCopy) // copy constructor 
