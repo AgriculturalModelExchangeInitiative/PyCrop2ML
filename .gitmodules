@@ -1,3 +1,6 @@
 [submodule "test/Tutorial"]
 	path = test/Tutorial
 	url = https://github.com/AgriculturalModelExchangeInitiative/Tutorial.git
+[submodule "test/Models/STICS_SNOW"]
+	path = test/Models/STICS_SNOW
+	url = https://github.com/AgriculturalModelExchangeInitiative/STICS_SNOW
