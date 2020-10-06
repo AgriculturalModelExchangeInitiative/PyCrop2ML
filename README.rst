@@ -14,11 +14,11 @@ Pycrop2ml
 
 .. #}
 
-A Python library to generate components from CropML declarative language.
+A Python library to generate components from Crop2ML declarative language.
 
 For more information, refer to `the documentation`__.
 
-.. __: http://cropml.readthedocs.io/en/latest/
+.. __: http://pycrop2ml.readthedocs.io/en/latest/
 
 
 Installation
