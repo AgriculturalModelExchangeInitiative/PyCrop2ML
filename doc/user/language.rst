@@ -1,15 +1,14 @@
-CyML Language Specification
-===========================
-
-This document specifies the CyML language, an extended Cython subset supported.
-
 .. highlight:: cyml
-
 .. _language-file:
 .. _language-basics:
 .. _basic-types:
 .. _complex-types:
 .. _conditional-statements:
+
+CyML Language Specification
+===========================
+
+This document specifies the CyML language, an extended Cython subset supported.
 
 
 .. _language-file:
