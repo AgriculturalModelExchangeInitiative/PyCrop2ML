@@ -14,7 +14,7 @@ This document specifies the CyML language, an extended Cython subset supported.
 .. _language-file:
 
 Cython file types
-=================
+-----------------
 * The implementation files, carrying a ``.pyx`` suffix.
 
 
