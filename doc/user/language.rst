@@ -134,14 +134,6 @@ AugAdd      ``a += b``
 AugSub      ``a -= b``
 AugMult     ``a *= b``
 AugDiv      ``a /= b``
-AugFloorDiv ``a /= b``
-AugPow      ``a **= b``
-AugMod      ``a %= b``
-AugLShift   ``a <<= b``
-AugRShift   ``a <<= b``
-AugBitOr    ``a | b``
-AugBitXor   ``a ^ b``
-AugBitAnd   ``a & b``
 =========== ===========
 
 **Comparison Operators**
@@ -167,9 +159,9 @@ Array creation routines
 -----------------------------
 
 ============================= =======================================================================================
-``empty(shape[, dtype])``     Return a new array of given shape and type, without initializing entries.
-``ones(shape[, dtype])``      Return a new array of given shape and type, filled with ones.
-``zeros(shape[, dtype])``     Return a new array of given shape and type, filled with zeros.
+``   ``                        Return a new array of given shape and type, without initializing entries.
+``   ``                        Return a new array of given shape and type, filled with ones.
+``   ``                        Return a new array of given shape and type, filled with zeros.
 ============================= =======================================================================================
 
 Mathematical functions
