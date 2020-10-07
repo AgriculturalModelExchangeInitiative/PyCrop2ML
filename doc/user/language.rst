@@ -63,17 +63,17 @@ body, without the loop that have an else clause.
 
 While Loop
 -----------------
-Like Python While loop
+- Like Python While loop
 
 
 Function
 --------
-Parameters with declaration 
-Default value is possible
+- Parameters with declaration 
+- Default value is possible
 
 Return Statement
 ----------------
-A function needs to return the same data type. 
+- A function needs to return the same data type. 
 
 The following code is valid: 
 
@@ -87,7 +87,7 @@ The following code is valid:
 
 Call functions
 --------------
-Call to pure CyML functions are supported if the function
+- Call to CyML functions are supported if the function
 
 - is accessible on the module
 
