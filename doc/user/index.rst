@@ -1,6 +1,6 @@
 .. _pycropml_user:
 
-PyCropML User Guide
+PyCrop2ML User Guide
 ###################
 
 :Version: |version|
