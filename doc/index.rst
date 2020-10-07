@@ -8,7 +8,7 @@
 
 .. module:: pycropml
 
-CropML documentation
+PyCrop2ML documentation
 ###########################
 
 Module description
@@ -19,7 +19,8 @@ Module description
    :numbered:
       
 	What is PyCropML? <user/overview.rst>
-	CropML description <user/description.rst>
+	Crop2ML description <user/description.rst>
+   CyML specification <user/language.rst>
 	User Guide <user/index.rst>
 	Reference Guide <_dvlpt/modules.rst>
 	Usecases <user/usecases.rst>
@@ -54,12 +55,12 @@ Documentation
 License
 =======
 
-|pycropml| is released under a MIT License.
+|pycrop2ml| is released under a MIT License.
 
 
-.. |pycropml| replace:: PyCropML
+.. |pycropml| replace:: PyCrop2ML
 
-Welcome to CropML's documentation!
+Welcome to PyCrop2ML's documentation!
 =========================================
 
 Contents:

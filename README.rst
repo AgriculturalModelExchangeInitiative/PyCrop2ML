@@ -6,7 +6,7 @@ Pycrop2ml
     :target: https://travis-ci.org/AgriculturalModelExchangeInitiative/PyCrop2ML
 .. image:: https://ci.appveyor.com/api/projects/status/8c93qumf940ctnl7/branch/master?svg=true
     :target: https://ci.appveyor.com/project/openalea/pycrop2ml
-..  image:: https://readthedocs.org/projects/cropml/badge/?version=latest
+..  image:: https://readthedocs.org/projects/pycrop2ml/badge/?version=latest
     :target: http://pycrop2ml.readthedocs.io/en/latest/
     :alt: Documentation Status
 

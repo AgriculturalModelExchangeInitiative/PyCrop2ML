@@ -20,6 +20,11 @@ from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
 
 
 NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check"}
+ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs', "openalea":"py","check":"check"}
+
+domain_class = ["cs", "java", 'sirius','cpp']
+wrapper=["cs", "sirius"]
+platform = ["simplace","sirius","openalea"]
 
 def transpile_file(source, language):
     sourcef = source
@@ -40,7 +45,7 @@ def prefix(model):
     pref = model.modelid.split(".")[0]
     return pref
 def transpile_package(package, language):
-    # translate from crop2ml package
+    """ translate from crop2ml package"""
     sourcef = package
     namep = sourcef.split(".")[0]
     pkg = Path(sourcef)
@@ -75,12 +80,15 @@ def transpile_package(package, language):
     namep = T.model.name.lower()
 
     # domain class
-    if language in ("cs", "java", 'sirius','cpp'):
+    if language in domain_class:
         getattr(getattr(pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[language]),
                 'to_struct_%s' % language)([T.model],tg_rep, namep)
-        if language =="cs":  to_wrapper_cs(T.model,tg_rep, namep) 
-        if language =="sirius":  to_wrapper_sirius(T.model,tg_rep, namep)
+    # wrapper
+    if language in wrapper:
+        getattr(getattr(pycropml.transpiler.generators,
+                    '%sGenerator' % NAMES[language]),
+                'to_wrapper_%s' % language)(T.model,tg_rep, namep)    
 
     # Transform model unit to languages and platforms
     for k, file in enumerate(cyml_rep.files()):
@@ -93,7 +101,7 @@ def transpile_package(package, language):
                 test.parse()
                 test.to_ast(source)
                 code=test.to_source()
-                filename = Path(os.path.join(tg_rep, "%s.%s"%(name.capitalize(), ext(language))))
+                filename = Path(os.path.join(tg_rep, "%s.%s"%(name.capitalize(), ext[language])))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                 Model2Nb(model,code,name,dir_test_lang).generate_nb(language,tg_rep,namep)
@@ -105,7 +113,7 @@ def transpile_package(package, language):
     with open(fileT, "wb") as tg_file:
         tg_file.write(T_pyx.encode('utf-8'))  
 
-    filename = Path(os.path.join(tg_rep, "%sComponent.%s"%(namep.capitalize(), ext(language))))
+    filename = Path(os.path.join(tg_rep, "%sComponent.%s"%(namep.capitalize(), ext[language])))
     
     with open(filename, "wb") as tg_file:
         tg_file.write(T.compotranslate(language).encode('utf-8'))      
@@ -113,8 +121,3 @@ def transpile_package(package, language):
     status = 0
     return status
 
-def ext(language):
-    if language=="sirius": return "cs"
-    elif language =="simplace": return "java"
-    elif language =="openalea": return "py"
-    else: return language
