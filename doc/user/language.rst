@@ -9,9 +9,7 @@ This document specifies the CyML language, an extended Cython subset supported.
 .. _basic-types:
 .. _complex-types:
 .. _conditional-statements:
-.. _ctypedef:
 
-.. _language-file:
 
 Cython file types
 -----------------
@@ -117,13 +115,9 @@ Add        ``a + b``
 Sub        ``a - b``
 Mult       ``a * b``
 Div        ``a / b``
-FloorDiv   ``a // b``
 Pow        ``a ** b``
 Mod        ``a % b``
-LShift     ``a << b``
-RShift     ``a >> b``
 BitOr      ``a | b``
-BitXor     ``a ^ b``
 BitAnd     ``a & b``
 ========== =========
 
@@ -155,7 +149,7 @@ GtE         ``a >= b``
 ==== ============
 
 
-Array creation routines
+Array routines
 -----------------------------
 
 ============================= =======================================================================================
