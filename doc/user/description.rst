@@ -16,6 +16,7 @@ Formal definition of a Model Unit in CropML
 | For more details, consult Crop2ML model unit specification `Crop2ML documentation <https://crop2ml.readthedocs.io/en/latest/user/specifications/specM2.html>`_ .
 
 
+
 Formal definition of a Composite Model in CropML
 ------------------------------------------------
 | A Composite Model CropML is an assembly of processes which are described by a set of model units or a composition of models.
@@ -27,14 +28,16 @@ Formal definition of a Composite Model in CropML
    
 | The composition is represented as a directed port graph of models:
 
+
     | Vertices are the different models that form the composition.
     | Ports are the inputs and outputs of each model.
     | Edges are directed and connect one output port to an input port of another model.
 
+
 | It contains in addition to all Elements of a model unit a Composition Element for the composition of models.
 | This structure MAY be described by the below tree:
 
-.. image:: images/modelcomposition.png
+.. image:: images/modelcomposition.PNG
 
 | | For more details, consult Crop2ML model unit specification `Crop2ML documentation <https://crop2ml.readthedocs.io/en/latest/user/specifications/specM3.html>`_ .
 
