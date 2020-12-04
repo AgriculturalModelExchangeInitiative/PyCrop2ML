@@ -6,8 +6,13 @@ This document specifies the CyML language, an extended Cython subset supported.
 .. highlight:: Cython
 
 
-.. _language-file:
+CyML Language Specification
+===========================
 
+This document specifies the CyML language, an extended Cython subset supported.
+
+
+.. _language-file:
 Cython file types
 -----------------
 
@@ -118,13 +123,9 @@ Add        ``a + b``
 Sub        ``a - b``
 Mult       ``a * b``
 Div        ``a / b``
-FloorDiv   ``a // b``
 Pow        ``a ** b``
 Mod        ``a % b``
-LShift     ``a << b``
-RShift     ``a >> b``
 BitOr      ``a | b``
-BitXor     ``a ^ b``
 BitAnd     ``a & b``
 ========== =========
 
@@ -156,7 +157,7 @@ GtE         ``a >= b``
 ==== ============
 
 
-Array creation routines
+Array routines
 -----------------------------
 
 ============================= =======================================================================================

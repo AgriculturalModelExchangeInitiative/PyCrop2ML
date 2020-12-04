@@ -23,9 +23,9 @@ Module description
    :maxdepth: 1
    :numbered:
       
-	What is PyCropML? <user/overview.rst>
+	What is PyCrop2ML? <user/overview.rst>
 	Crop2ML description <user/description.rst>
-   CyML specification <user/language.rst>
+        CyML specification <user/language.rst>
 	User Guide <user/index.rst>
 	Reference Guide <_dvlpt/modules.rst>
 	Usecases <user/usecases.rst>
