@@ -23,7 +23,7 @@ class Model2Package(object):
     DATATYPE['STRINGLIST'] = "Arrays.asList"
     DATATYPE['INTLIST'] = "Arrays.asList"
     DATATYPE['BOOLEAN'] = "boolean"
-    DATATYPE['DATE'] = "String"
+    DATATYPE['DATE'] = "LocalDateTime"
     DATATYPE['DATELIST'] = "Arrays.asList"
     num = 0
 
@@ -47,6 +47,7 @@ class Model2Package(object):
         self.runtest = "Test t = new Test();\n"
         code = "class Test\n{\n"     
         code += tab + "%sState s = new %sState();\n"%(name_mc.capitalize(), name_mc.capitalize())
+        code += tab + "%sState s1 = new %sState();\n"%(name_mc.capitalize(), name_mc.capitalize())    
         code += tab + "%sRate r = new %sRate();\n"%(name_mc.capitalize(), name_mc.capitalize())
         code += tab + "%sAuxiliary a = new %sAuxiliary();\n"%(name_mc.capitalize(), name_mc.capitalize())
         code += tab + "%s mod = new %s();\n"%(m.name.capitalize(), m.name.capitalize())
@@ -55,7 +56,8 @@ class Model2Package(object):
             rate = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="rate"]
             auxiliary = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="auxiliary"]
             parameter = [m.name for m in inout if "parametercategory" in dir(m)]
-            if k in state: return "s"
+            if k in state and k.endswith("_t1"): return "s1"
+            elif k in state : return "s"
             elif k in rate: return  "r"
             elif k in auxiliary: return  "a"
             elif k in parameter: return "mod"
@@ -82,8 +84,6 @@ class Model2Package(object):
                     code +=tab+"//%s"%tname+"\n"                    
                     code +="\n"+tab+"public void %s()"%tname + "\n"+tab+ "{\n"
                     type_param = [ins.datatype for ins in inputs]
-                    if "DATE" in type_param or "DATELIST" in type_param:
-                        code += tab*2+'SimpleDateFormat format=new SimpleDateFormat("yyyy/MM/dd");\n'
                     (run, inouts) = list(each_run.items())[0]
                     ins = inouts['inputs']
                     outs = inouts['outputs']                          
@@ -95,13 +95,13 @@ class Model2Package(object):
                     for k, v in six.iteritems(run_param):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         if type_v not in ("DATE", "DATELIST"):
-                            code += 2*tab + "%s.set%s(%s);\n"%(categ(k, inputs),k,transf(type_v, v)) 
+                            code += 2*tab + "%s.set%s(%s);\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v)) 
                         else:
                             if type_v=="DATE":
-                                code += 2*tab + "%s\n"%(transfDate(categ(k, inputs),k, v)) 
+                                code += 2*tab + "%s\n"%(transfDate(categ(k, inputs),k if not k.endswith("_t1") else k[:-3], v)) 
                             if type_v=="DATELIST":
-                                    code += 2*tab + "%s\n"%(transfDateList(categ(k, inputs),k, v)) 
-                    code+=tab*2+"mod.Calculate_%s(s, r, a);\n"%(m.name.lower())
+                                    code += 2*tab + "%s\n"%(transfDateList(categ(k, inputs),k if not k.endswith("_t1") else k[:-3], v)) 
+                    code+=tab*2+"mod.Calculate_%s(s,s1, r, a);\n"%(m.name.lower())
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
                         code += 2*tab + "//%s: %s;\n"%(k, v[0]) 
@@ -152,7 +152,7 @@ DATATYPE['DOUBLELIST'] = "Arrays.asList"
 DATATYPE['STRINGLIST'] = "Arrays.asList"
 DATATYPE['INTLIST'] = "Arrays.asList"
 DATATYPE['BOOLEAN'] = "boolean"
-DATATYPE['DATE'] = "String"
+DATATYPE['DATE'] = "LocalDateTime"
 DATATYPE['DATELIST'] = "Arrays.asList"
 
 
@@ -176,27 +176,21 @@ def transf(type_v, elem):
         return transfList(type_v,eval(elem))
 
 def transfDate(categ,name, elem):
-    return """
-        try{
-            %s.set%s(format.parse("%s"));
-        }
-        catch (ParseException e){
-        }
-"""%(categ,name, elem)
+    return "%s.set%s(LocalDateTime.of(%s));"%(categ,name, strtoList(elem))
 
 def transfDateList(categ,name, elem):
-    return """
-        try{
-            %s.set%s(new ArrayList<>(Arrays.asList(%s)));
-        }
-        catch (ParseException e){
-        }
-"""%(categ, name, formatDateList(elem))
+    return "%s.set%s(new ArrayList<>(Arrays.asList(%s)));"%(categ, name, formatDateList(elem))
 
 def formatDate(elem):
-    return 'format.parse("%s")'%elem
+    return 'LocalDateTime.of(%s)'%strtoList(elem)
 def formatDateList(elem):
     t=[]
     for el in eval(elem):
-        t.append(formatDate(str(el)))
+        t.append(formatDate(strtoList(el)))
     return ','.join(t)
+
+def strtoList(elem):
+    e = elem.split("/")
+    elem = [str(el) for el in e]
+    if len(elem)==3: elem.extend(["00","00","00"])
+    return ", ".join(elem)

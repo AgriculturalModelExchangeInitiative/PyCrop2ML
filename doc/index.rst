@@ -1,19 +1,24 @@
 
-=====================================
-**Welcome to PyCrop2ML Documentation**
-=====================================
-
-**Contents**
 .. _pycropml:
 
 .. module:: pycropml
 
-PyCrop2ML documentation
-###########################
+======================================
+**Welcome to PyCrop2ML Documentation**
+======================================
+
+Contents:
 
 Module description
 ==================
-	
+.. sidebar:: Summary
+
+    :Version: |version|
+    :Release: |release|
+    :Date: |today|
+    :Author: See `authors`_ section
+    :ChangeLog: See `changelog`_ section
+
 .. toctree::
    :maxdepth: 1
    :numbered:
@@ -25,58 +30,41 @@ Module description
 	Reference Guide <_dvlpt/modules.rst>
 	Usecases <user/usecases.rst>
 	License <user/license.rst>
+   Contributing <../contributing.rst>
 	Publication <user/Publication.rst>
 	Glossary <user/glossary.rst>
+
+   authors
+   history
 
 .. topic:: Overview
 
     .. include:: user/overview.txt
 
-Documentation
-=============
 
-.. toctree::
-    :maxdepth: 1
 
-    User Guide<user/index.rst>
-    Reference Guide<_dvlpt/modules.rst>
-
-- A `PDF <../latex/main.pdf>`_ version of |core| documentation is
+- A `PDF <../latex/main.pdf>`_ version of |pycropml| documentation is
   available.
 
 .. include:: ../HISTORY.rst	
+.. include:: ../AUTHORS.rst
 
 
 **Indices and tables**
 ======================
 
-.. include:: ../HISTORY.rst
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 License
 =======
 
-|pycrop2ml| is released under a MIT License.
+|pycropml| is released under a MIT License.
 
 
 .. |pycropml| replace:: PyCrop2ML
 
-Welcome to PyCrop2ML's documentation!
-=========================================
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-   readme
-   installation
-   usage
-   contributing
-   authors
-   history
-
-Indices and tables
-==================
 
 **Supported by:**
 =================

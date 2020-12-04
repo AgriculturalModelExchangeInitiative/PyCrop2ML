@@ -41,6 +41,21 @@ def linq(name, z=True, swap=False):
         else:
             return cs
     return x
+def translateCopy(node):
+    types = {
+        "int": "int",
+        "float": "double",
+        "bool": "bool",
+        "array": "%s[] %s= new %s",
+        "list": "List",
+        "tuple": "Tuple",
+        "str": "string",
+        "dict": "Dictionary",
+        "datetime":"DateTime",
+        "DateTime":"DateTime"
+    }
+    return Node(type="call", function = "new List<%s>"%(types[node.pseudo_type[1]]), args=[Node("local", name=node.args.name)])
+
 class CsharpRules(GeneralRule):
     def __init__(self):
         GeneralRule.__init__(self)
@@ -70,7 +85,7 @@ class CsharpRules(GeneralRule):
         "int": "int",
         "float": "double",
         "bool": "bool",
-        "array": "%s[] %s= new %s",
+        "array": "%s[] %s;",
         "list": "List",
         "tuple": "Tuple",
         "str": "string",
@@ -106,7 +121,8 @@ class CsharpRules(GeneralRule):
             'min': 'Math.Min',
             'max': 'Math.Max',
             'abs': 'Math.Abs',
-            'pow': translatePow},
+            'pow': translatePow,
+            'copy': translateCopy},
 
         'datetime':{
             'datetime': ' new DateTime'

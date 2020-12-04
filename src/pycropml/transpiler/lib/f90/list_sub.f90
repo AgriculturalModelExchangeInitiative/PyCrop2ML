@@ -9,7 +9,7 @@ MODULE list_sub
         module procedure AddToListFloat
         module procedure AddToListInt
         module procedure AddToListChar
-        module procedure AddToListArray
+        module procedure AddToListIntArray
     end interface
 CONTAINS
 
@@ -91,20 +91,20 @@ CONTAINS
     END SUBROUTINE AddToListChar
 
 
-    SUBROUTINE AddToListArray(a, e)
-        TYPE(container),ALLOCATABLE,INTENT(INOUT) :: a(:)
-        CLASS(*),INTENT(IN), allocatable :: e(:)
-        TYPE(container),ALLOCATABLE :: tmp(:)
+    SUBROUTINE AddToListIntArray(a, e)
+        INTEGER, ALLOCATABLE, INTENT(INOUT) :: a(:)
+        INTEGER, ALLOCATABLE, INTENT(IN) :: e(:)
+        INTEGER, ALLOCATABLE:: tmp(:)
 
         IF (.NOT.ALLOCATED(a)) THEN
             ALLOCATE(a(1))
-            ALLOCATE(a(1)%items(SIZE(e)), source = e)
+            ALLOCATE(a(SIZE(e)), source = e)
         ELSE
             CALL MOVE_ALLOC(a,tmp)
-            ALLOCATE(a(SIZE(tmp)+1))
+            ALLOCATE(a(SIZE(tmp)+SIZE(e)), source = e)
             a(1:SIZE(tmp)) = tmp
-            ALLOCATE(a(SIZE(tmp)+1)%items(SIZE(e)), source = e)
+            a(SIZE(tmp)+1:SIZE(a)) = e
         END IF
-    END SUBROUTINE AddToListArray
+    END SUBROUTINE AddToListIntArray
 
 END MODULE list_sub

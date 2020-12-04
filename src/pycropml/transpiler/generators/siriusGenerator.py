@@ -24,6 +24,80 @@ class SiriusGenerator(CsharpGenerator):
         CsharpGenerator.__init__(self, tree, model, name)    
                 
 
+    def usingBioma(self):
+        self.write("""
+using System;
+using System.Collections.Generic;
+using System.Xml;
+using System.Linq;
+using CRA.ModelLayer.MetadataTypes;
+using CRA.ModelLayer.Core;
+using CRA.ModelLayer.Strategy;
+using System.Reflection;
+using VarInfo=CRA.ModelLayer.Core.VarInfo;
+using Preconditions=CRA.ModelLayer.Core.Preconditions;
+using CRA.AgroManagement;       
+""")
+
+    def usingComponentDomainClass(self):
+        self.write("using SiriusQuality%sDomainClass"%self.name.capitalize())
+
+    
+    def inOutputDesc(self, inout):
+        """
+        self.write("List<PropertyDescription> _%s0_0 = new List<PropertyDescription>();"%())
+        self.write("PropertyDescription pd%s = new PropertyDescription();")
+        self.write("pd%s.DomainClassType = typeof(%s.%s%s);"%())
+        self.write('pd%s.PropertyName = "%s";'%())
+        self.write('pd%s.PropertyType = (( %s.%s%sVarInfo.%s)).ValueType.TypeForCurrentValue;'%())
+        self.write('pd%s.PropertyVarInfo =( %s.%s%sVarInfo.%s);'%())
+        self.write('_%s0_0.Add(pd%s);'%())"""
+
+    def otherDesc(self):
+        self.write("//Associated strategies")
+        self.write('List<string> lAssStrat0_0 = new List<string>();')
+        self.write("mo0_0.AssociatedStrategies = lAssStrat0_0;")
+        self.write("//Adding the modeling options to the modeling options manager")
+        self.write("_modellingOptionsManager = new ModellingOptionsManager(mo0_0);")
+        self.write("SetStaticParametersVarInfoDefinitions();")
+        self.write("SetPublisherData();")
+    
+    def iAnnotable(self):
+        pass
+
+    def iStrategy(self):
+        pass
+
+    def instanceParam(self):
+        pass
+
+    def initParam(self):
+        pass
+
+    def varInfoParam(self):
+        pass
+
+    def preposCond(self):
+        pass
+
+
+    def estimate(self):
+        self.write("public void Estimate(SiriusQualityEnergyBalanceDomainClass.EnergyBalanceState energybalancestate,SiriusQualityEnergyBalanceDomainClass.EnergyBalanceState energybalancestate1,SiriusQualityEnergyBalanceDomainClass.EnergyBalanceExogenous energybalanceexogenous,CRA.AgroManagement.ActEvents actevents)")
+        self.write("{")
+        self.write("try")
+        self.write("{")
+        self.write("CalculateModel(energybalancestate,energybalancestate1,energybalanceexogenous,actevents);")
+        self.write("}")
+        self.write("catch (Exception exception)")
+        self.write("{")
+        self.write('string msg = "Error in component SiriusQualityEnergyBalance, strategy: " + this.GetType().Name + ": Unhandled exception running model. "+exception.GetType().FullName+" - "+exception.Message;')				
+        self.write('throw new Exception(msg, exception);')
+        self.write('}')
+        self.write('}')
+
+
+
+
 class SiriusTrans(CsharpTrans):
     """ This class used to generates states, rates and auxiliary classes
     for Sirius.

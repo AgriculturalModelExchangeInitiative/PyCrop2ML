@@ -1,9 +1,10 @@
-.. highlight:: cyml
-.. _language-file:
-.. _language-basics:
-.. _basic-types:
-.. _complex-types:
-.. _conditional-statements:
+CyML Language Specification
+===========================
+
+This document specifies the CyML language, an extended Cython subset supported.
+
+.. highlight:: Cython
+
 
 CyML Language Specification
 ===========================
@@ -14,13 +15,15 @@ This document specifies the CyML language, an extended Cython subset supported.
 .. _language-file:
 Cython file types
 -----------------
+
 * The implementation files, carrying a ``.pyx`` suffix.
 
 
 .. _basic-types:
 
 Basic Types
-------------
+-----------
+
 The following basic types are supported
 
 - ``bool``
@@ -30,8 +33,10 @@ The following basic types are supported
 - ``string``
 
 .. _complex-types:
+
 Complex Types
 ------------
+
 The following complex types are supported
 
 - ``array``
@@ -40,8 +45,10 @@ The following complex types are supported
 
 
 .. _conditional-statements:
+
 Conditional Statements
 ----------------------
+
 - IF
 - IF/Else
 - IF/ElseIf/Else

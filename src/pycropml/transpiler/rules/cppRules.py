@@ -63,12 +63,27 @@ class CppRules(GeneralRule):
 
     types = {
         "int": "int",
-        "float": "float",
+        "float": "double",
+        "double": "double",
         "bool": "bool",
         "array": "array<%s, %s> ", # 
         "list": "vector",
         "tuple": "tuple",
         "str": "string",
+        "dict": "map",
+        "datetime":"string",
+    }
+
+
+    typesCrop = {
+        "integer": "int",
+        "double": "double",
+        "float": "double",
+        "boolean": "bool",
+        "array": "array<%s, %s> ", # 
+        "list": "vector",
+        "tuple": "tuple",
+        "string": "string",
         "dict": "map",
         "datetime":"string",
     }

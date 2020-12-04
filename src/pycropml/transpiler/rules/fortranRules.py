@@ -17,6 +17,10 @@ def translateIndex(node): return  Node("custom_call",receiver = node.receiver, f
 def translatePrint(node): return Node(type="combine", args=[Node("local", name="print *, "),\
                                                             node.args if "elements" not in dir(node.args[0]) else [arg for arg in node.args[0].elements]])
 
+def translateLog(node):  return Node("binary_op", op = "/", left = Node("call", function='LOG', args=node.args[0]),right = Node("call", function='LOG', args=node.args[1]), pseudo_type="int")
+
+def translateCopy(node):
+    return Node("local", name = node.args.name)
 def translateMIN(node):
     args=[]
     if len(node.args)>=2:
@@ -68,7 +72,7 @@ class FortranRules(GeneralRule):
     functions = {
             'math': {
                 'ln':          'LOG',
-                'log':         'LOG',
+                'log':         translateLog,
                 'tan':         'TAN',
                 'sin':         'SIN',
                 'cos':         'COS',
@@ -92,7 +96,8 @@ class FortranRules(GeneralRule):
                     'abs':'ABS',
                     'round': 'Round',
                     'pow': translatePow,
-                    'modulo':   "modulo"
+                    'modulo':   "modulo",
+                    "copy": translateCopy
 
                     },
             'datetime':{
@@ -101,6 +106,14 @@ class FortranRules(GeneralRule):
            }
             
         }
+    constant = {
+            
+        'math':{
+                
+            'pi': '3.14159265'
+                
+                }            
+    }
 
     methods = {
             
@@ -136,13 +149,6 @@ class FortranRules(GeneralRule):
                     }
             }
             
-    """dependencies = {
-
-        'list': {
-            'index': 'list_sub',
-            'append': 'list_sub'
-        }
-    }"""
 
     def method(self):
         pass

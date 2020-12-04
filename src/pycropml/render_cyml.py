@@ -43,6 +43,7 @@ class Model2Package(object):
             self.pkg_name = "CropModel"
         else: self.pkg_name = pkg_name
         self.cwd = Path(self.dir)
+        print(self.cwd)
         self.rep = os.path.abspath(os.path.dirname(self.cwd))
 
     def run(self):
@@ -76,8 +77,8 @@ class Model2Package(object):
             with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
                 cyml_file.write(self.code.encode('utf-8'))
-                files.append(filename)           
-                model.module_name = str(Path(filename).namebase)
+                files.append(filename)          
+                model.module_name = str(Path(filename).name)
             count += 1
         return files
         

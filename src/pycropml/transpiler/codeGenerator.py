@@ -18,7 +18,7 @@ class CodeGenerator(NodeVisitor):
                 self.result.append('\n' * self.new_lines)
             self.result.append(self.indent_with * self.indentation)
             self.new_lines = 0
-        self.result.append(x)  
+        self.result.append(x) 
 
     def newline(self, node=None, extra=0):
         self.new_lines = max(self.new_lines, 1 + extra)
@@ -26,6 +26,7 @@ class CodeGenerator(NodeVisitor):
             self.write('# line: %s' % node.lineno)
             self.new_lines = 1
 
+    
     def body(self, statements):
         self.new_line = True
         self.indentation += 1
@@ -165,5 +166,7 @@ class CodeGenerator(NodeVisitor):
         self.write(" %s "%node.op)
         self.visit(node.sequence)
 
-
+"""    def visit_standard_call(self, node):
+        node.function = self.functions[node.namespace][node.function]
+        self.visit_call(node) """
 

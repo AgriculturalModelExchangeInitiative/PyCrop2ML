@@ -31,13 +31,13 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.doc= DocGenerator(model, '//')
             self.generator = JavaTrans([model])
             self.generator.model2Node()
-            self.states = [st.name for st in self.generator.states]  
+            self.states = [st.name for st in self.model.states]  
             self.rates = [rt.name for rt in self.generator.rates ]
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
         self.funcname = ""
-        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\nimport javafx.util.*;\n")
+        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\nimport javafx.util.*;\nimport java.time.LocalDateTime;\n")
 
 
 
@@ -80,6 +80,25 @@ class JavaGenerator(CodeGenerator,JavaRules):
          
     def visit_import(self, node):
         pass
+
+    def comment(self,doc):
+        list_com = ["//" +x for x in doc.split('\n')]
+        #com = '\n'.join(list_com)
+        return list_com
+
+    def visit_ExprStatNode(self, node):
+        self.newline(node)
+        if "value" in dir(node.expr) and node.expr.type=="str":
+            com = self.comment(node.expr.value.decode('utf8'))
+            for co in com: 
+                if co!='//':
+                    self.write(co)
+                    self.newline()
+        else:
+            self.visit(node.expr)
+            self.write(";")
+    
+
 
     def visit_cond_expr_node(self, node):
         self.visit(node.test)
@@ -209,7 +228,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.Calculate_%s(s, s1, r, a);"%(name.capitalize(), name))
             self.newline(node)
         else:
             self.newline(node)
@@ -221,17 +240,19 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.visit(node.value)
                 self.write(");")
                 self.newline(node)
+            if node.value.type == "standard_call" and node.value.function=="integr":
+                self.write("%s = new ArrayList<>(%s);"%(node.target.name,node.value.args[0].name))
+                self.newline(node)
+                if isinstance(node.value.args[1].pseudo_type, list):
+                    self.write("%s.addAll("%node.target.name)
+                else: self.write("%s.add("%node.target.name)
+                self.visit( node.value.args[1])
+                self.write(");")
             elif node.value.type == "standard_call" and node.value.function=="datetime":
-                x = (node.target.name,argsToStr([a for a in node.value.args]))
-                self.write("try{")
                 self.newline(node)
-                self.write("    %s = format.parse(%s);"%x)
+                if len(node.value.args)==3:node.value.args.extend([00,00,00])
+                self.write(" %s = LocalDateTime.of(%s);"%(node.target.name,",".join(node.value.args)))
                 self.newline(node)
-                self.write("} catch (ParseException var4) {")
-                self.newline(node)
-                self.write("    var4.printStackTrace();")
-                self.newline(node)
-                self.write("}")
             elif node.value.type =="standard_method_call" and node.value.message in ["keys", "values"]:
                 self.write(node.target.name)
                 self.write(".addAll(")
@@ -336,7 +357,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.newline(node)
         self.write("{") 
         self.newline(node)
-        self.indentation += 1     
+        self.indentation += 1
+        print(node.body)
         self.visit(node.body)
         self.newline(node)
         self.indentation -= 1        
@@ -387,7 +409,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -410,8 +432,10 @@ class JavaGenerator(CodeGenerator,JavaRules):
                             self.write(" ")
                             self.write(arg.name)
                             if not node.name.startswith("init_"):
-                                if arg.name in self.states:
+                                if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.get%s()"%arg.name)
+                                if arg.name.endswith("_t1") and arg.name in self.states:
+                                    self.write(" = s1.get%s()"%arg.name[:-3])
                                 if arg.name in self.rates:
                                     self.write(" = r.get%s()"%arg.name)
                                 if arg.name in self.auxiliary:
@@ -424,10 +448,10 @@ class JavaGenerator(CodeGenerator,JavaRules):
                             self.write(";")                   
             self.indentation -= 1 
         self.newline(node)
-        if self.therearedate: 
+        """if self.therearedate: 
             self.indentation += 1 
             self.write('SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");')
-            self.indentation -= 1 
+            self.indentation -= 1 """
         self.newline(node)
         self.body(node.block)
         self.newline(node)
@@ -501,10 +525,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                 if n.type=="array":
                     self.write(self.types[n.type]%(self.types2[n.pseudo_type[1]], n.name, self.types2[n.pseudo_type[1]]))
-                    #self.write("[%s];"%n.elts[0].value)
-                    self.write('[')
-                    self.visit(n.elts)
-                    self.write('];')
+
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
@@ -512,22 +533,30 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.write(n.value)
                 else: self.visit(n)
                 self.write(";")
-            elif 'elements' in dir(n) and n.type in ("list", "tuple"):
+            elif 'elements' in dir(n) and n.type in ("list", "tuple", "array"):
                 if n.type=="list":
                     self.visit_decl(n.pseudo_type)
                     self.write(n.name)
                     self.write(" = new ArrayList <>(Arrays.asList") 
                     #self.visit_decl(n.pseudo_type)
-                if n.type=='tuple':
-                    pass
-                self.write(u'(')
-                self.comma_separated_list(n.elements)
-                self.write(u'));')           
+                    self.write(u'(')
+                    self.comma_separated_list(n.elements)
+                    self.write(u'));')  
+                
+                if n.type=="array":
+                    self.visit_decl(n.pseudo_type)
+                    self.write(n.name)
+                    self.write(" = ")  
+                    self.write(u'{')
+                    self.comma_separated_list(n.elements)
+                    self.write(u'};') 
+                    
+         
             elif  n.type=='datetime':
                 self.newline(node)
-                self.write("Date ")
-                self.write(n.name) 
-                self.write("= new Date();")    
+                self.write("LocalDateTime; ")
+                #self.write(n.name) 
+                #self.write("= new Date();") """   
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.visit_decl(n.pseudo_type)
                 self.write(n.name)
@@ -542,7 +571,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
     
     def visit_list_decl(self, node):        
         if not isinstance(node[1], list):
-            self.write(self.types2[node[1]].capitalize())
+            self.write(self.types2[node[1]])
             self.write('>')
         else:
             node = node[1]
@@ -781,7 +810,7 @@ class JavaTrans(CodeGenerator,JavaRules):
         #print(len(variables))
         for var in variables:
             if "variablecategory" in dir(var):
-                if var.variablecategory=="state":
+                if var.variablecategory=="state" and not var.name.endswith("_t1"):
                     self.states.append(var)
                 if var.variablecategory=="rate" :
                     self.rates.append(var)
@@ -957,7 +986,7 @@ class JavaTrans(CodeGenerator,JavaRules):
 
 def to_struct_java(models, rep, name):
     generator = JavaTrans(models)
-    generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.model2Node()
     states = generator.node_states
     generator.generate(states, "%sState"%name.capitalize())
@@ -966,14 +995,14 @@ def to_struct_java(models, rep, name):
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
-    generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(rates, "%sRate"%name.capitalize())
     z1= ''.join(generator.result)
     filename = Path(os.path.join(rep, "%sRate.java"%name.capitalize()))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
     auxiliary = generator.node_auxiliary
-    generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
     z2= ''.join(generator.result)
     filename = Path(os.path.join(rep/"%sAuxiliary.java"%name.capitalize()))
@@ -1053,7 +1082,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1112,7 +1141,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
        
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.Calculate_%s(s, s1, r, a);"%(name.capitalize(), name))
             self.newline(node)
         else:    
             self.newline(node)
