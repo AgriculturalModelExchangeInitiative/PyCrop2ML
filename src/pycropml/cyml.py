@@ -16,15 +16,16 @@ from pycropml.transpiler.generators.javaGenerator import to_struct_java
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
 from pycropml.transpiler.generators.siriusGenerator import to_struct_sirius,to_wrapper_sirius
+from pycropml.transpiler.generators.recordGenerator import Crop2ML_Vpz
 from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
 
 
-NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check"}
-ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs', "openalea":"py","check":"check"}
+NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check","apsim":"apsim", "record":"record", "dssat":"dssat","bioma":"bioma"}
+ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs', "openalea":"py","check":"check", "apsim":"cs", "record":"cpp", "dssat":"f90"}
 
 domain_class = ["cs", "java", 'sirius','cpp']
 wrapper=["cs", "sirius"]
-platform = ["simplace","sirius","openalea"]
+platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat"]
 
 def transpile_file(source, language):
     sourcef = source
@@ -78,6 +79,11 @@ def transpile_package(package, language):
     # cretae topology of composite model
     T = Topology(namep,package)
     namep = T.model.name.lower()
+
+    # Record VPZ
+    if language == "record":
+        vpz = Crop2ML_Vpz(T)
+        print(vpz.create())
 
     # domain class
     if language in domain_class:

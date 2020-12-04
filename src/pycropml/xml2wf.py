@@ -1,5 +1,6 @@
 from __future__ import absolute_import
 from __future__ import print_function
+import sys
 try:
     from openalea.core.external import *
     from openalea.core.pkgmanager import PackageManager
@@ -45,7 +46,6 @@ class XmlToWf(object):
         self.pkg.add_factory(wf_factory)
 
         self.pkg.write()
-        print(self.compoPack("A"))
 
     def retrievePackage(self, name):
          pm = PackageManager()
@@ -56,7 +56,7 @@ class XmlToWf(object):
     def compoPack(self, name):
         for model in self.xmlwf.model:
             if model.name == name and model.package_name:
-                dir = model.path
+                self.dir = model.path
         
 
     def compareInterface(self,interfaces):

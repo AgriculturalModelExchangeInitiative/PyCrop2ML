@@ -36,11 +36,32 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_notAnumber(self, node):
         self.write("float('nan')")
 
+    def visit_local(self, node):
+        if "units" in dir(node):
+            self.write("%s%s"%(node.name,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.name,node.units))
+        else: self.write(node.name)
+
+    def visit_int(self, node):
+        if "units" in dir(node):
+            self.write("%s%s"%(node.value,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.value,node.units))
+        else:self.write(node.value)
+
+
     def visit_assignment(self, node):
         self.newline(node)
-        self.visit(node.target)
-        self.write(' = ')
-        self.visit(node.value)
+        if node.value.type == "standard_call" and node.value.function=="integr":
+            self.write("%s = copy(%s)"%(node.target.name, node.value.args[0].name))
+            self.newline(node)
+            if isinstance(node.value.args[1].pseudo_type, list):
+                self.write("%s.extend("%node.target.name)
+            else: self.write("%s.append("%node.target.name)
+            self.visit( node.value.args[1])
+            self.write(")")
+        
+        else:
+            self.visit(node.target)
+            self.write(' = ')
+            self.visit(node.value)
 
     def visit_cond_expr_node(self, node):
         self.visit(node.true_val)
@@ -49,6 +70,8 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write(u" else ")
         self.visit(node.false_val)  
         
+    def visit_constant(self, node):
+        self.write(self.constant[node.library][node.name])
 
     def visit_if_statement(self, node):
         self.newline(node)
@@ -80,7 +103,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.body(node.block)
     
     def visit_float(self, node):
-        self.write(node.value)
+        if "units" in dir(node):
+            self.write("%s%s"%(node.value,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.value,node.units))
+        else: self.write(node.value)
         
     def visit_bool(self, node):
         self.write(str(node.value))
@@ -163,6 +188,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(extra=1)
         self.newline(node)
         self.write("# coding: utf8")
+        self.newline(node)
+        self.write("from pycropml.units import u")
+        self.newline(node)
+        self.write("from copy import copy\nfrom array import array\n")
         self.newline(node)
         self.visit(node.body)
 
@@ -273,10 +302,13 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.write(n.name)
                 self.write(" = ")                 
                 self.visit_dict(n)
-            elif n.type=="array" and 'elts' in dir(n):
+            elif n.type=="array" and 'elements' in dir(n):
                 if n.dim == 1:
                     self.write(n.name)
-                    self.write(" = [0]*%s"%n.elts.value)               
+                    self.write(" = array('%s',"%n.pseudo_type[1][0])
+                    self.write("[")
+                    self.comma_separated_list(n.elements)
+                    self.write("] )")                    
             elif n.type in ("list"):
                 self.newline(node)
                 self.write(n.name)
@@ -386,8 +418,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
 
 class PythonCompo(PythonGenerator):
-    """ This class used to generates states, rates and auxiliary classes
-        for C# languages.
+    """ This class generate the composite module in Python
     """
     def __init__(self, tree, model=None, name=None):
         self.tree = tree

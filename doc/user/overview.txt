@@ -1,0 +1,6 @@
+PyCrop2ML is able to:
+
+- Manage Crop2ML packages and model components
+- Transform them to crop modeling and simulation platforms
+- Visualize composite models
+

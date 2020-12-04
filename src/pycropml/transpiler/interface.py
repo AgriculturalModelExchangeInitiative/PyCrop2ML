@@ -3,6 +3,7 @@ import copy
 
 class TreeInterface():
     '''
+    Extract specific node
     visits recursively nodes of the tree
     with defined transform_<node_type> methods and transforms in place
     '''

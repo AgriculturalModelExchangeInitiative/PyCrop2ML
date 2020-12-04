@@ -31,7 +31,7 @@ class CppGenerator(CodeGenerator,CppRules):
             self.doc= DocGenerator(model, '//')
             self.generator = CppTrans([model])
             self.generator.model2Node()
-            self.states = [st.name for st in self.generator.states]  
+            self.states = [st.name for st in self.model.states]  
             self.rates = [rt.name for rt in self.generator.rates ]
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
             self.node_param = self.generator.node_param
@@ -137,7 +137,10 @@ class CppGenerator(CodeGenerator,CppRules):
         
     
     def visit_float(self, node):
-        self.write("%sf"%node.value)
+        self.write("%sd"%node.value)
+
+    def visit_double(self, node):
+        self.write("%sd"%node.value)
 
     def visit_array(self, node):
         self.write("new []")        
@@ -207,9 +210,23 @@ class CppGenerator(CodeGenerator,CppRules):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.Calculate_%s(s, s1, r, a);"%(name.capitalize(), name))
             self.newline(node)
-        
+        elif node.value.type =="standard_call" and node.value.function=="copy":
+            self.newline(node)
+            self.write("%s = %s;"%(node.target.name,node.value.args.name))
+        elif node.value.type == "standard_call" and node.value.function=="integr":
+            self.newline(node)
+            self.write("%s = %s;"%(node.target.name,node.value.args[0].name))
+            self.newline(node)
+            if isinstance(node.value.args[1].pseudo_type, list):
+                self.write("%s.reserve(%s.size() + distance(%s.begin(),%s.end()));"%(node.target.name, node.target.name, node.value.args[1].name, node.value.args[1].name))
+                self.newline(node)
+                self.write("%s.insert(%s.end(),%s.begin(),%s.end());"%(node.target.name, node.target.name, node.value.args[1].name, node.value.args[1].name))
+            else: 
+                self.write("%s.push_back("%node.target.name)
+                self.visit( node.value.args[1])
+                self.write(");")        
         elif node.value.type =="standard_method_call" and node.value.message in ["keys", "values"]:
                 self.write("%s.reserve(%s.size());"%(node.target.name, node.value.receiver.name))
                 self.newline(node)
@@ -374,7 +391,7 @@ class CppGenerator(CodeGenerator,CppRules):
                 self.setter(self.model.name.capitalize(),self.node_param)
                 self.newline(1)    
             self.write("void %s::Calculate_Model("%self.model.name.capitalize()) if not node.name.startswith("init_") else self.write("void %s::Init("%self.model.name.capitalize())
-            self.write('%sState& s, %sRate& r, %sAuxiliary& a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+            self.write('%sState& s, %sState& s1, %sRate& r, %sAuxiliary& a)'%(self.name.capitalize(),self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -397,8 +414,10 @@ class CppGenerator(CodeGenerator,CppRules):
                             self.write(" ")
                             self.write(arg.name)
                             if not node.name.startswith("init_"):
-                                if arg.name in self.states:
+                                if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.get%s()"%arg.name)
+                                if arg.name.endswith("_t1") and arg.name in self.states:
+                                    self.write(" = s1.get%s()"%arg.name[:-3])
                                 if arg.name in self.rates:
                                     self.write(" = r.get%s()"%arg.name)
                                 if arg.name in self.auxiliary:
@@ -801,7 +820,7 @@ class CppTrans(CppGenerator):
         #print(len(variables))
         for var in variables:
             if "variablecategory" in dir(var):
-                if var.variablecategory=="state":
+                if var.variablecategory=="state" and not var.name.endswith("_t1"):
                     self.states.append(var)
                 if var.variablecategory=="rate" :
                     self.rates.append(var)
@@ -819,14 +838,14 @@ class CppTrans(CppGenerator):
                 if "variablecategory" in dir(var) and var.variablecategory=="auxiliary": return "a"
             for st in typevar:
                 if st.datatype in ("INT","DOUBLE","BOOLEAN","STRING","INTLIST","DOUBLELIST","STRINGLIST", "DATE", "DATELIST"):
-                    node=Node(type="local", name=st.name, pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st))
+                    node=Node(type="local", name=st.name, pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st), desc = st.description, unit = st.unit)
                     node_typevar.append(node)
                 if st.datatype in ("INTARRAY","DOUBLEARRAY","STRINGARRAY", "DATEARRAY", ):
                     if st.len.isdigit():
-                        elts = Node(type='int', value= st.len, pseudo_type= 'int')
+                        elts = Node(type='int', value= st.len, pseudo_type= 'int', desc = st.description, unit = st.unit)
                     else:
-                        elts = Node(type='name', name= st.len, pseudo_type= 'int')
-                    node=Node(type="local", name=st.name, elts=[elts], pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st))
+                        elts = Node(type='name', name= st.len, pseudo_type= 'int', desc = st.description, unit = st.unit)
+                    node=Node(type="local", name=st.name, elts=[elts], pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st), desc = st.description, unit = st.unit)
                     node_typevar.append(node)
             return node_typevar
         self.node_states = create(self.states)
@@ -851,11 +870,13 @@ class CppTrans(CppGenerator):
         if iscompo: self.write("%s(const %s& copy);"%(typ, typ))  # copy constructor
         self.newline(1)
         if mc: # except domain classes
-            self.write("void  Calculate_Model(%sState& s, %sRate& r, %sAuxiliary& a);"%(mc, mc, mc))
+            mc = mc.capitalize()
+            self.write("void  Calculate_Model(%sState& s, %sState& s1, %sRate& r, %sAuxiliary& a);"%(mc, mc,mc, mc))
         
         if init: # initialization
             self.newline(1)
-            self.write("void  Init(%sState& s, %sRate& r, %sAuxiliary& a);"%(mc, mc, mc))        
+            mc = mc.capitalize()
+            self.write("void  Init(%sState& s,%sState& s1, %sRate& r, %sAuxiliary& a);"%(mc, mc, mc, mc))        
         
         if h:  # function externes
             for i in h:
@@ -1112,7 +1133,7 @@ class CppCompo(CppTrans):
         else:
             self.write("void %sComponent::Init("%self.name.capitalize())
             self.init=True
-        self.write('%sState& s, %sRate& r, %sAuxiliary& a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+        self.write('%sState& s, %sState& s1, %sRate& r, %sAuxiliary& a)'%(self.name.capitalize(),self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1137,7 +1158,7 @@ class CppCompo(CppTrans):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_Model(s, r, a);"%(name.capitalize()))
+            self.write("_%s.Calculate_Model(s, s1, r, a);"%(name.capitalize()))
             self.newline(node)
         else:
             self.newline(node)
@@ -1376,7 +1397,7 @@ class CppCompo(CppTrans):
         for node in self.realinp:
             self.write("a.%s = %s;"%(node.name, node.name))
             self.newline(1)
-        self.write("%sComponent.Calculate_%s(s, r, a);"%(self.modelt.name.lower(),self.modelt.name.lower()))
+        self.write("%sComponent.Calculate_%s(s, s1, r, a);"%(self.modelt.name.lower(),self.modelt.name.lower()))
         self.newline(1)
         self.indentation -= 1 
         self.write("}")

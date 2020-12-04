@@ -43,6 +43,9 @@ class RGenerator(CodeGenerator, RRules):
         self.write(' <- ')
         self.visit(node.value)
 
+    def visit_constant(self, node):
+        self.write(self.constant[node.library][node.name]) 
+
     def visit_cond_expr_node(self, node):
         self.write(u" if (")
         self.visit(node.test)
@@ -318,7 +321,7 @@ class RGenerator(CodeGenerator, RRules):
 
     def visit_continuestatnode(self, node):
         self.newline(node)
-        self.write('continue')
+        self.write('next')
         
     def visit_breakstatnode(self, node):
         self.newline(node)

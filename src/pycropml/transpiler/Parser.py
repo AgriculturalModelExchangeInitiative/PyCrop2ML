@@ -40,9 +40,7 @@ options_defaults = dict(
 class opt:
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
-
-
-    
+  
 def parser(module):
     
     """ Read, parse a Cython code and generate an abstract syntaxique tree.

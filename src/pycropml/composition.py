@@ -7,6 +7,7 @@ from path import Path
 import xml.etree.ElementTree as xml
 import six
 from pycropml.modelunit import ModelUnit
+from . import parameterset as pset
 from pycropml import pparse
 import os
 from . import initialization
@@ -35,10 +36,12 @@ class ModelComposition(ModelDefinition):
         self.inputlink=[]
         self.outputlink=[]
         self.internallink=[]
+        self.parametersets = {}
         self.inputs=[]
         self.outputs=[]
         self.path = None
         self.aPath=None
+        self.states=[]
  
 
     def add_description(self, description):
@@ -80,6 +83,7 @@ class Models(ModelComposition, ModelUnit):
         self.testsets = None
         self.function = []
         self.initialization = None
+
 
  
  
@@ -147,7 +151,41 @@ class ModelParser(Parser):
         #description =elt.attrib["description"]
         code = initialization.Initialization(name,language, filename)
         self._modelcompo.initialization.append(code)        
-    
+
+    def Parametersets(self, elts):
+        """ Parametersets (Parameterset)
+        """
+        #print('Parametersets')
+
+        for elt in list(elts):
+            self.Parameterset(elt)
+
+    def Parameterset(self, elts):
+        """ Parameterset
+        """
+        #print('Parameterset: ')
+        properties = elts.attrib
+        name = properties.pop('name')
+
+        _parameterset = pset.parameterset(self._modelcompo, name, properties)
+
+        for elt in list(elts):
+            self.param(_parameterset, elt)
+
+        name = _parameterset.name
+        self._modelcompo.parametersets[name] = _parameterset
+
+
+    def param(self, pset, elt):
+        """ Param
+        """
+        #print('Param: ', elt.attrib, elt.text)
+        properties = elt.attrib
+
+        name = properties['name']
+        pset.params[name] = elt.text
+
+
     def Composition(self, elts):
         
         for elt in list(elts):
@@ -190,7 +228,7 @@ class ModelParser(Parser):
             self._modelcompo.outputlink.append(out)
             if out["target"] not in self._modelcompo.outputs:
                 self._modelcompo.outputs.append(out["target"])
-        
+    
         for internal in internals : 
             
             inter = internal.attrib  

@@ -10,7 +10,11 @@ def translateDictkeys(node): return Node("method_call", receiver=node.receiver, 
 def translatePrint(node): return Node(type="ExprStatNode", expr=Node(type="call", function="print", args=node.args[0].elements))
 def translateModulo(node): return Node(type="binary_op", op="%", left=node.args[0], right=node.args[1])
 
+def translateCopy(node):
+    return Node(type="call", function = "copy", args=[Node("local", name=node.args.name)])
 
+def translateIntegr(node):
+    pass
 
 class PythonRules(GeneralRule):
 
@@ -78,11 +82,21 @@ class PythonRules(GeneralRule):
             'max': 'max',
             'abs': 'abs',
             'pow': 'pow',
-            'modulo': translateModulo},
+            'modulo': translateModulo,
+            "copy":translateCopy,
+            "integr":translateIntegr},
         'datetime':{
             'datetime': 'datetime'
         }
     }
+    constant = {
+            
+        'math':{
+                
+            'pi': 'pi'
+                
+                }            
+    } 
 
     methods = {
 

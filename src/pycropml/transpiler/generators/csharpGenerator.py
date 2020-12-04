@@ -32,7 +32,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.doc= DocGenerator(model, '//')
             self.generator = CsharpTrans([model])
             self.generator.model2Node()
-            self.states = [st.name for st in self.generator.states]  
+            self.states = [st.name for st in self.model.states]
             self.rates = [rt.name for rt in self.generator.rates ]
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
             self.node_param = self.generator.node_param
@@ -204,17 +204,25 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.write(u"]")
     
     def visit_assignment(self, node):
+        self.newline(node)
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
-            self.newline(node)
+            self.write("_%s.CalculateModel(s,s1, r, a);"%(name.capitalize()))
         else:
-            self.newline(node)
-            self.visit(node.target)
-            self.write(' = ')
-            self.visit(node.value) 
-            self.write(";")
-            self.newline(node)
+            if node.value.type == "standard_call" and node.value.function=="integr":
+                self.write("%s = new List<%s>(%s);"%(node.target.name,self.types[node.target.pseudo_type[1]], node.value.args[0].name))
+                self.newline(node)
+                if isinstance(node.value.args[1].pseudo_type, list):
+                    self.write("%s.AddRange("%node.target.name)
+                else: self.write("%s.Add("%node.target.name)
+                self.visit( node.value.args[1])
+                self.write(");")
+            else:
+                self.visit(node.target)
+                self.write(' = ')
+                self.visit(node.value) 
+                self.write(";")
+                self.newline(node)
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -356,8 +364,8 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.write(self.constructor%self.model.name.capitalize()) if not node.name.startswith("init_") else ""
             self.newline(node)      
             self.write("public void ")
-            self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+            self.write(" CalculateModel(") if not node.name.startswith("init_") else self.write("Init(")
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -373,15 +381,17 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.indentation += 1 
             for arg in self.add_features(node) :
                 if "feat" in dir(arg):
-                    if arg.feat in ("IN","INOUT") :
+                    if arg.feat in ["IN","INOUT"] :
                         self.newline(node) 
                         if self.model and arg.name not in self.modparam:
                             self.visit_decl(arg.pseudo_type)
                             self.write(" ")
                             self.write(arg.name)
                             if not node.name.startswith("init_"):
-                                if arg.name in self.states:
+                                if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.%s"%arg.name)
+                                if arg.name.endswith("_t1") and arg.name in self.states:
+                                    self.write(" = s1.%s"%arg.name[:-3])
                                 if arg.name in self.rates:
                                     self.write(" = r.%s"%arg.name)
                                 if arg.name in self.auxiliary:
@@ -420,7 +430,6 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
     
     def visit_return(self, node):
         if self.model:
-            print(self.model.name)
             self.newline(node)
             self.indentation += 1
             for arg in self.add_features(node):
@@ -466,16 +475,12 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array", "datetime"):
                 self.write(self.types[n.pseudo_type])
                 self.write(' %s;'%n.name) 
-                #self.write('%s %s;'%(self.types[n.type],n.name)) 
             if 'elements' not in dir(n) and n.type in ("list","array"):
                 if n.type=="list":
                     self.write("List<%s> %s = new List<%s>();"%(self.types[n.pseudo_type[1]],n.name, self.types[n.pseudo_type[1]]))
                 if n.type=="array":
-                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name, self.types[n.pseudo_type[1]]))
-                    #self.write("[%s];"%n.elts[0].value)
-                    self.write('[')
-                    self.visit(n.elts)
-                    self.write('];')
+                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
+
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
@@ -491,7 +496,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     self.write(" = ")
                     self.visit(n.elts)
                 self.write(";")            
-            elif 'elements' in dir(n) and n.type in ("list", "tuple"):
+            elif 'elements' in dir(n) and n.type in ("list", "tuple", "array"):
                 if n.type=="list":
                     self.visit_decl(n.pseudo_type)
                     self.write(n.name)
@@ -499,6 +504,11 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     self.visit_decl(n.pseudo_type)
                 if n.type=='tuple':
                     pass
+                
+                if n.type=="array":
+                    self.visit_decl(n.pseudo_type)
+                    self.write(n.name)
+                    self.write(" = ")                  
                 self.write(u'{')
                 self.comma_separated_list(n.elements)
                 self.write(u'};')
@@ -749,7 +759,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
         #print(len(variables))
         for var in variables:
             if "variablecategory" in dir(var):
-                if var.variablecategory=="state":
+                if var.variablecategory=="state" and not var.name.endswith("_t1"):
                     self.states.append(var)
                 if var.variablecategory=="rate" :
                     self.rates.append(var)
@@ -974,7 +984,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.statesName = [st.name for st in self.states]
         self.ratesName = [rt.name for rt in self.rates]
         self.auxiliaryName = [au.name for au in self.auxiliary]
-        self.aux = [link["source"].split(".")[1] for link in self.model.internallink]
+        if "internallink" in dir(self.model): self.aux = [link["source"].split(".")[1] for link in self.model.internallink]
         self.realinp=[]        
         for node in self.node_auxiliary:
             if node.name not in self.realinp and node.name not in self.aux:
@@ -1019,11 +1029,11 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
             self.newline(node)      
         self.write("public void ")
         if not node.name.startswith("init_"):
-            self.write(" Calculate_%s("%self.model.name.lower()) 
+            self.write(" CalculateModel%s(") 
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize()))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1046,7 +1056,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.CalculateModel(s,s1, r, a);"%(name.capitalize()))
             self.newline(node)
         else:
             self.newline(node)
@@ -1273,7 +1283,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         for node in self.realinp:
             self.write("a.%s = %s;"%(node.name, node.name))
             self.newline(1)
-        self.write("%sComponent.Calculate_%s(s, r, a);"%(self.model.name.lower(),self.model.name.lower()))
+        self.write("%sComponent.CalculateModel(s,s1, r, a);"%(self.model.name.lower()))
         self.newline(1)
         self.indentation -= 1 
         self.write("}")

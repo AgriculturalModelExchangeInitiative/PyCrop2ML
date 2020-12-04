@@ -142,21 +142,25 @@ def datetime_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'datetime', 'function': 'datetime', 'args': args, 'pseudo_type': 'datetime'}
 
 def array_expander(type, message, args):
-    print(args, message)
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'array', 'args': args, 'pseudo_type': ['array',args[0]["pseudo_type"]]}
 
-    return {'type': 'standard_call', 'namespace': 'numpy', 'array': 'array', 'args': args, 'pseudo_type': 'array'}
-
+def copy_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function':'copy', 'args': args[0], 'pseudo_type': args[0]["pseudo_type"]}
 
 
 def pow_expander(type, message, args):
     x1 = args[0]["pseudo_type"]
     x2 = args[1]["pseudo_type"]
-    if x1=="int" and x2=="int": 
-        val = -(int(args[1]["value"]["value"])) if args[1]["type"]=="unary_op" else args[1]["value"] 
-        if int(val)<0:
-            q="float"
+    if x1=="int" and x2=="int" : 
+        if "value" in dir(args[1]):
+            val = -(int(args[1]["value"]["value"])) if args[1]["type"]=="unary_op" else args[1]["value"] 
+            if int(val)<0:
+                q="float"
+            else:
+                q="int"
         else:
-            q="int"
+            if args[1]["pseudo_type"]=="int": q = "int"
+            else: q="float"
     else:
         q="float"
 
@@ -164,6 +168,18 @@ def pow_expander(type, message, args):
 
 def modulo_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'modulo', 'args': args, 'pseudo_type':"int"}
+
+def integr_expander(type, message, args):
+    
+    if isinstance(args[0]["pseudo_type"], list) and isinstance(args[1]["pseudo_type"] ,list):
+        if args[1]["pseudo_type"][1] != args[0]["pseudo_type"][1]:
+            raise PseudoCythonTypeCheckError('wrong usage of %s integr')
+            
+    if isinstance(args[0]["pseudo_type"], list) and not isinstance(args[1]["pseudo_type"] ,list):
+        if args[1]["pseudo_type"] != args[0]["pseudo_type"][1]:
+            raise PseudoCythonTypeCheckError('wrong usage of %s integr')
+            
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'integr', 'args': args, 'pseudo_type':args[0]["pseudo_type"]}
 
 
 FUNCTION_API = {
@@ -178,7 +194,12 @@ FUNCTION_API = {
         'int':      StandardMethodCall('float', 'int', expander=int_expander),
         'float':    StandardMethodCall('int', 'float', expander=float_expander),
         'pow':      StandardCall('global', 'pow', expander = pow_expander),
-        'modulo':      StandardCall('global', 'modulo', expander = modulo_expander)
+        'modulo':      StandardCall('global', 'modulo', expander = modulo_expander),
+        'copy':      StandardCall('global', 'copy', expander = copy_expander),
+        'integr':      StandardCall('global', 'integr', expander = integr_expander),
+        'array': StandardCall('global', 'integr', expander = array_expander)
+        
+        
     },
 
     'math': {
@@ -269,7 +290,6 @@ CONSTANT_API = {
               'pi':{'type':'constant', 'library':'math', 'pseudo_type':'float', 'name':'pi'}
               
               }  
-        
         }
 
 OPERATOR_API = {

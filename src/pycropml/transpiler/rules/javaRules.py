@@ -38,6 +38,10 @@ def translatePow(node):
         return Node(type="custom_call", function="(int) Math.pow", args=node.args)
     return Node(type="custom_call", function="Math.pow", args=node.args)
 
+def translateCopy(node):
+    return Node(type="call", function = "new ArrayList<>", args=[Node("local", name=node.args.name)])
+
+
 class JavaRules(GeneralRule):
     def __init__(self):
         GeneralRule.__init__(self)
@@ -72,15 +76,15 @@ class JavaRules(GeneralRule):
         "tuple": "Pair",
         "str": "String",
         "dict": "HashMap",
-        "datetime": "Date"
+        "datetime": "LocalDateTime"
     }
     types2 = {
         "int": "Integer",
         "float": "Double",
         "str": "String",
         "bool":"Boolean",
-        "datetime":"Date",
-        "Date":"Date"
+        "datetime":"LocalDateTime",
+        "Date":"LocalDateTime"
     }
 
     functions = {
@@ -110,7 +114,8 @@ class JavaRules(GeneralRule):
             'min': 'Math.min',
             'max': 'Math.max',
             'abs': 'Math.abs',
-            'pow': translatePow
+            'pow': translatePow,
+            'copy':translateCopy
         },
         'datetime':{
                 'datetime':translateDateTime #trans_format_parse

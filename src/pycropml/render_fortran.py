@@ -120,7 +120,7 @@ class Model2Package(object):
                         code += tab + "!%s: %s\n"%(k, v[0]) 
                         code += tab + 'print *, "%s estimated :" \n'%(k)
                         if type_o.find("LIST")!=-1:
-                            code += tab +"Do i_cyml = %s, %s\n"%(1, len(eval(v[0])))
+                            code += tab +"Do i_cyml = 1, size(%s)\n"%k
                             code += 2*tab + "print *, %s(i_cyml);\n"%(k)
                             code += tab + "END DO\n" 
                         else:

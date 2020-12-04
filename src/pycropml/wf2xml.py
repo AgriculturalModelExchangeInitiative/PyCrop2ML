@@ -1,3 +1,4 @@
+import sys
 from openalea.core.external import *
 from openalea.core.pkgmanager import PackageManager
 

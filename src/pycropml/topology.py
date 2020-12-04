@@ -102,6 +102,7 @@ class Topology():
         self.model.inputs = self.meta_inp(self.name)
         self.model.outputs = self.meta_out(self.name)
         self.model.ext = self.meta_ext(self.name)
+        self.model.states = self.findstates(self.model.inputs,self.model.outputs )
         self.model.path = Path(self.pkg)
         self.minout()
         self.path_pkg = None
@@ -117,7 +118,23 @@ class Topology():
             if "crop2mlpath" in dir(self.load_pkge(name)):
                 return True
             else: return False
-                 
+
+    def findstates(self, inputs, outputs):
+        st=[]
+        stname = []
+        for n in inputs:
+            if "variablecategory" in dir(n) and n.variablecategory=="state":
+                stname.append(n.name)
+                st.append(n)
+        for m in outputs:
+            if "variablecategory" in dir(m) and m.variablecategory=="state" and m.name not in stname:
+                st.append(m)
+                stname.append(m.name)
+        return st
+
+
+
+
     def load_pkge(self, name):
         module=None
         try:
@@ -181,6 +198,7 @@ class Topology():
                         self.model.model[i].path = mo.path
                         self.model.model[i].function = mo.function
                         self.model.model[i].initialization = mo.initialization
+                        self.model.model[i].algorithms = mo.algorithms
 
             else:
                 pkgname = m.package_name
@@ -226,7 +244,8 @@ class Topology():
     
     def write_png(self):
         a=to_pydot(self.createGraph())
-        a.write_png("img.png")
+        print('%s/%s.png' % (self.model.path,self.model.name))
+        a.write_png('%s/%s.png' % (self.model.path,self.model.name))
         #from networkx.drawing.nx_pydot import graphviz_layout
         #print(graphviz_layout(self.createGraph()))
     
@@ -259,11 +278,10 @@ class Topology():
                 code += self.generate_function_signature(self.model) +'\n'
                 code += self.val_init(self.model)
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in out_states]) + '\n'                
+                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in self.model.outputs]) + '\n'                
         return code
 
     def generate_function_signature(self,model):
-        print(model.name)
         input = model.inputs
         output = model.outputs
         inout = input + output
@@ -271,8 +289,8 @@ class Topology():
         tab=[]
         # initialization inputs
         for inp in inout:
-            if inp.name not in outname:
-                if inp.name not in tab:
+            if inp.name not in outname and not inp.name.endswith("_t1"):
+                if inp.name not in tab :
                     tab.append(inp)
         if  sys.version_info[0]>=3: init_inp = tab.copy()
         else: init_inp = tab   
@@ -282,7 +300,7 @@ class Topology():
         code = '\n\ndef init_%s('%(signature(model))
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
-        ins = [ my_input(inp) for inp in init_inp]
+        ins = [ my_input(inp) for inp in init_inp]        
         separator = ',\n'+ code_size*' '
         code += separator.join(ins)
         code+= '):\n'
@@ -291,11 +309,11 @@ class Topology():
     def val_init(self, model):
         inputs = model.inputs
         outputs = model.outputs
-        inout = inputs + outputs
+        #inout = inputs + outputs
         tab=""
         listab=[]
-        for inp in inout:
-            if 'variablecategory' in dir(inp) and inp.variablecategory=="state" and inp.name not in listab:
+        for inp in outputs:
+            if inp.name not in listab:
                 name = inp.name
                 listab.append(name)
                 if inp.datatype=="INT":
@@ -554,8 +572,8 @@ class Topology():
 '''
 from pycropml.topology import Topology
 from pycropml.transpiler.generators.openaleaGenerator import OpenaleaCompo
-pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/test"
- T = Topology(name='test', pkg=pkg1)
+pkg1 = "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Models/energybalance_pkg"
+T = Topology(name='energybalance', pkg=pkg1)
 a =OpenCompo(tree =None, model = T.model)
 "C:/Users/midingoy/Documents/THESE/pycropml_pheno/test/Tutorial/testA"
 print(T.compotranslate('cs'))

@@ -28,6 +28,25 @@ class OpenaleaGenerator(PythonGenerator):
         self.indent_with=' '*4
         PythonGenerator.__init__(self, tree, model, name)
 
+    def visit_module(self, node):
+        self.newline(extra=1)
+        self.newline(node)
+        self.write("# coding: utf8")
+        self.newline(node)
+        self.newline(node)
+        self.write("from copy import copy\n")
+        self.newline(node)
+        self.visit(node.body)
+
+    def visit_local(self, node):
+        self.write(node.name)
+
+    def visit_int(self, node):
+        self.write(node.value)
+
+    def visit_float(self, node):
+        self.write(node.value)
+
 class OpenaleaCompo(PythonCompo):
     """ This class used to generates states, rates and auxiliary classes
         for C# languages.
