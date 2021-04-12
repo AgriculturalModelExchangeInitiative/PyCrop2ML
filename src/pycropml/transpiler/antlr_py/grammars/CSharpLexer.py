@@ -1525,10 +1525,10 @@ class CSharpLexer(Lexer):
         if actionIndex == 3:
             if (self.interpolatedStringLevel > 0):
                 self.curlyLevels.append(self.curlyLevels.pop() - 1)
-                if (curlyLevels[-1] == 0):
-                    curlyLevels.pop()
-                    antlr4.Lexer.Lexer.skip();
-                    antlr4.Lexer.Lexer.popMode();
+                if (self.curlyLevels[-1] == 0):
+                    self.curlyLevels.pop()
+                    self.skip();
+                    self.popMode();
                 
     def COLON_action(self, localctx:RuleContext , actionIndex:int):
         if actionIndex == 4:
@@ -1541,7 +1541,7 @@ class CSharpLexer(Lexer):
                         break   
                     ind+=1
                 if (switchToFormatString):                
-                    antlr4.Lexer.Lexer.mode(INTERPOLATION_FORMAT)
+                    self.mode(INTERPOLATION_FORMAT)
                 
     def OPEN_BRACE_INSIDE_action(self, localctx:RuleContext , actionIndex:int):
         if actionIndex == 5:
@@ -1551,7 +1551,7 @@ class CSharpLexer(Lexer):
         if actionIndex == 6:
             self.interpolatedStringLevel-=1
             self.interpolatedVerbatiums.pop();
-            self.verbatium = interpolatedVerbatiums[-1] if interpolatedVerbatiums.size() > 0 else False 
+            self.verbatium = self.interpolatedVerbatiums[-1] if len(self.interpolatedVerbatiums) > 0 else False 
 
     def CLOSE_BRACE_INSIDE_action(self, localctx:RuleContext , actionIndex:int):
         if actionIndex == 7:

@@ -5,15 +5,19 @@ public class Test
     public static double test(double b)
     {
         int[] k = {2,2};
-        //List<int[]> hh = new List<int[]>{k, k};
+        List<int> hh = new List<int>{2, 2};
         //b = test2(10.5d);
-        if(b>10.2) 
+        if(b>10.2d) 
         {
-               b=2.3;
+               b=2.3d;
         }
-        while (b<10.3)
+        while (b<10.3d)
         {
             b = k[1];
+        }
+        foreach (int element in k)
+        {
+            b = 2;
         }
 
         return b;

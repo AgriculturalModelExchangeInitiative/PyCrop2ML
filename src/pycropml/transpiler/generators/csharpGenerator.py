@@ -139,7 +139,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.write("d")
 
     def visit_array(self, node):
-        self.write("new []")        
+        self.write("new %s[] "%self.types[node.pseudo_type[1]])        
         self.write(u'{')
         self.comma_separated_list(node.elements)
         self.write(u'}')
@@ -508,10 +508,13 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 if n.type=="array":
                     self.visit_decl(n.pseudo_type)
                     self.write(n.name)
-                    self.write(" = ")                  
-                self.write(u'{')
-                self.comma_separated_list(n.elements)
-                self.write(u'};')
+                    self.write(" = ") 
+                
+                if len(n.elements) == 0: self.write("();")
+                else:
+                    self.write(u'{')
+                    self.comma_separated_list(n.elements)
+                    self.write(u'};')
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.visit_decl(n.pseudo_type)
                 self.write(n.name)

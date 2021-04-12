@@ -18,6 +18,7 @@ from pycropml.code2nbk import Model2Nb
 from pycropml.transpiler.generators.siriusGenerator import to_struct_sirius,to_wrapper_sirius
 from pycropml.transpiler.generators.recordGenerator import Crop2ML_Vpz
 from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
+import pycropml.transpiler.antlr_py 
 
 
 NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check","apsim":"apsim", "record":"record", "dssat":"dssat","bioma":"bioma"}
@@ -127,3 +128,16 @@ def transpile_package(package, language):
     status = 0
     return status
 
+def transpile_component(component, language):
+    """Transform a framework model component to Crop2ML/CyML
+
+    Args:
+        component (path): a Crop2ML folder containing a repository of a framework model component
+        language (str): a language or framework
+
+    Returns:
+        repository: Crop2ML package containing xml files and 
+    """
+
+    print("TODO")
+    return 0

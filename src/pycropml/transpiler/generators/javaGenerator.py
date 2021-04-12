@@ -156,7 +156,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write("d")
 
     def visit_array(self, node):
-        self.write("new []")        
+        self.write("new %s[] "%self.types[node.pseudo_type[1]])        
         self.write(u'{')
         self.comma_separated_list(node.elements)
         self.write(u'}')
@@ -524,7 +524,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 if n.type=="list":
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                 if n.type=="array":
-                    self.write(self.types[n.type]%(self.types2[n.pseudo_type[1]], n.name, self.types2[n.pseudo_type[1]]))
+                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
 
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))

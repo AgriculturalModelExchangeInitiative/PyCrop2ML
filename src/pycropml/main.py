@@ -15,7 +15,7 @@ from optparse import OptionParser
 
 from path import Path
 
-from pycropml.cyml import transpile_file, transpile_package
+from pycropml.cyml import transpile_file, transpile_package, transpile_component
 
 from pycropml.transpiler.main import languages
 
@@ -62,6 +62,8 @@ Example
         help="cyml source code FILE to transpile")
     parser.add_option("-p", "--package", dest="package",
         help="package directory containing a crop2ml directory with algorithms.")
+    parser.add_option("-c", "--component", dest="component",
+        help="framework model component directory")
     parser.add_option("-l", "--languages", dest="languages", action="append",
         choices=languages,
         help="Target languages : "+','.join(languages))
@@ -71,6 +73,7 @@ Example
     sourcef = None
     pyx_filename = None
     package = None
+    component = None
     langs = []
 
     if len(parser.option_list) + len(args) < 2:
@@ -80,6 +83,8 @@ Example
         sourcef = pyx_filename = opts.file
     elif opts.package:
         sourcef = package = opts.package
+    elif opts.component:
+        sourcef = component = opts.component
     else:
         sourcef = args[0]
 
@@ -117,9 +122,13 @@ Example
 
         for language in langs:
             status = transpile_file(sourcef, language)
-    else:
+    elif package:
         for language in langs:
             status = transpile_package(sourcef, language)
+    else:
+        for language in langs:
+            status = transpile_component(sourcef, language)
+
 
 
 if __name__ == '__main__':

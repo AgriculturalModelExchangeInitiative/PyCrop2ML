@@ -316,10 +316,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
 
     def visit_array(self,node): 
-        self.write(node.name)
-        '''self.write(" =np.ndarray((")
-        self.comma_separated_list(node.elts)
-        self.write("),dtype=%s)"%node.pseudo_type[-1])'''
+        #self.write(node.name)
+        self.write("[")
+        self.comma_separated_list(node.elements)
+        self.write("]")
 
     def visit_continuestatnode(self, node):
         self.newline(node)

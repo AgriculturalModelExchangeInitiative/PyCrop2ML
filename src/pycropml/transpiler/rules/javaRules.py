@@ -71,7 +71,7 @@ class JavaRules(GeneralRule):
         "int": "int",
         "float": "double",
         "bool": "boolean",
-        "array": "%s[] %s= new %s",
+        "array": "%s[] %s;",
         "list": "List",
         "tuple": "Pair",
         "str": "String",

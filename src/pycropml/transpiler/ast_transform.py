@@ -529,6 +529,7 @@ class AstTransformer():
         return {'type': 'unicode', 'value':  node.value, 'pseudo_type': 'str'}
 
     def visit_stringnode(self, node, location):
+        print(type(node.value), node.value, "mmmmmmmm")
         return {'type': 'str', 'value':  node.value, 'pseudo_type': 'str'}
 
     def visit_tuplenode(self, node, args, mult_factor, location):

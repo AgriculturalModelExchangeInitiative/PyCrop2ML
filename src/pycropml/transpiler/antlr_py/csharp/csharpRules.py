@@ -37,7 +37,7 @@ class Cs_CymlRules(GeneralRule):
         "double": "float",
         "bool": "bool",
         "array": "array",
-        "list": "list",
+        "List": "list",
         "tuple": "tuple",
         "string": "str",
         "Dictionary": "dict",
@@ -97,7 +97,7 @@ class Cs_CymlRules(GeneralRule):
             'int': 'int',
             '.IndexOf': 'find'
         },
-        'list': {
+        'List': {
             'length': "len",
             '.Add': 'append',
             'Sum': 'sum',

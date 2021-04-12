@@ -612,8 +612,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
         self.write(" , DIMENSION(")
+        print(dir(node))
         if node.dim == 0: self.write(":")
-        elif len(node.elements)!=0: self.write("%s"%len(node.elements))
+        elif len(node.elts)!=0: self.write("%s"%len(node.elts))
         #else: self.comma_separated_list(node.elements if isinstance(node.elements, list) else [node.elements])
         self.write(" )")  
 

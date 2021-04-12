@@ -1,4 +1,6 @@
-from pycropml.transpiler.antlr_py import CSharpLexer, CSharpParser
+import pycropml.transpiler.antlr_py.grammars 
+from pycropml.transpiler.antlr_py.grammars.CSharpLexer import CSharpLexer
+from pycropml.transpiler.antlr_py.grammars.CSharpParser import CSharpParser
 from antlr4 import *
 import warnings
 import inspect
@@ -13,18 +15,35 @@ from antlr4.error.ErrorListener import ErrorListener, ConsoleErrorListener
 from operator import methodcaller
 from antlr4 import InputStream
 
-def parsef(filename, 
-            start, 
-            strict, 
+languages = ['cs',"bioma"]
+NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp"}
+
+def langLexerParser(ant):
+    generator = {
+        format: getattr(
+                    getattr(
+                        pycropml.transpiler.antlr_py.grammars,
+                        '%s%s' % (NAMES[format], ant)),
+                    '%s%s' % (NAMES[format], ant))
+        for format in languages
+    }
+    return generator
+
+LexersGenerators = langLexerParser("Lexer")
+ParsersGenerators = langLexerParser("Parser")
+
+def parsef(filename, language,
+            start="compilation_unit", 
+            strict = "False", 
             transform: Union[str, Callable] = None,
             error_listener: ErrorListener = None,
             ):
-    input_stream = FileStream(filename)   
-    lexer = CSharpLexer.CSharpLexer(input_stream)
+    input_stream = FileStream(filename, encoding="utf-8")
+    lexer = LexersGenerators[language](input_stream)
     lexer.removeErrorListeners()
     lexer.addErrorListener(LexerErrorListener())
     stream = CommonTokenStream(lexer)
-    parser = CSharpParser.CSharpParser(stream)
+    parser = ParsersGenerators[language](stream)
     tree = parser.compilation_unit()
     parser.buildParseTrees = True # default
     return tree
@@ -58,34 +77,6 @@ class CaseTransformInputStream(InputStream):
     def __repr__(self):
         return "<{} {}>".format(self.__class__.__name__, self.transform)
 
-
-def parse(
-    grammar,
-    text: str,
-    start: str,
-    strict=False,
-    transform: Union[str, Callable] = None,
-    error_listener: ErrorListener = None,
-) -> ParseTree:
-    input_stream = CaseTransformInputStream(text, transform=transform)
-
-    lexer = grammar.Lexer(input_stream)
-    lexer.removeErrorListeners()
-    lexer.addErrorListener(LexerErrorListener())
-
-    token_stream = CommonTokenStream(lexer)
-    parser = grammar.Parser(token_stream)
-    parser.buildParseTrees = True  # default
-
-    if strict:
-        error_listener = StrictErrorListener()
-
-    if error_listener is not None and error_listener is not True:
-        parser.removeErrorListeners()
-        if error_listener:
-            parser.addErrorListener(error_listener)
-
-    return getattr(parser, start)()
 
 
 def dump_node(node, node_class=AST):

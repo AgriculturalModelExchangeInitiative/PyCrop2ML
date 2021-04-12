@@ -5,7 +5,7 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-from pycropml.transpiler.antlr_py.cs.builtin_typed_api import builtin_type_check
+from pycropml.transpiler.antlr_py.csharp.builtin_typed_api import builtin_type_check
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError
 from pycropml.transpiler.pseudo_tree import  Node
 from datetime import datetime
@@ -207,15 +207,16 @@ FUNCTION_API = {
             2:      StandardCall('Math', 'log')
         },
 
-        'Sin':      StandardCall('Math', 'Sin'),
-        'Cos':      StandardCall('Math', 'Cos'),
-        'Tan':      StandardCall('Math', 'Tan'),
-        'Acos':     StandardCall('Math', 'Acos'),
-        'Asin':     StandardCall('Math', 'Asin'),
-        'Atan':     StandardCall('Math', 'Atan'),
-        'Sqrt':     StandardCall('Math', 'Sqrt'),
-        'Ceiling':  StandardCall('Math', 'Ceiling'),
-        'Exp':      StandardCall('Math', 'Exp')
+        'Sin':      StandardCall('Math', 'sin'),
+        'Max':      StandardCall('system', 'max', expander=max_expander),
+        'Cos':      StandardCall('Math', 'cos'),
+        'Tan':      StandardCall('Math', 'tan'),
+        'Acos':     StandardCall('Math', 'acos'),
+        'Asin':     StandardCall('Math', 'asin'),
+        'Atan':     StandardCall('Math', 'atan'),
+        'Sqrt':     StandardCall('Math', 'sqrt'),
+        'Ceiling':  StandardCall('Math', 'ceiling'),
+        'Exp':      StandardCall('Math', 'exp')
         
     },
     'datetime':{
@@ -242,8 +243,10 @@ METHOD_API = {
             2:        StandardMethodCall('str', 'find_from')
         }
     },
-    'list': {
-        'append':   StandardMethodCall('list', 'append'),
+    'List': {
+        'Add':      StandardMethodCall('List', 'append'),
+        'Sum':      StandardMethodCall('List', 'sum'),
+        'Count':    StandardMethodCall('list', 'len', expander=len_expander),
         'pop':      StandardMethodCall('list', 'pop'),
         'insert':   {
             1:      StandardMethodCall('list', 'insert'),
@@ -281,6 +284,16 @@ METHOD_API = {
 
     'tuple': {
     }
+}
+
+PROPERTY_API = {
+    
+    "List":{
+        "Count": StandardCall("List", "Count")
+
+    }
+
+
 }
 
 CONSTANT_API = {

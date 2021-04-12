@@ -28,12 +28,12 @@ def builtin_type_check(namespace, function, receiver, args):
     if function not in fs:        
         raise  PseudoCythonTypeCheckError('wrong usage of %s' % str(function))
     x = fs[function]
-
+    print("sdsdqdd",namespace,receiver, args)
     a = namespace + '#' + function if receiver else namespace + ':' + function
-    if namespace == 'list' or namespace == 'array':
+    if namespace == 'List' or namespace == 'array':
         if not isinstance(receiver['pseudo_type'], list):
             generics = {'@t': args[0]['pseudo_type']}
-            if receiver['pseudo_type']=="list": receiver["pseudo_type"]=["list",args[0]['pseudo_type']]
+            if receiver['pseudo_type']=="List": receiver["pseudo_type"]=["List",args[0]['pseudo_type']]
         else:
             generics = {'@t': receiver['pseudo_type'][1]}
     elif namespace == 'dict':
@@ -50,10 +50,10 @@ def builtin_type_check(namespace, function, receiver, args):
             arg_check(s[-1], arg, a)
     else:
         if len(x) - 1 != len(args):   
-            raise PseudoCythonTypeCheckError("%s expects %d args not %d" % (a, len(x) - 1, args))
+            raise PseudoCythonTypeCheckError("%s expects %d args not %d" % (a, len(x) - 1, len(args)))
         for e, arg in zip(x[:-1], args):
             s.append(simplify(e, generics))
-            arg_check(s[-1], arg, a)
+            #arg_check(s[-1], arg, a)  to do
     s.append(simplify(x[-1], generics))
     return s
 
@@ -83,14 +83,15 @@ def add(l, r):
         return [l, r, 'int']
     elif l == 'str' and r == 'str':
         return [l, r, 'str']
-    elif isinstance(l, list) and l[0] == 'list' and l == r:
+    elif isinstance(l, list) and l[0] == "List" and l == r:
         return [l, r, l]
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]
     else:
-        raise PseudoCythonTypeCheckError("wrong types for +: %s and %s" % (serialize_type(l), serialize_type(r)))
+        return [l, r, "unknown"] #### to change
+        #raise PseudoCythonTypeCheckError("wrong types for +: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def sub(l, r):
     if l == 'float' and r in ['float', 'int']  or r == 'float' and l in ['float', 'int'] :
@@ -101,14 +102,15 @@ def sub(l, r):
         return [l, r, 'int']
     elif l == 'str' and r == 'str':
         return [l, r, 'str']
-    elif isinstance(l, list) and l[0] == 'list' and l == r:
+    elif isinstance(l, list) and l[0] == "List" and l == r:
         return [l, r, l]
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]
     else:
-        raise PseudoCythonTypeCheckError("wrong types for +: %s and %s" % (serialize_type(l), serialize_type(r)))
+        return [l, r, "unknown"] #### to change
+        #raise PseudoCythonTypeCheckError("wrong types for +: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def mul(l, r):
     if l == 'float' and r in ['float', 'int']  or r == 'float' and l in ['float', 'int'] :
@@ -117,14 +119,15 @@ def mul(l, r):
         return [l, r, 'double']
     elif l == 'int' and r == 'int':
         return [l, r, 'int']
-    elif l == 'int' and (isinstance(r, list) and r[0] == 'list' or r == 'str'): 
+    elif l == 'int' and (isinstance(r, list) and r[0] == "List" or r == 'str'): 
         return [l, r, r]
-    elif r == 'int' and (isinstance(l, list) and l[0] == 'list' or l == 'str'):
+    elif r == 'int' and (isinstance(l, list) and l[0] == "List" or l == 'str'):
         return [l, r, l]
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]    
     else:
-        raise PseudoCythonTypeCheckError("wrong types for *: %s and %s" % (serialize_type(l), serialize_type(r)))
+        return [l, r, "unknown"] #### to change
+        #raise PseudoCythonTypeCheckError("wrong types for *: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def div(l, r, lo=None):
     if l == 'float' and r in ['float', 'int'] or r == 'float' and l in ['float', 'int']:
@@ -135,7 +138,8 @@ def div(l, r, lo=None):
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]    
     else:
-        raise PseudoCythonTypeCheckError("wrong types for /: %s and %s" % (serialize_type(l), serialize_type(r)))
+        return [l, r, "unknown"] #### to change
+        #raise PseudoCythonTypeCheckError("wrong types for /: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def pow_(l, r):
     if l == 'float' and r in ['float', 'int'] or r == 'float' and l in ['float', 'int']:
@@ -182,33 +186,27 @@ def binary_or(l, r):
 
 
 TYPED_API = {
+    'system':{
+        "max":['Number','Number']
+    },
         
-    '__name__':'str',
-    # methods
-    'global': {
-        'exit':  ['int', 'Void'],
-        'to_str': ['Any', 'str']
-    },
-
-    'system': {
-        'args':         [['list', 'str']]
-    },
-
-
     'Math': {
-        'Tan':          ['Number', 'double'],
-        'Atan':          ['Number', 'double'],
-        'Sin':          ['Number', 'double'],
-        'Asin':          ['Number', 'double'],
-        'Cos':          ['Number', 'double'],
-        'Acos':          ['Number', 'double'],
-        'Log':          ['Number', 'Number', 'double'],
-        'Sqrt':         ['Number', 'double'],
-        'Ceiling':         ['Number', 'double'],
-        'Exp':          ['double','double'],
-        'PI': 'PI'
-        
-        
+        'abs':         ["Number", "Number"],
+        'tan':          ['Number', 'double'],
+        'atan':          ['Number', 'double'],
+        'sin':          ['Number', 'double'],
+        'asin':          ['Number', 'double'],
+        'cos':          ['double', 'double'],
+        'acos':          ['double', 'double'],
+        'log':          ['double', 'double', 'double'],
+        'sqrt':         ['Number', 'double'],
+        'ceiling':      ['double', 'double'],
+        'exp':          ['double','double'],
+        'PI': 'PI',
+        'Floor':          ['double','double'],
+        'Max':          ['Number','Number'],
+        'Min':          ['Number','Number'],
+        'Round':          ['double','double']
     },
 
     'operators': {
@@ -222,89 +220,21 @@ TYPED_API = {
         '|':   binary_or,
     },
     
-    'list': {
-        'append':       ['@t', ['list', '@t']],
-        'pop':        ['int','@t'],
-        'insert':     ['@t', ['list', '@t']],
-        'insert_at':  ['int', '@t', ['list', '@t']],
-        'concat':     [['list', '@t'], ['list', '@t']],
-        'repeat':     ['int', ['list', '@t']],
-        'extend':  [['list', '@t'], 'Void'],
-        'remove':     ['@t', 'Void'],
-        'len':     ['int'],
-        'join':       [['list', 'str'], 'str'],
-        'map':        [['Function', '@t', '@y'], ['list', '@y']],
-        'filter':     [['Function', '@t', 'bool'], ['list', '@t']],
-        'index':      ['@t','int'],
-        'copy':[['list','@t'],['list','@t']]
+    'List': {
+        'append':       ['@t', ['List', '@t']],
+        'sum':       [['List', '@t'], '@t'],
+        'AddRAnge':       [["List",'@t'], ['List', '@t']],
+        'Contains':       ["@t", "bool"],
+        'Remove':        ['@t','bool'],
+        'Insert':     ['int','@t', ["List", '@t']],
+        'Count':     ['int'],
+        'IndexOf':      ['@t','int'],
     },
-
-    'dict': {
-        'keys':       [['list','@k']],
-        'values':     [['list', '@v']],
-        'len':     ['int'],
-        'get':     ['@k','@v']
-    },
-
-    'datetime': {
-        'datetime':['datetime'],
-        'year':     ['int'],
-        'month':    ['int'],
-        'day':     ['int'],
-        'hour':    ['int'],
-        'minute':    ['int'],
-        'second':     ['int']
-
-    },
-
-
-
-    'str': {
-        'find':       ['str', 'int'],
-        'int':     ['int'],
-        'split':      ['str', ['list', 'str']],
-        'c_format':   [['array', 'str'], 'str'],
-        'upper':      ['str'],
-        'lower':      ['str'],
-        'title':      ['str'],
-        'center':     ['int', 'str', 'str'],
-        'find_from':  ['str', 'int', 'int'],
-        'len':     ['int'],
-        'float':['float']
-    },
-
-    'int': {'int': ['int'], 'float': ['float']},
-    'float': {'int': ['int'], 'float': ['float']},
-    'array': {
-        'array': ['array'],
-        'len':      ['int'],
-        'index':       ['@t', 'int'],
-        'count':       ['@t', 'int'],
-        'append':       ['@t', ['array', '@t']]
-    },
-
-    '_generic_list':    ['list', '@t'],
-    '_generic_array':   ['array', '@t'],
-    '_generic_Tuple':   ['Tuple', '@t'],
-    '_generic_Dictionary': ['Dictionary', '@k', '@v'],
-    # 'list#pop':        [_, '@t'],
-    # 'list#insert':     [_, 'Null'],
-    # 'list#remove':     [_, 'Null'],
-    # 'list#remove_at':  [_, 'Null'],
-    # 'list#length':     [_, 'int'],
-    # 'list#concat_one': [_, 'list<@t>'],
-    # 'list#concat':     [_, 'list<@t>'],
-    # 'list#[]':         [_, '@t'],
-    # 'list#[]=':        [_, 'Null'],
-    # 'list#slice':      [_, 'list<@t>'],
-
-    # 'Dict#keys':       [_, 'list<@k>'],
-    # 'Dict#values':     [_, 'list<@v>'],
 }
     
 ORIGINAL_METHODS = {
-    'list': {
-        'append':       'append(element)',
+    'List': {
+        'Add':       'Add(element)',
         'pop':        'pop',
         'insert':     'insert(element)',
         'insert_at':  'insert(element, index)',
@@ -368,7 +298,7 @@ BUILTIN_TYPES = {
     'float':    'float',
     'object':   'Object',
     'str':      'str',
-    'list':     'list',
+    'List':     'List',
     'dict':     'dict',
     'tuple':    'tuple',
     'bool':     'bool',
@@ -394,15 +324,15 @@ BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any'
 
 FORBIDDEN_TOP_LEVEL_FUNCTIONS = {'map', 'filter'}
 
-ITERABLE_TYPES = {'str', 'list', 'dict', 'array'}
+ITERABLE_TYPES = {'str', "List", 'dict', 'array'}
 
 TESTABLE_TYPE = 'bool'
 
-INDEXABLE_TYPES = {'str', 'list', 'dict', 'array', 'tuple'}
+INDEXABLE_TYPES = {'str', "List", 'dict', 'array', 'tuple'}
 
 COMPARABLE_TYPES = {'int', 'float', 'str'}
 
-TYPES_WITH_LENGTH = {'str', 'list', 'dict', 'array', 'tuple', 'Set'}
+TYPES_WITH_LENGTH = {'str', "List", 'dict', 'array', 'tuple', 'Set'}
 
 NUMBER_TYPES = {'int', 'float','double'}
 
