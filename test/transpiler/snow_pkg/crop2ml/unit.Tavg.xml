@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="STICS.Snow.Tavg" name="Tavg" timestep="1" version="1.0">
+	<Description>
+		<Title>Mean temperature  calculation</Title>
+		<Authors>STICS</Authors>
+		<Institution>INRA</Institution>
+		<Reference>-</Reference>
+		<Abstract>-</Abstract>
+	</Description>
+	<Inputs>
+		<Input name="tmin" description="current minimum air temperature" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" default="0.0" min="0.0" max="500.0" unit="°C" uri=""/>
+		<Input name="tmax" description="current maximum air temperature" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" default="0.0" min="0.0" max="100.0" unit="°C" uri=""/>
+	</Inputs>
+	<Outputs>
+		<Output name="tavg" description="mean temperature" variablecategory="state" datatype="DOUBLE" min="0.0" max="500.0" unit="°C" uri=""/>
+	</Outputs>
+	<Algorithm language="Cyml" platform="" filename="algo/pyx/Tavg.pyx" />
+	<Parametersets>
+		<Parameterset name="paramerSet1" description="set Parameters for TempMax unit" >
+		</Parameterset>
+	</Parametersets>
+	<Testsets>
+        <Testset name="check snow model" parameterset = "paramerSet1" description="some values in there" >
+        	<Test name ="test_snow1">
+        		<InputValue name="tmin">91.2</InputValue>
+				<InputValue name="tmax">0.279</InputValue>
+			    <OutputValue name="tavg" precision ="2">45.6</OutputValue>
+        	</Test>
+        </Testset>
+	</Testsets>
+</ModelUnit>

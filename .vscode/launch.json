@@ -1,0 +1,22 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - ex1",
+            "request": "launch",
+            "mainClass": "ex1"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - textx",
+            "request": "launch",
+            "mainClass": "textx"
+        },
+        {
+            "type": "java",
+            "name": "CodeLens (Launch) - ex2j",
+            "request": "launch",
+            "mainClass": "pycropml.cyml_paper.ex2j"
+        }
+    ]
+}

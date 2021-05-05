@@ -1,0 +1,38 @@
+{
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true,
+    "python.linting.banditEnabled": false,
+    "python.linting.pycodestyleEnabled": false,
+    "python.linting.flake8Enabled": false,
+    "python.linting.mypyEnabled": false,
+    "python.linting.prospectorEnabled": false,
+    "python.linting.pydocstyleEnabled": false,
+    "python.linting.pylamaEnabled": false,
+    "restructuredtext.confPath": "${workspaceFolder}\\doc",
+    "git.enableSmartCommit": true,
+    "terminal.integrated.shellArgs.windows": ["/K",
+        "C:\\Users\\midingoy\\Anaconda3\\Scripts\\activate.bat C:\\users\\midingoy\\Anaconda3"
+    ],
+     "code-runner.executorMap": {
+     "javascript": "nodejs",
+     "java": "cd $dir && javac $fileName && java $fileNameWithoutExt",
+     "cpp": "cd $dir && gcc -g \"$fileName\" -lstdc++  -o \"$fileNameWithoutExt\" && $dir\"$fileNameWithoutExt\"",
+     "csharp": "scriptcs",
+     "f90": "C:\\Program Files\\CodeBlocks\\MinGW\\bin\\gfortran",
+     "python": "C:\\Users\\midingoy\\Anaconda3\\Scripts\\activate.bat C:\\Users\\midingoy\\Anaconda3 & conda activate py36 & python"
+    },
+    "editor.fontSize": 16,
+    "editor.fontLigatures": null,
+    "[fortran]": {
+        "editor.acceptSuggestionOnEnter": "off"
+    },
+    "[fortran_fixed-form]": {
+        "editor.acceptSuggestionOnEnter": "off"
+    },
+    "[FortranFreeForm]": {
+        "editor.acceptSuggestionOnEnter": "off"
+    },
+    "fortran.gfortranExecutable": "C:\\Program Files\\CodeBlocks\\MinGW\\bin\\gfortran",
+    "fortran.symbols": [ "function", "subroutine"]
+
+}

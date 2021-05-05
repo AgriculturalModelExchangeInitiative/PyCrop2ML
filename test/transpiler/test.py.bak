@@ -1,0 +1,15 @@
+# coding: utf-8
+from pycropml.transpiler.main import Main
+
+source = """import numpy as np 
+from math import *
+def conductance_(int n):
+    cdef int s = 0
+    return s"""
+
+test=Main(source, "f90")
+a=test.parse()    
+g=test.to_ast(source)  
+test.dictAst
+code=test.to_source()
+print(code)

@@ -1,0 +1,19 @@
+tavg=0.
+M=0.
+Mrf=0.
+K=0.
+tmp_sdry=0.
+tmp_swet=0.
+frac_sdry=0.
+fs=0.
+Sdepth_cm=0.
+! Output variables
+Snowaccu=0.
+Snowmelt=0.
+Sdepth=0.
+preciprec=precip
+tminrec=tmin
+tmaxrec=tmax
+Sdry=0.
+Swet=0.
+ps=0.

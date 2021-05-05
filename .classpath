@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="test/data/energyBalance/crop2ml/Algo/java"/>
+	<classpathentry kind="src" path="test/data/phenology/crop2ml/algo/java"/>
+	<classpathentry kind="src" path="test/Tutorial/energybalance_pkg/src/java"/>
+	<classpathentry kind="src" path="test/Tutorial/EnergyBalance/src/java"/>
+	<classpathentry kind="src" path="test/Tutorial/pheno_pkg/src/java"/>
+	<classpathentry kind="src" path="test/Tutorial/test/src/java"/>
+	<classpathentry kind="src" path="test/Tutorial/test/testa/src/main/java"/>
+	<classpathentry kind="src" path="test/Tutorial/test/testa/src/test/java"/>
+	<classpathentry kind="src" path="test/Tutorial/testA/src/java"/>
+	<classpathentry kind="src" path="test/Tutorial/testnew/src/java"/>
+	<classpathentry kind="output" path="test/Tutorial/test/testa/target/classes"/>
+</classpath>
