@@ -1,1 +1,0 @@
-tavg = (tmin + tmax)/2
