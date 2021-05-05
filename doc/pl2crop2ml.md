@@ -15,7 +15,7 @@ Our approach is to analyze the source code of the component by converting it int
 Our work is based on platforms, that means that the strcuture of the component is well known. This makes easily the search of information. 
 
 Transformation process
-===========================
+======================
 The transformation process involves five steps:
 
 1. Provide the [ANTLR grammar] (https://github.com/antlr/grammars-v4) of each programming language that our system supports. 
