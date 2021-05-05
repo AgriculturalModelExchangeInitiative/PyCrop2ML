@@ -1,13 +1,13 @@
 #'Test generation'
 
-from leafnumber import *
+from LeafNumber import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= leafnumber(
+    params= LeafNumber(
     leafNumber_t1 = 5.147163833893262,
     phase = 3,
     phyllochron_t1 = 91.2,

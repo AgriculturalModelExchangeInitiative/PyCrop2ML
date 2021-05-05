@@ -1,13 +1,13 @@
 #'Test generation'
 
-from registerzadok import *
+from RegisterZadok import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= registerzadok(
+    params= RegisterZadok(
     slopeTSFLN = 0.9,
     intTSFLN = 2.6,
     der = 300.0,

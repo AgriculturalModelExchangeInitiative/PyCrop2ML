@@ -1,13 +1,13 @@
 #'Test generation'
 
-from updateleafflag import *
+from UpdateLeafFlag import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= updateleafflag(
+    params= UpdateLeafFlag(
     hasFlagLeafLiguleAppeared_t1 = 0,
     phase = 3,
     calendarMoments = ["Sowing", "Emergence", "EndVernalisation", "MainShootPlus1Tiller", "FloralInitiation", "MainShootPlus2Tiller", "TerminalSpikelet", "PseudoStemErection", "MainShootPlus3Tiller", "1stNodeDetectable", "2ndNodeDetectable", "FlagLeafJustVisible"],

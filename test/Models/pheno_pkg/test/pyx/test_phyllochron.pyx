@@ -1,13 +1,13 @@
 #'Test generation'
 
-from phyllochron import *
+from Phyllochron import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= phyllochron(
+    params= Phyllochron(
     lincr = 8.0,
     ldecr = 3.0,
     pdecr = 0.4,

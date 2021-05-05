@@ -1,13 +1,13 @@
 #'Test generation'
 
-from shootnumber import *
+from ShootNumber import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= shootnumber(
+    params= ShootNumber(
     targetFertileShoot = 600.0,
     sowingDensity = 288.0,
     canopyShootNumber_t1 = 288.0,

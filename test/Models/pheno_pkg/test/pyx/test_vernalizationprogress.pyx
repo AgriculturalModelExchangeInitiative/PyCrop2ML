@@ -1,13 +1,13 @@
 #'Test generation'
 
-from vernalizationprogress import *
+from VernalizationProgress import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= vernalizationprogress(
+    params= VernalizationProgress(
     isVernalizable = 1,
     minTvern = 0.0,
     intTvern = 11.0,

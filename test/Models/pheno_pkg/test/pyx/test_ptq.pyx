@@ -1,13 +1,13 @@
 #'Test generation'
 
-from ptq import *
+from PTQ import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= ptq(
+    params= PTQ(
     tTWindowForPTQ = 70.0,
     kl = 0.45,
     listTTShootWindowForPTQ_t1 = [0.0],

@@ -1,13 +1,13 @@
 #'Test generation'
 
-from gaimean import *
+from GAImean import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= gaimean(
+    params= GAImean(
     tTWindowForPTQ = 70.0,
     gAI = 91.2,
     deltaTT = 0.279,

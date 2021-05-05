@@ -1,13 +1,13 @@
 #'Test generation'
 
-from updatephase import *
+from UpdatePhase import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= updatephase(
+    params= UpdatePhase(
     choosePhyllUse = "Default",
     isVernalizable = 1,
     dse = 105.0,

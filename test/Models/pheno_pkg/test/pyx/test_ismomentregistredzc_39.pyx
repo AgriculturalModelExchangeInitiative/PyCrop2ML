@@ -1,13 +1,13 @@
 #'Test generation'
 
-from ismomentregistredzc_39 import *
+from IsMomentRegistredZC_39 import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= ismomentregistredzc_39(
+    params= IsMomentRegistredZC_39(
     calendarMoments_t1 = ["Sowing", "Emergence", "FloralInitiation", "FlagLeafLiguleJustVisible", "Heading", "Anthesis"],
      )
     isMomentRegistredZC_39_estimated = params

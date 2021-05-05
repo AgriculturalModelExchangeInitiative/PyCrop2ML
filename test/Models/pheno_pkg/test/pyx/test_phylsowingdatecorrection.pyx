@@ -1,13 +1,13 @@
 #'Test generation'
 
-from phylsowingdatecorrection import *
+from PhylSowingDateCorrection import *
 from math import *
 import numpy 
 
 
 
 def test_test_wheat1():
-    params= phylsowingdatecorrection(
+    params= PhylSowingDateCorrection(
     sowingDay = 80,
     latitude = 33.069,
     sDsa_sh = 151,
