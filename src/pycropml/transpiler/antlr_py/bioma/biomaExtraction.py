@@ -14,12 +14,14 @@ from pycropml.modelunit import ModelUnit
 from pycropml.description import Description
 from pycropml.inout import Input, Output
 from pycropml.function import Function
+from pycropml.composition import ModelComposition
 class BiomaExtraction(MetaExtraction):
     def __init__(self):
         MetaExtraction.__init__(self)
         self.inputs = []
         self.outputs = []
         self.model = None
+        self.mc = None
       
     def getStrategyVar(self, tree):
         """ This method returns a list of parameters and the value of their attributes
@@ -180,17 +182,23 @@ class BiomaExtraction(MetaExtraction):
             var.append(out["Name"].decode("utf-8"))
         var = var + [v["Name"].decode("utf-8") for v in  self.getStrategyVar(tree)[0] ]
         return var
-    
-    def modelunit(self, tree, tree2):
-        desc = self.description(tree)
-        self.model= ModelUnit({"name":desc["name"], "version":"001", "timestep":"1"})
+
+
+    def model_desc(self, desc):
+        name = desc["name"][:-9] if desc["name"].endswith("Component") else desc["name"]
         description = Description()
-        description.Title = desc["name"]+" model" 
+        description.Title = name+" model" 
         description.Authors = desc["authors"].decode("utf-8")
         description.Institution=desc["institution"].decode("utf-8")
-        description.Reference = desc["Reference"].decode("utf-8") if "Reference" in desc else None, 
+        description.Reference = desc["Reference"].decode("utf-8") if "Reference" in desc else "", 
         description.Abstract = desc["description"].decode("utf-8")
         description.Url = desc["url"].decode("utf-8")
+        return description
+
+    def modelunit(self, tree, tree2):
+        desc = self.description(tree)
+        self.model= ModelUnit({"name":desc["name"], "version":"001", "timestep":"1"})        
+        description = self.model_desc(desc)
         self.model.add_description(description)
         var = self.getFromVarInfo(tree, tree2)
         inp = var[0]
@@ -239,9 +247,53 @@ class BiomaExtraction(MetaExtraction):
         funcs = self.externFunction(tree)
         self.model.function = [func.name for func in funcs] if funcs else []
     
-    def modelcomposite(self, models, tree):
+    def modelcomposition(self, models, tree):
+        inputlink = []
+        outputlink = []
+        inp = {}
         algo = self.getmethod(tree, "EstimateOfAssociatedClasses")
-        return algo
+        desc = self.description(tree)
+        self.mc = ModelComposition({"name":desc["name"], "version":"001", "timestep":"1"})        
+        description = self.model_desc(desc)
+        self.mc.add_description(description)
+        self.getTypeNode(algo.block,"custom_call")
+        call = self.getAttNode(self.getTree, **{"function":"Estimate"})
+        self.mc.model = [c.namespace[1:] for c in call]
+        inps, outs = [], []
+        md = [n for m in self.mc.model for n in models if m == n.name]
+        inps = [n.name for m in md for n in m.inputs ]
+        outs = [n.name for m in md for n in m.outputs ]
+        m_in = set(inps) - set(outs)
+        z = {}
+        internallink= []
+        for m in md:
+            vi = list(set([n.name for n in m.inputs ]).intersection(m_in))
+            vo = [n.name for n in m.outputs]
+            for v in vi:
+                inputlink.append({"target": m.name + "." + v, "source":v})
+            for v in vo: z.update({v:m.name})
+
+        for k, v in z.items():
+            outputlink.append({"source": v + "." + k, "target":k})
+
+        for i in range(0, len(md)-1):
+            mi = md[i]
+            for j in range(i+1, len(md)):
+                mj = md[j]
+                vi = list(set([n.name for n in mi.outputs ]).intersection(set([n.name for n in mj.inputs ])))
+                if vi: 
+                    for k in vi:
+                        internallink.append({"source": mi.name + "." + k, "target":mj.name + "." + k})
+
+        self.mc.inputlink = inputlink
+        self.mc.outputlink = outputlink
+        self.mc.internallink = internallink
+            
+        
+        
+        #n = self.getAttNode(self.getTree,**{'type':'declaration', 'target': Node(type = 'member_access', name= v, member = att, pseudo_type = 'VarInfo')})   
+        
+        
 
             
 

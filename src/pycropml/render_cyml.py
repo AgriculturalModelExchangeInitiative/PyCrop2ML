@@ -421,7 +421,7 @@ def my_input(_input, defa=True):
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return ("%s %s[%s]"%(DATATYPE[_type], name, length))
             else:
-                return ("%s %s"%(DATATYPE[_type], name))
+                return ("%s %s"%(DATATYPE2[_type], name))
     else:
             if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
                 length = _input.len

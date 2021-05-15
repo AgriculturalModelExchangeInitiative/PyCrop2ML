@@ -303,8 +303,9 @@ class CymlGenerator(CodeGenerator, PythonRules):
                     self.write("] )")                    
             elif n.type in ("list"):
                 self.newline(node)
-                self.write("cdef intlist %s"%(n.name))   
+                self.write("cdef %s%s %s"%(n.pseudo_type[1].lower(),n.pseudo_type[0].lower(), n.name))   
             elif n.type == "array" :
+                print(n.y, "uuuuu")
                 self.newline(node)
                 self.write("cdef array %s = array ('%s', "%(n.name, n.pseudo_type[-1][0]))  
                 self.comma_separated_list(n.elements)

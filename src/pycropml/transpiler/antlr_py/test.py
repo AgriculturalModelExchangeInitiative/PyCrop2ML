@@ -10,7 +10,7 @@ from pycropml.transpiler.antlr_py.csharp import cs_cyml
 from pycropml.transpiler.generators.cymlGenerator import CymlGenerator
 from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
-from pycropml.transpiler.antlr_py.createUnit import Pl2Crop2ml
+from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
 
 """ Read BioMA component and extract metadata
 
@@ -42,6 +42,8 @@ for v in varInfo:
     asg = to_CASG(v, 'cs')
     vinfoAsg.append(asg)
 
+compo = to_CASG(compositeStrat, 'cs')
+
 models = []
 for strat in simpleStrat:
     print(strat)
@@ -71,9 +73,16 @@ for strat in simpleStrat:
     
     z.modelunit(strAsg,vinfoAsg)
     models.append(z.model)
-    xml_ = Pl2Crop2ml(z.model, "SQ.Pheno_Pkg").run()
+    xml_ = Pl2Crop2ml(z.model, "SQ.Pheno_Pkg").run_unit()
     filename = Path(os.path.join(crop2ml_rep, "unit.%s.xml"%(strat.basename().split(".")[0])))
     with open(filename, "wb") as xml_file:
         xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
+
+z.modelcomposition(models,compo)
+xml_ = Pl2Crop2ml(z.mc, "SQ.Pheno_Pkg").run_compo()
+name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
+filename = Path(os.path.join(crop2ml_rep, "composition.%s.xml"%(name)))
+with open(filename, "wb") as xml_file:
+    xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
 
 

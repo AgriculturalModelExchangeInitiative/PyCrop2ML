@@ -55,6 +55,7 @@ class AstTransformer():
         self.q=None
         if self.model:
             for inp in self.model.inputs:
+                print(self.model.name, inp.name)
                 self.inp_unit[inp.name]=inp.unit
             for out in self.model.outputs:
                 if out.name not in self.inp_unit:
