@@ -49,12 +49,14 @@ class Model2Package(object):
         for v_tests in m.testsets:
             test_runs = v_tests.test  # different run in the thest
             test_paramsets = v_tests.parameterset  # name of paramsets
-        # map the paramsets
+            # map the paramsets
             params = {}
-            if   test_paramsets not in list(psets.keys()):
-                print('Unknown parameter %s'%test_paramsets)
+
+            if test_paramsets.strip() != "" and test_paramsets not in list(psets.keys()):
+                print(' Unknow parameter %s' % test_paramsets)
             else:
-                params.update(psets[test_paramsets].params)
+                if test_paramsets.strip() != "":
+                    params.update(psets[test_paramsets].params)
                 for each_run in test_runs :
                     test_codes = ["library(assertthat)"]
                     # make a function that transforms a title into a function name

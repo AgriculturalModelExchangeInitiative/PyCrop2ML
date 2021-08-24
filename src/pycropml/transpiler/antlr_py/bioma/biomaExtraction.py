@@ -52,7 +52,7 @@ class BiomaExtraction(MetaExtraction):
         pdi_name = [x[0].name for x in [p.args for p in pdi if p]]
         pdo_name = [x[0].name for x in [p.args for p in pdo if p]]
 
-        listatt = ["DefaultValue","Description","MaxValue", "MinValue", "Name", "Units", "URL", "ValueType"]
+        listatt = ["DefaultValue","Description","MaxValue", "MinValue", "Name", "Unit", "URL", "ValueType"]
         pa =[]
         for v in vinfo:
             vi={}
@@ -223,7 +223,7 @@ class BiomaExtraction(MetaExtraction):
             max = [modVal(s["MaxValue"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
             min = [modVal(s["MinValue"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
             default = [modVal(s["DefaultValue"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
-            units = [s["Units"].decode("utf-8") for s in inp if s["Name"].decode("utf-8") == vn][0]
+            unit = [s["Units"].decode("utf-8") for s in inp if s["Name"].decode("utf-8") == vn][0]
             datatype = [s["ValueType"] for s in inp if s["Name"].decode("utf-8") == vn][0]
             desc_dict = {"name":v, "description":description, 
                                 v_categ:category,
@@ -231,7 +231,7 @@ class BiomaExtraction(MetaExtraction):
                                 "inputtype":v_inputtype,
                                 "max":max,
                                 "min":min,
-                                "units":units}
+                                "unit":unit}
             
             if v in pc+param_names and v not in inp_par: 
                 desc_dict["default"] = default

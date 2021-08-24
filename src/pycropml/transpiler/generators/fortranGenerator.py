@@ -56,6 +56,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.funcname = ""
         dir_lib = Path(os.path.dirname(lib.__file__))
         self.f_src=dir_lib/"f90"/"list_sub.f90"
+        if self.model: self.f_dest = os.path.join(self.model.path,"src","f90","list_sub.f90") 
     
     def visit_notAnumber(self, node):
         pass
@@ -354,8 +355,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write("USE list_sub")
             self.newline(node) 
             if self.model:
-                f_dest = os.path.join(self.model.path,"src","f90","list_sub.f90") 
-                shutil.copyfile(self.f_src, f_dest)         
+                shutil.copyfile(self.f_src, self.f_dest)         
         for dependency in self.z.dependencies:
             if dependency!="list" and dependency.split("_")[0]=="model":
                 self.write("USE %smod" %dependency.split("model_")[1].capitalize())
@@ -469,6 +469,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.indentation -=1
         self.newline(node)
         if self.model and node.name.startswith("model_"):
+            self.write(self.doc.header)
+            self.newline(node)
             self.write(self.doc.desc)
             self.newline(node)
             self.write(self.doc.inputs_doc)

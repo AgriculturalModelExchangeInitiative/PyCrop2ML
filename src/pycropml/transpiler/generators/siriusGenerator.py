@@ -427,6 +427,8 @@ using CRA.AgroManagement;
                                     self.write(" = r.%s"%arg.name)
                                 if arg.name in self.auxiliary:
                                     self.write(" = a.%s"%arg.name) 
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.%s"%arg.name) 
                             else:
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
@@ -493,7 +495,7 @@ using CRA.AgroManagement;
 
 
 class SiriusTrans(CsharpTrans):
-    """ This class used to generates states, rates, and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
     for Sirius.
     """
     
@@ -708,6 +710,8 @@ def to_struct_sirius(models, rep, name):
     createdc(rates,"Rate")      
     auxiliary = generator.node_auxiliary
     createdc(auxiliary,"Auxiliary") 
+    exogenous = generator.node_exogenous
+    createdc(exogenous,"Exogenous") 
     
 
     def varinfo(states, catvar):
@@ -724,8 +728,8 @@ def to_struct_sirius(models, rep, name):
     varinfo(rates,"Rate")      
     auxiliary = generator.auxiliary
     varinfo(auxiliary,"Auxiliary")
-    auxiliary = generator.exogenous
-    varinfo(auxiliary,"Exogenous")
+    exogenous = generator.exogenous
+    varinfo(exogenous,"Exogenous")
 
 
 
@@ -733,7 +737,7 @@ def to_struct_sirius(models, rep, name):
 
 
 class SiriusCompo(CsharpCompo):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
         for C# languages.
     """
     def __init__(self, tree=None, model=None, name=None):
@@ -1196,6 +1200,8 @@ using CRA.AgroManagement;
         self.newline(1)
         self.write("a = new %sAuxiliary();"%(name))
         self.newline(1)
+        self.write("ex = new %sExogenous();"%(name))
+        self.newline(1)
         self.write("%sComponent = new %s();"%(name.lower(), name))
         self.newline(1)
         self.write("loadParameters();")
@@ -1216,6 +1222,8 @@ using CRA.AgroManagement;
         self.write("r = (toCopy.r != null) ? new %sRate(toCopy.r, copyAll) : null;"%(self.model.name))
         self.newline(1)
         self.write("a = (toCopy.a != null) ? new %sAuxiliary(toCopy.a, copyAll) : null;"%(self.model.name))
+        self.newline(1)
+        self.write("ex = (toCopy.ex != null) ? new %sExogenous(toCopy.ex, copyAll) : null;"%(self.model.name))
         self.newline(1)
         self.write("if (copyAll)")
         self.newline(1)

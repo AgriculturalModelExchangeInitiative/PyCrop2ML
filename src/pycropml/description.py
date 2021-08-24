@@ -4,7 +4,7 @@ class Description(object):
 
     A description is defined by:
       - Title
-      - Author
+      - Authors
       - Institution
       - Reference
       - Abstract
@@ -12,7 +12,7 @@ class Description(object):
 
     def __init__(self):
         self.Title = ''
-        self.Author= ''
+        self.Authors= ''
         self.Institution = ''
         self.Reference = ''
         self.Abstract = ''

@@ -43,7 +43,7 @@ class Model2Nb(object):
 
         _cells = self.nb['cells'] = [nbf.v4.new_markdown_cell(text)]
 
-        var = ["Auxiliary", "Rate", "State"] 
+        var = ["Auxiliary", "Rate", "State", "Exogenous"] 
         if language in ("cs", "java","cpp"):
             for v in var:
                 fileVar = Path(os.path.join(tg_rep, "%s%s.%s"%(namep.capitalize(),v, language)))

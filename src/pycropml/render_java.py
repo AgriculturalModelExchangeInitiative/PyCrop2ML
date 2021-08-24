@@ -50,16 +50,19 @@ class Model2Package(object):
         code += tab + "%sState s1 = new %sState();\n"%(name_mc.capitalize(), name_mc.capitalize())    
         code += tab + "%sRate r = new %sRate();\n"%(name_mc.capitalize(), name_mc.capitalize())
         code += tab + "%sAuxiliary a = new %sAuxiliary();\n"%(name_mc.capitalize(), name_mc.capitalize())
+        code += tab + "%sExogenous ex = new %sExogenous();\n"%(name_mc.capitalize(), name_mc.capitalize())
         code += tab + "%s mod = new %s();\n"%(m.name.capitalize(), m.name.capitalize())
         def categ(k, inout):
             state = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="state"]
             rate = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="rate"]
             auxiliary = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="auxiliary"]
+            exogenous = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="exogenous"]
             parameter = [m.name for m in inout if "parametercategory" in dir(m)]
             if k in state and k.endswith("_t1"): return "s1"
             elif k in state : return "s"
             elif k in rate: return  "r"
             elif k in auxiliary: return  "a"
+            elif k in exogenous: return  "ex"
             elif k in parameter: return "mod"
             else: raise Exception("error")    
         for inp in inputs:            
@@ -101,7 +104,7 @@ class Model2Package(object):
                                 code += 2*tab + "%s\n"%(transfDate(categ(k, inputs),k if not k.endswith("_t1") else k[:-3], v)) 
                             if type_v=="DATELIST":
                                     code += 2*tab + "%s\n"%(transfDateList(categ(k, inputs),k if not k.endswith("_t1") else k[:-3], v)) 
-                    code+=tab*2+"mod.Calculate_%s(s,s1, r, a);\n"%(m.name.lower())
+                    code+=tab*2+"mod.Calculate_%s(s,s1, r, a, ex);\n"%(m.name.lower())
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
                         code += 2*tab + "//%s: %s;\n"%(k, v[0]) 
