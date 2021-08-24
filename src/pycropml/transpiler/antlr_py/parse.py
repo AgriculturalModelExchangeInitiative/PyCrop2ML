@@ -1,6 +1,10 @@
 import pycropml.transpiler.antlr_py.grammars 
 from pycropml.transpiler.antlr_py.grammars.CSharpLexer import CSharpLexer
 from pycropml.transpiler.antlr_py.grammars.CSharpParser import CSharpParser
+from pycropml.transpiler.antlr_py.grammars.Fortran90Lexer import Fortran90Lexer
+from pycropml.transpiler.antlr_py.grammars.Fortran90Parser import Fortran90Parser
+from pycropml.transpiler.antlr_py.csharp import csharp_generate_tree
+from pycropml.transpiler.antlr_py.fortran import fortran_generate_tree
 from antlr4 import *
 import warnings
 import inspect
@@ -15,8 +19,9 @@ from antlr4.error.ErrorListener import ErrorListener, ConsoleErrorListener
 from operator import methodcaller
 from antlr4 import InputStream
 
-languages = ['cs',"bioma"]
-NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp"}
+languages = ['cs',"bioma", 'f90', 'dssat']
+gen = {'cs':"csharp","bioma":"csharp", 'f90':"fortran", 'dssat':"fortran"}
+NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp", 'f90':'Fortran90', 'dssat':'Fortran90'}
 
 def langLexerParser(ant):
     generator = {
@@ -32,6 +37,18 @@ def langLexerParser(ant):
 LexersGenerators = langLexerParser("Lexer")
 ParsersGenerators = langLexerParser("Parser")
 
+
+
+
+genTree= {
+        format: getattr(
+                    getattr(
+                        pycropml.transpiler.antlr_py,
+                        '%s' % (gen[format])),
+                    '%s_generate_tree' % (gen[format]))
+        for format in languages
+    }
+
 def parsef(filename, language,
             start="compilation_unit", 
             strict = "False", 
@@ -44,7 +61,8 @@ def parsef(filename, language,
     lexer.addErrorListener(LexerErrorListener())
     stream = CommonTokenStream(lexer)
     parser = ParsersGenerators[language](stream)
-    tree = parser.compilation_unit()
+    #tree = parser.compilation_unit()
+    tree = genTree[language].generate(parser)
     parser.buildParseTrees = True # default
     return tree
 

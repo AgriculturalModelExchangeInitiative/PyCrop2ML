@@ -111,7 +111,7 @@ class CymlGenerator(CodeGenerator, PythonRules):
     def visit_bool(self, node):
         self.write(str(node.value))
 
-    def visit_str(self, node):
+    def visit_string(self, node):
         self.safe_double(node)
     
     def visit_tuple(self, node):
@@ -200,10 +200,10 @@ class CymlGenerator(CodeGenerator, PythonRules):
               
     def visit_binary_op(self, node):
         op = node.op
-        prec = self.binop_precedence.get(op, 0)
+        prec = self.binop_precedence.get(str(op), 0)
         self.operator_enter(prec)
         self.visit(node.left)
-        self.write(u" %s " % self.binary_op[op].replace('_', ' '))
+        self.write(u" %s " % self.binary_op[str(op)].replace('_', ' '))
         if "type" in dir(node.right):
             if node.right.type=="binary_op" and node.right.op not in ("+","-") :
                 self.write("(")
@@ -217,9 +217,9 @@ class CymlGenerator(CodeGenerator, PythonRules):
     
     def visit_unary_op(self, node):
         op = node.operator
-        prec = self.unop_precedence[op]
+        prec = self.unop_precedence[str(op)]
         self.operator_enter(prec)
-        self.write(u"%s" % self.unary_op[op])
+        self.write(u"%s" % self.unary_op[str(op)])
         self.visit(node.value)
         self.operator_exit()
 
@@ -229,7 +229,7 @@ class CymlGenerator(CodeGenerator, PythonRules):
         self.write('def %s(' % node.name)
         for i, pa in enumerate(node.params):
             #if pa.type == "local": 
-            self.write("%s %s"%(pa.pseudo_type if isinstance(pa.pseudo_type, str) else pa.pseudotype[-1]+pa.pseudo_type[0],pa.name))
+            self.write("%s %s"%(pa.pseudo_type if isinstance(pa.pseudo_type, str) else pa.pseudo_type[-1]+pa.pseudo_type[0],pa.name))
             if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
                 #self.write(pa.name)
                 self.write(" = ")

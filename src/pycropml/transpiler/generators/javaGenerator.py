@@ -34,6 +34,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.states = [st.name for st in self.model.states]  
             self.rates = [rt.name for rt in self.generator.rates ]
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
+            self.exogenous = [ex.name for ex in self.generator.exogenous]
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
         self.funcname = ""
@@ -358,7 +359,6 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write("{") 
         self.newline(node)
         self.indentation += 1
-        print(node.body)
         self.visit(node.body)
         self.newline(node)
         self.indentation -= 1        
@@ -409,7 +409,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize()))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -440,6 +440,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                                     self.write(" = r.get%s()"%arg.name)
                                 if arg.name in self.auxiliary:
                                     self.write(" = a.get%s()"%arg.name) 
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.get%s()"%arg.name)                                     
                             else:
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new ArrayList<>(Arrays.asList())")
@@ -493,6 +495,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                             self.write("r.set%s(%s);"%(arg.name,arg.name))
                         if arg.name in self.auxiliary:
                             self.write("a.set%s(%s);"%(arg.name,arg.name))
+                        if arg.name in self.exogenous:
+                            self.write("ex.set%s(%s);"%(arg.name,arg.name))
         else:
             self.newline(node)
             self.indentation += 1
@@ -759,7 +763,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
 
 
 class JavaTrans(CodeGenerator,JavaRules):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
     for java language.
     """
     
@@ -770,6 +774,7 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.states=[]
         self.rates=[]
         self.auxiliary=[]
+        self.exogenous=[]
         self.extern =[] 
         self.modparam=[] 
     DATATYPE={
@@ -816,9 +821,10 @@ class JavaTrans(CodeGenerator,JavaRules):
                     self.rates.append(var)
                 if var.variablecategory=="auxiliary":
                     self.auxiliary.append(var)
+                if var.variablecategory=="exogenous":
+                    self.exogenous.append(var)
             if "parametercategory" in dir(var):
                 self.modparam.append(var)
-        #print(self.auxiliary)
 
         def create(typevar):
             node_typevar=[]
@@ -837,6 +843,7 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.node_states = create(self.states)
         self.node_rates= create(self.rates)
         self.node_auxiliary= create(self.auxiliary) 
+        self.node_exogenous= create(self.exogenous)
         self.node_param=create(self.modparam)       
     
     def private(self,node):
@@ -1007,6 +1014,14 @@ def to_struct_java(models, rep, name):
     z2= ''.join(generator.result)
     filename = Path(os.path.join(rep/"%sAuxiliary.java"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
+        tg2_file.write(z2.encode('utf-8')) 
+
+    exogenous = generator.node_exogenous
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
+    generator.generate(exogenous, "%sExogenous"%name.capitalize())
+    z2= ''.join(generator.result)
+    filename = Path(os.path.join(rep/"%sExogenous.java"%name.capitalize()))
+    with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))  
     return 0
 
@@ -1016,7 +1031,7 @@ def to_struct_java(models, rep, name):
 
 
 class JavaCompo(JavaTrans, JavaGenerator):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
         for java language.
     """
     def __init__(self, tree, model=None, name=None):
@@ -1031,6 +1046,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.statesName = [st.name for st in self.states]
         self.ratesName = [rt.name for rt in self.rates]
         self.auxiliaryName = [au.name for au in self.auxiliary]
+        self.exogenousName = [au.name for au in self.exogenous]
        # self.model2Node()
 
     def visit_module(self, node):
@@ -1082,7 +1098,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1112,6 +1128,8 @@ class JavaCompo(JavaTrans, JavaGenerator):
                             self.write("r.set%s(%s);"%(arg.name,arg.name))
                         if arg.name in self.auxiliary:
                             self.write("a.set%s(%s);"%(arg.name,arg.name))
+                        if arg.name in self.exogenous:
+                            self.write("ex.set%s(%s);"%(arg.name,arg.name))
             self.write("")
         self.newline(node)
     
@@ -1135,6 +1153,8 @@ class JavaCompo(JavaTrans, JavaGenerator):
             self.write("r.set%s"%node.name)
         elif node.name in self.auxiliaryName:
             self.write("a.set%s"%node.name)
+        elif node.name in self.exogenousName:
+            self.write("ex.set%s"%node.name)
         else: self.write(node.name)"""
 
     def visit_assignment(self, node):

@@ -160,11 +160,11 @@ class Cs_Cyml_ast():
     def visit_string(self, node):
         if "value" in dir(node) and "name" in dir(node): 
             val = self.visit(node.value)
-            return  {'type': 'str', 'name': node.name, 'value': val["value"], 'pseudo_type': 'str'}
+            return  {'type': 'string', 'name': node.name, 'value': val["value"], 'pseudo_type': 'string'}
         elif "value" in dir(node): 
             val = self.visit(node.value)
-            return {'type': 'str', 'value': val, 'pseudo_type': 'str'}
-        elif "name" in dir(node): return {'type': 'str', 'name':node.name, 'pseudo_type': 'str'}
+            return {'type': 'string', 'value': val, 'pseudo_type': 'string'}
+        elif "name" in dir(node): return {'type': 'string', 'name':node.name, 'pseudo_type': 'string'}
  
     def visit_fielddecl(self, node):
         return

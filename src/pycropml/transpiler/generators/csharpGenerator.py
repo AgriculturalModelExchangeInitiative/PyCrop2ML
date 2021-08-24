@@ -34,6 +34,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.states = [st.name for st in self.model.states]
             self.rates = [rt.name for rt in self.generator.rates ]
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
+            self.exogenous = [ex.name for ex in self.generator.exogenous]
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
         self.funcname = ""
@@ -218,7 +219,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.newline(node)
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.CalculateModel(s,s1, r, a);"%(name))
+            self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
         else:
             if node.value.type == "standard_call" and node.value.function=="integr":
                 self.write("%s = new List<%s>(%s);"%(node.target.name,self.types[node.target.pseudo_type[1]], node.value.args[0].name))
@@ -382,7 +383,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" CalculateModel(") if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name, self.name,self.name, self.name))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -413,6 +414,8 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                                     self.write(" = r.%s"%arg.name)
                                 if arg.name in self.auxiliary:
                                     self.write(" = a.%s"%arg.name) 
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.%s"%arg.name)
                             else:
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
@@ -459,6 +462,8 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                             self.write("r.%s = %s;"%(arg.name,arg.name))
                         if arg.name in self.auxiliary:
                             self.write("a.%s= %s;"%(arg.name,arg.name))
+                        if arg.name in self.exogenous:
+                            self.write("ex.%s= %s;"%(arg.name,arg.name))
         else:
             self.newline(node)
             self.indentation += 1
@@ -732,7 +737,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
 
 
 class CsharpTrans(CodeGenerator,CsharpRules):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates,  auxiliary and exogenous classes
     for C# languages.
     """
     
@@ -811,7 +816,6 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                     self.exogenous.append(var)
             if "parametercategory" in dir(var):
                 self.modparam.append(var)
-        #print(self.auxiliary)
 
         def create(typevar):
             node_typevar=[]
@@ -819,6 +823,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                 if "variablecategory" in dir(var) and var.variablecategory=="state": return "s"
                 if "variablecategory" in dir(var) and var.variablecategory=="rate": return "r"
                 if "variablecategory" in dir(var) and var.variablecategory=="auxiliary": return "a"
+                if "variablecategory" in dir(var) and var.variablecategory=="exogenous": return "ex"
             for st in typevar:
                 if st.datatype in ("INT","DOUBLE","BOOLEAN","STRING","INTLIST","DOUBLELIST","STRINGLIST", "DATE", "DATELIST"):
                     node=Node(type="local", name=st.name, pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st))
@@ -834,6 +839,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
         self.node_states = create(self.states)
         self.node_rates= create(self.rates)
         self.node_auxiliary= create(self.auxiliary) 
+        self.node_exogenous= create(self.exogenous) 
         self.node_param=create(self.modparam)       
     
     def private(self,node):
@@ -1005,6 +1011,14 @@ def to_struct_cs(models, rep, name):
     filename = Path(os.path.join(rep, "%sAuxiliary.cs"%name))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))
+
+    exogenous = generator.node_exogenous
+    generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
+    generator.generate(exogenous, "%sExogenous"%name)
+    z3= ''.join(generator.result)
+    filename = Path(os.path.join(rep, "%sExogenous.cs"%name))
+    with open(filename, "wb") as tg3_file:
+        tg3_file.write(z3.encode('utf-8'))
     return 0
 
 
@@ -1013,7 +1027,7 @@ def to_struct_cs(models, rep, name):
 
 
 class CsharpCompo(CsharpTrans,CsharpGenerator):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
         for C# languages.
     """
     def __init__(self, tree=None, model=None, name=None):
@@ -1028,9 +1042,10 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.statesName = [st.name for st in self.states]
         self.ratesName = [rt.name for rt in self.rates]
         self.auxiliaryName = [au.name for au in self.auxiliary]
+        self.exogenousName = [ex.name for ex in self.exogenous]
         if "internallink" in dir(self.model): self.aux = [link["source"].split(".")[1] for link in self.model.internallink]
-        self.realinp=[]        
-        for node in self.node_auxiliary:
+        self.realinp=[]     
+        for node in self.node_auxiliary + self.node_exogenous:
             if node.name not in self.realinp and node.name not in self.aux:
                 self.realinp.append(node)
 
@@ -1091,7 +1106,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a)'%(self.name, self.name,self.name, self.name))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1114,7 +1129,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.CalculateModel(s,s1, r, a);"%(name))
+            self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
             self.newline(node)
         else:
             self.newline(node)
@@ -1159,6 +1174,8 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
             self.write("r.%s"%node.name)
         elif node.name in self.auxiliaryName:
             self.write("a.%s"%node.name)
+        elif node.name in self.exogenousName:
+            self.write("ex.%s"%node.name)
         else: self.write(node.name)
 
 
@@ -1242,6 +1259,8 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.newline(1)
         self.write("private %sAuxiliary a;"%(name))
         self.newline(1)
+        self.write("private %sExogenous ex;"%(name))
+        self.newline(1)
         self.write("private %sComponent %sComponent;"%(name,name.lower()))
         self.newline(extra=1)
     
@@ -1258,6 +1277,8 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.newline(1)
         self.write("a = new %sAuxiliary();"%(name))
         self.newline(1)
+        self.write("ex = new %sExogenous();"%(name))
+        self.newline(1)
         self.write("%sComponent = new %sComponent();"%(name.lower(), name))
         self.newline(1)
         self.write("loadParameters();")
@@ -1268,7 +1289,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def outputWrap(self):
         out = [out.name for out in self.model.outputs]
         tabout=[]
-        nodes =self.node_states+self.node_rates+self.node_auxiliary
+        nodes =self.node_states+self.node_rates+self.node_auxiliary + self.node_exogenous
         for node in nodes :
             if node.name in out and node.name not in tabout:
                 self.getset([node], True)
@@ -1286,6 +1307,8 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("r = (toCopy.r != null) ? new %sRate(toCopy.r, copyAll) : null;"%(self.model.name))
         self.newline(1)
         self.write("a = (toCopy.a != null) ? new %sAuxiliary(toCopy.a, copyAll) : null;"%(self.model.name))
+        self.newline(1)
+        self.write("ex = (toCopy.ex != null) ? new %sExogenous(toCopy.ex, copyAll) : null;"%(self.model.name))
         self.newline(1)
         self.write("if (copyAll)")
         self.newline(1)
@@ -1342,7 +1365,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         for node in self.realinp:
             self.write("a.%s = %s;"%(node.name, node.name))
             self.newline(1)
-        self.write("%sComponent.CalculateModel(s,s1, r, a);"%(self.model.name.lower()))
+        self.write("%sComponent.CalculateModel(s,s1, r, a, ex);"%(self.model.name.lower()))
         self.newline(1)
         self.indentation -= 1 
         self.write("}")

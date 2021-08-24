@@ -22,7 +22,7 @@ import pycropml.transpiler.antlr_py
 
 
 NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check","apsim":"apsim", "record":"record", "dssat":"dssat","bioma":"bioma"}
-ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs', "openalea":"py","check":"check", "apsim":"cs", "record":"cpp", "dssat":"f90"}
+ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs','bioma':'cs', "openalea":"py","check":"check", "apsim":"cs", "record":"cpp", "dssat":"f90"}
 
 domain_class = ["cs", "java", 'sirius','cpp', "bioma"]
 wrapper=["cs", "sirius", "bioma"]

@@ -2,11 +2,17 @@
 # coding: utf-8
 
 from pycropml.transpiler.pseudo_tree import Node
+from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract
 
 class MetaExtraction():
     def __init__(self):
         self.parameters = {}
         self.getTree = []
+
+    def getFromComment(self, file, c_st_single, c_st_multi, c_end_multi):
+        comments = ExtractComments(file, c_st_single, c_st_multi, c_end_multi)
+        model_mdata = extract(comments)
+        return model_mdata
     
     def getTypeNode(self, tree, nodetype, change=True):
         """get nodes of type nodetype
