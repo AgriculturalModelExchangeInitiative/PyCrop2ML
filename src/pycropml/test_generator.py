@@ -28,7 +28,7 @@ def generate_test_py(model,dir=None):
     name = name.replace(' ', '_').lower()
     model_name = name
     psets = m.parametersets
-    code_test = ["from pycropml.units import u"]
+    code_test = [""]
     for v_tests in m.testsets:
 
         #test_name = v_tests.name  # name of tests
@@ -61,7 +61,7 @@ def generate_test_py(model,dir=None):
                 run_param.update(ins)
                 for k, v in six.iteritems(run_param):
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
-                    code = tab + "%s = %s*u.%s," % (k, transf(type_[0], v),splitunit(type_[1])) 
+                    code = tab + "%s = %s," % (k, transf(type_[0], v)) 
                     test_codes.append(code)
                 code = "     )"
                 test_codes.append(code)
@@ -71,7 +71,7 @@ def generate_test_py(model,dir=None):
                         code = "%s_estimated = " % k.name
                         code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
-                        code = "%s_computed = %s*u.%s" % (k.name, outs[k.name][0],splitunit(k.unit))
+                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
                         code = "assert %s_computed == %s_estimated"%(k.name, k.name)
                         test_codes.append(code)
@@ -80,18 +80,17 @@ def generate_test_py(model,dir=None):
                         code = "%s_estimated =" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
                         code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
-                        code = "%s_computed = %s*u.%s" % (k.name, outs[k.name][0],splitunit(k.unit))
+                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
                         code = "assert %s_computed == %s_estimated"%(k.name, k.name)
                         test_codes.append(code)
 
-                    if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):
-                        code = "%s_estimated =" % k.name
-                        code += "params[%s].round(%s)*params[%s].units" % (j, outs[k.name][1],j) if len(
-                            m.outputs) > 1 else "params.round(%s)*params.units" % outs[k.name][1]
+                    if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):              
+                        code = "%s_estimated = numpy.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
                         test_codes.append(code)
-                        code = "%s_computed = %s*u.%s" % (k.name, outs[k.name][0], splitunit(k.unit))
+                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
                         test_codes.append(code)
+
                         code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
                         test_codes.append(code)
 
@@ -99,19 +98,19 @@ def generate_test_py(model,dir=None):
                         code = "%s_estimated =" % k.name
                         code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
-                        code = "%s_computed = %s*u.%s" % (k.name, outs[k.name][0],splitunit(k.unit))
+                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
                         code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
                         test_codes.append(code)
 
                     if k.datatype == "DOUBLE":
-                        code = "%s_estimated =" % k.name
-                        code += "params[%s].round(%s)*params[%s].units" % (j, outs[k.name][1],j) if len(
-                            m.outputs) > 1 else "params.round(%s)*params.units" % outs[k.name][1]
+                        code = "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
                         test_codes.append(code)
-                        code = "%s_computed = %s*u.%s" % (k.name, outs[k.name][0], splitunit(k.unit))
+
+                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
                         test_codes.append(code)
-                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
+
+                        code = "assert (%s_estimated == %s_computed)"%(k.name,k.name)
                         test_codes.append(code)
                 code = '\n'.join(test_codes)
                 code_test.append(code)
