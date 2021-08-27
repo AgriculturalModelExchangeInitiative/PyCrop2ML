@@ -227,9 +227,9 @@ class Topology():
         edge = self.create_edgeInOut()
         for v in W:
             if not self.check_compo(self.model,v):
-                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[v][1]),v.strip().replace(' ','_'),','.join(self.minout()[v][0]))
+                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[v][1]),v.strip().replace(' ','_').lower(),','.join(self.minout()[v][0]))
             else:
-                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[v][1]),v.strip().replace(' ','_'),','.join(self.minout()[v][0]))
+                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[v][1]),v.strip().replace(' ','_').lower(),','.join(self.minout()[v][0]))
                 
             if len(edge)!=0:
                 if v in list(edge.keys()):
@@ -267,7 +267,7 @@ class Topology():
         #print(self.meta_inp(self.name))
         for mod in self.model.model:
             code+= 'from %s import model_%s\n'%(signature(mod), signature(mod)) if mod.package_name is None else 'from %s import model_%s\n'%(signature(mod), signature(mod))
-        name =self.model.name.strip().replace(' ','_')
+        name =self.model.name.strip().replace(' ','_').lower()
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"
         code += self.decl(defa=False)
