@@ -8,6 +8,7 @@ import os
 from path import Path
 import pycropml
 from pycropml.transpiler.main import Main
+#from pycropml.transpiler.antlr_py.dssat.run import process_dssat
 from pycropml import render_cyml
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
@@ -21,12 +22,12 @@ from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
 import pycropml.transpiler.antlr_py 
 
 
-NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check","apsim":"apsim", "record":"record", "dssat":"dssat","bioma":"bioma"}
-ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs','bioma':'cs', "openalea":"py","check":"check", "apsim":"cs", "record":"cpp", "dssat":"f90"}
+NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","check":"check","apsim":"apsim", "record":"record", "dssat":"dssat","bioma":"bioma", "stics":"stics"}
+ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs','bioma':'cs', "openalea":"py","check":"check", "apsim":"cs", "record":"cpp", "dssat":"f90", "stics":"f90"}
 
 domain_class = ["cs", "java", 'sirius','cpp', "bioma"]
 wrapper=["cs", "sirius", "bioma"]
-platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat"]
+platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "stics"]
 
 def transpile_file(source, language):
     sourcef = source
@@ -128,7 +129,7 @@ def transpile_package(package, language):
     status = 0
     return status
 
-def transpile_component(component, language):
+def transpile_component(component, package, language):
     """Transform a framework model component to Crop2ML/CyML
 
     Args:
@@ -136,8 +137,11 @@ def transpile_component(component, language):
         language (str): a language or framework
 
     Returns:
-        repository: Crop2ML package containing xml files and 
+        package: Crop2ML package containing xml files and 
     """
 
-    print("TODO")
+    if language == "dssat":
+        pass
+        #process_dssat(component, package)
+
     return 0

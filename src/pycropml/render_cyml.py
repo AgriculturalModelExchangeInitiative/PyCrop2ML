@@ -337,7 +337,7 @@ class Model2Package(object):
 def signature(model):
     name = model.name
     name = name.strip()
-    name = name.replace(' ', '_')
+    name = name.replace(' ', '_').lower()
 
     return name
 
