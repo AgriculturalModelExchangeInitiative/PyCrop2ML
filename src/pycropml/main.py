@@ -74,6 +74,7 @@ Example
     pyx_filename = None
     package = None
     component = None
+    newpackage = None
     langs = []
 
     if len(parser.option_list) + len(args) < 2:
@@ -95,6 +96,9 @@ Example
     if opts.languages:
         langs = opts.languages
     else:
+        if opts.component:
+           newpackage = args[0]
+           args = args[1:]
         langs = [a for a in args if a in languages]
 
     fail = False
@@ -127,7 +131,7 @@ Example
             status = transpile_package(sourcef, language)
     else:
         for language in langs:
-            status = transpile_component(sourcef, language)
+            status = transpile_component(sourcef,newpackage,language)
 
 
 

@@ -139,6 +139,9 @@ def generate_test_simplace(model,dir=None):
 def generate_test_sirius(model,dir=None):
     pass
 
+def generate_test_stics(model,dir=None):
+    pass
+
 def generate_test_openalea(model,dir=None):
     pass
 
