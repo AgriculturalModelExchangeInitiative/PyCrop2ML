@@ -43,7 +43,7 @@ Submodules
    pycropml.render_notebook_csharp
    pycropml.render_notebook_java
    pycropml.render_python
-   pycropml.render_r
+   pycropml.render_R
    pycropml.test_generator
    pycropml.topology
    pycropml.unitparser

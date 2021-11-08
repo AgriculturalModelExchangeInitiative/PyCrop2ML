@@ -2,7 +2,7 @@ from pycropml import render_fortran
 from pycropml import render_java
 from pycropml import render_csharp
 from pycropml import render_cpp
-from pycropml import render_r
+from pycropml import render_R
 from pycropml.render_cyml import transf
 import six
 
@@ -131,7 +131,7 @@ def generate_test_cpp(model,directory=None):
     return [render_cpp.Model2Package(model, directory).generate_test(model)]
 
 def generate_test_r(model,dir):
-    return [render_r.Model2Package(model, dir).generate_test(model)]
+    return [render_R.Model2Package(model, dir).generate_test(model)]
 
 def generate_test_simplace(model,dir=None):
     pass
