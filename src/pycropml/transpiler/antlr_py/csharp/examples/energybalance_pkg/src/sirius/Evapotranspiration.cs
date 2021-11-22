@@ -72,10 +72,10 @@ namespace SiriusQualityEnergybalance.Strategies
 
         public string Description
         {
-            get { return  "According to the availability of wind and/or vapor pressure daily data, the
-            SiriusQuality2 model calculates the evapotranspiration rate using the Penman (if wind
-            and vapor pressure data are available) (Penman 1948) or the Priestly-Taylor
-            (Priestley and Taylor 1972) method " ;}
+            get { return  "According to the availability of wind and/or vapor pressure daily data, the"+
+            "SiriusQuality2 model calculates the evapotranspiration rate using the Penman (if wind"+
+            "and vapor pressure data are available) (Penman 1948) or the Priestly-Taylor"+
+            "(Priestley and Taylor 1972) method " ;}
         }
 
         public string URL

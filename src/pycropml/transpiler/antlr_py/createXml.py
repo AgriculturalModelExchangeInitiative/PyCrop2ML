@@ -48,7 +48,6 @@ class Pl2Crop2ml(object):
         xml.append(algo)
         if md.function:
             for f in md.function:
-                print(f)
                 func = ns.Function(name = f, description="", language="cyml", type="internal", filename="algo/pyx/%s.pyx"%f)
                 xml.append(func)
         parametersets=ns.Parametersets()

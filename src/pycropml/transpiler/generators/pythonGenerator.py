@@ -424,5 +424,166 @@ class PythonCompo(PythonGenerator):
         self.model = model
         self.name = name
         PythonGenerator.__init__(self,tree, model, self.name)
+
+class PythonSimulation(CodeGenerator):
+    """[summary]
+
+    Args:
+        PythonCompo ([type]): [description]
+    """
+
+    def __init__(self, modelcomposite):
+        """[summary]
+
+        Args:
+            modelcomposite (ModelComposite): [description]
+        """
+        self.modelcomposite = modelcomposite
+        self.params = []
+        self.variables = []
+        self.stateInit = []
+        self.outputs = []
+        self.inputs = []
+        for inp in self.modelcomposite.inputs:
+            self.inputs.append(inp.name)
+            if "parametercategory" in dir(inp):
+                self.params.append(inp.name)
+            if "variablecategory" in  dir(inp) and not inp.name.endswith("_t1"):
+                self.variables.append(inp.name)
+            if "variablecategory" in  dir(inp) and inp.name.endswith("_t1"):
+                self.stateInit.append(inp.name)
+        for out in self.modelcomposite.outputs:
+            self.outputs.append(out.name)
+        CodeGenerator.__init__(self)
+    
+    def generate(self):
+        self.write("from . import SnowComponent")
+        self.newline(1)
+        self.write("import pandas as pd")
+        self.newline(1)
+        self.write("import os")
+        self.newline(extra=1)
+        self.write("def simulation(datafile, vardata, params, init):")
+        self.newline(1)
+        self.indentation += 1
+        self.write("rep = os.path.dirname(datafile)")
+        self.newline(1)
+        self.write("out = os.path.join(rep, 'output.csv')")
+        self.newline(1)
+        self.write('df = pd.read_csv(datafile, sep = ";")')
+
+
+        self.newline(extra=1)
+        self.write("# inputs values")
+        for inp in self.variables:
+            self.newline(1)
+            self.write('t_%s = df[vardata.loc[vardata["Variables"]=="%s","Data columns"].iloc[0]].to_list()'%(inp, inp))
+            
+        
+        self.newline(extra=1)
+        self.write("#parameters")
+        for pa in self.params:
+            self.newline(1)
+            self.write('%s = params.loc[params["name"]=="%s", "value"].iloc[0]'%(pa, pa))
+
+        self.newline(extra=1)
+        self.write("#initialization")
+        for ini in self.stateInit:
+            self.newline(1)
+            self.write('%s = init.loc[init["name"]=="%s", "value"].iloc[0]'%(ini, ini))
+        
+        self.newline(extra=1)
+        self.write("#outputs")   
+        self.newline(1)
+        self.write("output_names = [") 
+        for out in self.outputs:
+            self.write('"%s"'%out)
+            if out!=self.outputs[-1]:
+                self.write(",")
+        self.write("]")
+        self.newline(extra=1)
+
+        self.write("df_out = pd.DataFrame(columns = output_names)")
+        self.newline(1)
+        self.write("for i in range(0,len(t_jul)):")
+        self.newline(1)
+        self.indentation +=1
+        for inp in self.variables:
+            self.write("%s = t_%s[i]"%(inp, inp))
+            self.newline(1)
+        
+        self.newline(1)
+        for out in self.outputs:
+            self.write(out)
+            if out!=self.outputs[-1]:
+                self.write(",")
+        self.write("= SnowComponent.model_snow(")
+        
+        for inp in self.inputs:
+            self.write(inp)
+            if inp!=self.inputs[-1]:
+                self.write(",")
+        self.write(")")
+        self.newline(extra=1)
+
+        for inp in self.stateInit:
+            self.write("%s = %s"%(inp, inp.split("_t1")[0]))
+            self.newline(1)
+        
+        self.newline(1)
+        self.write("df_out.loc[i] = [")
+        for out in self.outputs:
+            self.write(out)
+            if out!=self.outputs[-1]:
+                self.write(",")
+        self.write("]")
+
+        self.newline(1)
+        self.indentation -=1
+
+        self.write("df_out.insert(0, 'date', pd.to_datetime(df.year*10000 + df.month*100 + df.day, format='%Y%m%d'), True)")
+        self.newline(1)
+        self.write('df_out.set_index("date", inplace=True)')
+        self.newline(1)
+        self.write('df_out.to_csv(out, sep=";")')
+        self.newline(1)
+        self.write("return df_out")
+    
+    def generate_setup(self, package_name):
+        self.write("import setuptools")
+        self.newline(1)
+        self.write("setuptools.setup(name='%s',"%package_name)
+        self.newline(1)
+        self.write("version='0.1',")
+        self.newline(1)
+        self.write("description='%s',"%self.modelcomposite.description.Abstract)
+        self.newline(1)
+        self.write("url='#',")
+        self.newline(1)
+        self.write("author='%s',"%self.modelcomposite.description.Authors)
+        self.newline(1)
+        self.write("install_requires=['opencv-python'],")
+        self.newline(1)
+        self.write("author_email='',")
+        self.newline(1)
+        self.write("packages=setuptools.find_packages(),")
+        self.newline(1)
+        self.write("zip_safe=False)")
+        self.newline(1)
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
             
         

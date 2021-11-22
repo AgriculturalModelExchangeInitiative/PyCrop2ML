@@ -64,7 +64,7 @@ class ModelParser(Parser):
             self.dispatch(elt)
 
     def Description(self, elts):
-        """ Description (Title,Author,Institution,Reference,Abstract)
+        """ Description (Title,Authors,Institution,Reference,Abstract)
         """
         #print('Description')
         desc = description.Description()

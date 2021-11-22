@@ -114,7 +114,7 @@ class Level1Expr(AliasNode):
     _fields_spec = ["primary" ,"definedUnaryOp"]
 
 class Primary(AliasNode):
-    _fields_spec = ["unsignedArithmeticConstant", "nameDataRef","functionReference","expression", "SCON","logicalConstant","arrayConstructor"]
+    _fields_spec = ["unsignedArithmeticConstant", "nameDataRef","functionReference","expression", "SCON","logicalConstant","arrayConstructor", "LPAREN", "RPAREN"]
 
 class UnsignedArithmeticConstant(AliasNode):
     _fields_spec = []
@@ -318,7 +318,6 @@ class AstTransformer():
         return {'body': body if isinstance(body, list) else [body]}
     
     def top_level(self, tree):
-        print("jjj", isinstance(tree, Program))
         """
         elif isinstance(nodes, Nodes.DefNode):
             self.definitions.append(('function', nodes.name))
@@ -454,20 +453,21 @@ class AstTransformer():
         params = z["_params"]
         decl = [m["decl"] for m in z["_body"] if (isinstance(m, dict) and m["type"]=="declaration")]
         d = [item for sublist in decl for item in sublist]
-        arguments = [m for m in d if 'attr' in m and  (m['attr']=="IN" or  m['attr']=="INOUT") ] 
-        out_pseudo_t = [m["pseudo_type"] for m in d if 'attr' in m and  (m['attr']=="OUT" or  m['attr']=="INOUT") ] 
+        arguments = [m for m in d if 'attr' in m and  ((m['attr']=="IN" or m['attr']=="in") or  (m['attr']=="INOUT" or m['attr']=="inout")) ] 
+        out_pseudo_t = [m["pseudo_type"] for m in d if 'attr' in m and  ((m['attr']=="OUT" or m['attr']=="out") or  (m['attr']=="INOUT" or m['attr']=="inout")) ] 
         in_pseudo_t = [m["pseudo_type"] for m in arguments]
         return_type = out_pseudo_t if len(out_pseudo_t)==1 else [["tuple"]+out_pseudo_t]
         body = []
         for n in z["_body"] :
             if isinstance(n, dict) and n["type"]=="declaration":
-                z = {}
-                z["type"] = "declaration"
-                z["decl"] = []
+                print(n)
+                v = {}
+                v["type"] = "declaration"
+                v["decl"] = []
                 for m in  n["decl"]:
                     if m not in arguments:
-                        z["decl"].append(m)
-                        body.append(z)
+                        v["decl"].append(m)
+                if v["decl"]: body.append(v)
             else: body.append(n)
         res = {"type":"function_definition", 
                 "name": str(name), 
@@ -506,11 +506,15 @@ class AstTransformer():
             if expression:
                 print("houm5")
             else:
-                print("houm6")
+                spec = self.visit(arraySpec)
+                z = {"name":objectName, "dim": len(spec), "elts":spec}
+                return z
         elif expression:
             return {"name":objectName, "value":self.visit(expression)}
         else:
             return {"name":objectName}
+
+    
 
     
     def visit_typedeclarationstmt(self, node, typeSpec, entityDeclList, EOS, DOUBLECOLON, attrSpecSeq,location):
@@ -522,7 +526,7 @@ class AstTransformer():
         if attrSpecSeq:
             self.attr = {}
             attr = self.visit(attrSpecSeq)
-        if attr and "DIMENSION" in attr and attr["DIMENSION"] == [":"]:
+        if attr and "DIMENSION" in attr and "ALLOCATABLE" in attr and attr["DIMENSION"] == [":"]:
             typ = "list"
             pseudo_type = ["list", elemtype_]
         else : 
@@ -530,6 +534,11 @@ class AstTransformer():
             pseudo_type = elemtype_
         for j in names:
             zj = {"type":typ, "name": str(j["name"]), "pseudo_type":pseudo_type}
+            if "dim" in j:
+                zj["type"] = "array"
+                zj["dim"] = j["dim"]
+                zj["elts"] = j["elts"]
+                zj["pseudo_type"] = ["array", elemtype_]            
             self.type_env[str(j["name"])] = zj["pseudo_type"]
             if "value" in j: zj["value"] = j["value"]
             if attr and 'INTENT' in attr : zj["attr"] = attr['INTENT']
@@ -604,14 +613,14 @@ class AstTransformer():
         op = "or"
         if len(node.children)==1:    
             return self.visit(orOperand)
-        args = map(lambda n:self.visit(n) if n!=".OR." else "or", node.children)  
+        args = map(lambda n:self.visit(n) if (n!=".OR." and n!='.or.') else "or", node.children)  
         return reduceT(lambda x,y, op: {"type":"comparison", "op":op, "left":x if not isinstance(x, list) else x[0], "right":y if not isinstance(y, list) else y[0], "pseudo_type":"bool"}, list(args))
 
     def visit_oroperand(self,node,andOperand,LAND,location):
         op = "and"
         if len(node.children)==1:     
             return self.visit(andOperand)
-        args = map(lambda n:self.visit(n) if n!=".AND." else "and", node.children)  
+        args = map(lambda n:self.visit(n) if (n!=".AND." and n!='.and.') else "and", node.children)  
         return reduceT(lambda x,y, op: {"type":"comparison", "op":op, "left":x if not isinstance(x, list) else x[0], "right":y if not isinstance(y, list) else y[0], "pseudo_type":"bool"}, list(args))
 
 
@@ -695,14 +704,15 @@ class AstTransformer():
             x['pseudo_type'] if not isinstance(x, list) else x[0]['pseudo_type'], y['pseudo_type'] if not isinstance(y, list) else y[0]['pseudo_type'])[-1]}, list(args))
   
     def visit_level1expr(self,node,primary,definedUnaryOp,location):
-        res = self.visit(primary)
-        if definedUnaryOp:     
+        if definedUnaryOp:  
+            res = self.visit(primary)   
             return  {"type":"unary_op", "operator":self.visit(definedUnaryOp), "value": res, "pseudo_type":res["pseudo_type"]}
-        else: return res
+        res = self.visit(primary)
+        return res
     
     def visit_primary(self, node, unsignedArithmeticConstant, \
                         nameDataRef,functionReference,expression, \
-                        SCON,logicalConstant,arrayConstructor,location,\
+                        SCON,logicalConstant,arrayConstructor,LPAREN, RPAREN, location\
                     ):
         if unsignedArithmeticConstant : 
             res = self.visit(unsignedArithmeticConstant)
@@ -723,6 +733,19 @@ class AstTransformer():
         if arrayConstructor : return self.visit(arrayConstructor)
         else:
             pass
+
+    def visit_unsignedarithmeticconstant(self, node,  ICON, RDCON, complexConst, UNDERSCORE, kindParam, location):
+        if ICON: return self.visit(ICON)
+        elif RDCON: return self.visit(RDCON)
+        else:
+            print(location, "unsign")
+
+        return 
+    
+    def visit_caseconstruct(self, node, NAME, COLON, SELECTCASE, CASE,LPAREN, expression, RPAREN, EOS, SELECT, selectCaseRange, location):
+        
+        
+        return 
 
     def visit_ifconstruct(self, node,ifThenStmt, conditionalBody, elseIfConstruct, elseConstruct, location):
         otherwise = []
@@ -764,6 +787,20 @@ class AstTransformer():
         return {'type': 'else_statement',
             'block': res,
             'pseudo_type': 'Void'}
+    
+    def visit_conditionalbody(self, node,  executionPartConstruct, location):
+        return self.translate_list(executionPartConstruct)
+    
+    def visit_printstmt(self, node, PRINT, formatIdentifier, outputItemList, EOS, location):
+        if outputItemList : 
+            r = self.visit(outputItemList)
+            print(r, "ghhgh")
+            return {"type":"standard_call", "namespace":"io", "function":"print", "args": r if isinstance(r, list) else [r]}
+        else: print("todo print")
+    
+    def visit_exitstmt(self, node, EXIT, endName, EOS, location):
+        print("todo exitstmt")
+        return
     
     def visit_functionreference(self, node,NAME,functionArgList, location):
         args =self.visit(functionArgList)
@@ -1017,7 +1054,7 @@ class AstTransformer():
             end = self.visit(expression[1])
             if commaExpr:
                 step = self.visit(commaExpr)
-            else : step = {"type":"int", "value":"0", "pseudo_type":"int"}
+            else : step = {"type":"int", "value":"1", "pseudo_type":"int"}
             return {"type":"for_range_statement","index":index, "start":start, "end":end, "step": step, 'pseudo_type': 'Void'}
         else :
             return {
@@ -1040,7 +1077,10 @@ class AstTransformer():
                     z = api.expand(args)
                     return z
             else:
-                print("todo1")
+                return {"type": "custom_call",
+                "args": args,
+                "function": name,
+                "pseudo_type": "None"}         
         else:
             args = None
         return args
@@ -1087,7 +1127,6 @@ class AstTransformer():
             bod = self.visit(body)
         else : bod = self.visit(bodyPlusInternals)
         params = self.visit(functionParList)
-        print("vvvvvv",params)
         return {"_params":params, "_body": bod}
     
     def visit_deallocatestmt(self,node, allocateObjectList, STAT, variable, EOS, location):
@@ -1104,6 +1143,11 @@ class AstTransformer():
     def visit_functionprefixrec(self, node,recursive, typeSpec, location):
         if recursive : self.recursive = True
         if typeSpec: self.out["type"] = self.visit(typeSpec)
+
+    def visit_returnstmt(self, node,RETURN, expression, EOS, location):
+        if expression: return {"type": "implicit_return", "value":self.visit(expression)}
+        else: return {"type": "implicit_return", "value":" "}
+
         
         
 

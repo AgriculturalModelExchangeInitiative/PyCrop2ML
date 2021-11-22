@@ -73,7 +73,7 @@ class Model2Package(object):
         count = 0
         for model in self.models:          
             self.generate_component(model) 
-            filename = Path(os.path.join(self.dir,"%s.pyx"%signature(model) ))                   
+            filename = Path(os.path.join(self.dir,"%s.pyx"%signature(model).capitalize() ))                   
             with open(filename, "wb") as cyml_file:
 #                cyml_file.write(self.code.encode('utf-8','ignore'))
                 cyml_file.write(self.code.encode('utf-8'))
@@ -325,7 +325,7 @@ class Model2Package(object):
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            filename = Path(os.path.join(self.rep,"test_%s.pyx"%signature(model)))
+            filename = Path(os.path.join(self.rep,"test_%s.pyx"%signature(model).capitalize()))
             codetest = "#'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy \n\n" + codetest
             with open(filename, "wb") as cyml_file:
                 cyml_file.write(codetest.encode('utf-8'))

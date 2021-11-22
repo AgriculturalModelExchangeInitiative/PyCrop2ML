@@ -41,7 +41,6 @@
 			<InputLink target="Phyllochron.lincr" source="lincr" />
 			<InputLink target="Phyllochron.ldecr" source="ldecr" />
 			<InputLink target="Phyllochron.pincr" source="pincr" />
-			<InputLink target="Phyllochron.ptq" source="ptq" />
 			<InputLink target="Phyllochron.pTQhf" source="pTQhf" />
 			<InputLink target="Phyllochron.B" source="B" />
 			<InputLink target="Phyllochron.areaSL" source="areaSL" />

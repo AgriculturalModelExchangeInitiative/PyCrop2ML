@@ -151,7 +151,6 @@ class CodeGenerator(NodeVisitor):
             else:
                 s = '"%s"' % node.value
         else:
-            print("jjjj", node.value, type(node.value))
             if b'"' in node.value:
                 if b"'" in node.value:
                     s = '"%s"' % node.value.replace('"', '\\"')

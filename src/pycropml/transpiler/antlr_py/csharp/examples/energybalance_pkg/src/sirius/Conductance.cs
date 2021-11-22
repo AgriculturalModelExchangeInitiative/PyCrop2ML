@@ -124,10 +124,9 @@ namespace SiriusQualityEnergybalance.Strategies
 
         public string Description
         {
-            get { return  "The boundary layer conductance is expressed as the wind speed profile above the
-            canopy and the canopy structure. The approach does not take into account buoyancy
-            effects. 
-        " ;}
+            get { return  "The boundary layer conductance is expressed as the wind speed profile above the" +
+            "canopy and the canopy structure. The approach does not take into account"  +
+            "effects." ;}
         }
 
         public string URL

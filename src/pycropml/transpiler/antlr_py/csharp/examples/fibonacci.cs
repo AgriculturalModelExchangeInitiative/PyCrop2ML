@@ -16,6 +16,7 @@ namespace LogicalPrograms
         private static int NthFibonacciNumber(int number)
         {
             //List<int[]> hh = new List<int[]>{5, 5};
+            string h = "jesio";
             int[] array3;
             //Console.Write($"Please enter the Nth number of the Fibonacci Series : {number} ");
             array3 = new int[] { 1, 3, 5, 7, 9 };

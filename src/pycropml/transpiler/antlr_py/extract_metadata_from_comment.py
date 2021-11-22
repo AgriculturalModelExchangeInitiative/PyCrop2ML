@@ -4,6 +4,7 @@
     information extraction over structured documentation or comments
 
 """
+from pycropml.composition import ModelComposition
 from pycropml.modelunit import ModelUnit
 from pycropml.description import Description
 from pycropml.inout import Input, Output
@@ -37,7 +38,7 @@ def ExtractComments(filename, c_st_single, c_st_multi, c_end_multi):
                 all_text = all_text[end_pos + 1:]
     return comments
 
-pattern_attr_val = r'(\*?\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\w+\s:,ï\[\]\\_\.-]*))'
+pattern_attr_val = r"(\*?\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\w+\s:,ï\[\]\\_\./\'-]*))"
 
 import re
 def extract(comment):
@@ -56,7 +57,7 @@ def extract(comment):
     m = ModelUnit(head)
 
     # description element of modelUnit (Title, Authors, Reference, Institution, Abstract)
-    pat_description = r'(Description:\s*\r*\n*(.*\*\s*\w+:.+\r*\n*)+)'
+    pat_description = r'(Description:\s*\r*\n*(.*\*\s*\w+:.+\r*\n*/*)+)'
     description = attval(pat_description, comment)
     d = Description()
     for k, v in description.items(): setattr(d, k, v) 
@@ -71,7 +72,7 @@ def extract(comment):
         for inp in z:
             input={}
             name = inp.replace("\r\n", "").replace("name:", "").lstrip().rstrip()
-            pat_name = r'(%s\s*\r*\n*(.*\*\*\s*.+?:.+\r*\n*)+)'%(name)
+            pat_name = r'(%s\s*\r*\n*(.*\*\*\s*.+?:.+\r*\n*)+)'%(inp)
             input["name"] = name
             input.update(attval(pat_name, inputs))
             inpList.append(Input(input))
@@ -85,7 +86,7 @@ def extract(comment):
         for out in z:
             output={}
             name = out.replace("\r\n", "").replace("name:", "").lstrip().rstrip()
-            pat_name = r'(%s\s*\r*\n*(.*\*\*\s*.+?:.+\r*\n*)+)'%(name)
+            pat_name = r'(%s\s*\r*\n*(.*\*\*\s*.+?:.+\r*\n*)+)'%(out)
             output["name"] = name
             output.update(attval(pat_name, outputs))
             outList.append(Output(output))
@@ -95,26 +96,46 @@ def extract(comment):
 
 def attval(pat_name, string):  
     att = re.findall(pat_name, string, re.MULTILINE)
-    print(string)
     lines = att[0][0].split('\n')[1:-1]
     dic = {}
     for line in lines:
         attribute = re.search(pattern_attr_val, line).group("attribute")
-        value = re.search(pattern_attr_val, line, re.UNICODE).group("value").replace('\r', "")
-        dic[attribute] = value
+        value = re.search(pattern_attr_val, line, re.ASCII).group("value").replace('\r', "")
+        dic[attribute] = str(value)
     return dic
 
 
+def extract_compo(comment):
+    keywords = ["name", "version", "timestep" ]
+    patterns = [r'(\b(?i)Name:\s*(?P<name>\w+))',
+                r'(-Version:\s*(?P<version>\d+\.*\d+))',
+                r'(-Time step:\s*(?P<timestep>\d+\.*\d*))'] 
+    
+    # header of modelUnit name, version, timestep
+    head = {}
+    i = 0
+    for p in patterns:
+        if re.search(p, comment):
+            head[keywords[i]] = re.search(p, comment).group(keywords[i])   
+        i = i + 1
+    m = ModelComposition(head)
+
+    # description element of modelUnit (Title, Authors, Reference, Institution, Abstract)
+    pat_description = r'(Description:\s*\r*\n*(.*\*\s*\w+:.+\r*\n*/*)+)'   # Todo
+    description = attval(pat_description, comment)
+    d = Description()
+    for k, v in description.items(): 
+        setattr(d, k, v) 
+    m.add_description(d)
+    return m
+
 
 """
-from pycropml.transpiler.antlr_py.readComment import ExtractComments, extract
+from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract
 from path import Path
-file = Path("C:/Users/midingoy/Documents/SQ_Wheat_Phenology/src/cs/Gaimean.cs")
-file = Path("C:/Users/midingoy/Documents/SQ_Wheat_Phenology/src/py/Gaimean.py")
-file = Path("C:/Users/midingoy/Documents/SQ_Wheat_Phenology/src/f90/Gaimean.f90")
-r = ExtractComments(file, "//", "/*", "*/") # C# java C++
-r = ExtractComments(file, "#", '"""', '"""') # python
-r = ExtractComments(file, "!") f90
-z = extract(r)
+file = Path("C:/Users/midingoy/Documents/SQ_Wheat_Phenology/src/f90/vernalizationprogress.f90")
+r = ExtractComments(file, "!", '"""', '"""') 
+v = extract(r)
+
 
 """

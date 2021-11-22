@@ -1,4 +1,4 @@
-# Generated from Documents\THESE\pycropml_pheno\src\pycropml\antlr_grammarV4\fortran77\Fortran77Parser.g4 by ANTLR 4.8
+# Generated from gram\fortran\Fortran77Parser.g4 by ANTLR 4.8
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .Fortran77Parser import Fortran77Parser
@@ -7,6 +7,15 @@ else:
 
 # This class defines a complete listener for a parse tree produced by Fortran77Parser.
 class Fortran77ParserListener(ParseTreeListener):
+
+    # Enter a parse tree produced by Fortran77Parser#commentStatement.
+    def enterCommentStatement(self, ctx:Fortran77Parser.CommentStatementContext):
+        pass
+
+    # Exit a parse tree produced by Fortran77Parser#commentStatement.
+    def exitCommentStatement(self, ctx:Fortran77Parser.CommentStatementContext):
+        pass
+
 
     # Enter a parse tree produced by Fortran77Parser#program.
     def enterProgram(self, ctx:Fortran77Parser.ProgramContext):
@@ -287,15 +296,6 @@ class Fortran77ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran77Parser#commentStatement.
-    def enterCommentStatement(self, ctx:Fortran77Parser.CommentStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran77Parser#commentStatement.
-    def exitCommentStatement(self, ctx:Fortran77Parser.CommentStatementContext):
-        pass
-
-
     # Enter a parse tree produced by Fortran77Parser#typeStatement.
     def enterTypeStatement(self, ctx:Fortran77Parser.TypeStatementContext):
         pass
@@ -350,21 +350,21 @@ class Fortran77ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran77Parser#typename.
-    def enterTypename(self, ctx:Fortran77Parser.TypenameContext):
+    # Enter a parse tree produced by Fortran77Parser#typename_.
+    def enterTypename_(self, ctx:Fortran77Parser.Typename_Context):
         pass
 
-    # Exit a parse tree produced by Fortran77Parser#typename.
-    def exitTypename(self, ctx:Fortran77Parser.TypenameContext):
+    # Exit a parse tree produced by Fortran77Parser#typename_.
+    def exitTypename_(self, ctx:Fortran77Parser.Typename_Context):
         pass
 
 
-    # Enter a parse tree produced by Fortran77Parser#type.
-    def enterType(self, ctx:Fortran77Parser.TypeContext):
+    # Enter a parse tree produced by Fortran77Parser#type_.
+    def enterType_(self, ctx:Fortran77Parser.Type_Context):
         pass
 
-    # Exit a parse tree produced by Fortran77Parser#type.
-    def exitType(self, ctx:Fortran77Parser.TypeContext):
+    # Exit a parse tree produced by Fortran77Parser#type_.
+    def exitType_(self, ctx:Fortran77Parser.Type_Context):
         pass
 
 

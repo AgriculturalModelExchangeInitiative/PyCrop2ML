@@ -48,9 +48,7 @@ class OpenaleaGenerator(PythonGenerator):
         self.write(node.value)
 
 class OpenaleaCompo(PythonCompo):
-    """ This class used to generates states, rates and auxiliary classes
-        for C# languages.
-    """
+
     def __init__(self, tree, model=None, name=None):
         self.tree = tree
         self.model = model
@@ -76,11 +74,12 @@ class OpenaleaCompo(PythonCompo):
         path = Path(os.path.join(mc.path,"src","openalea"))
         _package = package.UserPackage(name, metainfo, path)
         for model in mc.model:
-            if not model.package_name or model.package_name=="unit":
+            if not model.package_name or model.package_name=="unit":		
                 _factory = self.generate_factory(model)
                 _package.add_factory(_factory)
             else:
                 pass
+        print(_package, _package.name)
         _package.write() 
         XmlToWf(mc, path, name).run()
 
@@ -120,8 +119,8 @@ class OpenaleaCompo(PythonCompo):
 
         _factory = node.Factory(name=model.name,
                                 description=model.description.Abstract,
-                                nodemodule=model.name,
-                                nodeclass="model_%s"%(model.name),
+                                nodemodule=model.name.capitalize(),
+                                nodeclass="model_%s"%(signature(model)),
                                 inputs=inputs,
                                 outputs=outputs,
                                 )

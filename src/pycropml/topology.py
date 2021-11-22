@@ -266,8 +266,8 @@ class Topology():
         tab=' '*4
         #print(self.meta_inp(self.name))
         for mod in self.model.model:
-            code+= 'from %s import model_%s\n'%(signature(mod), signature(mod)) if mod.package_name is None else 'from %s import model_%s\n'%(signature(mod), signature(mod))
-        name =self.model.name.strip().replace(' ','_').lower()
+            code+= 'from %s.%s import model_%s\n'%(self.name,signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s.%s import model_%s\n'%(self.name,signature(mod), signature(mod))
+        name =signature(self.model)
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"
         code += self.decl(defa=False)

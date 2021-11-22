@@ -49,13 +49,13 @@ genTree= {
         for format in languages
     }
 
-def parsef(filename, language,
+def parsef(code, language,
             start="compilation_unit", 
             strict = "False", 
             transform: Union[str, Callable] = None,
             error_listener: ErrorListener = None,
             ):
-    input_stream = FileStream(filename, encoding="utf-8")
+    input_stream = InputStream(code)  #encoding="utf-8"
     lexer = LexersGenerators[language](input_stream)
     lexer.removeErrorListeners()
     lexer.addErrorListener(LexerErrorListener())

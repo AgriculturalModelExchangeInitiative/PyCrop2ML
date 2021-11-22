@@ -469,7 +469,7 @@ KIND : 'KIND' | 'kind' ;
 LEN : 'LEN' | 'len' ;
 
 COMMENT
-    :'\t'* '\u0020'* '!'  ~('\n'|'\r')* EOL
+    : '\t'* '\u0020'* '!' ~[\r\n\f]*
     ;
 
 DOLLAR
@@ -785,7 +785,7 @@ EOL
 
 
 LINECONT
-   : ((EOL '     $') | (EOL '     +') | (EOL '&') | ('&''\n')) -> skip
+   : ((EOL '     $') | (EOL '     +') | (EOL '&') | ('&''\n'?)) -> skip
    ;
 
 fragment CONTINUATION

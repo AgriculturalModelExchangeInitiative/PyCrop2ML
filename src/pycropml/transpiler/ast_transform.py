@@ -55,7 +55,6 @@ class AstTransformer():
         self.q=None
         if self.model:
             for inp in self.model.inputs:
-                print(self.model.name, inp.name)
                 self.inp_unit[inp.name]=inp.unit
             for out in self.model.outputs:
                 if out.name not in self.inp_unit:
@@ -1173,7 +1172,6 @@ class AstTransformer():
                 self._compatible_types(base_type.name, decl["pseudo_type"], "can't change the type of variable %s in %s " % (
                 name, self.function_name))
         elif default and (isinstance(default, ExprNodes.ListNode)or isinstance(default, ExprNodes.TupleNode)):
-            print("yesss")
             arglist = []
             for arg in default.args:
                 arglist.append(self.visit_node(arg))

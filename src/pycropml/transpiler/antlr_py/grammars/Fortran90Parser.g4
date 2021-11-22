@@ -1048,7 +1048,7 @@ outputImpliedDo
 	| LPAREN outputItemList1 COMMA impliedDoVariable ASSIGN expression COMMA expression commaExpr? RPAREN
     ;
 
-formatIdentifier : lblRef | cExpression ;
+formatIdentifier : lblRef | cExpression | STAR ;
 
 pauseStmt : PAUSE (ICON | SCON)? EOS ;
 
