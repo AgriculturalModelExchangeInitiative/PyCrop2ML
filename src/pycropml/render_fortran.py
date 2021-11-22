@@ -76,7 +76,8 @@ class Model2Package(object):
         self.codetest += tab+ "USE" + " %smod\n"%model_unit.name.capitalize()
         test_codes = []
         decl_ins= [ tab + self.my_input(var) for var in list_inouts]
-        test_codes.append(''.join(decl_ins)) 
+        test_codes.append(''.join(decl_ins))
+        code='' 
         for v_tests in m.testsets:
             test_runs = v_tests.test  # different run in the thest
             test_paramsets = v_tests.parameterset  # name of paramsets
@@ -127,7 +128,7 @@ class Model2Package(object):
                             code += tab + "print *, %s\n"%(k) 
                     test_codes.append(code)                 
                     code = ''.join(test_codes)
-                self.codetest += code+'\nEND PROGRAM\n\n'
+        self.codetest += code+'\nEND PROGRAM\n\n'
         return formater(self.codetest)
     
     def write_tests(self):

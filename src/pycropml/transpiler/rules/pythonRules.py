@@ -7,7 +7,7 @@ def translateNotContains(node):
     return Node("simpleCall", op='not in', value=node.args, sequence=node.receiver, pseudo_type='Boolean')
 
 def translateDictkeys(node): return Node("method_call", receiver=node.receiver, message=".keys()", args=[], pseudo_type=node.pseudo_type)
-def translatePrint(node): return Node(type="ExprStatNode", expr=Node(type="call", function="print", args=node.args[0].elements))
+def translatePrint(node): return Node(type="ExprStatNode", expr=Node(type="call", function="print", args=node.args))
 def translateModulo(node): return Node(type="binary_op", op="%", left=node.args[0], right=node.args[1])
 
 def translateCopy(node):
@@ -117,7 +117,8 @@ class PythonRules(GeneralRule):
             'pop': '.pop',
             'contains?': lambda node: Node("simpleCall", op='in', value=node.args, sequence=node.receiver, pseudo_type='Boolean'),
             'not contains?': translateNotContains,
-            'index': '.index'
+            'index': '.index',
+            'extend': '.extend'
         },
         'datetime':{
             'datetime':'datetime',

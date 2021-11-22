@@ -8,6 +8,7 @@ import pycropml.transpiler.generators.simplaceGenerator
 import pycropml.transpiler.generators.apsimGenerator
 import pycropml.transpiler.generators.recordGenerator
 import pycropml.transpiler.generators.dssatGenerator
+import pycropml.transpiler.generators.sticsGenerator
 import pycropml.transpiler.generators.biomaGenerator
 import pycropml.transpiler.generators.siriusGenerator
 import pycropml.transpiler.generators.checkGenerator
@@ -21,8 +22,8 @@ import os
 from path import Path
 
 
-languages = ['r','cs','cpp','py', 'f90', 'java', 'simplace', 'sirius', "openalea", "check","apsim","record","dssat","bioma"]
-NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius', "openalea":"openalea", "check":"check","apsim":"apsim","record":"record","dssat":"dssat","bioma":"bioma"}
+languages = ['r','cs','cpp','py', 'f90', 'java', 'simplace', 'sirius', "openalea", "check","apsim","record","dssat","stics","bioma"]
+NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius', "openalea":"openalea", "check":"check","apsim":"apsim","record":"record","dssat":"dssat","stics":"stics","bioma":"bioma"}
 
 GENERATORS = {
     format: getattr(
@@ -110,7 +111,7 @@ class Main():
         node = self.nodeAst
         generator.visit(node)
         z= ''.join(generator.result)
-        if self.language=='f90' or self.language=='dssat':
+        if self.language=='f90' or self.language=='dssat' or self.language=='stics':
             z = formater(z)
         return z
     
@@ -119,6 +120,6 @@ class Main():
         node = self.nodeAst
         generator.visit(node)
         z= ''.join(generator.result)
-        if self.language=='f90' or self.language=='dssat':
+        if self.language=='f90' or self.language=='dssat' or self.language=='stics' :
             z = formater(z)
         return z 

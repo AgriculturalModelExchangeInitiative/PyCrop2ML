@@ -3,7 +3,7 @@ from pycropml.pparse import model_parser
 from path import Path
 import networkx as nx
 from collections import defaultdict
-from IPython.display import Image, display
+from IPython.display import Image, display, SVG
 from networkx.drawing.nx_pydot import to_pydot
 from pycropml.render_cyml import signature
 import os
@@ -245,22 +245,29 @@ class Topology():
     def write_png(self):
         a=to_pydot(self.createGraph())
         print('%s/%s.png' % (self.model.path,self.model.name))
-        a.write_png('%s/%s.png' % (self.model.path,self.model.name))
-        #from networkx.drawing.nx_pydot import graphviz_layout
-        #print(graphviz_layout(self.createGraph()))
+        a.write_png('%s/doc/images/%s.png' % (self.model.path,self.model.name))
+    
+    def writeSVG(self):
+        a=to_pydot(self.createGraph())
+        a.write_svg('%s/doc/images/%s.svg' % (self.model.path,self.model.name))
     
     def display_wf(self):
         a=to_pydot(self.createGraph())
         d=a.create_png()
         display(Image(d))
+
+    def display_wf_svg(self):
+        a=to_pydot(self.createGraph())
+        d=a.create_svg()
+        display(SVG(d))
      
     def algo2cyml(self):
         code='from datetime import datetime\nfrom math import *\n'
         tab=' '*4
         #print(self.meta_inp(self.name))
         for mod in self.model.model:
-            code+= 'from %s import model_%s\n'%(signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s import model_%s\n'%(signature(mod), signature(mod))
-        name =self.model.name.strip().replace(' ','_').lower()
+            code+= 'from %s.%s import model_%s\n'%(self.name,signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s.%s import model_%s\n'%(self.name,signature(mod), signature(mod))
+        name =signature(self.model)
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"
         code += self.decl(defa=False)

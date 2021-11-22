@@ -155,9 +155,11 @@ class CodeGenerator(NodeVisitor):
                 if b"'" in node.value:
                     s = '"%s"' % node.value.replace('"', '\\"')
                 else:
-                    s = "'%s'" % node.value
+                    #s = "'%s'" % node.value
+                    s = node.value.decode()
             else:
-                s = '"%s"' % node.value            
+                #s = '"%s"' % node.value 
+                s = '"%s"' % node.value.decode() 
             
         self.write(s)
     

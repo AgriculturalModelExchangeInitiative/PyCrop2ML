@@ -110,6 +110,7 @@ class Model2Package(object):
         return self.code
 
     def generate_algorithm(self, model_unit):
+        print(model_unit.name)
         outputs = model_unit.outputs
         inputs = model_unit.inputs
         tab = ' '*4
@@ -324,7 +325,7 @@ class Model2Package(object):
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            filename = Path(os.path.join(self.rep,"test_%s.pyx"%signature(model)))
+            filename = Path(os.path.join(self.rep,"test_%s.pyx"%signature(model).capitalize()))
             codetest = "#'Test generation'\n\n"+"from %s"%signature(model) + " import *\n"+ "from math import *\n"+"import numpy \n\n" + codetest
             with open(filename, "wb") as cyml_file:
                 cyml_file.write(codetest.encode('utf-8'))
@@ -420,7 +421,7 @@ def my_input(_input, defa=True):
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return ("%s %s[%s]"%(DATATYPE[_type], name, length))
             else:
-                return ("%s %s"%(DATATYPE[_type], name))
+                return ("%s %s"%(DATATYPE2[_type], name))
     else:
             if _type=="DOUBLEARRAY" or _type=="INTARRAY": 
                 length = _input.len
