@@ -19,7 +19,7 @@ def splitunit(unit):
         
     
 
-def generate_test_py(model,dir=None):
+def generate_test_py(model,dir=None, package=None):
     tab = ' '*4
     m = model
     #name = m.description.Title
@@ -116,42 +116,45 @@ def generate_test_py(model,dir=None):
                 code_test.append(code)
     return code_test
 
-def generate_test_f90(model, dir):
+def generate_test_f90(model, dir, package=None):
     return [render_fortran.Model2Package(model, dir).generate_test(model)]
 
 
-def generate_test_cs(model, dir):
+def generate_test_cs(model, dir, package=None):
     return [render_csharp.Model2Package(model, dir).generate_test(model)]
 
-def generate_test_java(model,directory=None):
+def generate_test_java(model,directory=None, package=None):
     return [render_java.Model2Package(model, directory).generate_test(model)]
 
 
-def generate_test_cpp(model,directory=None):
-    return [render_cpp.Model2Package(model, directory).generate_test(model)]
+def generate_test_cpp(model, directory=None, package=None):
+    render = render_cpp.Model2Package(model, directory)
+    return [render.generate_test_import(model, package),
+            render.generate_test_function(model),
+            render.generate_test_run(model)]
 
-def generate_test_r(model,dir):
+def generate_test_r(model,dir, package=None):
     return [render_r.Model2Package(model, dir).generate_test(model)]
 
-def generate_test_simplace(model,dir=None):
+def generate_test_simplace(model,dir=None, package=None):
     pass
 
-def generate_test_sirius(model,dir=None):
+def generate_test_sirius(model,dir=None, package=None):
     pass
 
-def generate_test_stics(model,dir=None):
+def generate_test_stics(model,dir=None, package=None):
     pass
 
-def generate_test_openalea(model,dir=None):
+def generate_test_openalea(model,dir=None, package=None):
     pass
 
-def generate_test_check(model,dir=None):
+def generate_test_check(model,dir=None, package=None):
     pass
-def generate_test_apsim(model,dir=None):
+def generate_test_apsim(model,dir=None, package=None):
     pass
-def generate_test_dssat(model,dir=None):
+def generate_test_dssat(model,dir=None, package=None):
     pass
-def generate_test_record(model,dir=None):
+def generate_test_record(model,dir=None, package=None):
     pass
-def generate_test_bioma(model,dir=None):
+def generate_test_bioma(model,dir=None, package=None):
     pass

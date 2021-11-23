@@ -45,9 +45,12 @@ def transpile_file(source, language):
         tg_file.write(code.encode('utf-8'))
     return 0
 
+
 def prefix(model):
     pref = model.modelid.split(".")[0]
     return pref
+
+
 def transpile_package(package, language):
     """ translate from crop2ml package"""
     sourcef = package
@@ -69,12 +72,9 @@ def transpile_package(package, language):
     dir_test_lang = Path(os.path.join(dir_test, language))
     
     if not tg_rep1.isdir():
-        tg_rep1.mkdir() 
+        tg_rep1.mkdir()
         
-    tg_rep = Path(os.path.join(tg_rep1, namep))
-    
-    if not tg_rep.isdir():
-        tg_rep.mkdir()
+
     if not dir_test_lang.isdir() :  #Create if it doesn't exist
         dir_test_lang.mkdir()
 
@@ -87,6 +87,11 @@ def transpile_package(package, language):
     # cretae topology of composite model
     T = Topology(namep,package)
     namep = T.model.name
+
+    tg_rep = Path(os.path.join(tg_rep1, namep))
+
+    if not tg_rep.isdir():
+        tg_rep.mkdir()
 
     # Record VPZ
     if language == "record":
@@ -110,15 +115,15 @@ def transpile_package(package, language):
             source = fi.read()
         name = os.path.split(file)[1].split(".")[0]
         for model in models:                         # in the case we have'nt the same order
-            if name.lower() == model.name.lower() and prefix(model)!="function":
-                test=Main(file, language, model,T.model.name)
+            if name.lower() == model.name.lower() and prefix(model) != "function":
+                test = Main(file, language, model, T.model.name)
                 test.parse()
                 test.to_ast(source)
-                code=test.to_source()
+                code = test.to_source()
                 filename = Path(os.path.join(tg_rep, "%s.%s"%(name.capitalize(), ext[language])))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
-                Model2Nb(model,code,name,dir_test_lang).generate_nb(language,tg_rep,namep)
+                Model2Nb(model, code, name, dir_test_lang).generate_nb(language, tg_rep, namep)
                 #code2nbk.generate_notebook(code, name, dir_nb_lang)
 
     # Create Cyml Composite model
