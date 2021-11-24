@@ -145,9 +145,9 @@ class Model2Package(object):
                         self.code_test += 3*tab + "//%s: %s;\n" % (k, v[0])
                         self.code_test += 3*tab + f'cout << "{k} estimated :\\n";\n'
                         if type_o.find("LIST") != -1:
-                            self.code_test += 3*tab + f'for (int i=0; i<this->{categ(k, outputs)}.get{k}().size(); i++) cout << this->{categ(k, outputs)}.get{k}()[i] << "\\n";\n'
+                            self.code_test += 3*tab + f'for (int i=0; i<this->{categ(k, outputs)}.get{k}().size(); i++) cout << "\\t" << this->{categ(k, outputs)}.get{k}()[i] << "\\n";\n'
                         else:
-                            self.code_test += 3*tab + f'cout << this->{categ(k, outputs)}.get{k}() << "\\n";\n'
+                            self.code_test += 3*tab + f'cout << "\\t" << this->{categ(k, outputs)}.get{k}() << "\\n";\n'
                     self.code_test += 2*tab+"};\n"
                     num = num+1                  
         self.code_test += "}\n"
@@ -239,15 +239,9 @@ def transf(type_v, elem):
         return elem.lower()
     if type_v=="DOUBLE":
         return transfDouble(DATATYPE[type_v], elem)
-    elif type_v in ("STRING"):
+    elif type_v in ("STRING", "DATE"):
         return transfString(DATATYPE[type_v], elem)
-    elif type_v =="DATE":
-        return transfDate(DATATYPE[type_v], elem)        
     elif type_v=="INT":
         return str(elem)
-    elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST"):
-        return transfList(type_v,eval(elem))
-    elif type_v == "DATELIST":
-        return transfDateList(type_v,elem)
-
-
+    elif "LIST" in type_v:
+        return transfList(type_v, eval(elem))

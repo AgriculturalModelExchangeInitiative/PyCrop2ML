@@ -525,9 +525,7 @@ class CppGenerator(CodeGenerator,CppRules):
     
 
     def visit_datetime(self, node):
-        self.write("new DateTime(")
-        self.comma_separated_list(node.elements)
-        self.write(")")
+        self.write("'%s/%s/%s'"%(node.value[0].value,node.value[1].value,node.value[2].value))
     
     def visit_str(self, node):
         self.safe_double(node)

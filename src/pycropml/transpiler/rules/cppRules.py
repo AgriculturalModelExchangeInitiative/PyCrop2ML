@@ -131,7 +131,7 @@ class CppRules(GeneralRule):
             'abs': 'abs',
             'pow': 'pow'},
         'datetime':{
-            'datetime': ' new DateTime'
+            'datetime': lambda node : Node(type="str", value=argsToStr(node.args))
         }
     }
 
@@ -235,3 +235,9 @@ void %s(%s& toCopy): this() // copy constructor
 {
 '''
 
+
+def argsToStr(args):
+    t=[]
+    for arg in args:
+        t.append(arg.value)
+    return "%s"%('/'.join(t))
