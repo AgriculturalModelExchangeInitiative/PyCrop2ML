@@ -143,11 +143,11 @@ class Model2Package(object):
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in outputs if out.name == k][0]
                         self.code_test += 3*tab + "//%s: %s;\n" % (k, v[0])
-                        self.code_test += 3*tab + 'printf("%s estimated :\\n");\n' % k
+                        self.code_test += 3*tab + f'cout << "{k} estimated :\\n";\n'
                         if type_o.find("LIST") != -1:
-                            self.code_test += 3*tab + f'for (int i=0; i<this->{categ(k, outputs)}.get{k}().size(); i++) printf("%f\\n", this->{categ(k, outputs)}.get{k}()[i]);\n'
+                            self.code_test += 3*tab + f'for (int i=0; i<this->{categ(k, outputs)}.get{k}().size(); i++) cout << this->{categ(k, outputs)}.get{k}()[i] << "\\n";\n'
                         else:
-                            self.code_test += 3*tab + f'printf("%f\\n", this->{categ(k, outputs)}.get{k}());\n'
+                            self.code_test += 3*tab + f'cout << this->{categ(k, outputs)}.get{k}() << "\\n";\n'
                     self.code_test += 2*tab+"};\n"
                     num = num+1                  
         self.code_test += "}\n"
