@@ -457,7 +457,7 @@ class PythonSimulation(CodeGenerator):
         CodeGenerator.__init__(self)
     
     def generate(self):
-        self.write("from . import SnowComponent")
+        self.write("from . import %sComponent"%self.modelcomposite.name)
         self.newline(1)
         self.write("import pandas as pd")
         self.newline(1)
@@ -505,7 +505,7 @@ class PythonSimulation(CodeGenerator):
 
         self.write("df_out = pd.DataFrame(columns = output_names)")
         self.newline(1)
-        self.write("for i in range(0,len(t_jul)):")
+        self.write("for i in range(0,len(df.index)-1):")
         self.newline(1)
         self.indentation +=1
         for inp in self.variables:
@@ -517,7 +517,7 @@ class PythonSimulation(CodeGenerator):
             self.write(out)
             if out!=self.outputs[-1]:
                 self.write(",")
-        self.write("= SnowComponent.model_snow(")
+        self.write("= %sComponent.model_%s("%(self.modelcomposite.name,self.modelcomposite.name.lower() ))
         
         for inp in self.inputs:
             self.write(inp)
@@ -549,10 +549,10 @@ class PythonSimulation(CodeGenerator):
         self.newline(1)
         self.write("return df_out")
     
-    def generate_setup(self, package_name):
+    def generate_setup(self):
         self.write("import setuptools")
         self.newline(1)
-        self.write("setuptools.setup(name='%s',"%package_name)
+        self.write("setuptools.setup(name='%s',"%self.modelcomposite.name)
         self.newline(1)
         self.write("version='0.1',")
         self.newline(1)
