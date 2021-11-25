@@ -29,12 +29,26 @@ def translateMIN(node):
     if len(node.args)>=2:
         for i in range(len(node.args)):
             if node.args[i].pseudo_type!=node.pseudo_type:
-                node.args[i] = Node(type="call", function=node.pseudo_type,args =node.args[i], pseudo_type=node.pseudo_type )
+                node.args[i] = Node(type="call", function=CppRules.types[node.pseudo_type],args =node.args[i], pseudo_type=node.pseudo_type )
             args.append(node.args[i])
         node.type = "call"
         node.args = args
         node.function = "min"
     return node
+
+
+def translateMAX(node):
+    args=[]
+    if len(node.args)>=2:
+        for i in range(len(node.args)):
+            if node.args[i].pseudo_type!=node.pseudo_type:
+                node.args[i] = Node(type="call", function=CppRules.types[node.pseudo_type],args =node.args[i], pseudo_type=node.pseudo_type )
+            args.append(node.args[i])
+        node.type = "call"
+        node.args = args
+        node.function = "max"
+    return node
+
 
 class CppRules(GeneralRule):
     def __init__(self):
@@ -113,11 +127,11 @@ class CppRules(GeneralRule):
         },
         'system': {
             'min': translateMIN,
-            'max': 'max',
+            'max': translateMAX,
             'abs': 'abs',
             'pow': 'pow'},
         'datetime':{
-            'datetime': ' new DateTime'
+            'datetime': lambda node : Node(type="str", value=argsToStr(node.args))
         }
     }
 
@@ -221,3 +235,9 @@ void %s(%s& toCopy): this() // copy constructor
 {
 '''
 
+
+def argsToStr(args):
+    t=[]
+    for arg in args:
+        t.append(arg.value)
+    return "%s"%('/'.join(t))

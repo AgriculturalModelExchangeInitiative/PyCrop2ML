@@ -135,13 +135,12 @@ class CppGenerator(CodeGenerator,CppRules):
 
     def visit_print(self, node):
         pass
-        
-    
+
     def visit_float(self, node):
-        self.write("%sd"%node.value)
+        self.write("%s" % node.value)
 
     def visit_double(self, node):
-        self.write("%sd"%node.value)
+        self.write(node.value)
 
     def visit_array(self, node):
         self.write("new []")        
@@ -357,12 +356,24 @@ class CppGenerator(CodeGenerator,CppRules):
         return newNode    
 
     def visit_module(self, node):
-        self.write(u'#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\n# include<numeric>\n# include<algorithm>\n# include<array>\n#include <map>\n# include <tuple>\n')
+        self.write(f'#ifndef _{self.model.name.upper()}_\n'
+                   f'#define _USE_MATH_DEFINES\n'
+                   f'#include <cmath>\n'
+                   f'#include <iostream>\n'
+                   f'#include <vector>\n'
+                   f'#include <string>\n'
+                   f'#include <numeric>\n'
+                   f'#include <algorithm>\n'
+                   f'#include <array>\n'
+                   f'#include <map>\n'
+                   f'#include <tuple>\n')
         if self.model:
-            self.write('#include "%s.h"\nusing namespace std;\n'%self.model.name.capitalize())
-        else : self.write("using namespace std;\n")
+            self.write(f'#include "{self.model.name.capitalize()}.h"\n')
+
+        self.write("using namespace std;\n")
         self.visit(node.body)
-        self.newline(node)          
+        self.newline(node)
+        self.write('#endif')
 
     def visit_function_definition(self, node):      
         self.newline(node)
@@ -455,7 +466,7 @@ class CppGenerator(CodeGenerator,CppRules):
             if not isinstance(arg.pseudo_type, list):
                 self.write(" _%s) { this->%s = _%s; }"%(arg.name, arg.name, arg.name)) 
             else:
-                self.write("& _%s){"%arg.name)
+                self.write(" _%s){"%arg.name)
                 self.newline(1)
                 self.indentation +=1
                 self.write("this->%s = _%s;"%(arg.name, arg.name))
@@ -514,9 +525,7 @@ class CppGenerator(CodeGenerator,CppRules):
     
 
     def visit_datetime(self, node):
-        self.write("new DateTime(")
-        self.comma_separated_list(node.elements)
-        self.write(")")
+        self.write("'%s/%s/%s'"%(node.value[0].value,node.value[1].value,node.value[2].value))
     
     def visit_str(self, node):
         self.safe_double(node)
@@ -885,7 +894,7 @@ class CppTrans(CppGenerator):
         if init: # initialization
             self.newline(1)
             mc = mc.capitalize()
-            self.write("void  Init(%sState& s,%sState& s1, %sRate& r, %sAuxiliary& a, %sExogenous& a);"%(mc, mc, mc, mc, mc))        
+            self.write("void  Init(%sState& s,%sState& s1, %sRate& r, %sAuxiliary& a, %sExogenous& ex);"%(mc, mc, mc, mc, mc))
         
         if h:  # function externes
             for i in h:
@@ -906,7 +915,7 @@ class CppTrans(CppGenerator):
             self.newline(node)
             self.write("void set%s("%arg.name)
             self.visit_decl(arg.pseudo_type)
-            self.write(" _%s);"%arg.name) if not isinstance(arg.pseudo_type, list) else self.write("& _%s);"%arg.name)
+            self.write(" _%s);"%arg.name) #if not isinstance(arg.pseudo_type, list) else self.write("& _%s);"%arg.name)
 
 
 
@@ -985,9 +994,6 @@ class CppTrans(CppGenerator):
             self.newline(1)
 
 
-
-
-
 def to_struct_cpp(models, rep, name):
     header_cpp(models, rep, name)
     header_mu_cpp(models, rep, name)
@@ -1024,6 +1030,8 @@ def to_struct_cpp(models, rep, name):
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))
     return 0
+
+
 def header_cpp(models, rep, name):
     generator = CppTrans(models)
     generator.result=[u"#ifndef _%sState_\n#define _%sState_\n#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\nusing namespace std;\n"%(name.capitalize(),name.capitalize())]
@@ -1078,10 +1086,20 @@ def header_mu_cpp(models, rep, name):
         if m.initialization:
                 init = True
         generator = CppTrans([m])
-        generator.result=[u'#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\n#include "%sState.h"\n#include "%sRate.h"\n#include "%sAuxiliary.h"\n#include "%sExogenous.h"\nusing namespace std;\n'%(name.capitalize(),name.capitalize(), name.capitalize(), name.capitalize())]
+        generator.result = [f'#define _USE_MATH_DEFINES\n'
+                            f'#include <cmath>\n'
+                            f'#include <iostream>\n'
+                            f'#include <vector>\n'
+                            f'#include <string>\n'
+                            f'#include "{name.capitalize()}State.h"\n'
+                            f'#include "{name.capitalize()}Rate.h"\n'
+                            f'#include "{name.capitalize()}Auxiliary.h"\n'
+                            f'#include "{name.capitalize()}Exogenous.h"\n'
+                            f'using namespace std;\n'
+                            ]
         generator.model2Node()
         param = generator.node_param
-        generator.generate_hpp(param, "%s"%m.name.capitalize(), mc=mc, h=h, init=init)
+        generator.generate_hpp(param, "%s" % m.name.capitalize(), mc=mc, h=h, init=init)
         z= ''.join(generator.result)
         filename = Path(os.path.join(rep, "%s.h"%m.name.capitalize()))
         with open(filename, "wb") as tg_file:
@@ -1439,8 +1457,13 @@ class CppCompo(CppTrans):
 
 
 def to_wrapper_cpp(models, rep, name):
-    generator = CppCompo(modelt =models)
-    generator.result=["#define _USE_MATH_DEFINES\n#include <cmath>\n#include <iostream>\n# include<vector>\n# include<string>\nusing namespace std;\n"]
+    generator = CppCompo(modelt=models)
+    generator.result=["#define _USE_MATH_DEFINES\n"
+                      "#include <cmath>\n"
+                      "#include <iostream>\n"
+                      "#include <vector>\n"
+                      "#include <string>\n"
+                      "using namespace std;\n"]
     generator.model2Node()
     generator.wrapper()
     z= ''.join(generator.result)
