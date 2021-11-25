@@ -74,6 +74,9 @@ def transpile_package(package, language):
     if not tg_rep1.isdir():
         tg_rep1.mkdir()
         
+    tg_rep = Path(os.path.join(tg_rep1, namep))
+    if not tg_rep.isdir():
+        tg_rep.mkdir()
 
     if not dir_test_lang.isdir() :  #Create if it doesn't exist
         dir_test_lang.mkdir()
@@ -87,11 +90,6 @@ def transpile_package(package, language):
     # cretae topology of composite model
     T = Topology(namep,package)
     namep = T.model.name
-
-    tg_rep = Path(os.path.join(tg_rep1, namep))
-
-    if not tg_rep.isdir():
-        tg_rep.mkdir()
 
     # Record VPZ
     if language == "record":
