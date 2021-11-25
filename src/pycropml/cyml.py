@@ -144,7 +144,7 @@ def transpile_package(package, language):
         with open(initfile, "wb") as tg_file:
             tg_file.write("".encode("utf-8"))
         setup = PythonSimulation(T.model)
-        setup.generate_setup(sourcef.split(".")[0])
+        setup.generate_setup()
         code = ''.join(setup.result)
         setupfile = Path(os.path.join(tg_rep1, "setup.py"))
         with open(setupfile, "wb") as tg_file:
