@@ -18,7 +18,7 @@ class CodeGenerator(NodeVisitor):
                 self.result.append('\n' * self.new_lines)
             self.result.append(self.indent_with * self.indentation)
             self.new_lines = 0
-        self.result.append(x)  
+        self.result.append(x) 
 
     def newline(self, node=None, extra=0):
         self.new_lines = max(self.new_lines, 1 + extra)
@@ -26,6 +26,7 @@ class CodeGenerator(NodeVisitor):
             self.write('# line: %s' % node.lineno)
             self.new_lines = 1
 
+    
     def body(self, statements):
         self.new_line = True
         self.indentation += 1
@@ -55,7 +56,32 @@ class CodeGenerator(NodeVisitor):
                 self.visit(item)
                 self.write(u", ")
             self.visit(items[-1])  
+
+    def visit_custom_call(self, node):
+        self.visit_call(node)
+
+    def visit_call(self, node):
+        want_comma = []
+        def write_comma():
+            if want_comma:
+                self.write(', ')
+            else:
+                want_comma.append(True)
+        if "attrib" in dir(node) and node.namespace!="math":
+             self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
+        else:
+            if callable(node.function):
+                self.visit(node.function(node))
+            else: 
+                self.write(node.function)
+                self.write('(')
+                for arg in node.args:
+                    write_comma()
+                    self.visit(arg)
+                self.write(')')
     
+
+
     def visit_for_sequence(self, node):
         self.visit(node.sequence)
     
@@ -129,9 +155,11 @@ class CodeGenerator(NodeVisitor):
                 if b"'" in node.value:
                     s = '"%s"' % node.value.replace('"', '\\"')
                 else:
-                    s = "'%s'" % node.value
+                    #s = "'%s'" % node.value
+                    s = node.value.decode()
             else:
-                s = '"%s"' % node.value            
+                #s = '"%s"' % node.value 
+                s = '"%s"' % node.value.decode() 
             
         self.write(s)
     
@@ -140,5 +168,7 @@ class CodeGenerator(NodeVisitor):
         self.write(" %s "%node.op)
         self.visit(node.sequence)
 
-
+"""    def visit_standard_call(self, node):
+        node.function = self.functions[node.namespace][node.function]
+        self.visit_call(node) """
 

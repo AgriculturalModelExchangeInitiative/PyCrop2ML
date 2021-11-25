@@ -1,15 +1,15 @@
 .. _pycropml_user:
 
-PyCropML User Guide
-###################
+PyCrop2ML User Guide
+####################
 
 :Version: |version|
 :Release: |release|
 :Date: |today|
 
 This reference manual details functions, modules, and objects included in
-OpenAlea.Core, describing what they are and what they do. For a complete
-reference guide, see :ref:`core_reference`.
+Pycrop2ML describing what they are and what they do. For a complete
+reference guide, see :ref:`pycropml_reference`.
 
 .. warning::
 

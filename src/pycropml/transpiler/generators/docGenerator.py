@@ -12,10 +12,11 @@ class DocGenerator(CodeGenerator):
         self.model=model
         self.indent_with=' '*4 
         self.tag = tag
-        self.inputs_doc = self.comment(self.doc(self.model.inputs, "inputs"))
-        self.outputs_doc = self.comment(self.doc(self.model.outputs, "outputs"))
-        self.header = self.comment(self.generate_header(self.model))
-        self.desc = self.comment(self.generate_desc(self.model))
+        if self.model:
+            self.inputs_doc = self.comment(self.doc(self.model.inputs, "inputs"))
+            self.outputs_doc = self.comment(self.doc(self.model.outputs, "outputs"))
+            self.header = self.comment(self.generate_header(self.model))
+            self.desc = self.comment(self.generate_desc(self.model))
         
     def comment(self,doc):
         list_com = [self.indent_with + self.tag +x for x in doc.split('\n')]

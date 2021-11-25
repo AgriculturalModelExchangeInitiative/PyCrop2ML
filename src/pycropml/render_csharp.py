@@ -54,19 +54,24 @@ class Model2Package(object):
             state = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="state"]
             rate = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="rate"]
             auxiliary = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="auxiliary"]
+            exogenous = [m.name for m in inout if "variablecategory" in dir(m) and m.variablecategory =="exogenous"]
             parameter = [m.name for m in inout if "parametercategory" in dir(m)]
-            if k in state: return "s"
+            if k in state and k.endswith("_t1"): return "s1"
+            elif k in state : return "s"
             elif k in rate: return  "r"
             elif k in auxiliary: return  "a"
+            elif k in exogenous: return  "ex"
             elif k in parameter: return "mod"
             else: raise Exception("error")
         self.codetest = ""
         self.runtest = "Test t = new Test();\n"
         code = "class Test\n{\n"     
-        code += tab + "%sState s = new %sState();\n"%(name_mc.capitalize(), name_mc.capitalize())
-        code += tab + "%sRate r = new %sRate();\n"%(name_mc.capitalize(), name_mc.capitalize())
-        code += tab + "%sAuxiliary a = new %sAuxiliary();\n"%(name_mc.capitalize(), name_mc.capitalize())
-        code += tab + "%s mod = new %s();\n"%(m.name.capitalize(), m.name.capitalize())
+        code += tab + "%sState s = new %sState();\n"%(name_mc, name_mc)
+        code += tab + "%sState s1 = new %sState();\n"%(name_mc, name_mc)    
+        code += tab + "%sRate r = new %sRate();\n"%(name_mc, name_mc)
+        code += tab + "%sAuxiliary a = new %sAuxiliary();\n"%(name_mc, name_mc)
+        code += tab + "%sExogenous ex = new %sExogenous();\n"%(name_mc, name_mc)
+        code += tab + "%s mod = new %s();\n"%(m.name, m.name)
         for inp in inputs:            
             sig+= tab+self.DATATYPE[inp.datatype]+" "+inp.name+";\n"        
         for v_tests in m.testsets:
@@ -91,14 +96,14 @@ class Model2Package(object):
                     ins = inouts['inputs']
                     outs = inouts['outputs']                          
                     run_param = params.copy()
-                    run_param.update(ins)                   
+                    run_param.update(ins)                 
                     for testinp in inputs:
                         if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)
                     for k, v in six.iteritems(run_param):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
-                        code += 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k,transf(type_v, v))                     
-                    code+=tab*2+"mod.Calculate_%s(s, r, a);\n"%(m.name.lower())
+                        code += 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v))                     
+                    code+=tab*2+"mod.CalculateModel(s,s1, r, a, ex);\n"
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
                         code += 2*tab + "//%s: %s;\n"%(k, v[0]) 

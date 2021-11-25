@@ -2,10 +2,28 @@
 from pycropml.transpiler.pseudo_tree import Node
 class NodeVisitor(object):
     '''
-    Define a method which browse the graph and call a methode constructed from the type
-    of each node of the graph
+        Define a method which browse the graph and call a methode constructed from the type
+        of each node of the graph
     '''
     def visit(self, node):
+        '''
+
+        Parameters
+        ----------
+        node : TYPE
+            DESCRIPTION.
+
+        Raises
+        ------
+        NotImplementedError
+            DESCRIPTION.
+
+        Returns
+        -------
+        TYPE
+            DESCRIPTION.
+
+        '''
         if isinstance(node, list):
             for n in node:
                 self.visit(n)

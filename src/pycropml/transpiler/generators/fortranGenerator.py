@@ -15,9 +15,7 @@ import shutil
 # get the path of fortran subroutine list_sub
 # This subroutine is used to hnndle dynamic arrays
 
-dir_lib = Path(os.path.dirname(lib.__file__))
 
-f_src=dir_lib/"f90"/"list_sub.f90"
   
 #f_src = open(list_path, 'rb')
 
@@ -28,10 +26,16 @@ f_src=dir_lib/"f90"/"list_sub.f90"
 
 
 class FortranGenerator(CodeGenerator, FortranRules):
-    """This class contains the specific properties of 
+    """ 
+    This class contains the specific properties of 
     fortran language and use the NodeVisitor to generate a fortran
-    code source from a well formed syntax tree.
+    code source from a well formed syntax tree.    
+
+    Args:
+        CodeGenerator (CodeGeneration): Common code generation class
+        FortranRules (FortranRules): Transformation rules    
     """
+
    
     def __init__(self, tree, model=None, name = None):
         CodeGenerator.__init__(self)
@@ -45,14 +49,14 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.z.transform(self.tree)
         self.mod_parameters=[]
         self.index=[]
+        self.params=[]
+        self.recursive=False
         if self.model: 
             self.doc= DocGenerator(model, '!')
-            '''for inp in self.model.inputs: # get constant parameters in models
-                if inp.inputtype=="parameter":
-                    #print(inp.name, model.name)
-                    if inp.parametercategory=="constant":
-                        self.mod_parameters.append(inp.name)'''
-            #print(self.mod_parameters)
+        self.funcname = ""
+        dir_lib = Path(os.path.dirname(lib.__file__))
+        self.f_src=dir_lib/"f90"/"list_sub.f90"
+        if self.model: self.f_dest = os.path.join(self.model.path,"src","f90","list_sub.f90") 
     
     def visit_notAnumber(self, node):
         pass
@@ -61,6 +65,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
         #self.write('(')
         self.visit_binary_op(node)
         #self.write(')')
+
+    def visit_local(self, node):
+        self.write(node.name)
+    #    self.write("(%s - 1)"%node.name) if node.name in self.index else self.write(node.name)
 
     def visit_binary_op(self, node):
         op = node.op
@@ -125,7 +133,14 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_assignment(self, node):
         if node.value.type=="cond_expr_node":
             self.visit_cond_expr_node(node)
-        elif node.value.type == "custom_call":
+        elif node.value.type == "standard_call" and node.value.function=="integr":
+            self.newline(node)
+            self.write("%s = %s"%(node.target.name,node.value.args[0].name))
+            self.newline(node)
+            self.write("call Add(%s,"%node.target.name)
+            self.visit( node.value.args[1])
+            self.write(")")
+        elif (node.value.type == "custom_call" and not self.recursive and node.value.pseudo_type=="tuple") or (node.value.type == "custom_call" and node.value.function.startswith('model_')):
             self.newline(node)
             node =Node("subroutine", receiver = node.target,function=node.value.function, args=node.value.args ) 
             self.write('call ')
@@ -226,7 +241,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(".TRUE.") if node.value==True else self.write(".FALSE.")
 
     def visit_str(self, node):
-        self.emit_string(node)
+        if node.value==b'':
+            self.write ('""')
+        else: self.emit_string(node)
         
     def visit_pair(self, node):
         self.visit(node.key)
@@ -242,6 +259,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.comma_separated_list(node.elements)
         self.write(u'/)')    
 
+    def visit_array(self, node):
+        self.write(u'(/')
+        self.comma_separated_list(node.elements)
+        self.write(u'/)')    
     
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
@@ -266,13 +287,12 @@ class FortranGenerator(CodeGenerator, FortranRules):
         "%s.%s"%(self.visit(node.receiver),self.write(node.message))                
 
     def visit_index(self, node):
-        if "sequence" not in dir(node.sequence):
+        if "sequence" not in dir(node.sequence): # x[i] -> index
             self.visit(node.sequence)
             self.write(u"(")
             if isinstance(node.index.type, tuple):
                 self.emit_sequence(node.index)
             else:
-                
                 if node.index.type=='standard_method_call':
                     self.visit(node.index)
                     if node.index.message=="index" :
@@ -284,20 +304,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
                         if z!=0: self.write("%z +")
                         self.write(" SIZE(%s)"%node.sequence.name)
                     self.write(u")")
-                elif "name" in dir(node.index):
-                    if node.index.name in self.index:
-                        self.visit(node.index)
-                        self.write(u")")
-                    else:
-                        self.visit(node.index)
-                        self.write(u"+1)")
                 else:
-                    if checkList(self.index, self.checkIndex(node)):
-                        self.visit(node.index)
-                        self.write(u")")
-                    else:
-                        self.visit(node.index)
-                        self.write(u"+1 )")
+                    self.visit(node.index)
+                    self.write("+1)")
         else:
             self.visit(node.sequence.sequence)
             self.write(u"(")
@@ -322,10 +331,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write(u":")
             self.visit(node.args[1])
         if node.message=="slice_":
-            #self.visit(node.args[0])
             self.write(u",:)")
-            #self.visit(node.args[1]) 
-        #self.write(u")")
+
     
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -340,7 +347,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if self.model is not None:
             self.write("MODULE %smod"%self.model.name.capitalize())
         else:
-            self.write("Module Test")
+            self.write("Module %s"%self.name) if self.name else self.write("Module Test")
         self.newline(node)
         self.indentation += 1 
         self.newline(node)
@@ -348,12 +355,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write("USE list_sub")
             self.newline(node) 
             if self.model:
-                f_dest = os.path.join(self.model.path,"src","f90","list_sub.f90") 
-                shutil.copyfile(f_src, f_dest)         
+                shutil.copyfile(self.f_src, self.f_dest)         
         for dependency in self.z.dependencies:
             if dependency!="list" and dependency.split("_")[0]=="model":
                 self.write("USE %smod" %dependency.split("model_")[1].capitalize())
-            self.newline(node)        
+            self.newline(node)   
         self.write("IMPLICIT NONE")
         self.newline(node)
         self.indentation -= 1 
@@ -363,14 +369,74 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit(node.body)
         self.newline(extra=1)
         self.indentation -= 1        
-        self.newline(node)
-        self.indentation -= 1        
+        self.newline(node)      
         self.write("END MODULE")
 
-    def visit_function_definition(self, node):
-        self.nb=0       
+
+    def visit_function(self, node):
+        self.newline(extra=1)
+        self.write("RECURSIVE FUNCTION %s"%(node.name)) if node.recursive else self.write("FUNCTION %s"%(node.name))
+        self.write("(")
+        parameters=[]
+        node_params=[]
+        for pa in node.params:
+            if pa.name not in self.mod_parameters:
+                parameters.append(pa.name)
+                pa.feat="IN"
+                node_params.append(pa)
+        self.write(', &\n        '.join(parameters))
+        if len(self.z.returns)==1 and "name" in dir(self.z.returns[0].value):
+            self.write(') RESULT(%s)'%(','.join(self.transform_return(node)[0])) )
+        elif len(self.z.returns)>1 :        
+            self.write(') RESULT(res_cyml)') 
+        else:
+            self.write(') RESULT(%s)'%(','.join(self.transform_return(node)[0])) )
+        self.indentation += 1
+        self.initialValue=[]
+        newNode = self.add_features(node)
         self.newline(node)
-        #self.body("")
+        self.write("IMPLICIT NONE")
+        self.newline(node)
+        self.visit_declaration(node_params) #self.visit_decl(node)
+        self.visit_declaration(self.transform_return(node)[1]) 
+        interVar = [i for i in newNode if "feat" not in dir(i)]
+        self.visit_declaration(interVar)
+        if len(self.z.returns)>1: 
+            self.visit_declaration([Node(type="local", name="res_cyml", pseudo_type=node.return_type)])
+        if self.initialValue:
+            for n in self.initialValue:
+                if isinstance(n.pseudo_type, list) and len(n.value)>=1 and n.pseudo_type[0] in ("list","array"):
+                    self.write("%s = " %n.name)
+                    self.write(u'(/')
+                    self.comma_separated_list(n.value)
+                    self.write(u'/)')
+                    self.newline(node) 
+                elif isinstance(n.pseudo_type, str):
+                    if n.value==b'': self.write('%s = ""' %(n.name))
+                    else: self.write("%s = %s" %(n.name, n.value))
+                    self.newline(node) 
+        self.indentation -=1
+        self.newline(node)
+        self.body(node.block)
+        self.newline(node)
+        self.write("END FUNCTION %s"%node.name)
+
+    def visit_function_definition(self, node):
+        self.newline(node)
+        self.nb=0
+        self.funcname = node.name
+        self.recursive = node.recursive
+        self.z = middleware(node)
+        self.z.transform(node)
+        if node.name.startswith("model_") or node.name.startswith("init_") :node.type="subroutine_def"
+        elif node.recursive or  self.z.returns[0].value.type!="tuple": 
+            node.type="function"
+        else:
+            node.type="subroutine_def"
+        self.visit(node)
+
+    def visit_subroutine_def(self, node):
+        self.newline(extra=1)
         self.write("SUBROUTINE ")
         self.write("%s("%node.name)
         parameters=[]
@@ -383,20 +449,28 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(', &\n        '.join(parameters))
         self.write(')') 
         self.indentation += 1
+        self.newline(node)
+        self.write("IMPLICIT NONE")
         self.initialValue=[]
         newNode = self.add_features(node)
-        self.visit_declaration(newNode) #self.visit_decl(node)           
+        self.visit_declaration(newNode) #self.visit_decl(node)         
         if self.initialValue:
             for n in self.initialValue:
-                if len(n.value)>=1:
+                if len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
                     self.write("%s = " %n.name)
                     self.write(u'(/')
                     self.comma_separated_list(n.value)
                     self.write(u'/)')
                     self.newline(node) 
+                elif isinstance(n.pseudo_type, str):
+                    if n.value==b'': self.write('%s = ""' %(n.name))
+                    else: self.write("%s = %s" %(n.name, n.value))
+                    self.newline(node) 
         self.indentation -=1
         self.newline(node)
         if self.model and node.name.startswith("model_"):
+            self.write(self.doc.header)
+            self.newline(node)
             self.write(self.doc.desc)
             self.newline(node)
             self.write(self.doc.inputs_doc)
@@ -405,17 +479,28 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.newline(node)
         self.body(node.block)
         self.newline(node)
-        self.write("END SUBROUTINE %s"%node.name)
+        self.write("END FUNCTION %s"%node.name) if node.recursive==True else self.write("END SUBROUTINE %s"%node.name)
         self.newline(node)
     
+    def subOrFun(self, node):
+        res = False # if subroutine
+        return res
     def transform_return(self, node):
-        returnvalues=node.block[-1].value
-        if returnvalues.type=="tuple":
-            output = [elt.name for elt in returnvalues.elements]
-            node_output = [elt for elt in returnvalues.elements]
-        else:
-            output = [returnvalues.name]
-            node_output = [returnvalues]
+        if len(self.z.returns)==1:
+            returnvalues=self.z.returns[0].value
+            if returnvalues.type=="tuple":
+                output = [elt.name for elt in returnvalues.elements]
+                node_output = [elt for elt in returnvalues.elements]
+            else:
+                if "name" in dir(returnvalues): 
+                    output = [returnvalues.name]
+                    node_output = [returnvalues]
+                else:                  
+                    output = []
+                    node_output = []  
+        else: 
+            output = []
+            node_output = []
         return output, node_output
     
     def retrieve_params(self, node):
@@ -447,6 +532,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             for inter in self.internal:
                 if 'elements' in dir(inter):# and not isinstance(inter.pseudo_type, list) 
                     self.initialValue.append(Node(type="initial",name = inter.name, pseudo_type=inter.pseudo_type, value = inter.elements))
+                elif 'value' in dir(inter):
+                    self.initialValue.append(Node(type="initial",name = inter.name, pseudo_type=inter.pseudo_type, value = inter.value))
             internal_name= [e.name  for e in self.internal]
         self.params = self.retrieve_params(node)
         params_name = [e.name  for e in self.params]
@@ -479,48 +566,33 @@ class FortranGenerator(CodeGenerator, FortranRules):
         elif 'feat' in dir(node):         
             self.write(", INTENT(%s) "%(node.feat))
 
-    
-
     def visit_declaration(self, node):
         self.newline(node)
+        node = node if isinstance(node, list) else node.decl
         for n in node:
             if n.name not in self.mod_parameters:
                 self.newline(node)             
-                if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array") or n in self.params and n.type!="array":
-                    self.part_declaration(n)
-                    self.write(':: %s'%(n.name)) 
-                elif 'elements' not in dir(n) and n.type in("list","array"):
-                    self.part_declaration(n)
-                    self.write(":: %s"%n.name)
-                elif 'value' in dir(n) and n.pseudo_type in ("int", "float", "str", "bool") and n not in self.params : 
-                    self.part_declaration(n)
-                    self.write(':: %s'%(n.name))
-                    self.write(" = ")
-                    if n.type=="local":
-                        self.write(n.value)
-                    else: self.visit(n)
-                elif 'elements' in dir(n) and n.type in ("list", "tuple", "local", "array"):
-                    if n.type=="list":
-                        self.part_declaration(n)
-                        self.write(":: %s"%n.name)  
-                    if n.type=="array":
-                        self.part_declaration(n)
-                        self.write(" , DIMENSION(")                
-                        self.comma_separated_list(n.elts)
-                        self.write(" ):: %s"%n.name) 
+                self.part_declaration(n)
+                self.write(':: %s'%(n.name)) 
             else:
                 self.newline(node)
                 self.part_declaration(n)                         
         self.newline(node)
         
     def visit_implicit_return(self, node):
-        pass
-        """self.newline(node)
-        if node.value is None:
-            self.write('return')
-        else:
-            self.write('return ')
-        self.visit(node.value)"""
+        if (not self.funcname.startswith("model_") and not self.funcname.startswith("init_")) :
+            self.newline(node)
+            if len(self.z.returns)==1 and "name" in dir(self.z.returns[0].value):
+                pass
+            elif len(self.z.returns)>1 or self.z.returns[0].value.type!="tuple" :
+                newNode = Node(type="assignment",target=Node(type="local", name="res_cyml"),\
+                                value=node.value)
+                self.visit(newNode) 
+            else:
+                pass
+        
+
+
 
     def visit_list_decl(self, node):        
         if not isinstance(node[1], list):
@@ -531,7 +603,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             node = node[1]
             self.write(self.types[node[1]])
             self.write(', ALLOCATABLE')
-            self.write(", DIMENSION(:,:) ") 
+            self.write(", DIMENSION(:) ") 
 
     def visit_datetime_decl(self, node):
         return self.visit_str_decl(node)  
@@ -542,8 +614,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
         self.write(" , DIMENSION(")
+        print(dir(node))
         if node.dim == 0: self.write(":")
-        else: self.comma_separated_list(node.elts)
+        elif len(node.elts)!=0: self.write("%s"%len(node.elts))
+        #else: self.comma_separated_list(node.elements if isinstance(node.elements, list) else [node.elements])
         self.write(" )")  
 
     def visit_float_decl(self, node):
@@ -587,20 +661,31 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if "attrib" in dir(node):
              self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
         else:
-            self.write(self.visit(node.function))
-        self.write('(')
-        if isinstance(node.args, list):
-            for arg in node.args:
-                write_comma()
-                self.visit(arg)
-        else: self.visit(node.args)
-        self.write(')')
+            if callable(node.function):
+                self.visit(node.function(node))
+            else: 
+                self.write(node.function)
+                self.write('(')
+                if isinstance(node.args, list):
+                    for arg in node.args:
+                        write_comma()
+                        self.visit(arg)
+                else:self.visit(node.args)
+                self.write(')')
     
     def visit_standard_call(self, node):
         node.function = self.functions[node.namespace][node.function]
-        if callable(node.function):
-           self.visit(node.function(node)) 
-        else: self.visit_call(node) 
+        self.visit_call(node) 
+
+    def visit_combine(self, node):
+        self.newline(node)
+        for n in node.args:
+            if not isinstance(n, list): self.visit(n)
+            else:
+                for ni in n: 
+                    self.visit(ni)
+                    if ni!=n[len(n)-1]:
+                        self.write(", ")
 
     def visit_subroutine(self,node):         
         self.write(node.function)
@@ -609,35 +694,22 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if "elements" in dir(node.receiver):
             elts = node.receiver.elements
         else: elts = [node.receiver]
+        argname = [n.name for n in node.args]
         for n in elts:
-            if n not in node.args:
+            if n.name not in argname:
                 self.write(',')
                 self.write(n.name)
         self.write(')')        
-        
+
+    def visit_constant(self, node):
+        self.write(self.constant[node.library][node.name])
+                
     def visit_importfrom(self, node):
-        """self.newline(node)
-        self.write('from %s import ' % (node.namespace))
-        for idx, item in enumerate(node.name):
-            if idx:
-                self.write(', ')
-            self.write(item)"""
+        pass
 
     def visit_custom_call(self, node):
-        want_comma = []
-        def write_comma():
-            if want_comma:
-                self.write(', ')
-            else:
-                want_comma.append(True)            
-        self.write(node.function)
-        self.write('(')
-        self.visit(node.receiver)
-        write_comma()
-        for arg in node.args:
-            write_comma()
-            self.visit(arg)
-        self.write(')')
+        self.visit_call(node)
+  
     
     def visit_for_statement(self, node):
         self.newline(node)
@@ -664,11 +736,6 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(' , ')
         self.visit(node.iterator)        
 
-    """def visit_for_sequence_with_index(self, node):
-        
-        self.write(" in enumerate(")
-        self.visit(node.sequence)
-        self.write('):')"""
     
     def visit_for_iterator(self, node):
         self.visit(node.iterator)
@@ -682,17 +749,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.index.append(node.index.name)
         self.visit(node.index)
         self.write(" = ")
-        if "value" in dir(node.start):
-            self.write(str(int(node.start.value)+1))
-        else:
-            self.visit(node.start)
-            if "name" in dir(node.start):
-                if node.start.name not in self.index:
-                    self.write(" + 1 ")  
-            else:
-                self.write(" + 1 ") 
+        self.visit(node.start)
         self.write(' , ')
         self.visit(node.end)
+        self.write("-1")
         if node.step.value!=1:
             self.write(', ')
             self.visit(node.step)
@@ -738,25 +798,21 @@ def checkList(list1, list2):
     return test
             
 class FortranCompo(FortranGenerator):
-    """ This class used to generates states, rates and auxiliary classes
+    """ 
+    his class used to generates states, rates and auxiliary classes
         for Fortran90 language.
+
+    Args:
+        FortranGenerator (FortranGenertor): Generation of fortran source code
     """
+
     def __init__(self, tree=None, model=None, name = None):
         self.tree = tree
         self.model=model
         self.name = name
         FortranGenerator.__init__(self,tree, model, self.name)
-    
-    '''def visit_function_definition(self, node):
-        pass'''
-    '''def visit_assignment(self, node):
-        print(node.value.type)'''
+
     
     def visit_importfrom(self, node):
-        '''self.newline(node)
-        self.write('Use ')
-        for idx, item in enumerate(node.name):
-            if idx:
-                self.write(', ')
-            self.write("%smod"%item.split("model_")[1].capitalize())'''
+        pass
      

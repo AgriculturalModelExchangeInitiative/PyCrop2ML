@@ -1,9 +1,25 @@
 from pycropml import render_fortran
 from pycropml import render_java
 from pycropml import render_csharp
+from pycropml import render_cpp
+from pycropml import render_r
 from pycropml.render_cyml import transf
 import six
-def generate_test_py(model,dir=None):
+
+
+def splitunit(unit):
+    un=""
+    for k,el in enumerate(unit):
+        if el=="*" and unit[k+1]=="*" :un += "**"
+        elif el=="*" and unit[k-1]=="*":un +=""
+        elif el=="*": un += "*u."
+        elif el=="/": un+="/u."
+        else: un += el
+    return un
+        
+    
+
+def generate_test_py(model,dir=None, package=None):
     tab = ' '*4
     m = model
     #name = m.description.Title
@@ -12,7 +28,7 @@ def generate_test_py(model,dir=None):
     name = name.replace(' ', '_').lower()
     model_name = name
     psets = m.parametersets
-    code_test = []
+    code_test = [""]
     for v_tests in m.testsets:
 
         #test_name = v_tests.name  # name of tests
@@ -43,87 +59,102 @@ def generate_test_py(model,dir=None):
 
                 run_param = params.copy()
                 run_param.update(ins)
-
                 for k, v in six.iteritems(run_param):
-                    type = [inp.datatype for inp in m.inputs if inp.name==k][0]
-                    code = tab + "%s = %s," % (k, transf(type, v)) 
+                    type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
+                    code = tab + "%s = %s," % (k, transf(type_[0], v)) 
                     test_codes.append(code)
                 code = "     )"
                 test_codes.append(code)
 
                 for j, k in enumerate(m.outputs):
                     if k.datatype in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY"):
-                        code = "print('%s_estimated =')" % k.name
+                        code = "%s_estimated = " % k.name
+                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
-                        code = "print(params[%s])" % (j) if len(
-                            m.outputs) > 1 else "print(params)" % k.name
+                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
-                        code = "# %s_computed = %s" % (
-                            k.name, outs[k.name][0])
+                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
                         test_codes.append(code)
 
                     if k.datatype in ("STRING", "BOOL", "INT", "DATE"):
-                        code = "print('%s_estimated =')" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
+                        code = "%s_estimated =" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
+                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
-                        code = "print(params[%s])" % (j) if len(
-                            m.outputs) > 1 else "print(params)"
+                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
-                        code = "# %s_computed = %s" % (
-                            k.name, outs[k.name][0])
+                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
                         test_codes.append(code)
 
-                    if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):
-                        code = "print('%s_estimated =')" % k.name
+                    if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):              
+                        code = "%s_estimated = numpy.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
                         test_codes.append(code)
-                        code = "print(numpy.around(params[%s], %s))" % (j, outs[k.name][1]) if len(
-                            m.outputs) > 1 else "print(numpy.around(params, %s))" % outs[k.name][1]
+                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
                         test_codes.append(code)
-                        code = "# %s_computed = %s" % (
-                            k.name, outs[k.name][0])
+
+                        code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
                         test_codes.append(code)
 
                     if k.datatype in ("INTLIST", "INTARRAY"):
-                        code = "print('%s_estimated =')" % k.name
+                        code = "%s_estimated =" % k.name
+                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
-                        code = "print(params[%s])" % (j) if len(
-                            m.outputs) > 1 else "print(params)"
+                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
-                        code = "# %s_computed = %s" % (
-                            k.name, outs[k.name][0])
+                        code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
                         test_codes.append(code)
 
                     if k.datatype == "DOUBLE":
-                        code = "print('%s_estimated =')" % k.name
-                        test_codes.append(code)
-                        code = "print(round(params[%s], %s))" % (j, outs[k.name][1]) if len(
-                            m.outputs) > 1 else "print(round(params, %s))" % outs[k.name][1]
-                        test_codes.append(code)
-                        code = "# %s_computed = %s" % (
-                            k.name, outs[k.name][0])
+                        code = "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
                         test_codes.append(code)
 
+                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
+                        test_codes.append(code)
+
+                        code = "assert (%s_estimated == %s_computed)"%(k.name,k.name)
+                        test_codes.append(code)
                 code = '\n'.join(test_codes)
                 code_test.append(code)
     return code_test
 
-def generate_test_f90(model, dir):
+def generate_test_f90(model, dir, package=None):
     return [render_fortran.Model2Package(model, dir).generate_test(model)]
 
 
-def generate_test_cs(model, dir):
+def generate_test_cs(model, dir, package=None):
     return [render_csharp.Model2Package(model, dir).generate_test(model)]
 
-def generate_test_java(model,directory=None):
+def generate_test_java(model,directory=None, package=None):
     return [render_java.Model2Package(model, directory).generate_test(model)]
 
-def generate_test_simplace(model,dir=None):
+
+def generate_test_cpp(model, directory=None, package=None):
+    render = render_cpp.Model2Package(model, directory)
+    return [render.generate_test_import(model, package),
+            render.generate_test_function(model),
+            render.generate_test_run(model)]
+
+def generate_test_r(model,dir, package=None):
+    return [render_r.Model2Package(model, dir).generate_test(model)]
+
+def generate_test_simplace(model,dir=None, package=None):
     pass
 
-def generate_test_sirius(model,dir=None):
+def generate_test_sirius(model,dir=None, package=None):
     pass
 
-def generate_test_openalea(model,dir=None):
+def generate_test_stics(model,dir=None, package=None):
     pass
 
-def generate_test_check(model,dir=None):
+def generate_test_openalea(model,dir=None, package=None):
+    pass
+
+def generate_test_check(model,dir=None, package=None):
+    pass
+def generate_test_apsim(model,dir=None, package=None):
+    pass
+def generate_test_dssat(model,dir=None, package=None):
+    pass
+def generate_test_record(model,dir=None, package=None):
+    pass
+def generate_test_bioma(model,dir=None, package=None):
     pass

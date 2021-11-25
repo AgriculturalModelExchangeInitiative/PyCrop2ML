@@ -1,55 +1,61 @@
 
-=====================================
-**Welcome to PyCrop2ML Documentation**
-=====================================
-
-**Contents**
 .. _pycropml:
 
 .. module:: pycropml
 
-CropML documentation
-###########################
+======================================
+**Welcome to PyCrop2ML Documentation**
+======================================
+
+Contents:
 
 Module description
 ==================
-	
+.. sidebar:: Summary
+
+    :Version: |version|
+    :Release: |release|
+    :Date: |today|
+    :Author: See `authors`_ section
+    :ChangeLog: See `changelog`_ section
+
 .. toctree::
    :maxdepth: 1
    :numbered:
       
-	What is PyCropML? <user/overview.rst>
-	CropML description <user/description.rst>
+	What is PyCrop2ML? <user/overview.rst>
+	Crop2ML description <user/description.rst>
+        CyML specification <user/language.rst>
 	User Guide <user/index.rst>
 	Reference Guide <_dvlpt/modules.rst>
 	Usecases <user/usecases.rst>
 	License <user/license.rst>
+   Contributing <../contributing.rst>
 	Publication <user/Publication.rst>
 	Glossary <user/glossary.rst>
+
+   authors
+   history
 
 .. topic:: Overview
 
     .. include:: user/overview.txt
 
-Documentation
-=============
 
-.. toctree::
-    :maxdepth: 1
 
-    User Guide<user/index.rst>
-    Reference Guide<_dvlpt/modules.rst>
-
-- A `PDF <../latex/main.pdf>`_ version of |core| documentation is
+- A `PDF <../latex/main.pdf>`_ version of |pycropml| documentation is
   available.
 
 .. include:: ../HISTORY.rst	
+.. include:: ../AUTHORS.rst
 
 
 **Indices and tables**
 ======================
 
-.. include:: ../HISTORY.rst
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
 
 License
 =======
@@ -57,25 +63,8 @@ License
 |pycropml| is released under a MIT License.
 
 
-.. |pycropml| replace:: PyCropML
+.. |pycropml| replace:: PyCrop2ML
 
-Welcome to CropML's documentation!
-=========================================
-
-Contents:
-
-.. toctree::
-   :maxdepth: 2
-
-   readme
-   installation
-   usage
-   contributing
-   authors
-   history
-
-Indices and tables
-==================
 
 **Supported by:**
 =================

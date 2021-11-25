@@ -4,6 +4,7 @@ from pycropml.transpiler.rules.javaRules import JavaRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
 import os
+from pycropml.transpiler.interface import middleware
 from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
@@ -23,17 +24,21 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.indent_with=' '*4
         self.initialValue=[] 
         self.index=False
+        self.z = middleware(self.tree)
+        self.z.transform(self.tree)
+        self.therearedate=False
         if self.model: 
             self.doc= DocGenerator(model, '//')
             self.generator = JavaTrans([model])
             self.generator.model2Node()
-            self.states = [st.name for st in self.generator.states]  
+            self.states = [st.name for st in self.model.states]  
             self.rates = [rt.name for rt in self.generator.rates ]
             self.auxiliary = [au.name for au in self.generator.auxiliary] 
+            self.exogenous = [ex.name for ex in self.generator.exogenous]
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
         self.funcname = ""
-        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\n")
+        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\nimport javafx.util.*;\nimport java.time.LocalDateTime;\n")
 
 
 
@@ -76,6 +81,25 @@ class JavaGenerator(CodeGenerator,JavaRules):
          
     def visit_import(self, node):
         pass
+
+    def comment(self,doc):
+        list_com = ["//" +x for x in doc.split('\n')]
+        #com = '\n'.join(list_com)
+        return list_com
+
+    def visit_ExprStatNode(self, node):
+        self.newline(node)
+        if "value" in dir(node.expr) and node.expr.type=="str":
+            com = self.comment(node.expr.value.decode('utf8'))
+            for co in com: 
+                if co!='//':
+                    self.write(co)
+                    self.newline()
+        else:
+            self.visit(node.expr)
+            self.write(";")
+    
+
 
     def visit_cond_expr_node(self, node):
         self.visit(node.test)
@@ -133,7 +157,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write("d")
 
     def visit_array(self, node):
-        self.write("new []")        
+        self.write("new %s[] "%self.types[node.pseudo_type[1]])        
         self.write(u'{')
         self.comma_separated_list(node.elements)
         self.write(u'}')
@@ -205,17 +229,37 @@ class JavaGenerator(CodeGenerator,JavaRules):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.Calculate_%s(s, s1, r, a);"%(name.capitalize(), name))
             self.newline(node)
         else:
             self.newline(node)
-            if "index" in dir(node.target) and node.target.pseudo_type[0]=="list": 
-                self.visit(node.target.sequence)
+            if "index" in dir(node.target) and node.target.sequence.pseudo_type[0]=="list": 
+                self.write(node.target.sequence.name)
                 self.write(".set(")
                 self.visit(node.target.index)
                 self.write(',')
                 self.visit(node.value)
                 self.write(");")
+                self.newline(node)
+            if node.value.type == "standard_call" and node.value.function=="integr":
+                self.write("%s = new ArrayList<>(%s);"%(node.target.name,node.value.args[0].name))
+                self.newline(node)
+                if isinstance(node.value.args[1].pseudo_type, list):
+                    self.write("%s.addAll("%node.target.name)
+                else: self.write("%s.add("%node.target.name)
+                self.visit( node.value.args[1])
+                self.write(");")
+            elif node.value.type == "standard_call" and node.value.function=="datetime":
+                self.newline(node)
+                if len(node.value.args)==3:node.value.args.extend([00,00,00])
+                self.write(" %s = LocalDateTime.of(%s);"%(node.target.name,",".join(node.value.args)))
+                self.newline(node)
+            elif node.value.type =="standard_method_call" and node.value.message in ["keys", "values"]:
+                self.write(node.target.name)
+                self.write(".addAll(")
+                self.visit(node.value)
+                self.write(");")
+                self.newline(node)                
             else:
                 self.visit(node.target)
                 self.write(' = ')
@@ -228,13 +272,30 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write('continue;')
 
     def transform_return(self, node):
-        returnvalues=node.block[-1].value
-        if returnvalues.type=="tuple":
-            output = [elt.name for elt in returnvalues.elements]
-            node_output = [elt for elt in returnvalues.elements]
+        if self.funcname.startswith("model") or self.funcname.startswith("init"):
+            returnvalues=node.block[-1].value
+            if returnvalues.type=="tuple":
+                output = [elt.name for elt in returnvalues.elements]
+                node_output = [elt for elt in returnvalues.elements]
+            else:
+                output = [returnvalues.name]
+                node_output = [returnvalues]
         else:
-            output = [returnvalues.name]
-            node_output = [returnvalues]
+            if len(self.z.returns)==1:
+                returnvalues=self.z.returns[0].value
+                if returnvalues.type=="tuple":
+                    output = [elt.name for elt in returnvalues.elements]
+                    node_output = [elt for elt in returnvalues.elements]
+                else:
+                    if "name" in dir(returnvalues): 
+                        output = [returnvalues.name]
+                        node_output = [returnvalues]
+                    else:                  
+                        output = []
+                        node_output = []  
+            else: 
+                output = []
+                node_output = []
         return output, node_output
 
     def retrieve_params(self, node):
@@ -274,6 +335,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         variables = self.params+self.internal if self.internal else self.params
         newNode=[]
         for var in variables:
+            if var.pseudo_type in ["datetime", ["list","datetime"]]: self.therearedate=True 
             if var not in newNode:
                 if var.name in params_name and var.name not in outputs_name:
                     var.feat = "IN"
@@ -296,7 +358,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.newline(node)
         self.write("{") 
         self.newline(node)
-        self.indentation += 1     
+        self.indentation += 1
         self.visit(node.body)
         self.newline(node)
         self.indentation -= 1        
@@ -305,18 +367,20 @@ class JavaGenerator(CodeGenerator,JavaRules):
      
     def visit_function_definition(self, node):      
         self.newline(node)
-        self.add_features(node)
         self.funcname = node.name
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
-            self.write("public static ")
-            self.visit_decl(node.return_type)
-            self.write(" %s("%node.name)
-            for i, pa in enumerate(node.params):
-                self.visit_decl(pa.pseudo_type)
-                self.write(" %s"%pa.name)
-                if i!= (len(node.params)-1):
-                    self.write(', ')
-            self.write(')')
+            if node.name=="main":
+                self.write("public static void main(String[] args)") 
+            else:
+                self.write("public static ")
+                self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                self.write(" %s("%node.name)
+                for i, pa in enumerate(node.params):
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if i!= (len(node.params)-1):
+                        self.write(', ')
+                self.write(')')
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -345,11 +409,13 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
             self.newline(node)
             self.write('{') 
             self.newline(node)
             if not node.name.startswith("init_"):
+                self.write(self.doc.header)
+                self.newline(node)
                 self.write(self.doc.desc)
                 self.newline(node)
                 self.write(self.doc.inputs_doc)
@@ -365,14 +431,30 @@ class JavaGenerator(CodeGenerator,JavaRules):
                             self.visit_decl(arg.pseudo_type)
                             self.write(" ")
                             self.write(arg.name)
-                            if arg.name in self.states:
-                                self.write(" = s.get%s()"%arg.name)
-                            if arg.name in self.rates:
-                                self.write(" = r.get%s()"%arg.name)
-                            if arg.name in self.auxiliary:
-                                self.write(" = a.get%s()"%arg.name) 
+                            if not node.name.startswith("init_"):
+                                if arg.name in self.states and not arg.name.endswith("_t1") :
+                                    self.write(" = s.get%s()"%arg.name)
+                                if arg.name.endswith("_t1") and arg.name in self.states:
+                                    self.write(" = s1.get%s()"%arg.name[:-3])
+                                if arg.name in self.rates:
+                                    self.write(" = r.get%s()"%arg.name)
+                                if arg.name in self.auxiliary:
+                                    self.write(" = a.get%s()"%arg.name) 
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.get%s()"%arg.name)                                     
+                            else:
+                                if arg.pseudo_type[0] =="list":
+                                    self.write(" = new ArrayList<>(Arrays.asList())")
+                                elif arg.pseudo_type[0] =="array":
+                                    self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
                             self.write(";")                   
             self.indentation -= 1 
+        self.newline(node)
+        """if self.therearedate: 
+            self.indentation += 1 
+            self.write('SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");')
+            self.indentation -= 1 """
+        self.newline(node)
         self.body(node.block)
         self.newline(node)
         self.visit_return(node)
@@ -381,6 +463,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write('}') 
         self.newline(node)
 
+    def visit_constant(self, node):
+        self.write(self.constant[node.library][node.name])
     def visit_custom_call(self, node):
         "TODO"
         self.visit_call(node)
@@ -411,6 +495,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                             self.write("r.set%s(%s);"%(arg.name,arg.name))
                         if arg.name in self.auxiliary:
                             self.write("a.set%s(%s);"%(arg.name,arg.name))
+                        if arg.name in self.exogenous:
+                            self.write("ex.set%s(%s);"%(arg.name,arg.name))
         else:
             self.newline(node)
             self.indentation += 1
@@ -421,9 +507,12 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write(u'))')
     
     def visit_tuple(self,node):
-        self.write("Tuple.Create(")
-        self.comma_separated_list(node.elements)
-        self.write(")")
+        self.write('new Pair[]')
+        self.write("{")
+        for n in node.elements:
+            self.write('new Pair<>("%s", %s)'%(n.name, n.name))
+            if n!= node.elements[len(node.elements)-1]: self.write(",")
+        self.write("}")
     
     def visit_str(self, node):
         self.safe_double(node)
@@ -432,19 +521,15 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.newline(node)
         for n in node.decl:
             self.newline(node)
-            if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array"):
+            if 'value' not in dir(n) and isinstance(n.pseudo_type, str) and n.pseudo_type!="datetime":
                 self.write(self.types[n.pseudo_type])
-                self.write(' %s;'%n.name) 
-                #self.write('%s %s;'%(self.types[n.type],n.name)) 
+                self.write(' %s;'%n.name)  
             if 'elements' not in dir(n) and n.type in ("list","array"):
                 if n.type=="list":
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                 if n.type=="array":
-                    self.write(self.types[n.type]%(self.types2[n.pseudo_type[1]], n.name, self.types2[n.pseudo_type[1]]))
-                    #self.write("[%s];"%n.elts[0].value)
-                    self.write('[')
-                    self.visit(n.elts)
-                    self.write('];')
+                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
+
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
@@ -452,35 +537,45 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.write(n.value)
                 else: self.visit(n)
                 self.write(";")
-            elif 'elements' in dir(n) and n.type in ("list", "tuple"):
+            elif 'elements' in dir(n) and n.type in ("list", "tuple", "array"):
                 if n.type=="list":
                     self.visit_decl(n.pseudo_type)
                     self.write(n.name)
                     self.write(" = new ArrayList <>(Arrays.asList") 
                     #self.visit_decl(n.pseudo_type)
-                if n.type=='tuple':
-                    pass
-                self.write(u'(')
-                self.comma_separated_list(n.elements)
-                self.write(u'));')           
+                    self.write(u'(')
+                    self.comma_separated_list(n.elements)
+                    self.write(u'));')  
+                
+                if n.type=="array":
+                    self.visit_decl(n.pseudo_type)
+                    self.write(n.name)
+                    self.write(" = ")  
+                    self.write(u'{')
+                    self.comma_separated_list(n.elements)
+                    self.write(u'};') 
+                    
+         
             elif  n.type=='datetime':
                 self.newline(node)
-                self.write("Date")
-                self.write(n.name)                 
+                self.write("LocalDateTime; ")
+                #self.write(n.name) 
+                #self.write("= new Date();") """   
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.visit_decl(n.pseudo_type)
                 self.write(n.name)
                 self.write(" = new ") 
-                self.visit_decl(n.pseudo_type)               
-                self.write(u'{')
+                self.visit_decl(n.pseudo_type)
+                self.write("()")               
+                self.write(u'{{')
                 self.comma_separated_list(n.pairs)
-                self.write(u'};')
+                self.write(u'}};')
                 
         self.newline(node)
     
     def visit_list_decl(self, node):        
         if not isinstance(node[1], list):
-            self.write(self.types2[node[1]].capitalize())
+            self.write(self.types2[node[1]])
             self.write('>')
         else:
             node = node[1]
@@ -501,9 +596,11 @@ class JavaGenerator(CodeGenerator,JavaRules):
     def visit_tuple_decl(self, node):
         self.visit_decl(node[0])
         for n in node[1:-1]:
-            self.visit_decl(n)
+            if n in ["int","float", "str"]: self.write(self.types2[n])
+            else: self.visit_decl(n)
             self.write(",")
-        self.visit_decl(node[-1])
+        if node[-1] in ["int","float", "str"]: self.write(self.types2[n])
+        else: self.visit_decl(node[-1])
         self.write('> ')
     
     def visit_float_decl(self, node):
@@ -532,11 +629,10 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.write('List<')
                 self.visit_list_decl(node)
             if node[0] == "dict":
-                self.write("TreeMap<")
+                self.write("HashMap<")
                 self.visit_dict_decl(node)
             if node[0]=="tuple":
-                self.write('Tuple<')
-                self.visit_tuple_decl(node)
+                self.write("Pair[]")
             if node[0]=="array":
                 self.visit_array_decl(node)
         else:
@@ -552,11 +648,11 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.visit_datetime_decl(node) 
             
     def visit_pair(self, node):
-        self.write(u'{')
+        self.write(u'put(')
         self.visit(node.key)
         self.write(u", ")
         self.visit(node.value)
-        self.write(u'}')
+        self.write(u');')
             
     def visit_call(self, node):
         want_comma = []
@@ -568,14 +664,17 @@ class JavaGenerator(CodeGenerator,JavaRules):
         if "attrib" in dir(node) and node.namespace!="math":
              self.write(u"%s.%s"%(node.namespace,self.visit(node.function)))
         else:
-            self.write(self.visit(node.function))
-        self.write('(')
-        for arg in node.args:
-            write_comma()
-            self.visit(arg)
-        self.write(')')
+            if callable(node.function):
+                self.visit(node.function(node))
+            else: 
+                self.write(node.function)
+                self.write('(')
+                for arg in node.args:
+                    write_comma()
+                    self.visit(arg)
+                self.write(')')
     
-    def visit_standard_call(self, node):        
+    def visit_standard_call(self, node):       
         node.function = self.functions[node.namespace][node.function]
         self.visit_call(node)  
         
@@ -590,8 +689,14 @@ class JavaGenerator(CodeGenerator,JavaRules):
         if "sequences" in dir(node):
             self.visit(node.sequences)
             self.write(')')
+            self.newline(node)
         self.newline(node)
-        self.write('{')   
+        self.write('{')
+        if "iterators" in dir(node):
+            self.newline(node)
+            self.indentation += 1 
+            self.write("%s = %s_cyml;"%(node.iterators.iterator.name, node.iterators.iterator.name))
+            self.indentation -= 1
         self.body(node.block)
         self.newline(node)
         self.write('}')  
@@ -599,15 +704,16 @@ class JavaGenerator(CodeGenerator,JavaRules):
     def visit_for_iterator_with_index(self, node):
         self.visit(node.index)
         self.write(' , ')
-        self.visit(node.iterator)        
+        self.visit(node.iterator)
+
 
     def visit_for_sequence_with_index(self, node):     
         pass
 
     def visit_for_iterator(self, node):
-        self.write(self.types[node.iterator.pseudo_type].capitalize())
-        self.write(" ")
+        self.write("%s "%self.types2[node.iterator.pseudo_type].capitalize())
         self.visit(node.iterator)
+        self.write("_cyml")
         self.write(" : ")
            
     
@@ -619,12 +725,12 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.visit(node.start)
         self.write(' ; ')
         self.visit(node.index)
-        self.write("<")        
+        self.write("!=")        
         self.visit(node.end)
         self.write(' ; ')
         self.visit(node.index)
         self.write("+=")
-        if node.step.value==1: 
+        if "value" in dir(node.step) and node.step.value==1: 
             self.write("1")
         else:      
             self.visit(node.step)
@@ -657,7 +763,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
 
 
 class JavaTrans(CodeGenerator,JavaRules):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
     for java language.
     """
     
@@ -668,6 +774,7 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.states=[]
         self.rates=[]
         self.auxiliary=[]
+        self.exogenous=[]
         self.extern =[] 
         self.modparam=[] 
     DATATYPE={
@@ -708,15 +815,16 @@ class JavaTrans(CodeGenerator,JavaRules):
         #print(len(variables))
         for var in variables:
             if "variablecategory" in dir(var):
-                if var.variablecategory=="state":
+                if var.variablecategory=="state" and not var.name.endswith("_t1"):
                     self.states.append(var)
                 if var.variablecategory=="rate" :
                     self.rates.append(var)
                 if var.variablecategory=="auxiliary":
                     self.auxiliary.append(var)
+                if var.variablecategory=="exogenous":
+                    self.exogenous.append(var)
             if "parametercategory" in dir(var):
                 self.modparam.append(var)
-        #print(self.auxiliary)
 
         def create(typevar):
             node_typevar=[]
@@ -735,6 +843,7 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.node_states = create(self.states)
         self.node_rates= create(self.rates)
         self.node_auxiliary= create(self.auxiliary) 
+        self.node_exogenous= create(self.exogenous)
         self.node_param=create(self.modparam)       
     
     def private(self,node):
@@ -884,7 +993,7 @@ class JavaTrans(CodeGenerator,JavaRules):
 
 def to_struct_java(models, rep, name):
     generator = JavaTrans(models)
-    generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.model2Node()
     states = generator.node_states
     generator.generate(states, "%sState"%name.capitalize())
@@ -893,17 +1002,25 @@ def to_struct_java(models, rep, name):
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
-    generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(rates, "%sRate"%name.capitalize())
     z1= ''.join(generator.result)
     filename = Path(os.path.join(rep, "%sRate.java"%name.capitalize()))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
     auxiliary = generator.node_auxiliary
-    generator.result=[u"import  java.io.*;\nimport  java.util.*;\n"]
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
     z2= ''.join(generator.result)
     filename = Path(os.path.join(rep/"%sAuxiliary.java"%name.capitalize()))
+    with open(filename, "wb") as tg2_file:
+        tg2_file.write(z2.encode('utf-8')) 
+
+    exogenous = generator.node_exogenous
+    generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
+    generator.generate(exogenous, "%sExogenous"%name.capitalize())
+    z2= ''.join(generator.result)
+    filename = Path(os.path.join(rep/"%sExogenous.java"%name.capitalize()))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))  
     return 0
@@ -914,7 +1031,7 @@ def to_struct_java(models, rep, name):
 
 
 class JavaCompo(JavaTrans, JavaGenerator):
-    """ This class used to generates states, rates and auxiliary classes
+    """ This class used to generates states, rates, auxiliary and exogenous classes
         for java language.
     """
     def __init__(self, tree, model=None, name=None):
@@ -929,6 +1046,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.statesName = [st.name for st in self.states]
         self.ratesName = [rt.name for rt in self.rates]
         self.auxiliaryName = [au.name for au in self.auxiliary]
+        self.exogenousName = [au.name for au in self.exogenous]
        # self.model2Node()
 
     def visit_module(self, node):
@@ -980,7 +1098,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sRate r, %sAuxiliary a)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1010,11 +1128,12 @@ class JavaCompo(JavaTrans, JavaGenerator):
                             self.write("r.set%s(%s);"%(arg.name,arg.name))
                         if arg.name in self.auxiliary:
                             self.write("a.set%s(%s);"%(arg.name,arg.name))
+                        if arg.name in self.exogenous:
+                            self.write("ex.set%s(%s);"%(arg.name,arg.name))
             self.write("")
         self.newline(node)
     
     def visit_declaration(self, node):
-        print(node.type, self.init)
         if self.init is True:
             return JavaGenerator(self.tree).visit_declaration(node)
         else: 
@@ -1034,13 +1153,15 @@ class JavaCompo(JavaTrans, JavaGenerator):
             self.write("r.set%s"%node.name)
         elif node.name in self.auxiliaryName:
             self.write("a.set%s"%node.name)
+        elif node.name in self.exogenousName:
+            self.write("ex.set%s"%node.name)
         else: self.write(node.name)"""
 
     def visit_assignment(self, node):
        
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, r, a);"%(name.capitalize(), name))
+            self.write("_%s.Calculate_%s(s, s1, r, a);"%(name.capitalize(), name))
             self.newline(node)
         else:    
             self.newline(node)
@@ -1091,3 +1212,8 @@ class JavaCompo(JavaTrans, JavaGenerator):
         pass
 
  
+def argsToStr(args):
+    t=[]
+    for arg in args:
+        t.append(arg.value)
+    return '"%s"'%('-'.join(t))

@@ -36,11 +36,32 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_notAnumber(self, node):
         self.write("float('nan')")
 
+    def visit_local(self, node):
+        if "units" in dir(node):
+            self.write("%s%s"%(node.name,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.name,node.units))
+        else: self.write(node.name)
+
+    def visit_int(self, node):
+        if "units" in dir(node):
+            self.write("%s%s"%(node.value,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.value,node.units))
+        else:self.write(node.value)
+
+
     def visit_assignment(self, node):
         self.newline(node)
-        self.visit(node.target)
-        self.write(' = ')
-        self.visit(node.value)
+        if node.value.type == "standard_call" and node.value.function=="integr":
+            self.write("%s = copy(%s)"%(node.target.name, node.value.args[0].name))
+            self.newline(node)
+            if isinstance(node.value.args[1].pseudo_type, list):
+                self.write("%s.extend("%node.target.name)
+            else: self.write("%s.append("%node.target.name)
+            self.visit( node.value.args[1])
+            self.write(")")
+        
+        else:
+            self.visit(node.target)
+            self.write(' = ')
+            self.visit(node.value)
 
     def visit_cond_expr_node(self, node):
         self.visit(node.true_val)
@@ -49,6 +70,8 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write(u" else ")
         self.visit(node.false_val)  
         
+    def visit_constant(self, node):
+        self.write(self.constant[node.library][node.name])
 
     def visit_if_statement(self, node):
         self.newline(node)
@@ -80,7 +103,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.body(node.block)
     
     def visit_float(self, node):
-        self.write(node.value)
+        if "units" in dir(node):
+            self.write("%s%s"%(node.value,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.value,node.units))
+        else: self.write(node.value)
         
     def visit_bool(self, node):
         self.write(str(node.value))
@@ -164,6 +189,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(node)
         self.write("# coding: utf8")
         self.newline(node)
+        #self.write("from pycropml.units import u")
+        #self.newline(node)
+        self.write("from copy import copy\nfrom array import array\nfrom math import *\n")
+        self.newline(node)
         self.visit(node.body)
 
         
@@ -217,6 +246,8 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(node)
         if self.model and node.name.split("model_")[1]==signature(self.model):
             self.write('    """\n')
+            self.write(self.doc.header)
+            self.newline(node)
             self.write(self.doc.desc)
             self.newline(node)
             self.write(self.doc.inputs_doc)
@@ -271,19 +302,24 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.write(n.name)
                 self.write(" = ")                 
                 self.visit_dict(n)
-            elif n.type=="array" and 'elements' in dir(n):       
-                self.visit_array(n)
-            elif n.type in ("list", "array"):
+            elif n.type=="array" and 'elements' in dir(n):
+                if n.dim == 1:
+                    self.write(n.name)
+                    self.write(" = array('%s',"%n.pseudo_type[1][0])
+                    self.write("[")
+                    self.comma_separated_list(n.elements)
+                    self.write("] )")                    
+            elif n.type in ("list"):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = []")                  
 
 
     def visit_array(self,node): 
-        self.write(node.name)
-        '''self.write(" =np.ndarray((")
-        self.comma_separated_list(node.elts)
-        self.write("),dtype=%s)"%node.pseudo_type[-1])'''
+        #self.write(node.name)
+        self.write("[")
+        self.comma_separated_list(node.elements)
+        self.write("]")
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -312,7 +348,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
     
     def visit_standard_call(self, node):
         node.function = self.functions[node.namespace][node.function]
-        self.visit_call(node) 
+        if callable(node.function):
+               self.visit(node.function(node)) 
+        else: self.visit_call(node)  
         
     def visit_importfrom(self, node):
         if self.imp:
@@ -365,9 +403,8 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.visit(node.start)
         self.write(' , ')
         self.visit(node.end)
-        if node.step.value!=1:
-            self.write(' , ')
-            self.visit(node.step)
+        self.write(' , ')
+        self.visit(node.step)
         self.write('):')
         self.body(node.block)
         
@@ -380,13 +417,173 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
 
 class PythonCompo(PythonGenerator):
-    """ This class used to generates states, rates and auxiliary classes
-        for C# languages.
+    """ This class generate the composite module in Python
     """
     def __init__(self, tree, model=None, name=None):
         self.tree = tree
         self.model = model
         self.name = name
         PythonGenerator.__init__(self,tree, model, self.name)
+
+class PythonSimulation(CodeGenerator):
+    """[summary]
+
+    Args:
+        PythonCompo ([type]): [description]
+    """
+
+    def __init__(self, modelcomposite):
+        """[summary]
+
+        Args:
+            modelcomposite (ModelComposite): [description]
+        """
+        self.modelcomposite = modelcomposite
+        self.params = []
+        self.variables = []
+        self.stateInit = []
+        self.outputs = []
+        self.inputs = []
+        for inp in self.modelcomposite.inputs:
+            self.inputs.append(inp.name)
+            if "parametercategory" in dir(inp):
+                self.params.append(inp.name)
+            if "variablecategory" in  dir(inp) and not inp.name.endswith("_t1"):
+                self.variables.append(inp.name)
+            if "variablecategory" in  dir(inp) and inp.name.endswith("_t1"):
+                self.stateInit.append(inp.name)
+        for out in self.modelcomposite.outputs:
+            self.outputs.append(out.name)
+        CodeGenerator.__init__(self)
+    
+    def generate(self):
+        self.write("from . import %sComponent"%self.modelcomposite.name)
+        self.newline(1)
+        self.write("import pandas as pd")
+        self.newline(1)
+        self.write("import os")
+        self.newline(extra=1)
+        self.write("def simulation(datafile, vardata, params, init):")
+        self.newline(1)
+        self.indentation += 1
+        self.write("rep = os.path.dirname(datafile)")
+        self.newline(1)
+        self.write("out = os.path.join(rep, 'output.csv')")
+        self.newline(1)
+        self.write('df = pd.read_csv(datafile, sep = ";")')
+
+
+        self.newline(extra=1)
+        self.write("# inputs values")
+        for inp in self.variables:
+            self.newline(1)
+            self.write('t_%s = df[vardata.loc[vardata["Variables"]=="%s","Data columns"].iloc[0]].to_list()'%(inp, inp))
+            
+        
+        self.newline(extra=1)
+        self.write("#parameters")
+        for pa in self.params:
+            self.newline(1)
+            self.write('%s = params.loc[params["name"]=="%s", "value"].iloc[0]'%(pa, pa))
+
+        self.newline(extra=1)
+        self.write("#initialization")
+        for ini in self.stateInit:
+            self.newline(1)
+            self.write('%s = init.loc[init["name"]=="%s", "value"].iloc[0]'%(ini, ini))
+        
+        self.newline(extra=1)
+        self.write("#outputs")   
+        self.newline(1)
+        self.write("output_names = [") 
+        for out in self.outputs:
+            self.write('"%s"'%out)
+            if out!=self.outputs[-1]:
+                self.write(",")
+        self.write("]")
+        self.newline(extra=1)
+
+        self.write("df_out = pd.DataFrame(columns = output_names)")
+        self.newline(1)
+        self.write("for i in range(0,len(df.index)-1):")
+        self.newline(1)
+        self.indentation +=1
+        for inp in self.variables:
+            self.write("%s = t_%s[i]"%(inp, inp))
+            self.newline(1)
+        
+        self.newline(1)
+        for out in self.outputs:
+            self.write(out)
+            if out!=self.outputs[-1]:
+                self.write(",")
+        self.write("= %sComponent.model_%s("%(self.modelcomposite.name,self.modelcomposite.name.lower() ))
+        
+        for inp in self.inputs:
+            self.write(inp)
+            if inp!=self.inputs[-1]:
+                self.write(",")
+        self.write(")")
+        self.newline(extra=1)
+
+        for inp in self.stateInit:
+            self.write("%s = %s"%(inp, inp.split("_t1")[0]))
+            self.newline(1)
+        
+        self.newline(1)
+        self.write("df_out.loc[i] = [")
+        for out in self.outputs:
+            self.write(out)
+            if out!=self.outputs[-1]:
+                self.write(",")
+        self.write("]")
+
+        self.newline(1)
+        self.indentation -=1
+
+        self.write("df_out.insert(0, 'date', pd.to_datetime(df.year*10000 + df.month*100 + df.day, format='%Y%m%d'), True)")
+        self.newline(1)
+        self.write('df_out.set_index("date", inplace=True)')
+        self.newline(1)
+        self.write('df_out.to_csv(out, sep=";")')
+        self.newline(1)
+        self.write("return df_out")
+    
+    def generate_setup(self):
+        self.write("import setuptools")
+        self.newline(1)
+        self.write("setuptools.setup(name='%s',"%self.modelcomposite.name)
+        self.newline(1)
+        self.write("version='0.1',")
+        self.newline(1)
+        self.write("description='%s',"%self.modelcomposite.description.Abstract)
+        self.newline(1)
+        self.write("url='#',")
+        self.newline(1)
+        self.write("author='%s',"%self.modelcomposite.description.Authors)
+        self.newline(1)
+        self.write("install_requires=['opencv-python'],")
+        self.newline(1)
+        self.write("author_email='',")
+        self.newline(1)
+        self.write("packages=setuptools.find_packages(),")
+        self.newline(1)
+        self.write("zip_safe=False)")
+        self.newline(1)
+
+
+
+        
+
+
+
+
+
+
+
+
+
+
+
             
         

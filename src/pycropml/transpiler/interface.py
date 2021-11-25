@@ -3,6 +3,7 @@ import copy
 
 class TreeInterface():
     '''
+    Extract specific node
     visits recursively nodes of the tree
     with defined transform_<node_type> methods and transforms in place
     '''
@@ -12,6 +13,7 @@ class TreeInterface():
         self.nbForSeq=0
         self.dependencies=[]
         self.indexNames=[]
+        self.returns=[]
 
     def transform(self, tree, in_block=False):
         self.nameIndex=[]
@@ -30,6 +32,9 @@ class TreeInterface():
                             self.dependencies.append("list")                   
             if tree.type=="importfrom":
                 self.dependencies.append(tree.name[0])
+            
+            if tree.type=="implicit_return":
+                self.returns.append(tree)
             else:
                 tree = self.transform_default(tree)
             return tree

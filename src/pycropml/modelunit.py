@@ -15,7 +15,10 @@ class ModelDefinition(object):
 
 
 class ModelUnit(ModelDefinition):
-    """ Formal description of a Model Unit. """
+    """ 
+    Formal description of a Model Unit. 
+    
+    """
 
     def __init__(self, kwds):
         ModelDefinition.__init__(self, kwds)
@@ -32,6 +35,53 @@ class ModelUnit(ModelDefinition):
     def add_description(self, description):
         """ TODO """
         self.description = description
+    
+    @property
+    def states(self):
+        st=[]
+        stname = []
+        for n in self.inputs:
+            if "variablecategory" in dir(n) and n.variablecategory=="state":
+                st.append(n)
+                stname.append(n.name)
+        for m in self.outputs:
+            if "variablecategory" in dir(m) and m.variablecategory=="state" and m.name not in stname:
+                st.append(m)
+        return st
+
+    @property
+    def rates(self):
+        rt=[]
+        rtname = []
+        for n in self.inputs:
+            if "variablecategory" in dir(n) and n.variablecategory=="rate":
+                rt.append(n)
+                rtname.append(n.name)
+        for m in self.outputs:
+            if "variablecategory" in dir(m) and m.variablecategory=="rate" and m.name not in rtname:
+                rt.append(m)
+        return rt
+
+    @property
+    def auxiliary(self):
+        au=[]
+        auname = []
+        for n in self.inputs:
+            if "variablecategory" in dir(n) and n.variablecategory=="auxiliary":
+                au.append(n)
+                auname.append(n.name)
+        for m in self.outputs:
+            if "variablecategory" in dir(m) and m.variablecategory=="auxiliary" and m.name not in auname:
+                au.append(m)
+        return au
+
+    @property
+    def parameters(self):
+        pa=[]
+        for n in self.inputs:
+            if "parametercategory" in dir(n):
+                pa.append(n)
+        return pa
 
     def __repr__(self):
         return 'ModelUnit'

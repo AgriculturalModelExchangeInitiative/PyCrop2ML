@@ -1,11 +1,19 @@
 import pycropml.transpiler.generators
 import pycropml.transpiler.generators.csharpGenerator
+import pycropml.transpiler.generators.cppGenerator
 import pycropml.transpiler.generators.pythonGenerator
 import pycropml.transpiler.generators.fortranGenerator
 import pycropml.transpiler.generators.javaGenerator
 import pycropml.transpiler.generators.simplaceGenerator
+import pycropml.transpiler.generators.apsimGenerator
+import pycropml.transpiler.generators.recordGenerator
+import pycropml.transpiler.generators.dssatGenerator
+import pycropml.transpiler.generators.sticsGenerator
+import pycropml.transpiler.generators.biomaGenerator
 import pycropml.transpiler.generators.siriusGenerator
 import pycropml.transpiler.generators.checkGenerator
+import pycropml.transpiler.generators.rGenerator
+
 import sys
 import pycropml.transpiler.generators.openaleaGenerator
 from pycropml.transpiler.Parser import parser
@@ -14,8 +22,8 @@ import os
 from path import Path
 
 
-languages = ['cs','py', 'f90', 'java', 'simplace', 'sirius', "openalea", "check"]
-NAMES = {'cs':'csharp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius', "openalea":"openalea", "check":"check"}
+languages = ['r','cs','cpp','py', 'f90', 'java', 'simplace', 'sirius', "openalea", "check","apsim","record","dssat","stics","bioma"]
+NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius', "openalea":"openalea", "check":"check","apsim":"apsim","record":"record","dssat":"dssat","stics":"stics","bioma":"bioma"}
 
 GENERATORS = {
     format: getattr(
@@ -103,16 +111,15 @@ class Main():
         node = self.nodeAst
         generator.visit(node)
         z= ''.join(generator.result)
-        if self.language=='f90':
+        if self.language=='f90' or self.language=='dssat' or self.language=='stics':
             z = formater(z)
         return z
     
     def translate(self):
         generator = COMPOSERS[self.language](self.nodeAst,self.models, self.name)
-        #node = self.nodeAst.body
         node = self.nodeAst
         generator.visit(node)
         z= ''.join(generator.result)
-        if self.language=='f90':
+        if self.language=='f90' or self.language=='dssat' or self.language=='stics' :
             z = formater(z)
         return z 

@@ -35,6 +35,17 @@ def beautiful_error(exception):
         return decorated
     return f
 
+def notInmplemented(exception):
+    def f(function):
+        def decorated(data, location):
+            return exception("%s is not implemented at %s"%(data, location))
+        return decorated
+    return f
+
+@notInmplemented(PseudoCythonTypeCheckError)
+def isNotImplemented(data, location):
+    pass
+
 @beautiful_error(PseudoCythonTypeCheckError)
 def type_check_error(data, location=None, code=None, wrong_type=None, **options):
     pass
@@ -48,4 +59,3 @@ def tab_aware(location, code):
     if tabs in beginning of code, add tabs for them, otherwise spaces
     '''
     return ''.join(' ' if c != '\t' else '\t' for c in code[:location])
-

@@ -272,7 +272,7 @@ class Model2Package(object):
         def my_input(_input):
             name = _input.name
             _type = _input.datatype
-            if 'default' in dir(_input):
+            if 'default' in dir(_input) and _input.default:
                 default = _input.default
 
                 if self.DATATYPE[_type]  == bool:

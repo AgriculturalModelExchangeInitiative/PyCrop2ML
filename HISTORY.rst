@@ -1,7 +1,9 @@
+.. _changelog:
+
 History
 =======
 
-creation (2018-01-18)
----------------------
+PyCrop2ML creation (2018-01-18)
+-------------------------------
 
-* First release on PyPI.
+* First release on Conda.
