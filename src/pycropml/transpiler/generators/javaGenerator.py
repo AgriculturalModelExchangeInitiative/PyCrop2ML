@@ -38,7 +38,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.node_param = self.generator.node_param
             self.modparam=[param.name for param in self.node_param]
         self.funcname = ""
-        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\nimport javafx.util.*;\nimport java.time.LocalDateTime;\n")
+        self.write(u"import  java.io.*;\nimport  java.util.*;\nimport java.text.ParseException;\nimport java.text.SimpleDateFormat;\nimport java.time.LocalDateTime;\n")
 
 
 
