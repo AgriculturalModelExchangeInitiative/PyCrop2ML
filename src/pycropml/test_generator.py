@@ -20,6 +20,9 @@ def splitunit(unit):
     
 
 def generate_test_py(model,dir=None, package=None):
+    from path import Path
+    import os
+    
     tab = ' '*4
     m = model
     #name = m.description.Title
@@ -27,8 +30,15 @@ def generate_test_py(model,dir=None, package=None):
     name.strip()
     name = name.replace(' ', '_').lower()
     model_name = name
-    psets = m.parametersets
-    code_test = [""]
+    psets = m.parametersets    
+    if package is not None:
+        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package)))
+    else:
+        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py")))
+    import_test = f'import sys\n'
+    import_test += f'sys.path.append("{rel_dir_src}")\n'
+    import_test += f'from {name.capitalize()} import model_{name}\n'
+    code_test = [import_test]
     for v_tests in m.testsets:
 
         #test_name = v_tests.name  # name of tests
