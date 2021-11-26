@@ -29,6 +29,8 @@ numpy
 Cython
 nbsphinx
 networkx
+graphviz
+pydot
 pyyaml
 unyt
 IPython
