@@ -89,7 +89,7 @@ def transpile_package(package, language):
 
     # cretae topology of composite model
     T = Topology(namep,package)
-    namep = T.model.name
+    mc_name = T.model.name
 
     # Record VPZ
     if language == "record":
@@ -100,12 +100,12 @@ def transpile_package(package, language):
     if language in domain_class:
         getattr(getattr(pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[language]),
-                'to_struct_%s' % language)([T.model],tg_rep, namep)
+                'to_struct_%s' % language)([T.model],tg_rep, mc_name)
     # wrapper
     if language in wrapper:
         getattr(getattr(pycropml.transpiler.generators,
                     '%sGenerator' % NAMES[language]),
-                'to_wrapper_%s' % language)(T.model,tg_rep, namep)    
+                'to_wrapper_%s' % language)(T.model,tg_rep, mc_name)    
 
     # Transform model unit to languages and platforms
     for k, file in enumerate(cyml_rep.files()):
@@ -126,11 +126,11 @@ def transpile_package(package, language):
 
     # Create Cyml Composite model
     T_pyx = T.algo2cyml()
-    fileT = Path(os.path.join(cyml_rep, "%sComponent.pyx"%namep))
+    fileT = Path(os.path.join(cyml_rep, "%sComponent.pyx"%mc_name))
     with open(fileT, "wb") as tg_file:
         tg_file.write(T_pyx.encode('utf-8'))  
 
-    filename = Path(os.path.join(tg_rep, "%sComponent.%s"%(namep, ext[language])))
+    filename = Path(os.path.join(tg_rep, "%sComponent.%s"%(mc_name, ext[language])))
     
     with open(filename, "wb") as tg_file:
         tg_file.write(T.compotranslate(language).encode('utf-8'))   
