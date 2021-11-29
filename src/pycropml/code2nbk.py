@@ -71,7 +71,7 @@ class Model2Nb(object):
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
-        elif language in ("cpp", "py"):
+        elif language == "cpp":
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
