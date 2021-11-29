@@ -66,12 +66,12 @@ class Model2Nb(object):
         code_tests = getattr(pycropml.test_generator, "generate_test_%s" % language)(self.model, self.dir, package=namep)
 
         
-        if language in ("cs", "java", "r"):
+        if language in ("cs", "java"):
             _cells.append(nbf.v4.new_code_cell(self.code)) 
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
-        elif language == "cpp":
+        elif language in ("cpp", "r", "py"):
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
