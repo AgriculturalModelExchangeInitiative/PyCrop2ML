@@ -38,13 +38,21 @@ class Model2Package(object):
 '''%comment(generate_doc(model_unit))
         return doc
 
-    def generate_test(self, model_unit):
+    def generate_test(self, model_unit, package=None):
         tab = ' '*4
         m = model_unit
         inputs = m.inputs
         outputs = m.outputs
         model_name  = signature(m)
         psets = m.parametersets
+
+        if package is not None:
+            rel_dir_src = Path(os.path.join(m.path, "test", "r")).relpathto(Path(os.path.join(m.path, "src", "r", package)))
+        else:
+            rel_dir_src = Path(os.path.join(m.path, "test", "r")).relpathto(Path(os.path.join(m.path, "src", "r")))
+        import_test = f'source("{os.path.join(rel_dir_src, name.capitalize())}")\n'
+        code_test = [import_test]
+        
         self.codetest = ""
         for v_tests in m.testsets:
             test_runs = v_tests.test  # different run in the thest
