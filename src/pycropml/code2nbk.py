@@ -10,6 +10,7 @@ from path import Path
 import pycropml.test_generator
 from pycropml import render_fortran
 import os
+from pycropml.composition import model_parser
 from . import render_python as rp
 import sys
 
@@ -38,7 +39,7 @@ class Model2Nb(object):
         self.name = name
         self.dir = dir
 
-    def generate_nb(self, language, tg_rep, namep):
+    def generate_nb(self, language, tg_rep, namep, mc_name=None):
         
         text = u'''\
 # Automatic generation of Notebook using PyCropML
@@ -50,10 +51,10 @@ class Model2Nb(object):
         var = ["Auxiliary", "Rate", "State", "Exogenous"]
         if language in ("cs", "java"):
             for v in var:
-                fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (namep.capitalize(), v, language)))
+                fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (mc_name.capitalize(), v, language)))
                 with open(fileVar, "r") as var_file:
                     fi = var_file.read()
-                namev = "%s%s" % (namep.capitalize(), v)
+                namev = "%s%s" % (mc_name.capitalize(), v)
 
                 text = u"""\
 ### Domain Class %s""" % namev

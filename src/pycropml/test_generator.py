@@ -35,7 +35,9 @@ def generate_test_py(model,dir=None, package=None):
         rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package)))
     else:
         rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py")))
-    import_test = f'import sys\n'
+    
+    import_test = f'import numpy\nfrom datetime import datetime\n'
+    import_test += f'import sys\n'
     import_test += f'sys.path.append("{rel_dir_src}")\n'
     import_test += f'from {name.capitalize()} import model_{name}\n'
     code_test = [import_test]
@@ -77,16 +79,34 @@ def generate_test_py(model,dir=None, package=None):
                 test_codes.append(code)
 
                 for j, k in enumerate(m.outputs):
-                    if k.datatype in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY"):
+                    if k.datatype in ("STRINGLIST","STRINGARRAY"):
                         code = "%s_estimated = " % k.name
                         code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
                         code = "%s_computed = %s" % (k.name, outs[k.name][0])
                         test_codes.append(code)
-                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
+                        code = "assert numpy.all(%s_computed == %s_estimated)"%(k.name, k.name)
                         test_codes.append(code)
 
-                    if k.datatype in ("STRING", "BOOL", "INT", "DATE"):
+                    if k.datatype in ("DATELIST","DATEARRAY"):
+                        code = "%s_estimated = " % k.name
+                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                        test_codes.append(code)
+                        code = "%s_computed = %s" % (k.name, transf("DATELIST",outs[k.name][0]))
+                        test_codes.append(code)
+                        code = "assert numpy.all(%s_computed == %s_estimated)"%(k.name, k.name)
+                        test_codes.append(code)
+                    
+                    if k.datatype == "DATE":
+                        code = "%s_estimated =" % (k.datatype.lower().capitalize())
+                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                        test_codes.append(code)
+                        code = "%s_computed = %s" % (k.name, transf("DATE",outs[k.name][0]))
+                        test_codes.append(code)
+                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
+                        test_codes.append(code)                        
+
+                    if k.datatype in ("STRING", "BOOL", "INT"):
                         code = "%s_estimated =" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
                         code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
                         test_codes.append(code)
@@ -144,7 +164,7 @@ def generate_test_cpp(model, directory=None, package=None):
             render.generate_test_run(model)]
 
 def generate_test_r(model,dir, package=None):
-    return [render_r.Model2Package(model, dir).generate_test(model)]
+    return render_r.Model2Package(model, dir).generate_test(model, package)
 
 def generate_test_simplace(model,dir=None, package=None):
     pass

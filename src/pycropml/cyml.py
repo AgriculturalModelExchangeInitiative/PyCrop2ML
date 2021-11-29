@@ -121,7 +121,7 @@ def transpile_package(package, language):
                 filename = Path(os.path.join(tg_rep, "%s.%s"%(name.capitalize(), ext[language])))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
-                Model2Nb(model, code, name, dir_test_lang).generate_nb(language, tg_rep, namep)
+                Model2Nb(model, code, name, dir_test_lang).generate_nb(language, tg_rep, namep, mc_name)
                 #code2nbk.generate_notebook(code, name, dir_nb_lang)
 
     # Create Cyml Composite model
