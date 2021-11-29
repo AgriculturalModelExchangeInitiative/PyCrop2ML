@@ -167,7 +167,6 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
    
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
-        print(l, "jhjlm")
         if isinstance(l, list):
             l = l[0]
         z = self.methods[l][node.message]        
@@ -787,8 +786,6 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                     if ex.name not in varnames:
                         variables.append(ex)
                         varnames.append(ex.name) 
-
-        #print(len(variables))
         st = []
         for var in variables:
             if "variablecategory" in dir(var):
