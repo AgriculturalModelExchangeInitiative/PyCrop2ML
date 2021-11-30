@@ -45,7 +45,7 @@ class Model2Package(object):
         outputs = m.outputs
         model_name  = signature(m)
         psets = m.parametersets
-        import_test = f'source("..\\\..\\\src\\\{"r"}\\\{package}\\\{m.name.capitalize()}.r")\n'
+        import_test = f'source("../../src/{"r"}/{package}/{m.name.capitalize()}.r")\n'
         import_test += "library(assertthat)\n"
         codetest = [import_test]
         for v_tests in m.testsets:
