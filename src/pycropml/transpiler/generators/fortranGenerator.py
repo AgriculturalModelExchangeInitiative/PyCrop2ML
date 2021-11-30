@@ -56,7 +56,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.funcname = ""
         dir_lib = Path(os.path.dirname(lib.__file__))
         self.f_src=dir_lib/"f90"/"list_sub.f90"
-        if self.model: self.f_dest = os.path.join(self.model.path,"src","f90","list_sub.f90") 
+        if self.model:
+            pkg = self.model.path.split(os.path.sep)[-1] 
+            self.f_dest = os.path.join(self.model.path,"src","f90",pkg,"list_sub.f90") 
     
     def visit_notAnumber(self, node):
         pass
@@ -355,7 +357,14 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write("USE list_sub")
             self.newline(node) 
             if self.model:
-                shutil.copyfile(self.f_src, self.f_dest)         
+                try:  
+                    shutil.copyfile(self.f_src, self.f_dest) 
+                except:
+                    from urllib.request import urlopen  
+                    file =  urlopen(url = "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/PyCrop2ML/master/src/pycropml/transpiler/lib/f90/list_sub.f90")
+                    g = file.read().decode("utf-8")
+                    with open(self.f_dest, "w") as f:
+                        f.write(g)   
         for dependency in self.z.dependencies:
             if dependency!="list" and dependency.split("_")[0]=="model":
                 self.write("USE %smod" %dependency.split("model_")[1].capitalize())
