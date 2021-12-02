@@ -18,7 +18,8 @@ class SticsGenerator(FortranGenerator):
         dir_lib = Path(os.path.dirname(lib.__file__))
         self.f_src=dir_lib/"f90"/"list_sub.f90"
         FortranGenerator.__init__(self, tree, model, name)
-        self.f_dest = os.path.join(self.model.path,"src","dssat","list_sub.f90") 
+        pkg = self.model.path.split(os.path.sep)[-1] 
+        self.f_dest = os.path.join(self.model.path,"src","stics",pkg,"list_sub.f90") 
 
 
 class SticsCompo(FortranCompo):
