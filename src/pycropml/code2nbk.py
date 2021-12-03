@@ -51,7 +51,7 @@ class Model2Nb(object):
         var = ["Auxiliary", "Rate", "State", "Exogenous"]
         if language in ("cs", "java"):
             for v in var:
-                fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (mc_name.capitalize(), v, language)))
+                fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (mc_name.capitalize() if language=="java" else mc_name, v, language)))
                 with open(fileVar, "r") as var_file:
                     fi = var_file.read()
                 namev = "%s%s" % (mc_name.capitalize(), v)
