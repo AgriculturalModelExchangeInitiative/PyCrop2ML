@@ -9,6 +9,16 @@ else:
 
 class Fortran90ParserVisitor(ParseTreeVisitor):
 
+    # Visit a parse tree produced by Fortran90Parser#eos.
+    def visitEos(self, ctx:Fortran90Parser.EosContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by Fortran90Parser#commentOrNewLine.
+    def visitCommentOrNewLine(self, ctx:Fortran90Parser.CommentOrNewLineContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by Fortran90Parser#program.
     def visitProgram(self, ctx:Fortran90Parser.ProgramContext):
         return self.visitChildren(ctx)

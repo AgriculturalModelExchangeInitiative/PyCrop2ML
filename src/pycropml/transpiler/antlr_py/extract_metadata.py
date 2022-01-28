@@ -76,6 +76,13 @@ class MetaExtraction():
         methNode = self.getTree
         meth = self.getAttNode(methNode,**{"name":nameMethod})
         return meth[0] if meth else []
+
+    def externFunction(self, tree, algo):
+        self.getTypeNode(algo, "custom_call")
+        custom_call = self.getTree
+        methNames = [c.function for c in custom_call] if custom_call else []
+        meth = [self.getmethod(tree, name) for name in methNames ] if methNames else []
+        return meth
     
 
 

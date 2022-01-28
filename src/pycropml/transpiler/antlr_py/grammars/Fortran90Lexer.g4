@@ -462,14 +462,30 @@ ENDBLOCKDATA : 'endblockdata' | 'ENDBLOCKDATA' ;
 
 ENDBLOCK : 'ENDBLOCK' | 'endblock' ;
 
+
 fragment NEWLINE : '\u0020'* '\r'? '\n' ; 
 
 KIND : 'KIND' | 'kind' ;
 
 LEN : 'LEN' | 'len' ;
 
+//EOS : COMMENTORNEWLINE+ ;
+EOS : (COMMENTORNEWLINE? SPACES* [\r\n] [ \t]* )+;
+
+//RN : NEWLINE -> skip;
+
+COMMENTORNEWLINE 
+   : COMMENT
+   |
+   NEWLINE
+
+   ;
+
+
 COMMENT
-    : '\t'* '\u0020'* '!' ~[\r\n\f]*
+    : '\t'* '\u0020'* '!'(~ [\r\n])* 
+    |
+    {self.column == 0}? ('c'| 'C') (~ [\r\n])*
     ;
 
 DOLLAR
@@ -713,20 +729,24 @@ DOT : '.' ;
 
 CBRACKETSLASH : '/)';
 
-ZCON :  [zZ][abcdefABCDEF0-9] + 
-   | [zZ] [abcdefABCDEF0-9] +'\'' ;
+ZCON :  [zZ]'\''[abcdefABCDEF0-9] + '\''
+   | [zZ] '"'[abcdefABCDEF0-9] +'"' ;
 
-BCON : [bB] [01]+
-   | [bB]'\''[01] +'\''
+BCON : [bB]'\'' [01] + '\''
+   | [bB]'"'[01] + '"'
    ;
 
  OCON 
-   : [oO][01234567] +
-   | [oO]'\''[01234567] +'\''
+   : [oO]'"'[01234567] + '"'
+   | [oO]'\''[01234567] + '\''
    ;
 
 SCON
    : '\'' ('\'' '\'' | ~ ('\'' | '\n' | '\r') | (('\n' | '\r' ('\n')?) '     ' CONTINUATION) ('\n' | '\r' ('\n')?) '     ' CONTINUATION)* '\''
+   |
+   '\'' (~('\'') | ('\'''\''))*  ('\'' )
+   |
+   ('"') (~('"') | '""')*  ('"')
    ;
 
 RDCON : NUM+ '.' NUM* EXPON?
@@ -764,13 +784,6 @@ ALPHANUMERIC_CHARACTER : LETTER | NUM | SCORE ;
 
 fragment LETTER : ('a'..'z' | 'A'..'Z') ;
 
-EOS : COMMENTORNEWLINE COMMENTORNEWLINE* ;
-
-COMMENTORNEWLINE 
-   : COMMENT
-	| NEWLINE
-   ;
-
 
 STAR
    : STARCHAR
@@ -779,13 +792,17 @@ STAR
 STRINGLITERAL
    : '"' ~ ["\r\n]* '"'
    ;
+   
 EOL
    : [\r\n] +
    ;
 
+fragment SPACES
+ : [ \t] +
+ ;
 
 LINECONT
-   : ((EOL '     $') | (EOL '     +') | (EOL '&') | ('&''\n'?)) -> skip
+   :  (('&' SPACES? COMMENT? NEWLINE (SPACES* [ \t] * '&' )?) | ( SPACES? COMMENT? NEWLINE SPACES* [ \t] * '&' )) -> skip
    ;
 
 fragment CONTINUATION
@@ -834,5 +851,5 @@ fragment NUM
 
    
 WS
-   :  [\t ] + -> skip
+   :  [ \t] + -> skip
    ;

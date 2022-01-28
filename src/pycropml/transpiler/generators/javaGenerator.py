@@ -97,7 +97,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.newline()
         else:
             self.visit(node.expr)
-            self.write(";")
+            if not self.result[-1].endswith(";"): self.write(";") 
+            
     
 
 
@@ -157,10 +158,17 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write("d")
 
     def visit_array(self, node):
-        self.write("new %s[] "%self.types[node.pseudo_type[1]])        
-        self.write(u'{')
-        self.comma_separated_list(node.elements)
-        self.write(u'}')
+        if "elements" in dir(node):
+            self.write("new %s[] "%self.types2[node.pseudo_type[1]])
+            self.write(u'{')
+            self.comma_separated_list(node.elements)
+            self.write(u'}')
+        else:
+            self.write("new %s "%(self.types2[node.pseudo_type[1]]))
+            for j in node.elts:
+                self.write("[")
+                self.visit(j)
+                self.write("]")
                 
     def visit_dict(self, node):
         self.write("new ")
@@ -510,7 +518,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write('new Pair[]')
         self.write("{")
         for n in node.elements:
-            self.write('new Pair<>("%s", %s)'%(n.name, n.name))
+            print(n.y)
+            self.write('new Pair<>("%s", %s)'%(n.name, n.name)) if "name" in dir(n) else self.write('new Pair<>("%s", %s)'%(n.value, n.value))
             if n!= node.elements[len(node.elements)-1]: self.write(",")
         self.write("}")
     
@@ -528,7 +537,17 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 if n.type=="list":
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                 if n.type=="array":
-                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
+                    self.write(f"{self.types2[n.pseudo_type[1]]}")
+                    self.write("[]"*n.dim) if n.dim!=0 else self.write("[]")
+                    self.write(f" {n.name} ;") if n.dim ==0 else self.write(f" {n.name} = ")
+                    if n.elts:
+                        self.write(f" new {self.types2[n.pseudo_type[1]]} ")
+                        for j in n.elts:
+                            self.write("[")
+                            self.visit(j)
+                            self.write("]")
+                        self.write(";")
+                            
 
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))

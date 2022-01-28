@@ -21,14 +21,26 @@ def reduceT(function, iterable, initializer=None):
     return value
 
 class Program(AliasNode):
-    _fields_spec = ["COMMENTORNEWLINE", "executableProgram"]
+    _fields_spec = ["commentOrNewLine", "executableProgram"]
 
 class ExecutableProgram(AliasNode):
     _fields_spec = ["programUnit"]
 
 class ProgramUnit(AliasNode):
-    _fields_spec = ["mainProgram", "functionSubprogram", "subroutineSubprogram", "blockDataSubprogram", "module" ]
+    _fields_spec = ["eos", "mainProgram", "functionSubprogram", "subroutineSubprogram", "blockDataSubprogram", "module" ]
 
+class MainProgram(AliasNode):
+    _fields_spec = [ "programStmt", "mainRange"]
+
+class SaveStmt(AliasNode):
+    _fields_spec = [ "eos", "savedEntityList"]
+    
+class MainRange(AliasNode):
+    _fields_spec = ["body", "endProgramStmt", "bodyPlusInternals", "endProgramStmt"]
+    
+class ProgramStmt(AliasNode):
+    _fields_spec = ["PROGRAM", "NAME"]
+    
 class Module(AliasNode):
     _fields_spec = ["moduleStmt","moduleBody" ]
 
@@ -42,10 +54,10 @@ class UseStatement(AliasNode):
     _fields_spec = ["useStmt"]
 
 class UseStmt(AliasNode):
-    _fields_spec = ["NAME", "EOS","ONLY","renameList","onlyList"]
+    _fields_spec = ["NAME", "eos","ONLY","renameList","onlyList"]
 
 class TypeDeclarationStmt(AliasNode):
-    _fields_spec =["typeSpec", "entityDeclList", "EOS", "DOUBLECOLON", "attrSpecSeq"]
+    _fields_spec =["typeSpec", "entityDeclList", "eos", "DOUBLECOLON", "attrSpecSeq"]
 
 class EntityDeclList(AliasNode):
     _fields_spec =["entityDecl"]
@@ -54,7 +66,7 @@ class EntityDecl(AliasNode):
     _fields_spec =["objectName","arraySpec", "charLength","STAR","expression"]
 
 class ImplicitStatement(AliasNode):
-    _fields_spec = ["implicitSpecList", "EOS"]
+    _fields_spec = ["implicitSpecList", "eos"]
 
 class SpecPartStmt(AliasNode):
     _fields_spec = ["specificationPartConstruct" ]
@@ -69,7 +81,7 @@ class SubroutineSubprogram(AliasNode):
     _fields_spec = ["subroutineName","subroutineRange", "RECURSIVE"]
 
 class SubroutineRange(AliasNode):
-    _fields_spec = ["subroutineParList", "EOS", "body","bodyPlusInternals"]
+    _fields_spec = ["subroutineParList", "eos", "body","bodyPlusInternals"]
 
 class TypeSpec(AliasNode):
     _fields_spec =["INTEGER","REAL","DOUBLEPRECISION","COMPLEX","DOUBLE","LOGICAL","CHARACTER","lengthSelector","kindSelector","PRECISION","charSelector","typeName"]
@@ -78,7 +90,7 @@ class AttrSpecSeq(AliasNode):
     _fields_spec = ["attrSpecSeq","attrSpec"]
 
 class AssignmentStmt(AliasNode):
-    _fields_spec = ["label", "NAME", "sFExprListRef", "substringRange", "expression", "EOS", "nameDataRef",	"sFDummyArgNameList", "PCT"]
+    _fields_spec = ["label", "NAME", "sFExprListRef", "substringRange", "expression", "eos", "nameDataRef",	"sFDummyArgNameList", "PCT"]
 
 class Expression(AliasNode):
     _fields_spec =["level5Expr", "expression", "definedBinaryOp"]
@@ -168,7 +180,7 @@ class FunctionSubprogram(AliasNode):
     _fields_spec = ["functionPrefix", "functionName", "functionRange"]
 
 class FunctionRange(AliasNode):
-    _fields_spec = ["functionParList", "NAME", "RESULT", "EOS", "body","bodyPlusInternals"]
+    _fields_spec = ["functionParList", "NAME", "RESULT", "eos", "body","bodyPlusInternals"]
 
 class FunctionParList(AliasNode):
     _fields_spec = ["functionPars"]
@@ -183,7 +195,7 @@ class FunctionPrefixTyp(AliasNode):
     _fields_spec = ["typeSpec", "RECURSIVE"]
 
 class DeallocateStmt(AliasNode):
-    _fields_spec = ["allocateObjectList", "STAT", "variable", "EOS"]
+    _fields_spec = ["allocateObjectList", "STAT", "variable", "eos"]
 
 class Transformer(BaseNodeTransformer):
     def visit_Program(self, node):
@@ -294,12 +306,24 @@ class Transformer(BaseNodeTransformer):
         return FunctionPrefixRec.from_spec(node)
     def visit_FunctionPrefixTyp(self, node):
         return FunctionPrefixTyp.from_spec(node)
+    def visit_MainProgram(self, node):
+        return MainProgram.from_spec(node)
+    def visit_MainRange(self, node):
+        return MainRange.from_spec(node)
+    def visit_ProgramStmt(self, node):
+        return ProgramStmt.from_spec(node)
+    def visit_SaveStmt(self, node):
+        return SaveStmt.from_spec(node)
 
 class AstTransformer():
-    def __init__(self, tree):
+    def __init__(self, tree, code :str = None ,comments: str=None):
         self.tree = tree
         self.base = 0
+        self.comments = comments
         self.type_env = Env(dict(list(TYPED_API.items())), None)
+        self.code : str = code
+        if self.code:
+            self.codelines = self.code.split("\n")
 
     def transformer(self):
         self.type_env['functions'] = {}
@@ -360,24 +384,44 @@ class AstTransformer():
         else:
             return node
     
-    def visit_program(self, node, COMMENTORNEWLINE, executableProgram, location):
+    def visit_program(self, node, commentOrNewLine, executableProgram, location):
         z = self.visit(executableProgram)
-        return z
+        res =  {"type": "module",
+                "body": z,
+                "pseudo_type": "Void"}
+        if commentOrNewLine:
+            res['comment']= self.visit(commentOrNewLine)
+        return res
 
-    def visit_executableprogram(self, node, programUnit, location):
+
+    def visit_executableprogram(self, node,programUnit, location):
         res = self.translate_list(programUnit)
-        return res if len(res)>1 else res[0]
+        return res 
     
-    def visit_programunit(self, node,mainProgram,functionSubprogram,subroutineSubprogram,blockDataSubprogram, module, location):
-        if mainProgram : return self.visit(mainProgram)
-        if functionSubprogram : return self.visit(functionSubprogram)
-        if subroutineSubprogram : return self.visit(subroutineSubprogram)
-        if blockDataSubprogram : return self.visit(blockDataSubprogram)
-        if module : return self.visit(module)
+    def visit_programunit(self, node,eos, mainProgram,functionSubprogram,subroutineSubprogram,blockDataSubprogram, module, location):
+        if mainProgram : res =  self.visit(mainProgram)
+        if functionSubprogram : res =  self.visit(functionSubprogram)
+        if subroutineSubprogram : res =  self.visit(subroutineSubprogram)
+        if blockDataSubprogram : res =  self.visit(blockDataSubprogram)
+        if module : res =  self.visit(module)
+        if eos:  res['comment']= self.visit(eos)
+        return res
+            
 
     def visit_mainprogram(self, node,programStmt, mainRange, location):
-        res= self.visit(mainRange)
-        return {"type":"main", "block": res}
+        if programStmt:
+            print(f"mainprogram not implemented {location}")
+        res = self.visit(mainRange)
+        return res
+    
+    def visit_mainrange(self, node, body, endProgramStmt, bodyPlusInternals,location):
+        if body:
+            body = self.visit(body)
+        if bodyPlusInternals:
+            print("yes ici bodyPlusInternals")
+            body = self.visit(bodyPlusInternals)
+        return body
+
 
     
     def visit_module(self, node, moduleStmt, moduleBody, location):
@@ -385,7 +429,7 @@ class AstTransformer():
         if moduleBody : 
             body = self.visit(moduleBody)
         name = self.visit(moduleStmt.moduleName)
-        return {"type":"module", "name":name, "body":body}
+        return {"type":"classDef", "name":name, "block":body}
     
     def visit_submodulestmt(self, node, moduleSubprogramPartConstruct, location):
         return self.visit(moduleSubprogramPartConstruct)
@@ -420,7 +464,7 @@ class AstTransformer():
     def visit_usestatement(self, node, useStmt ,location):
         return self.visit(useStmt)
 
-    def visit_usestmt(self, node, NAME, EOS,ONLY,renameList,onlyList,location):
+    def visit_usestmt(self, node, NAME, eos,ONLY,renameList,onlyList,location):
         if renameList:
             #res = {"type":"import", "module": self.visit(renameList) }
             pass
@@ -441,26 +485,58 @@ class AstTransformer():
             res.append(b)
         return res
 
-    def visit_containsstmt(self, node, CONTAINS, EOS , location ):
+    def visit_containsstmt(self, node, CONTAINS, eos , location ):
         pass
 
-    def visit_implicitstatement(self, node, implicitSpecList, EOS,location):
+    def visit_implicitstatement(self, node, implicitSpecList, eos,location):
         pass
+    
+    def _attrFromCode(self, location):
+        inp, out = [], []
+        codes = self.codelines[location:]
+        for k,v in enumerate(codes):
+            if "input" in v or "output" in v:
+                location = k
+                break
+        line_ = self.codelines[location]
+        k = 0
+        while line_.endswith("input") or line_.endswith("output") :
+            line=line_.replace(" ", "")\
+                    .replace("&", "")\
+                    .split(",")
+            if line[-1].endswith("input"):
+                for i,j in enumerate(line):
+                    if i==0:
+                        inp.append(j[j.index("(")+1:])
+                    elif i!=len(line):
+                        inp.append(j)
+            elif line[-1].endswith("output"):
+                for i,j in enumerate(line):
+                    if i==len(line):
+                        out.append(j[:j.index(")")-1])
+                    else:
+                        out.append(j)
+            k = k+1
+            line_ = self.codelines[location + k]
+        return inp, out
+                        
+                
 
     def visit_subroutinesubprogram(self, node, subroutineName,subroutineRange, RECURSIVE, location):
         name = self.visit(subroutineName)
         z = self.visit(subroutineRange) 
         params = z["_params"]
+        inp, out = self._attrFromCode(location[0])
+        print(inp, out, 'jjkkkllmmm')
         decl = [m["decl"] for m in z["_body"] if (isinstance(m, dict) and m["type"]=="declaration")]
         d = [item for sublist in decl for item in sublist]
-        arguments = [m for m in d if 'attr' in m and  ((m['attr']=="IN" or m['attr']=="in") or  (m['attr']=="INOUT" or m['attr']=="inout")) ] 
-        out_pseudo_t = [m["pseudo_type"] for m in d if 'attr' in m and  ((m['attr']=="OUT" or m['attr']=="out") or  (m['attr']=="INOUT" or m['attr']=="inout")) ] 
+        arguments = [m for m in d if ('attr' in m and  ((m['attr']=="IN" or m['attr']=="in" ) or  (m['attr']=="INOUT" or m['attr']=="inout"))) or m["name"] in inp ] 
+        out_pseudo_t = [m["pseudo_type"] for m in d if ('attr' in m and  ((m['attr']=="OUT" or m['attr']=="out") or  (m['attr']=="INOUT" or m['attr']=="inout"))) or m["name"] in out ] 
         in_pseudo_t = [m["pseudo_type"] for m in arguments]
         return_type = out_pseudo_t if len(out_pseudo_t)==1 else [["tuple"]+out_pseudo_t]
         body = []
         for n in z["_body"] :
             if isinstance(n, dict) and n["type"]=="declaration":
-                print(n)
                 v = {}
                 v["type"] = "declaration"
                 v["decl"] = []
@@ -478,7 +554,7 @@ class AstTransformer():
         self.type_env.top["functions"][res["name"]] = [res["return_type"]]
         return res
 
-    def visit_subroutinerange(self, node, subroutineParList, EOS, body,bodyPlusInternals,location):
+    def visit_subroutinerange(self, node, subroutineParList, eos, body,bodyPlusInternals,location):
         if body :
             bod = self.visit(body)
         else : bod = self.visit(bodyPlusInternals)
@@ -517,7 +593,7 @@ class AstTransformer():
     
 
     
-    def visit_typedeclarationstmt(self, node, typeSpec, entityDeclList, EOS, DOUBLECOLON, attrSpecSeq,location):
+    def visit_typedeclarationstmt(self, node, typeSpec, entityDeclList, eos, DOUBLECOLON, attrSpecSeq,location):
         z = []
         attr = {}
         names = self.visit(entityDeclList)
@@ -570,13 +646,25 @@ class AstTransformer():
             type_ = "boolean"
         if CHARACTER :
             type_ = "string" 
+        if DOUBLE:
+            type_ = "float"
+        if typeName:
+            type_ = self.visit(typeName)
+            
         return type_
     
     def visit_terminal(self, node, value, location):
         return str(self.visit(value))
-
     
-    def visit_assignmentstmt(self, node, label, NAME, sFExprListRef, substringRange, expression, EOS, 
+    def visit_savestmt(self, node, eos, savedEntityList, location):
+        com = {}
+        if eos:
+            com =self.visit(eos)
+        if savedEntityList:
+            print(f"visit_savestmt not impl {location}")
+        return com
+    
+    def visit_assignmentstmt(self, node, label, NAME, sFExprListRef, substringRange, expression, eos, 
                             nameDataRef, sFDummyArgNameList, PCT,location):
         if sFDummyArgNameList:
             pass
@@ -742,7 +830,7 @@ class AstTransformer():
 
         return 
     
-    def visit_caseconstruct(self, node, NAME, COLON, SELECTCASE, CASE,LPAREN, expression, RPAREN, EOS, SELECT, selectCaseRange, location):
+    def visit_caseconstruct(self, node, NAME, COLON, SELECTCASE, CASE,LPAREN, expression, RPAREN, eos, SELECT, selectCaseRange, location):
         
         
         return 
@@ -791,14 +879,13 @@ class AstTransformer():
     def visit_conditionalbody(self, node,  executionPartConstruct, location):
         return self.translate_list(executionPartConstruct)
     
-    def visit_printstmt(self, node, PRINT, formatIdentifier, outputItemList, EOS, location):
+    def visit_printstmt(self, node, PRINT, formatIdentifier, outputItemList, eos, location):
         if outputItemList : 
             r = self.visit(outputItemList)
-            print(r, "ghhgh")
             return {"type":"standard_call", "namespace":"io", "function":"print", "args": r if isinstance(r, list) else [r]}
         else: print("todo print")
     
-    def visit_exitstmt(self, node, EXIT, endName, EOS, location):
+    def visit_exitstmt(self, node, EXIT, endName, eos, location):
         print("todo exitstmt")
         return
     
@@ -1120,7 +1207,7 @@ class AstTransformer():
         return res
 
 
-    def visit_functionrange(self,node,functionParList, NAME, RESULT, EOS, body,bodyPlusInternals, location):
+    def visit_functionrange(self,node,functionParList, NAME, RESULT, eos, body,bodyPlusInternals, location):
         if RESULT:
             self.out = self.visit(NAME)
         if body :
@@ -1129,7 +1216,7 @@ class AstTransformer():
         params = self.visit(functionParList)
         return {"_params":params, "_body": bod}
     
-    def visit_deallocatestmt(self,node, allocateObjectList, STAT, variable, EOS, location):
+    def visit_deallocatestmt(self,node, allocateObjectList, STAT, variable, eos, location):
         pass
     
     def visit_functionparlist(self, node, functionPars, location):
@@ -1144,7 +1231,7 @@ class AstTransformer():
         if recursive : self.recursive = True
         if typeSpec: self.out["type"] = self.visit(typeSpec)
 
-    def visit_returnstmt(self, node,RETURN, expression, EOS, location):
+    def visit_returnstmt(self, node,RETURN, expression, eos, location):
         if expression: return {"type": "implicit_return", "value":self.visit(expression)}
         else: return {"type": "implicit_return", "value":" "}
 

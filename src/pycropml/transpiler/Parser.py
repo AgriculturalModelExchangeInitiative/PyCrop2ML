@@ -3,6 +3,7 @@ from __future__ import absolute_import
 import os
 from Cython.Compiler import Scanning
 from Cython.Compiler import Main
+from Cython.Compiler import Options
 from path import Path
 import sys
 
@@ -37,6 +38,8 @@ options_defaults = dict(
     create_extension=None,
     np_pythran=False
 )
+
+options_defaults["compiler_directives"] = Options.get_directive_defaults()
 class opt:
     def __init__(self, **kwds):
         self.__dict__.update(kwds)

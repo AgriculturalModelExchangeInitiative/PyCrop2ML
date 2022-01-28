@@ -24,23 +24,27 @@ options
    { tokenVocab = Fortran90Lexer; }
 
 
+eos : EOS;
+commentOrNewLine : COMMENTORNEWLINE ;
+
+
 program
-   : COMMENTORNEWLINE* executableProgram COMMENTORNEWLINE* 
+   : executableProgram commentOrNewLine* 
    ;
 
-executableProgram : programUnit+  ;
+executableProgram :  programUnit+  ;
 
 programUnit
-    : mainProgram            
-	| functionSubprogram      
-	| subroutineSubprogram    
-	| blockDataSubprogram  
-    | module 
+    :  eos* mainProgram            
+	| eos* functionSubprogram      
+	| eos* subroutineSubprogram    
+	| eos* blockDataSubprogram  
+    | eos* module 
     ;
 
 mainProgram : programStmt? mainRange ;
 
-programStmt : PROGRAM NAME EOS ;
+programStmt : PROGRAM NAME eos ;
 
 mainRange : (body? endProgramStmt) | (bodyPlusInternals endProgramStmt) ;
 
@@ -63,10 +67,10 @@ specificationPartConstruct :
     ;
 
 useStmt 
-    : USE NAME EOS                      
-	| USE NAME COMMA ONLY COLON EOS     
-	| USE NAME COMMA renameList EOS     
-	| USE NAME COMMA ONLY COLON onlyList EOS 
+    : USE NAME eos                      
+	| USE NAME COMMA ONLY COLON eos     
+	| USE NAME COMMA renameList eos     
+	| USE NAME COMMA ONLY COLON onlyList eos 
     ;
 
 onlyList : onlyStmt (COMMA onlyStmt)* ;
@@ -83,15 +87,15 @@ rename : ident IMPLIEDT useName ;
 
 useName : ident;
 
-parameterStmt : PARAMETER LPAREN namedConstantDefList RPAREN EOS ;
+parameterStmt : PARAMETER LPAREN namedConstantDefList RPAREN eos ;
 
 namedConstantDefList : namedConstantDef+;
 
 namedConstantDef: NAME ASSIGN expression ;
 
 endProgramStmt 
-    : END EOS 
-    | END PROGRAM NAME? EOS
+    : END eos 
+    | END PROGRAM NAME? eos
     ;
     
 
@@ -101,8 +105,8 @@ blockDataSubprogram
     ;
 
 blockDataStmt 
-    : BLOCKDATA NAME? EOS 
-    | BLOCK DATA NAME? EOS 
+    : BLOCKDATA NAME? eos 
+    | BLOCK DATA NAME? eos 
     ;
 
 blockDataBody : blockDataBodyConstruct
@@ -112,14 +116,14 @@ blockDataBody : blockDataBodyConstruct
 blockDataBodyConstruct : specificationPartConstruct;
 
 endBlockDataStmt : 
-	ENDBLOCKDATA NAME? EOS
-	| END BLOCKDATA NAME? EOS
-	| ENDBLOCK DATA NAME? EOS
-	| END BLOCK DATA NAME? EOS
-    | END EOS
+	ENDBLOCKDATA NAME? eos
+	| END BLOCKDATA NAME? eos
+	| ENDBLOCK DATA NAME? eos
+	| END BLOCK DATA NAME? eos
+    | END eos
     ;
 
-formatStmt: FORMAT LPAREN fmtSpec? RPAREN EOS ;
+formatStmt: FORMAT LPAREN fmtSpec? RPAREN eos ;
 
 fmtSpec 
     : formatedit
@@ -162,13 +166,13 @@ module
     ;
 
 endModuleStmt
-    : END MODULE NAME? EOS 
-	| ENDMODULE NAME? EOS
-	| END EOS
+    : END MODULE NAME? eos 
+	| ENDMODULE NAME? eos
+	| END eos
     ;
 
 entryStmt 
-    : ENTRY NAME subroutineParList RESULT LPAREN NAME RPAREN EOS 
+    : ENTRY NAME subroutineParList RESULT LPAREN NAME RPAREN eos 
     ;
 
 subroutineParList : (LPAREN subroutinePars?  RPAREN)? ;
@@ -201,7 +205,7 @@ specificationStmt
 	| targetStmt
     ;
 
-targetStmt : TARGET DOUBLECOLON? targetObjectList EOS ;
+targetStmt : TARGET DOUBLECOLON? targetObjectList eos ;
 
 targetObjectList : targetObject (COMMA targetObject)* ;
 
@@ -210,7 +214,7 @@ targetObject
 	| objectName LPAREN arraySpec RPAREN
     ;
 
-pointerStmt : POINTER DOUBLECOLON? pointerStmtObjectList EOS ;
+pointerStmt : POINTER DOUBLECOLON? pointerStmtObjectList eos ;
 
 pointerStmtObjectList : pointerStmtObject (COMMA pointerStmtObject)* ;
 
@@ -219,13 +223,13 @@ pointerStmtObject
 	| objectName LPAREN deferredShapeSpecList RPAREN
     ;
 
-optionalStmt : OPTIONAL DOUBLECOLON? optionalParList EOS ;
+optionalStmt : OPTIONAL DOUBLECOLON? optionalParList eos ;
 
 optionalParList : optionalPar (COMMA optionalPar)* ;
 
 optionalPar : dummyArgName ;
 
-namelistStmt : NAMELIST namelistGroups EOS ;
+namelistStmt : NAMELIST namelistGroups eos ;
 
 namelistGroups 
     : DIV namelistGroupName DIV namelistGroupObject
@@ -238,7 +242,7 @@ namelistGroupName : NAME ;
 
 namelistGroupObject : variableName ;
 
-intentStmt : INTENT LPAREN intentSpec RPAREN DOUBLECOLON? intentParList EOS ;
+intentStmt : INTENT LPAREN intentSpec RPAREN DOUBLECOLON? intentParList eos ;
 
 intentParList : intentPar (COMMA intentPar) ;
 
@@ -248,7 +252,7 @@ dummyArgName : NAME;
 
 intentSpec : (IN | OUT | INOUT);
 
-allocatableStmt : ALLOCATABLE DOUBLECOLON? arrayAllocationList EOS ;
+allocatableStmt : ALLOCATABLE DOUBLECOLON? arrayAllocationList eos ;
 
 arrayAllocationList : arrayAllocation (COMMA arrayAllocation)* ;
 
@@ -260,8 +264,8 @@ arrayAllocation
 arrayName : ident ;
 
 accessStmt 
-    : ACCESSSPEC DOUBLECOLON? accessIdList EOS
-	| ACCESSSPEC EOS 
+    : ACCESSSPEC DOUBLECOLON? accessIdList eos
+	| ACCESSSPEC eos 
     ;
 
 accessIdList : accessId (COMMA accessId) ;
@@ -271,9 +275,9 @@ accessId : genericName | genericSpec ;
 genericName : ident ;
 
 saveStmt 
-    : SAVE EOS
-	| SAVE savedEntityList EOS
-    | SAVE DOUBLECOLON savedEntityList EOS
+    : SAVE eos
+	| SAVE savedEntityList eos
+    | SAVE DOUBLECOLON savedEntityList eos
     ;
 
 savedEntityList : savedEntity+ ;
@@ -282,19 +286,19 @@ savedEntity : variableName  | savedCommonBlock;
 
 savedCommonBlock : DIV commonBlockName DIV ;
 
-intrinsicStmt : INTRINSIC intrinsicList EOS;
+intrinsicStmt : INTRINSIC intrinsicList eos;
 
 intrinsicList : intrinsicProcedureName+ ;
 
 intrinsicProcedureName : NAME ;
 
-externalStmt : EXTERNAL externalNameList EOS ;
+externalStmt : EXTERNAL externalNameList eos ;
 
 externalNameList : externalName+ ;
 
 externalName : NAME;
 
-equivalenceStmt : EQUIVALENCE equivalenceSetList EOS ;
+equivalenceStmt : EQUIVALENCE equivalenceSetList eos ;
 
 equivalenceSetList : equivalenceSet+ ; 
 
@@ -305,13 +309,13 @@ equivalenceObject : variable;
 equivalenceObjectList : equivalenceObject+ ;
 
 dimensionStmt 
-    : DIMENSION arrayDeclaratorList EOS 
-    | DIMENSION DOUBLECOLON arrayDeclaratorList EOS
+    : DIMENSION arrayDeclaratorList eos 
+    | DIMENSION DOUBLECOLON arrayDeclaratorList eos
     ;
 
 arrayDeclaratorList : arrayDeclarator+ ;
 
-commonStmt : COMMON comlist EOS; 
+commonStmt : COMMON comlist eos; 
 
 comlist 
     : comblock? commonBlockObject
@@ -331,8 +335,8 @@ comblock
 commonBlockName : NAME ;
 
 typeDeclarationStmt
-    : typeSpec entityDeclList EOS                           
-    | typeSpec attrSpecSeq? DOUBLECOLON entityDeclList EOS  
+    : typeSpec entityDeclList eos                           
+    | typeSpec attrSpecSeq? DOUBLECOLON entityDeclList eos  
     ;
 
 attrSpecSeq 
@@ -396,14 +400,14 @@ assumedSizeSpec
 interfaceBlock : interfaceStmt interfaceBlockBody endInterfaceStmt ;
 
 endInterfaceStmt 
-    : ENDINTERFACE EOS
-	| END INTERFACE EOS 
+    : ENDINTERFACE eos
+	| END INTERFACE eos 
     ;
 
 interfaceStmt
-    : INTERFACE NAME EOS
-	| INTERFACE genericSpec EOS
-	| INTERFACE EOS
+    : INTERFACE NAME eos
+	| INTERFACE genericSpec eos
+	| INTERFACE eos
     ;
 
 genericSpec
@@ -435,7 +439,7 @@ interfaceBodyPartConstruct
     ;
 
 moduleProcedureStmt
-    : MODULE PROCEDURE procedureNameList EOS
+    : MODULE PROCEDURE procedureNameList eos
     ;
 
 procedureNameList : procedureName (COMMA procedureName)* ;
@@ -448,12 +452,12 @@ interfaceBody
     ;
 
 subroutineInterfaceRange 
-    : subroutineParList EOS subprogramInterfaceBody? endSubroutineStmt
+    : subroutineParList eos subprogramInterfaceBody? endSubroutineStmt
     ;
 
 endSubroutineStmt
-    : END EOS 
-	| END SUBROUTINE NAME? EOS;
+    : END eos 
+	| END SUBROUTINE NAME? eos;
 
 
 recursive : RECURSIVE ;
@@ -463,7 +467,7 @@ functionPrefix
     ;
 
 functionInterfaceRange
-    : functionParList EOS subprogramInterfaceBody? endFunctionStmt
+    : functionParList eos subprogramInterfaceBody? endFunctionStmt
     ;
 
 functionParList :LPAREN functionPars? RPAREN ;
@@ -478,23 +482,23 @@ subprogramInterfaceBody
     ;
 
 endFunctionStmt 
-    : END EOS
-    | END FUNCTION NAME? EOS
+    : END eos
+    | END FUNCTION NAME? eos
     ;
 
 derivedTypeDef : derivedTypeStmt derivedTypeBody endTypeStmt ;
 
 endTypeStmt 
-    : ENDTYPE NAME EOS
-	| ENDTYPE EOS
-	| END TYPE NAME EOS
-	| END TYPE EOS
+    : ENDTYPE NAME eos
+	| ENDTYPE eos
+	| END TYPE NAME eos
+	| END TYPE eos
     ;
 
 derivedTypeStmt 
-    : TYPE NAME EOS
-	| TYPE DOUBLECOLON NAME EOS
-	| TYPE COMMA ACCESSSPEC DOUBLECOLON NAME EOS
+    : TYPE NAME eos
+	| TYPE DOUBLECOLON NAME eos
+	| TYPE COMMA ACCESSSPEC DOUBLECOLON NAME eos
     ;
 
 derivedTypeBody
@@ -508,14 +512,14 @@ derivedTypeBodyConstruct
     ;
 
 privateSequenceStmt
-    : PRIVATE EOS
-	| SEQUENCE EOS
+    : PRIVATE eos
+	| SEQUENCE eos
     ;
 
 componentDefStmt
-    : typeSpec COMMA componentAttrSpecList DOUBLECOLON componentDeclList EOS
-	| typeSpec DOUBLECOLON componentDeclList EOS
-	| typeSpec componentDeclList EOS
+    : typeSpec COMMA componentAttrSpecList DOUBLECOLON componentDeclList eos
+	| typeSpec DOUBLECOLON componentDeclList eos
+	| typeSpec componentDeclList eos
     ;
 
 componentDeclList : componentDecl (COMMA componentDecl);
@@ -618,7 +622,7 @@ typeParamValue
 
 
 moduleStmt 
-    : MODULE moduleName EOS
+    : MODULE moduleName eos
     ;
 
 moduleName
@@ -641,7 +645,7 @@ moduleSubprogramPartConstruct
 	| moduleSubprogram
     ;
 
-containsStmt : CONTAINS EOS ;
+containsStmt : CONTAINS eos ;
 
 moduleSubprogram : functionSubprogram | subroutineSubprogram ;
 
@@ -650,10 +654,10 @@ functionSubprogram : functionPrefix functionName functionRange ;
 functionName : NAME;
 
 functionRange 
-    : functionParList EOS body? endFunctionStmt 
-	| functionParList RESULT LPAREN NAME RPAREN EOS body? endFunctionStmt
-    | functionParList RESULT LPAREN NAME RPAREN EOS bodyPlusInternals endFunctionStmt
-	| functionParList EOS bodyPlusInternals endFunctionStmt
+    : functionParList eos body? endFunctionStmt 
+	| functionParList RESULT LPAREN NAME RPAREN eos body? endFunctionStmt
+    | functionParList RESULT LPAREN NAME RPAREN eos bodyPlusInternals endFunctionStmt
+	| functionParList eos bodyPlusInternals endFunctionStmt
     ;
 
 body : bodyConstruct+ ;
@@ -681,11 +685,11 @@ elseWhere
 	| elseWhere assignmentStmt
     ;
 
-elsewhereStmt : ELSEWHERE EOS ;
+elsewhereStmt : ELSEWHERE eos ;
 
 endWhereStmt 
-    : ENDWHERE EOS
-	| END WHERE EOS
+    : ENDWHERE eos
+	| END WHERE eos
     ;
 
 where 
@@ -693,15 +697,15 @@ where
 	| where assignmentStmt 
     ;
 
-whereConstructStmt : WHERE LPAREN maskExpr RPAREN EOS ;
+whereConstructStmt : WHERE LPAREN maskExpr RPAREN eos ;
 
 maskExpr : expression ;
 
 caseConstruct
-    : NAME COLON SELECTCASE LPAREN expression RPAREN EOS selectCaseRange
-	| SELECTCASE LPAREN expression RPAREN EOS selectCaseRange
-	| NAME COLON SELECT CASE LPAREN expression RPAREN EOS selectCaseRange
-	| SELECT CASE LPAREN expression RPAREN EOS selectCaseRange
+    : NAME COLON SELECTCASE LPAREN expression RPAREN eos selectCaseRange
+	| SELECTCASE LPAREN expression RPAREN eos selectCaseRange
+	| NAME COLON SELECT CASE LPAREN expression RPAREN eos selectCaseRange
+	| SELECT CASE LPAREN expression RPAREN eos selectCaseRange
     ;
 
 selectCaseRange 
@@ -709,7 +713,7 @@ selectCaseRange
 	| endSelectStmt
     ;
 
-endSelectStmt : (ENDSELECT NAME? EOS) | ( END SELECT NAME? EOS);
+endSelectStmt : (ENDSELECT NAME? eos) | ( END SELECT NAME? eos);
 
 selectCaseBody
     : caseStmt
@@ -719,8 +723,8 @@ selectCaseBody
 caseBodyConstruct : caseStmt | executionPartConstruct;
 
 caseStmt
-    : CASE caseSelector EOS
-	| CASE caseSelector NAME EOS
+    : CASE caseSelector eos
+	| CASE caseSelector NAME eos
     ;
 
 caseSelector 
@@ -739,24 +743,24 @@ caseValueRange
 
 ifConstruct : ifThenStmt conditionalBody elseIfConstruct* elseConstruct? endIfStmt ;
 
-ifThenStmt : IF LPAREN expression RPAREN THEN EOS;
+ifThenStmt : IF LPAREN expression RPAREN THEN eos;
 
 conditionalBody : executionPartConstruct*;
 
 elseIfConstruct :  elseIfStmt conditionalBody;
 
 elseIfStmt 
-    : ELSEIF LPAREN expression RPAREN THEN 
-    | ELSE IF LPAREN expression RPAREN THEN EOS
+    : ELSEIF LPAREN expression RPAREN THEN eos
+    | ELSE IF LPAREN expression RPAREN THEN eos
     ;
 
 elseConstruct : elseStmt conditionalBody ;
 
-elseStmt : ELSE EOS;
+elseStmt : ELSE eos;
 
 endIfStmt 
-    : ENDIF EOS
-    | END IF EOS
+    : ENDIF eos
+    | END IF eos
     ;
 
 doConstruct 
@@ -764,19 +768,19 @@ doConstruct
     | blockDoConstruct 
     ;
 
-blockDoConstruct : nameColon? DO commaLoopControl? EOS executionPartConstruct* endDoStmt
+blockDoConstruct : nameColon? DO commaLoopControl? eos executionPartConstruct* endDoStmt
     ;
 
 endDoStmt 
-    : ENDDO endName? EOS
-    | END DO endName? EOS 
+    : ENDDO endName? eos
+    | END DO endName? eos 
     ;
 
 endName : ident;
 
 nameColon : NAME COLON ;
 
-labelDoStmt : DO doLblRef commaLoopControl EOS executionPartConstruct* doLblDef doLabelStmt;
+labelDoStmt : DO doLblRef commaLoopControl eos executionPartConstruct* doLblDef doLabelStmt;
 
 doLblRef : ICON ;
 
@@ -792,9 +796,9 @@ executionPartConstruct
     | doubleDoStmt   
     ;
 
-doubleDoStmt : DO lblRef commaLoopControl EOS ;
+doubleDoStmt : DO lblRef commaLoopControl eos ;
 
-dataStmt : DATA dataStmtSet ((COMMA)? dataStmtSet)* EOS;
+dataStmt : DATA dataStmtSet ((COMMA)? dataStmtSet)* eos;
 
 dataStmtSet
    : dse1 dse2
@@ -904,13 +908,13 @@ actionStmt :
 whereStmt : WHERE LPAREN maskExpr RPAREN assignmentStmt;
 
 pointerAssignmentStmt 
-    : NAME IMPLIEDT target EOS
-	| NAME sFExprListRef? PCT nameDataRef IMPLIEDT target EOS
+    : NAME IMPLIEDT target eos
+	| NAME sFExprListRef? PCT nameDataRef IMPLIEDT target eos
     ;
 
 target : expression;
 
-nullifyStmt : NULLIFY LPAREN pointerObjectList RPAREN EOS ;
+nullifyStmt : NULLIFY LPAREN pointerObjectList RPAREN eos ;
 
 pointerObjectList : pointerObject (COMMA pointerObject)* ;
 
@@ -921,22 +925,22 @@ pointerField
     | pointerField fieldSelector
     ;
 
-exitStmt : EXIT endName? EOS ;
+exitStmt : EXIT endName? eos ;
 
 deallocateStmt 
-    : DEALLOCATE LPAREN allocateObjectList COMMA STAT ASSIGN variable RPAREN EOS
-	| DEALLOCATE LPAREN allocateObjectList RPAREN EOS
+    : DEALLOCATE LPAREN allocateObjectList COMMA STAT ASSIGN variable RPAREN eos
+	| DEALLOCATE LPAREN allocateObjectList RPAREN eos
     ;
 
 allocateObjectList : allocateObject (COMMA allocateObject)*;
 
 
-cycleStmt : CYCLE endName? EOS
+cycleStmt : CYCLE endName? eos
     ;
 
 allocateStmt 
-    : ALLOCATE LPAREN allocationList COMMA STAT ASSIGN variable RPAREN EOS
-	| ALLOCATE LPAREN allocationList RPAREN EOS
+    : ALLOCATE LPAREN allocationList COMMA STAT ASSIGN variable RPAREN eos
+	| ALLOCATE LPAREN allocationList RPAREN eos
     ;
 
 allocationList : allocation (COMMA allocation)* ;
@@ -956,9 +960,9 @@ allocatedShape
     ;
 
 
-stopStmt : STOP (ICON | SCON)? EOS ;
+stopStmt : STOP (ICON | SCON)? eos ;
 
-writeStmt : WRITE LPAREN ioControlSpecList RPAREN outputItemList? EOS;
+writeStmt : WRITE LPAREN ioControlSpecList RPAREN outputItemList? eos;
 
 ioControlSpecList 
     : unitIdentifier DOLLAR COMMA
@@ -970,19 +974,19 @@ ioControlSpecList
 
 stmtFunctionStmt : NAME stmtFunctionRange ;
 
-stmtFunctionRange : LPAREN sFDummyArgNameList? RPAREN ASSIGN expression EOS;
+stmtFunctionRange : LPAREN sFDummyArgNameList? RPAREN ASSIGN expression eos;
 
 sFDummyArgNameList : sFDummyArgName (COMMA sFDummyArgName)*;
 
 sFDummyArgName : NAME ;
 
-returnStmt : RETURN expression? EOS ;
+returnStmt : RETURN expression? eos ;
 
-rewindStmt : (REWIND unitIdentifier EOS) | (REWIND LPAREN positionSpecList RPAREN EOS) ;
+rewindStmt : (REWIND unitIdentifier eos) | (REWIND LPAREN positionSpecList RPAREN eos) ;
 
 readStmt 
-    : READ rdCtlSpec inputItemList? EOS
-	| READ rdFmtId commaInputItemList? EOS
+    : READ rdCtlSpec inputItemList? eos
+	| READ rdFmtId commaInputItemList? eos
     ;
 
 commaInputItemList : COMMA inputItemList ;
@@ -1028,8 +1032,8 @@ ioControlSpec
     ; 
 
 printStmt 
-    : PRINT formatIdentifier COMMA outputItemList EOS
-	| PRINT formatIdentifier EOS
+    : PRINT formatIdentifier COMMA outputItemList eos
+	| PRINT formatIdentifier eos
     ;
 
 outputItemList : expression | outputItemList1 ;
@@ -1050,9 +1054,9 @@ outputImpliedDo
 
 formatIdentifier : lblRef | cExpression | STAR ;
 
-pauseStmt : PAUSE (ICON | SCON)? EOS ;
+pauseStmt : PAUSE (ICON | SCON)? eos ;
 
-openStmt : OPEN LPAREN connectSpecList RPAREN EOS ;
+openStmt : OPEN LPAREN connectSpecList RPAREN eos ;
 
 connectSpecList : unitIdentifierComma? connectSpec? (COMMA connectSpec )*;
 
@@ -1074,8 +1078,8 @@ connectSpec
 
 
 inquireStmt 
-    : INQUIRE LPAREN inquireSpecList RPAREN EOS 
-    | INQUIRE LPAREN IOLENGTH ASSIGN scalarVariable RPAREN outputItemList EOS
+    : INQUIRE LPAREN inquireSpecList RPAREN eos 
+    | INQUIRE LPAREN IOLENGTH ASSIGN scalarVariable RPAREN outputItemList eos
     ;
 
 inquireSpecList : unitIdentifier? inquireSpec? (COMMA inquireSpec)*;
@@ -1109,24 +1113,24 @@ inquireSpec
     ;
 
 assignedGotoStmt 
-    : (GOTO | GO TO) variableName EOS
-	| (GOTO | GO TO) variableName LPAREN lblRefList RPAREN EOS
-	| (GOTO | GO TO) variableComma LPAREN lblRefList RPAREN EOS
+    : (GOTO | GO TO) variableName eos
+	| (GOTO | GO TO) variableName LPAREN lblRefList RPAREN eos
+	| (GOTO | GO TO) variableComma LPAREN lblRefList RPAREN eos
     ;
 
 variableComma : variableName COMMA ;
 
-gotoStmt : (GOTO | GO TO) lblRef EOS ;
+gotoStmt : (GOTO | GO TO) lblRef eos ;
 
-computedGotoStmt : GOTO LPAREN lblRefList RPAREN COMMA? expression EOS ;
+computedGotoStmt : GOTO LPAREN lblRefList RPAREN COMMA? expression eos ;
 
 lblRefList : lblRef (COMMA lblRef)* ;
 
-endfileStmt : ((ENDFILE| END FILE) unitIdentifier EOS) | ((ENDFILE| END FILE) LPAREN positionSpecList RPAREN EOS);
+endfileStmt : ((ENDFILE| END FILE) unitIdentifier eos) | ((ENDFILE| END FILE) LPAREN positionSpecList RPAREN eos);
 
-continueStmt : CONTINUE EOS ;
+continueStmt : CONTINUE eos ;
 
-closeStmt : CLOSE LPAREN closeSpecList RPAREN EOS ;
+closeStmt : CLOSE LPAREN closeSpecList RPAREN eos ;
 
 closeSpecList : unitIdentifierComma? closeSpec? (COMMA closeSpec)* ;
 
@@ -1150,8 +1154,8 @@ cOperand
 cPrimaryConcatOp : cPrimary DIV SPOFF DIV SPON ;
 
 callStmt 
-    : CALL subroutineNameUse EOS
-	| CALL subroutineNameUse LPAREN subroutineArgList RPAREN EOS
+    : CALL subroutineNameUse eos
+	| CALL subroutineNameUse LPAREN subroutineArgList RPAREN eos
     ;
 subroutineNameUse : NAME;
 
@@ -1166,16 +1170,16 @@ subroutineArg
 	| NAME ASSIGN STAR lblRef
     ;
 
-arithmeticIfStmt : IF LPAREN expression RPAREN lblRef COMMA lblRef COMMA lblRef EOS;
+arithmeticIfStmt : IF LPAREN expression RPAREN lblRef COMMA lblRef COMMA lblRef eos;
 
 lblRef : label;
 
 label : ICON;
 
 assignmentStmt 
-    : label? NAME sFExprListRef? substringRange? ASSIGN expression EOS
-    | NAME sFExprListRef? PCT nameDataRef ASSIGN expression EOS
-	| NAME LPAREN sFDummyArgNameList RPAREN PCT nameDataRef ASSIGN expression EOS
+    : label? NAME sFExprListRef? substringRange? ASSIGN expression eos
+    | NAME sFExprListRef? PCT nameDataRef ASSIGN expression eos
+	| NAME LPAREN sFDummyArgNameList RPAREN PCT nameDataRef ASSIGN expression eos
     ;
 
 sFExprListRef : LPAREN sFExprList commaSectionSubscript* RPAREN ;
@@ -1189,11 +1193,11 @@ sFExprList
 
 commaSectionSubscript : COMMA sectionSubscript;
 
-assignStmt : ASSIGNSTMT lblRef TO variableName EOS;
+assignStmt : ASSIGNSTMT lblRef TO variableName eos;
 
 backspaceStmt 
-    : BACKSPACE unitIdentifier EOS
-	| BACKSPACE LPAREN positionSpecList RPAREN EOS
+    : BACKSPACE unitIdentifier eos
+	| BACKSPACE LPAREN positionSpecList RPAREN eos
     ;
 unitIdentifier : uFExpr | STAR;
 
@@ -1241,17 +1245,17 @@ subroutineSubprogram
 subroutineName : NAME ;
 
 subroutineRange 
-    : subroutineParList EOS body? endSubroutineStmt 
-    | subroutineParList EOS bodyPlusInternals endSubroutineStmt
+    : subroutineParList eos body? endSubroutineStmt 
+    | subroutineParList eos bodyPlusInternals endSubroutineStmt
     ;
 
 includeStmt 
-    : INCLUDE SCON EOS
+    : INCLUDE SCON eos
     ;
 
 implicitStmt 
-    : IMPLICIT  implicitSpecList EOS
-    | IMPLICIT NONE EOS ;
+    : IMPLICIT  implicitSpecList eos
+    | IMPLICIT NONE eos ;
 
 implicitSpecList : implicitSpec (COMMA implicitSpec)* ;
 

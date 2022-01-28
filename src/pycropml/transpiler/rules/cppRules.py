@@ -107,7 +107,7 @@ class CppRules(GeneralRule):
             'ln':          'log',
             'log':         'log10',
             'tan':         'tan',
-            'sin':         'asin',
+            'sin':         'sin',
             'cos':         'cos',
             'asin':        'asin',
             'acos':        'acos',

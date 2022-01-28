@@ -1,0 +1,16 @@
+<ModelUnit modelid="Dssat.Pheno_Pkg.IsMomentRegistredZC_39" name="IsMomentRegistredZC_39" timestep="1" version="001">
+    <Description>
+        <Title>Is FlagLeafLiguleJustVisible Model</Title>
+        <Authors></Authors>
+        <Institution></Institution>
+        <Reference>Modeling development phase in the </Reference>
+        <Abstract></Abstract></Description>
+    <Inputs>
+        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing appearance of each stage at previous time" max="None" min="None" name="calendarMoments_t1" unit="" variablecategory="state"/></Inputs>
+    <Outputs>
+        <Output datatype="INT" description="if Flag leaf ligule has already appeared " max="1" min="0" name="isMomentRegistredZC_39" unit="" variablecategory="state"/></Outputs>
+    <Algorithm filename="algo/pyx/IsMomentRegistredZC_39.pyx" language="cyml" platform=""/>
+    <Parametersets>
+        <Parameterset description="" name=""/></Parametersets>
+    <Testsets>
+        <Testset description="" name="" parameterset=""/></Testsets></ModelUnit>

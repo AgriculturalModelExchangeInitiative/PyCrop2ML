@@ -221,10 +221,11 @@ class AstTransformer():
         if isinstance(lhs, ExprNodes.NameNode) and not isinstance(rhs, ExprNodes.ImportNode):
             name = lhs.name
             e = self.type_env[name]
+            print(e, value_node, "ghhhhhh")
             if e is None:
                 self.notdeclared(name, location[0])
             elif e:
-                if e in ("list", "dict", "tuple", "array", "intlist"):
+                if e in ("list", "dict", "tuple", "array", "intlist", "floatlist", "intarray", "floatarray"):
                     a = self._compatible_types(
                         e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
@@ -784,12 +785,12 @@ class AstTransformer():
                         self._imports.append(
                             self.retrieve_library(function.name))
                     return self._translate_builtin_call(self.retrieve_library(function.name), function.name, arg_nodes, location, attrib=0)
-        elif isinstance(function, ExprNodes.AttributeNode):
+        
+        elif isinstance(function, ExprNodes.AttributeNode): # [2].append
             value_node = self.visit_node(function.obj)
             function = function.attribute
             if value_node['pseudo_type'] == 'library':  # math.log
-                return self._translate_builtin_call(value_node['name'], function, self.visit_node(args), location, attrib=1)
-            # [2].append
+                return self._translate_builtin_call(value_node['name'], function, self.visit_node(args), location, attrib=1)  
             elif self._general_type(value_node['pseudo_type']) in PSEUDON_BUILTIN_TYPES:
                 return self._translate_builtin_method_call(self._general_type(value_node['pseudo_type']), value_node, function, self.visit_node(args), location)
             else:
@@ -1155,9 +1156,12 @@ class AstTransformer():
         if base_type.name is None:
             self.notdeclared(name, location[0])
         self.checktype(base_type.name)
-        typet = ["intlist","floatlist","booleanlist","datetime","datelist","array"]
+        typet = ["intlist","floatlist","booleanlist","datetime","datelist"]
+        typearray = ["intarray"]
         if base_type.name in typet :
             decl = {"name": name, "type": self.visit_node(base_type)[0]}
+        if base_type.name in typearray :
+            decl = {"name": name, "type": self.visit_node(base_type)[0], "dim":1, "elts":[]}
         else :
             decl = {"name": name, "type": base_type.name}
         if default and type(default) not in ( ExprNodes.ListNode, ExprNodes.DictNode, ExprNodes.TupleNode):
@@ -1200,7 +1204,7 @@ class AstTransformer():
                     elts = [{'type': 'int', 'value': de.base.dimension.value, 'pseudo_type': "int"},\
                             {'type': 'int', 'value': de.dimension.value, 'pseudo_type': "int"}]
                 else:
-                    elts = [{'type': 'local', 'value': de.dimension.value, 'pseudo_type': "int"}]
+                    elts = [{'type': 'int', 'value': de.dimension.value, 'pseudo_type': "int"}]
             
             elif de.dimension is None:
                 if "base" in dir(de.base):
@@ -1251,7 +1255,7 @@ class AstTransformer():
     def checktype(self,base):
         typet = ["int", "float","bool","datetime","str","list","dict",
                  "intlist","floatlist","booleanlist","datelist","stringlist","struct",
-                 "double", "doublelist", "doublearray", "array" ]
+                 "double", "doublelist", "doublearray", "intarray","doublearray", "array" ]
         types =  list(self.struct.keys())
         z = typet+types
         if base not in z:
@@ -1263,16 +1267,20 @@ class AstTransformer():
         x = []
         self.checktype(base_type.name)
         typet = ["intlist","floatlist","booleanlist","stringlist","datetime","datelist"]
+        typearray = ["intarray","floatarray","booleanarray","stringarray"]
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if self.type_env[de.name]:
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.name)
                 decl = {"name": de.name,
-                        "type": self.visit_node(base_type)[0] if base_type.name in typet else base_type.name, "lineno": location}
-                if base_type.name in typet:
+                        "type": self.visit_node(base_type)[0] if base_type.name in [typet + typearray] else base_type.name, "lineno": location}
+                if base_type.name in [typet + typearray]:
                     self.type_env[de.name] = self.visit_node(base_type)[1]
                     decl["pseudo_type"] = self.visit_node(base_type)[1]
+                if base_type.name in typearray:
+                    decl["dim"] = 1
+                    decl["elts"] = []
                 elif de.default is None:
                     self.type_env[de.name] = base_type.name
                     decl["pseudo_type"] = decl["type"]
@@ -1331,13 +1339,13 @@ class AstTransformer():
                         "%s is already declared" % name)
                 if isinstance(de.dimension, ExprNodes.NameNode) or isinstance(de.dimension, ExprNodes.IntNode):
                     elts = [self.visit_node(de.dimension)]                    
-                if de.dimension is None:
+                elif de.dimension is None:
                     elts = []
                 else:
-                    elts = self.visit_node(de.dimension)#[]
-                    #for d in self.visit_node(de.dimension.args):
-                        #elts.append(d)
-                dim = len([elts])
+                    if isinstance(de.dimension, ExprNodes.TupleNode):
+                        elts = self.visit_node(de.dimension.args)
+                    else: elts = self.visit_node(de.dimension)#[]
+                dim = len(elts)
                 decl = {"name": de.base.name, "type": "array", "dim": dim, "elts": elts,
                         "pseudo_type": ["array", base_type.name], "lineno": location}
                 self.type_env[de.base.name] = decl["pseudo_type"]

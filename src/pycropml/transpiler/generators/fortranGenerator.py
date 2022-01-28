@@ -48,6 +48,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.z = middleware(self.tree)
         self.z.transform(self.tree)
         self.mod_parameters=[]
+        self.parameters=[]
+        self.node_params=[]
         self.index=[]
         self.params=[]
         self.recursive=False
@@ -437,7 +439,19 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.recursive = node.recursive
         self.z = middleware(node)
         self.z.transform(node)
-        if node.name.startswith("model_") or node.name.startswith("init_") :node.type="subroutine_def"
+        self.parameters=[]
+        self.node_params=[]
+        for pa in node.params:
+            if pa.name not in self.mod_parameters:
+                self.parameters.append(pa.name)
+                self.node_params.append(pa)
+        test = False
+        for f in self.z.returns:
+            if "name" in dir(f.value) and f.value.name in self.parameters:
+                test = True
+            break
+        
+        if node.name.startswith("model_") or node.name.startswith("init_") or test :node.type="subroutine_def"
         elif node.recursive or  self.z.returns[0].value.type!="tuple": 
             node.type="function"
         else:
@@ -448,14 +462,14 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(extra=1)
         self.write("SUBROUTINE ")
         self.write("%s("%node.name)
-        parameters=[]
-        node_params=[]
+        self.parameters=[]
+        self.node_params=[]
         for pa in node.params:
             if pa.name not in self.mod_parameters:
-                parameters.append(pa.name)
-                node_params.append(pa)
-        parameters = parameters+[e for e in self.transform_return(node)[0] if e not in parameters]
-        self.write(', &\n        '.join(parameters))
+                self.parameters.append(pa.name)
+                self.node_params.append(pa)
+        self.parameters = self.parameters+[e for e in self.transform_return(node)[0] if e not in self.parameters]
+        self.write(', &\n        '.join(self.parameters))
         self.write(')') 
         self.indentation += 1
         self.newline(node)
@@ -623,11 +637,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
         self.write(" , DIMENSION(")
-        print(dir(node))
-        if node.dim == 0: self.write(":")
-        elif len(node.elts)!=0: self.write("%s"%len(node.elts))
-        #else: self.comma_separated_list(node.elements if isinstance(node.elements, list) else [node.elements])
+        if not node.elts: self.write(":")
+        else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )")  
+        if not node.elts and node.name not in self.parameters :
+            self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):
         self.write(self.types[node])

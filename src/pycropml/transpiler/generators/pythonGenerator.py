@@ -270,27 +270,27 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_declaration(self, node):
         self.newline(node)
         for n in node.decl  :           
-            if 'value' in dir(n) and n.type in ("int", "float"):
+            if n.type in ("int", "float"):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ")                 
-                self.write(n.value)
-            elif 'value' in dir(n) and n.type=="bool":
+                self.write(n.value) if "value" in dir(n) else self.write("None")
+            elif n.type=="bool":
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ") 
-                self.write(str(n.value))        
-            elif 'value' in dir(n) and n.type=="str":
+                self.write(str(n.value)) if "value" in dir(n) else self.write("None")       
+            elif  n.type=="str":
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ") 
-                self.emit_string(n)                
-            elif 'elements' in dir(n) and n.type in ("list", "tuple"):
+                self.emit_string(n) if "value" in dir(n) else self.write("''")               
+            elif n.type in ("list", "tuple"):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ") 
                 if n.type=="list":                
-                    self.visit_list(n)
+                    self.visit_list(n) if "elements" in dir(n) else self.write("[]")
                 else: self.visit_tuple(n)
             elif 'args' in dir(n) and n.type=='datetime':
                 self.newline(node)

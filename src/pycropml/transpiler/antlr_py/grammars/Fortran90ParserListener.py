@@ -8,6 +8,24 @@ else:
 # This class defines a complete listener for a parse tree produced by Fortran90Parser.
 class Fortran90ParserListener(ParseTreeListener):
 
+    # Enter a parse tree produced by Fortran90Parser#eos.
+    def enterEos(self, ctx:Fortran90Parser.EosContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#eos.
+    def exitEos(self, ctx:Fortran90Parser.EosContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#commentOrNewLine.
+    def enterCommentOrNewLine(self, ctx:Fortran90Parser.CommentOrNewLineContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#commentOrNewLine.
+    def exitCommentOrNewLine(self, ctx:Fortran90Parser.CommentOrNewLineContext):
+        pass
+
+
     # Enter a parse tree produced by Fortran90Parser#program.
     def enterProgram(self, ctx:Fortran90Parser.ProgramContext):
         pass

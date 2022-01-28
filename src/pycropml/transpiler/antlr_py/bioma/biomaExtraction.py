@@ -52,17 +52,18 @@ class BiomaExtraction(MetaExtraction):
         pdi_name = [x[0].name for x in [p.args for p in pdi if p]]
         pdo_name = [x[0].name for x in [p.args for p in pdo if p]]
 
-        listatt = ["DefaultValue","Description","MaxValue", "MinValue", "Name", "Unit", "URL", "ValueType"]
+        listatt = ["DefaultValue","Description","MaxValue", "MinValue", "Name", "Units", "URL", "ValueType"]
         pa =[]
         for v in vinfo:
             vi={}
             for att in listatt:
                 n = self.getAttNode(constrNode[0].block,**{'type':'assignment', 'target': Node(type = 'member_access', name= v, member = att, pseudo_type = 'VarInfo')})      
-                if att !="ValueType" : 
-                    vi[att] = n[0].value.value
-                    if isinstance(vi[att] , Node): vi[att] = "%s%s"%(n[0].value.operator,vi[att].value)
-                else: 
-                    vi[att] = mapType[n[0].value.args[0].value.decode("utf-8")]
+                if len(n)>0:
+                    if att !="ValueType" : 
+                        vi[att] = n[0].value.value
+                        if isinstance(vi[att] , Node): vi[att] = "%s%s"%(n[0].value.operator,vi[att].value)
+                    else: 
+                        vi[att] = mapType[n[0].value.args[0].value.decode("utf-8")]
             vi["category"] = "constant"     # "TODOOOOOOOO"   
             pa.append(vi) 
         def inout_att(pd_name):
@@ -160,14 +161,7 @@ class BiomaExtraction(MetaExtraction):
         inp_st = list(set(cv))+ [t+"_t1" for t in precedent_v]
         return inp_st
     
-    def externFunction(self, tree):
-        algo = self.getAlgo(tree)
-        self.getTypeNode(algo, "custom_call")
-        custom_call = self.getTree
-        methNames = [c.function for c in custom_call] if custom_call else []
-        meth = [self.getmethod(tree, name) for name in methNames ] if methNames else []
-        return meth
-    
+   
     def totalvar(self, tree):
         pc = self.prec_cur_states(tree)
         val = self.getStrategyVar(tree)
