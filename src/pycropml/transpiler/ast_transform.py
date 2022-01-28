@@ -221,7 +221,6 @@ class AstTransformer():
         if isinstance(lhs, ExprNodes.NameNode) and not isinstance(rhs, ExprNodes.ImportNode):
             name = lhs.name
             e = self.type_env[name]
-            print(e, value_node, "ghhhhhh")
             if e is None:
                 self.notdeclared(name, location[0])
             elif e:
@@ -1274,11 +1273,11 @@ class AstTransformer():
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.name)
                 decl = {"name": de.name,
-                        "type": self.visit_node(base_type)[0] if base_type.name in [typet + typearray] else base_type.name, "lineno": location}
-                if base_type.name in [typet + typearray]:
+                        "type": self.visit_node(base_type)[0] if base_type.name in typet + typearray else base_type.name, "lineno": location}
+                if base_type.name in typet + typearray:
                     self.type_env[de.name] = self.visit_node(base_type)[1]
                     decl["pseudo_type"] = self.visit_node(base_type)[1]
-                if base_type.name in typearray:
+                elif base_type.name in typearray:
                     decl["dim"] = 1
                     decl["elts"] = []
                 elif de.default is None:
