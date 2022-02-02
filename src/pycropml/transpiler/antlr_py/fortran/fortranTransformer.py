@@ -486,38 +486,38 @@ class AstTransformer():
         return res
 
     def visit_containsstmt(self, node, CONTAINS, eos , location ):
-        pass
+        return None
 
     def visit_implicitstatement(self, node, implicitSpecList, eos,location):
-        pass
+        return None
     
     def _attrFromCode(self, location):
         inp, out = [], []
         codes = self.codelines[location:]
         for k,v in enumerate(codes):
-            if "input" in v or "output" in v:
+            if "input" in v.lower() or "output" in v.lower():
                 location = k
                 break
-        line_ = self.codelines[location]
+        line_ = codes[location]
         k = 0
-        while line_.endswith("input") or line_.endswith("output") :
+        while line_.lower().endswith("input") or line_.lower().endswith("output") :
             line=line_.replace(" ", "")\
                     .replace("&", "")\
                     .split(",")
-            if line[-1].endswith("input"):
+            if line[-1].lower().endswith("input"):
                 for i,j in enumerate(line):
-                    if i==0:
+                    if i==0 and "(" in j:
                         inp.append(j[j.index("(")+1:])
-                    elif i!=len(line):
+                    elif i!=len(line)-1:
                         inp.append(j)
-            elif line[-1].endswith("output"):
+            elif line[-1].lower().endswith("output"):
                 for i,j in enumerate(line):
-                    if i==len(line):
-                        out.append(j[:j.index(")")-1])
+                    if i==len(line)-1:
+                        out.append(j[:j.index(")")])
                     else:
                         out.append(j)
             k = k+1
-            line_ = self.codelines[location + k]
+            line_ = codes[location + k]
         return inp, out
                         
                 
@@ -526,8 +526,7 @@ class AstTransformer():
         name = self.visit(subroutineName)
         z = self.visit(subroutineRange) 
         params = z["_params"]
-        inp, out = self._attrFromCode(location[0])
-        print(inp, out, 'jjkkkllmmm')
+        inp, out = self._attrFromCode(location[0]-1)
         decl = [m["decl"] for m in z["_body"] if (isinstance(m, dict) and m["type"]=="declaration")]
         d = [item for sublist in decl for item in sublist]
         arguments = [m for m in d if ('attr' in m and  ((m['attr']=="IN" or m['attr']=="in" ) or  (m['attr']=="INOUT" or m['attr']=="inout"))) or m["name"] in inp ] 
