@@ -1,0 +1,34 @@
+<ModelUnit modelid="Dssat.Pheno_Pkg.RegisterZadok" name="RegisterZadok" timestep="1" version="001">
+    <Description>
+        <Title>RegisterZadok Model</Title>
+        <Authors></Authors>
+        <Institution></Institution>
+        <Reference>Modeling development phase in the </Reference>
+        <Abstract></Abstract></Description>
+    <Inputs>
+        <Input datatype="DOUBLE" default="354.582294511779" description="" max="10000" min="-200" name="cumulTT" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="2" description="instance of the phase class . You can get the name of the phase using phase.getPhaseAsString" max="7" min="0" name="phase" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="4.8854219661087575" description="Actual number of phytomers" max="25" min="0" name="leafNumber" unit="leaf" variablecategory="state"/>
+        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing apparition of each stage" max="None" min="None" name="calendarMoments" unit="" variablecategory="state"/>
+        <Input datatype="DATELIST" default="[&apos;2007/3/21&apos;]" description="List containing  the dates of the wheat developmental phases" max="None" min="None" name="calendarDates" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLELIST" default="[0.0]" description="list containing for each stage occured its cumulated thermal times" max="None" min="None" name="calendarCumuls" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0" description="cumul of the thermal time " max="10000" min="-200" name="cumulTTFromZC_65" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DATE" default="2007/4/9" description="current date" max="" min="" name="currentdate" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="300.0" description="Duration of the endosperm endoreduplication phase" max="10000" min="0" name="der" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="0.9" description="used to calculate Terminal spikelet" max="10000" min="0" name="slopeTSFLN" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="0.9" description="used to calculate Terminal spikelet" max="10000" min="0" name="intTSFLN" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="8.797582013199484" description="final leaf number" max="10000" min="0" name="finalLeafNumber" unit="leaf" variablecategory="state"/>
+        <Input datatype="STRING" default="MainShootPlus1Tiller" description="current zadok stage" max="" min="" name="currentZadokStage" unit="" variablecategory="state"/>
+        <Input datatype="INT" default="0" description="true if the zadok stage has changed this time step" max="1" min="0" name="hasZadokStageChanged_t1" unit="" variablecategory="state"/>
+        <Input datatype="DATE" default="2007/3/21" description="Date of Sowing" max="" min="" name="sowingDate" parametercategory="constant" unit=""/></Inputs>
+    <Outputs>
+        <Output datatype="INT" description="true if the zadok stage has changed this time step" max="1" min="0" name="hasZadokStageChanged" unit="" variablecategory="state"/>
+        <Output datatype="STRING" description="current zadok stage" max="None" min="None" name="currentZadokStage" unit="" variablecategory="state"/>
+        <Output datatype="STRINGLIST" description="List containing apparition of each stage" max="None" min="None" name="calendarMoments" unit="" variablecategory="state"/>
+        <Output datatype="DATELIST" description="List containing  the dates of the wheat developmental phases" max="None" min="None" name="calendarDates" unit="" variablecategory="state"/>
+        <Output datatype="DOUBLELIST" description="list containing for each stage occured its cumulated thermal times" max="None" min="None" name="calendarCumuls" unit="" variablecategory="state"/></Outputs>
+    <Algorithm filename="algo/pyx/RegisterZadok.pyx" language="cyml" platform=""/>
+    <Parametersets>
+        <Parameterset description="" name=""/></Parametersets>
+    <Testsets>
+        <Testset description="" name="" parameterset=""/></Testsets></ModelUnit>

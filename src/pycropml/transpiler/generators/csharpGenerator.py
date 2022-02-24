@@ -501,7 +501,12 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     self.write("List<%s> %s = new List<%s>();"%(self.types[n.pseudo_type[1]],n.name, self.types[n.pseudo_type[1]]))
                 if n.type=="array":
                     self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
-
+                    if len(n.elts)==1:
+                        self.write(" = new %s[%s];"%(self.types[n.pseudo_type[1]], n.elts[0].value)) 
+                    elif len(n.elts) == 0:
+                        self.write(" = new %s[];"%(self.types[n.pseudo_type[1]])) 
+                    else:
+                        print ("TODO")
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")

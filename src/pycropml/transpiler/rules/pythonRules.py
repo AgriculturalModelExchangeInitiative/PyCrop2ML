@@ -68,7 +68,8 @@ class PythonRules(GeneralRule):
             'sqrt':         'sqrt',
             'ceil':         'ceil',
             'round':        'round',
-            'exp':         'exp'
+            'exp':         'exp',
+            "floor": "floor"
 
         },
        'io': {
@@ -101,7 +102,8 @@ class PythonRules(GeneralRule):
     methods = {
 
         'int': {
-            'float': 'float'
+            'float': 'float',
+            'int':'int'
         },
         'float': {
             'int': 'int'
@@ -126,7 +128,8 @@ class PythonRules(GeneralRule):
         },
         'array': {
             'len': 'len',
-            'append': '.append'
+            'append': '.append',
+            'allocate': lambda node: Node("assignment", target = node.receiver, value=Node("call", function = "array", args=[Node("str", value=b'f'),Node("binary_op", op="*", left = Node("list", elements=[Node("int", value="0")]),right=node.args)]))
         },
         'dict': {
 			'len': 'len',

@@ -141,7 +141,8 @@ class FortranRules(GeneralRule):
                     },
 			'array':{
 					'len': 'SIZE',
-					'append': lambda node: Node("assignment", target=Node("index", sequence=node.receiver, index=node.args, pseudo_type=node.pseudo_type[0]), value="", pseudo_type="Void")
+					'append': lambda node: Node("assignment", target=Node("index", sequence=node.receiver, index=node.args, pseudo_type=node.pseudo_type[0]), value="", pseudo_type="Void"),
+                    'allocate': lambda node: Node("call", function ="allocate", args =Node("call", function=node.receiver.name, args = node.args))
 
 			},
             'dict':{

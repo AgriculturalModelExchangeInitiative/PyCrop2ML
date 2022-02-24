@@ -269,7 +269,8 @@ TYPED_API = {
         'len':      ['int'],
         'index':       ['@t', 'int'],
         'count':       ['@t', 'int'],
-        'append':       ['@t', ['array', '@t']]
+        'append':       ['@t', ['array', '@t']],
+        'allocate': ['@t','int']
     },
 
     '_generic_list':    ['list', '@t'],
@@ -343,7 +344,8 @@ ORIGINAL_METHODS = {
         'length':      'len',
         'find':        'find(element)',
         'count':       'count(element)',
-        'append':       'append(element)'
+        'append':       'append(element)',
+        'allocate':'allocate(element)'
     },
 
     'tuple': {

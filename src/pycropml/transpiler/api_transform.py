@@ -142,7 +142,7 @@ def datetime_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'datetime', 'function': 'datetime', 'args': args, 'pseudo_type': 'datetime'}
 
 def array_expander(type, message, args):
-    return {'type': 'standard_call', 'namespace': 'system', 'function': 'array', 'args': args, 'pseudo_type': ['array',args[0]["pseudo_type"]]}
+    return {'type': 'array', 'elements': args[-1]["elements"], 'dim': len(args[-1]["elements"]), 'pseudo_type': ['array',args[-1]["pseudo_type"][-1]]}
 
 def copy_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function':'copy', 'args': args[0], 'pseudo_type': args[0]["pseudo_type"]}
@@ -277,7 +277,8 @@ METHOD_API = {
     },
 
     'array': {
-            'append':   StandardMethodCall('array', 'append')
+            'append':   StandardMethodCall('array', 'append'),
+            'allocate': StandardMethodCall('array', 'allocate')
     },
 
     'tuple': {

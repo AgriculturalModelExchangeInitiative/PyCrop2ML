@@ -165,7 +165,8 @@ class JavaRules(GeneralRule):
         },
         'array':{
                 'len': translateLenArray,
-                'append': '.add'   
+                'append': '.add',
+                "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("array", elts = node.args, pseudo_type=node.receiver.pseudo_type ))
                 }
     }
     get_properties = '''

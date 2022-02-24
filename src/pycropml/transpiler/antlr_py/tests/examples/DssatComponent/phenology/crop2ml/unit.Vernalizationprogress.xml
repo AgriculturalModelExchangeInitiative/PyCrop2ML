@@ -1,0 +1,39 @@
+<ModelUnit modelid="Dssat.Pheno_Pkg.VernalizationProgress" name="VernalizationProgress" timestep="1" version="001">
+    <Description>
+        <Title>VernalizationProgress Model</Title>
+        <Authors></Authors>
+        <Institution></Institution>
+        <Reference>Modeling development phase in the </Reference>
+        <Abstract></Abstract></Description>
+    <Inputs>
+        <Input datatype="DOUBLE" default="12.3037621834005" description="day length" max="10000" min="0" name="dayLength" unit="mm2 m-2" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="20.3429985011972" description="difference cumul TT between j and j-1 day " max="100" min="-20" name="deltaTT" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="112.330110409888" description="cumul thermal times at currentdate" max="10000" min="-200" name="cumulTT" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="0" description="Actual number of phytomers" max="25" min="0" name="leafNumber_t1" unit="leaf" variablecategory="state"/>
+        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing appearance of each stage" max="None" min="None" name="calendarMoments_t1" unit="" variablecategory="state"/>
+        <Input datatype="DATELIST" default="[&apos;2007/3/21&apos;]" description="List containing  the dates of the wheat developmental phases" max="None" min="None" name="calendarDates_t1" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLELIST" default="[0.0]" description="list containing for each stage occured its cumulated thermal times" max="None" min="None" name="calendarCumuls_t1" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0.0" description="Minimum temperature for vernalization to occur" max="60" min="-20" name="minTvern" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="11.0" description="Intermediate temperature for vernalization to occur" max="60" min="-20" name="intTvern" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="0.015" description="Response of vernalization rate to temperature" max="1" min="0" name="vAI" parametercategory="species" unit="d-1 "/>
+        <Input datatype="DOUBLE" default="0.01" description="Vernalization rate at 0" max="1" min="0" name="vBEE" parametercategory="species" unit="d-1"/>
+        <Input datatype="DOUBLE" default="8.0" description="Threshold daylength below which it does influence vernalization rate" max="24" min="12" name="minDL" parametercategory="species" unit="h"/>
+        <Input datatype="DOUBLE" default="15.0" description="Saturating photoperiod above which final leaf number is not influenced by daylength" max="24" min="0" name="maxDL" parametercategory="species" unit="h"/>
+        <Input datatype="DOUBLE" default="23.0" description="Maximum temperature for vernalization to occur" max="60" min="-20" name="maxTvern" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="4.0" description="Number of primorida in the apex at emergence" max="24" min="0" name="pNini" parametercategory="species" unit="primordia"/>
+        <Input datatype="DOUBLE" default="24.0" description="Absolute maximum leaf number" max="25" min="0" name="aMXLFNO" parametercategory="species" unit="leaf"/>
+        <Input datatype="DOUBLE" default="0.5517254187376879" description="progression on a 0  to 1 scale of the vernalization" max="1" min="0" name="vernaprog_t1" unit="" variablecategory="state"/>
+        <Input datatype="DATE" default="2007/3/27" description="current date" max="None" min="None" name="currentdate" unit="" variablecategory="auxiliary"/>
+        <Input datatype="INT" default="1" description="true if the plant is vernalizable" max="1" min="0" name="isVernalizable" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="5.5" description="minimum final leaf number" max="25" min="0" name="minFinalNumber_t1" unit="leaf" variablecategory="state"/></Inputs>
+    <Outputs>
+        <Output datatype="DOUBLE" description="progression on a 0  to 1 scale of the vernalization" max="10000" min="0" name="vernaprog" unit="" variablecategory="state"/>
+        <Output datatype="DOUBLE" description="minimum final leaf number" max="10000" min="0" name="minFinalNumber" unit="leaf" variablecategory="state"/>
+        <Output datatype="STRINGLIST" description="List containing appearance of each stage" max="None" min="None" name="calendarMoments" unit="" variablecategory="state"/>
+        <Output datatype="DATELIST" description="List containing  the dates of the wheat developmental phases" max="None" min="None" name="calendarDates" unit="" variablecategory="state"/>
+        <Output datatype="DOUBLELIST" description="list containing for each stage occured its cumulated thermal times" max="None" min="None" name="calendarCumuls" unit="" variablecategory="state"/></Outputs>
+    <Algorithm filename="algo/pyx/VernalizationProgress.pyx" language="cyml" platform=""/>
+    <Parametersets>
+        <Parameterset description="" name=""/></Parametersets>
+    <Testsets>
+        <Testset description="" name="" parameterset=""/></Testsets></ModelUnit>

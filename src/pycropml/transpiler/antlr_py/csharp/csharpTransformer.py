@@ -419,7 +419,7 @@ class Transformer(BaseNodeTransformer):
         return Element_initializer.from_spec(node)"""
 
 class AstTransformer():
-    def __init__(self, tree):
+    def __init__(self, tree, code: str=None, comments:str=None):
         self.tree = tree
         self.base = 0
         self.type_env = Env(dict(list(TYPED_API.items())), None)
@@ -846,8 +846,8 @@ class AstTransformer():
         elif object_or_collection_initializer:
             z_oci = self.visit(object_or_collection_initializer)
             return {"type":z["type"], "init":z_oci["init"], "pseudo_type":z["pseudo_type"]} #
-        elif expression_list:
-            dimLen = self.visit(expression_list)
+        elif expression_list:  
+            dimLen = self.visit(expression_list)  # TODO
             dim = len(dimLen)
             size = dimLen
             z["init"] = {"type":"initArray", "value": self.visit(array_initializer) if array_initializer else None}
@@ -1268,8 +1268,8 @@ class AstTransformer():
                             prepare_table(TYPED_API[receiver], ORIGINAL_METHODS.get(receiver)).strip()))
 
                 elif not isinstance(api, dict):
-                        z = api.expand([rec])
-                        return z
+                    z = api.expand([rec])
+                    return z
 
         if method_invocation:
             args = self.visit(method_invocation)         

@@ -18,5 +18,3 @@ class Test
         Console.WriteLine(i);
     }
 }
-
-Test.Main()

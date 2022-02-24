@@ -278,7 +278,7 @@ class SimplaceGenerator(JavaGenerator):
                 elif inp.default: zdefault = transf(inp.datatype, inp.default)
             else: zdefault="null"
             if inp.datatype.startswith("DATE"): zmin, zmax,zdefault= "null", "null", "null"
-            self.write('addVariable(FWSimVariable.createSimVariable("%s%s", "%s", DATA_TYPE.%s, CONTENT_TYPE.%s,"http://www.wurvoc.org/vocabularies/om-1.8/", %s, %s, %s, this));'%(prefix,inp.name, inp.description,DATA_TYPE[inp.datatype],ztype, zmin, zmax, zdefault))
+            self.write('addVariable(FWSimVariable.createSimVariable("%s%s", "%s", DATA_TYPE.%s, CONTENT_TYPE.%s,"", %s, %s, %s, this));'%(prefix,inp.name, inp.description,DATA_TYPE[inp.datatype],ztype, zmin, zmax, zdefault))
             self.newline(node)     
 
 class SimplaceCompo(JavaGenerator):

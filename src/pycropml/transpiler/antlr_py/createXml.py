@@ -24,21 +24,23 @@ class Pl2Crop2ml(object):
         md = self.md
 
         # ModelUnit name id version timestep
-        xml = ns.ModelUnit(modelid=self.pkgname + "." + md.name, name=md.name, timestep="1", version="001")
+        xml = ns.ModelUnit(modelid=self.pkgname + "." + str(md.name), name=str(md.name), timestep="1", version="001")
         doc = md.description
+        print(doc.Reference, "vbhh")
         desc = ns.Description(
             ns.Title(doc.Title),
             ns.Authors(doc.Authors),
             ns.Institution(doc.Institution),
             ns.Reference(doc.Reference),
-            ns.Abstract(doc.Abstract)
+            ns.Abstract(doc.Abstract),
+            ns.Url(doc.Url if "Url" in dir(doc) else "")
             )
         inputs = ns.Inputs()
         outputs = ns.Outputs()
         for inp in md.inputs:
             if "variablecategory" in dir(inp):
-                inputs.append(ns.Input(name=inp.name, description=inp.description, variablecategory=inp.variablecategory,  datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
-            else: inputs.append(ns.Input(name=inp.name, description=inp.description, parametercategory=inp.parametercategory, datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
+                inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
+            else: inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, parametercategory=inp.parametercategory, datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
         for inp in md.outputs:
             outputs.append(ns.Output(name=inp.name, description=inp.description, datatype=inp.datatype, variablecategory=inp.variablecategory, max=inp.max, min = inp.min, unit=inp.unit))
         algo =ns.Algorithm(language = "cyml", platform ="", filename="algo/pyx/%s.pyx"%md.name)

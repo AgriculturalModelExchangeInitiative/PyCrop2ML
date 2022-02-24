@@ -1,8 +1,9 @@
 # FSTFunctions
-def AFGEN1(int n, float xy[n], float t):
+def AFGEN1(float xy[], float t):
     cdef float res;
     cdef float x1, x2, y1, y2
-    cdef int i
+    cdef int i, n
+    n = len(xy)
     res = float("nan")
     if(n>1):
         i = 0
