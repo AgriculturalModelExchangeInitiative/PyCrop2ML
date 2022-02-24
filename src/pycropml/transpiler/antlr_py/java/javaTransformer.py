@@ -4,8 +4,6 @@ from pycropml.transpiler.antlr_py.java.builtin_typed_api import *
 from pycropml.transpiler.antlr_py.java.api_transform import *
 from pycropml.transpiler.env import Env
 from pycropml.transpiler.helpers import *
-from pycropml.transpiler.antlr_py import parse
-from pycropml.transpiler.antlr_py.java.api_declarations import Declarations
 import ast
 from ast import AST
 
@@ -567,7 +565,6 @@ class AstTransformer():
                     comment.append(list(self.comments.values())[0])
                     self.comments.popitem(0)
                 fields['comments'] = comment
-                #print(type(node), x["line_start"], comment)
             else:
                 fields['location'] = None
                 fields["comments"] = None
@@ -1526,7 +1523,6 @@ class AstTransformer():
         return R
     
     def visit_statementnoshortif(self, node, statementWithoutTrailingSubstatement, labeledStatementNoShortIf, ifThenElseStatementNoShortIf, whileStatementNoShortIf,forStatementNoShortIf,location, comments):
-        print(comments, "gooooooo")
         if statementWithoutTrailingSubstatement : res = self.visit(statementWithoutTrailingSubstatement)
         if labeledStatementNoShortIf: res = self.visit(labeledStatementNoShortIf)
         if ifThenElseStatementNoShortIf: res  = self.visit(ifThenElseStatementNoShortIf)

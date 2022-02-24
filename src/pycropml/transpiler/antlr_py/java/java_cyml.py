@@ -7,7 +7,7 @@ Created on Thu Sep  3 23:05:11 2020
 
 from pycropml.transpiler.antlr_py.java import javaRules
 from pycropml.transpiler.env import Env
-from pycropml.transpiler.antlr_py.java.api_declarations import Declarations
+from pycropml.transpiler.antlr_py.java.java_preprocessing import Declarations
 
 def cyml_ru(cs_op, ru):  
     for k, v in ru.items():  # for name, age in dictionary.iteritems():  (for Python 2.x)
@@ -173,11 +173,11 @@ class Java_Cyml_ast():
     def visit_String(self, node):
         if "value" in dir(node) and "name" in dir(node): 
             val = self.visit(node.value)
-            return  {'type': 'string', 'name': node.name, 'value': val["value"], 'pseudo_type': 'string'}
+            return  {'type': 'str', 'name': node.name, 'value': val["value"], 'pseudo_type': 'str'}
         elif "value" in dir(node): 
             val = self.visit(node.value)
-            return {'type': 'string', 'value': val, 'pseudo_type': 'string'}
-        elif "name" in dir(node): return {'type': 'string', 'name':node.name, 'pseudo_type': 'string'}
+            return {'type': 'str', 'value': val, 'pseudo_type': 'str'}
+        elif "name" in dir(node): return {'type': 'str', 'name':node.name, 'pseudo_type': 'str'}
  
     def visit_fielddecl(self, node):
         return
@@ -248,7 +248,8 @@ class Java_Cyml_ast():
                 'test': self.visit(node.test),
                 'true_val': self.visit(node.true_val),
                 'pseudo_type': 'Void',
-                'false_val': self.visit(node.false_val)
+                'false_val': self.visit(node.false_val),
+                "comments":node.comments
             }
 
     

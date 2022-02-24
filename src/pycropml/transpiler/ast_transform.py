@@ -82,6 +82,7 @@ class AstTransformer():
         self.forSequence = False
         self.struct={}
         self.units={}
+        self.isattr = False
         self.signature = self.visit_definitions()
         body = self.visit_node(self.tree.body)
         self.type_env.top['__name__'] = "str"
@@ -176,10 +177,13 @@ class AstTransformer():
 
 
     def visit_cstructoruniondefnode(self, node, attributes, location):
+        self.isattr = True
+        attr = self.visit_node(attributes)
         z = {"type": "struct",
                 "name": node.name,
-                "elements":self.visit_node(attributes)
+                "elements":attr
                 }
+        self.isattr = False
         self.struct.update({node.name:z})
         return z
         
@@ -1269,19 +1273,19 @@ class AstTransformer():
         typearray = ["intarray","floatarray","booleanarray","stringarray"]
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
-                if self.type_env[de.name]:
+                if not self.isattr and self.type_env[de.name]:
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.name)
                 decl = {"name": de.name,
                         "type": self.visit_node(base_type)[0] if base_type.name in typet + typearray else base_type.name, "lineno": location}
                 if base_type.name in typet + typearray:
-                    self.type_env[de.name] = self.visit_node(base_type)[1]
+                    if not self.isattr:  self.type_env[de.name] = self.visit_node(base_type)[1]
                     decl["pseudo_type"] = self.visit_node(base_type)[1]
                 elif base_type.name in typearray:
                     decl["dim"] = 1
                     decl["elts"] = []
                 elif de.default is None:
-                    self.type_env[de.name] = base_type.name
+                    if not self.isattr : self.type_env[de.name] = base_type.name
                     decl["pseudo_type"] = decl["type"]
                 if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
                     value_node = self.visit_node(de.default)
@@ -1289,24 +1293,29 @@ class AstTransformer():
                         decl["value"] = str(-float(value_node["value"]["value"]))
                     else: decl["value"] = value_node["value"] 
                     decl["pseudo_type"] = value_node["pseudo_type"]
-                    self.type_env[de.name] = decl["pseudo_type"]
+                    if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
                     self._compatible_types(
                         self.visit_node(base_type)[1], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
                 if type(de.default==ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "datetime":
                     decl["pseudo_type"]="datetime"
-                    self.type_env[de.name] = decl["pseudo_type"]
+                    if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
                     decl["elts"] = self.visit_node(de.default)
                     
                 if type(de.default==ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "array":
                     z = self.visit_node(de.default)
-                    typ = z["args"][0]["value"]
-                    if typ==b"i": typ="int"
-                    if typ==b"c": typ="str"
-                    if typ==b"f": typ="float"
-                    decl["pseudo_type"]=["array", typ]
-                    self.type_env[de.name] = decl["pseudo_type"]
-                    if len(z["args"][1]["elements"])!=0: decl["elements"] = z["args"][1]["elements"]
-                    decl["dim"] = 1
+                    if "elements" in z: 
+                        a = decl["name"]
+                        decl = z
+                        decl["name"] = a
+                    else:
+                        typ = z["args"][0]["value"]
+                        if typ==b"i": typ="int"
+                        if typ==b"c": typ="str"
+                        if typ==b"f": typ="float"
+                        decl["pseudo_type"]=["array", typ]
+                        if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
+                        if len(z["args"][1]["elements"])!=0: decl["elements"] = z["args"][1]["elements"]
+                        decl["dim"] = 1
                     
                 if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
                     arglist = []
@@ -1320,12 +1329,12 @@ class AstTransformer():
                     else:
                         decl["pseudo_type"] = [
                             "tuple"]+[self.visit_node(arg)["pseudo_type"] for arg in arglist]
-                    self.type_env[de.name] = decl["pseudo_type"]
+                    if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
                 if isinstance(de.default, ExprNodes.DictNode):
                     default = self.visit_node(de.default)
                     decl["pairs"] = default["pairs"]
                     decl["pseudo_type"] = default["pseudo_type"]
-                    self.type_env[de.name] = default["pseudo_type"]
+                    if not self.isattr: self.type_env[de.name] = default["pseudo_type"]
                     a = self._compatible_types(
                         base_type.name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
             else:
@@ -1333,7 +1342,7 @@ class AstTransformer():
                     name = de.base.base.name
                 else:
                         name=de.base.name               
-                if self.type_env[name]:
+                if not self.isattr and self.type_env[name]:
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % name)
                 if isinstance(de.dimension, ExprNodes.NameNode) or isinstance(de.dimension, ExprNodes.IntNode):
@@ -1347,7 +1356,7 @@ class AstTransformer():
                 dim = len(elts)
                 decl = {"name": de.base.name, "type": "array", "dim": dim, "elts": elts,
                         "pseudo_type": ["array", base_type.name], "lineno": location}
-                self.type_env[de.base.name] = decl["pseudo_type"]
+                if not self.isattr: self.type_env[de.base.name] = decl["pseudo_type"]
             self.declarations.append(decl)
             x.append(decl)
         return {

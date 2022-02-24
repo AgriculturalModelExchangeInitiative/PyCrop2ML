@@ -1,4 +1,4 @@
-# Generated from c:\Users\midingoy\Documents\Restore\Users\midingoy\Documents\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\Fortran90Parser.g4 by ANTLR 4.8
+# Generated from Fortran90Parser.g4 by ANTLR 4.8
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .Fortran90Parser import Fortran90Parser
@@ -7,24 +7,6 @@ else:
 
 # This class defines a complete listener for a parse tree produced by Fortran90Parser.
 class Fortran90ParserListener(ParseTreeListener):
-
-    # Enter a parse tree produced by Fortran90Parser#eos.
-    def enterEos(self, ctx:Fortran90Parser.EosContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#eos.
-    def exitEos(self, ctx:Fortran90Parser.EosContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#commentOrNewLine.
-    def enterCommentOrNewLine(self, ctx:Fortran90Parser.CommentOrNewLineContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#commentOrNewLine.
-    def exitCommentOrNewLine(self, ctx:Fortran90Parser.CommentOrNewLineContext):
-        pass
-
 
     # Enter a parse tree produced by Fortran90Parser#program.
     def enterProgram(self, ctx:Fortran90Parser.ProgramContext):
@@ -98,66 +80,12 @@ class Fortran90ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran90Parser#implicitStatement.
-    def enterImplicitStatement(self, ctx:Fortran90Parser.ImplicitStatementContext):
+    # Enter a parse tree produced by Fortran90Parser#specificationPartConstruct.
+    def enterSpecificationPartConstruct(self, ctx:Fortran90Parser.SpecificationPartConstructContext):
         pass
 
-    # Exit a parse tree produced by Fortran90Parser#implicitStatement.
-    def exitImplicitStatement(self, ctx:Fortran90Parser.ImplicitStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#parameterStatement.
-    def enterParameterStatement(self, ctx:Fortran90Parser.ParameterStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#parameterStatement.
-    def exitParameterStatement(self, ctx:Fortran90Parser.ParameterStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#formatStatement.
-    def enterFormatStatement(self, ctx:Fortran90Parser.FormatStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#formatStatement.
-    def exitFormatStatement(self, ctx:Fortran90Parser.FormatStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#entryStatment.
-    def enterEntryStatment(self, ctx:Fortran90Parser.EntryStatmentContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#entryStatment.
-    def exitEntryStatment(self, ctx:Fortran90Parser.EntryStatmentContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#declarationConstruction.
-    def enterDeclarationConstruction(self, ctx:Fortran90Parser.DeclarationConstructionContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#declarationConstruction.
-    def exitDeclarationConstruction(self, ctx:Fortran90Parser.DeclarationConstructionContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#includeStatement.
-    def enterIncludeStatement(self, ctx:Fortran90Parser.IncludeStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#includeStatement.
-    def exitIncludeStatement(self, ctx:Fortran90Parser.IncludeStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#useStatement.
-    def enterUseStatement(self, ctx:Fortran90Parser.UseStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#useStatement.
-    def exitUseStatement(self, ctx:Fortran90Parser.UseStatementContext):
+    # Exit a parse tree produced by Fortran90Parser#specificationPartConstruct.
+    def exitSpecificationPartConstruct(self, ctx:Fortran90Parser.SpecificationPartConstructContext):
         pass
 
 
@@ -1916,30 +1844,12 @@ class Fortran90ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran90Parser#dataStmtValueList.
-    def enterDataStmtValueList(self, ctx:Fortran90Parser.DataStmtValueListContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#dataStmtValueList.
-    def exitDataStmtValueList(self, ctx:Fortran90Parser.DataStmtValueListContext):
-        pass
-
-
     # Enter a parse tree produced by Fortran90Parser#dataStmtValue.
     def enterDataStmtValue(self, ctx:Fortran90Parser.DataStmtValueContext):
         pass
 
     # Exit a parse tree produced by Fortran90Parser#dataStmtValue.
     def exitDataStmtValue(self, ctx:Fortran90Parser.DataStmtValueContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#dataStmtObjectList.
-    def enterDataStmtObjectList(self, ctx:Fortran90Parser.DataStmtObjectListContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#dataStmtObjectList.
-    def exitDataStmtObjectList(self, ctx:Fortran90Parser.DataStmtObjectListContext):
         pass
 
 

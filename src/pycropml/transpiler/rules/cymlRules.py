@@ -110,7 +110,8 @@ class CymlRules(GeneralRule):
         },
         'str': {
             'int': 'int',
-            'find': '.index'
+            'find': '.index',
+            'index':'.index'
         },
         'list': {
             'len': 'len',

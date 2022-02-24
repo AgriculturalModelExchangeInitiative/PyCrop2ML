@@ -85,7 +85,7 @@ class CsharpRules(GeneralRule):
         "int": "int",
         "float": "double",
         "bool": "bool",
-        "array": "%s[] %s;",
+        "array": "%s[] %s",
         "list": "List",
         "tuple": "Tuple",
         "str": "string",
@@ -169,7 +169,7 @@ class CsharpRules(GeneralRule):
         },
         'array':{
                 'len': translateLenArray,
-                'append': '.Add'
+                'append': '.Append'
 
                 
                 }

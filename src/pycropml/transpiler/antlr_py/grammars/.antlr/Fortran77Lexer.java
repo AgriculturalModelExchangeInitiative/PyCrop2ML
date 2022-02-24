@@ -1,4 +1,4 @@
-// Generated from c:\Users\midingoy\Documents\Restore\Users\midingoy\Documents\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\Fortran77Lexer.g4 by ANTLR 4.8
+// Generated from c:\Users\midingoy\Documents\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\Fortran77Lexer.g4 by ANTLR 4.8
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.Token;

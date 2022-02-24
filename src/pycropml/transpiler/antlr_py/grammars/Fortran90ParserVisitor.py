@@ -1,4 +1,4 @@
-# Generated from c:\Users\midingoy\Documents\Restore\Users\midingoy\Documents\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\Fortran90Parser.g4 by ANTLR 4.8
+# Generated from Fortran90Parser.g4 by ANTLR 4.8
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .Fortran90Parser import Fortran90Parser
@@ -8,16 +8,6 @@ else:
 # This class defines a complete generic visitor for a parse tree produced by Fortran90Parser.
 
 class Fortran90ParserVisitor(ParseTreeVisitor):
-
-    # Visit a parse tree produced by Fortran90Parser#eos.
-    def visitEos(self, ctx:Fortran90Parser.EosContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#commentOrNewLine.
-    def visitCommentOrNewLine(self, ctx:Fortran90Parser.CommentOrNewLineContext):
-        return self.visitChildren(ctx)
-
 
     # Visit a parse tree produced by Fortran90Parser#program.
     def visitProgram(self, ctx:Fortran90Parser.ProgramContext):
@@ -59,38 +49,8 @@ class Fortran90ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by Fortran90Parser#implicitStatement.
-    def visitImplicitStatement(self, ctx:Fortran90Parser.ImplicitStatementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#parameterStatement.
-    def visitParameterStatement(self, ctx:Fortran90Parser.ParameterStatementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#formatStatement.
-    def visitFormatStatement(self, ctx:Fortran90Parser.FormatStatementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#entryStatment.
-    def visitEntryStatment(self, ctx:Fortran90Parser.EntryStatmentContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#declarationConstruction.
-    def visitDeclarationConstruction(self, ctx:Fortran90Parser.DeclarationConstructionContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#includeStatement.
-    def visitIncludeStatement(self, ctx:Fortran90Parser.IncludeStatementContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#useStatement.
-    def visitUseStatement(self, ctx:Fortran90Parser.UseStatementContext):
+    # Visit a parse tree produced by Fortran90Parser#specificationPartConstruct.
+    def visitSpecificationPartConstruct(self, ctx:Fortran90Parser.SpecificationPartConstructContext):
         return self.visitChildren(ctx)
 
 
@@ -1069,18 +1029,8 @@ class Fortran90ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by Fortran90Parser#dataStmtValueList.
-    def visitDataStmtValueList(self, ctx:Fortran90Parser.DataStmtValueListContext):
-        return self.visitChildren(ctx)
-
-
     # Visit a parse tree produced by Fortran90Parser#dataStmtValue.
     def visitDataStmtValue(self, ctx:Fortran90Parser.DataStmtValueContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by Fortran90Parser#dataStmtObjectList.
-    def visitDataStmtObjectList(self, ctx:Fortran90Parser.DataStmtObjectListContext):
         return self.visitChildren(ctx)
 
 

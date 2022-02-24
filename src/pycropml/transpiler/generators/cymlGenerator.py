@@ -33,6 +33,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
     def visit_import(self, node):
         if self.imp:
             self.write(u"import %s" % node.module)
+    
 
     def visit_notAnumber(self, node):
         self.write("float('nan')")
@@ -123,6 +124,9 @@ class CymlGenerator(CodeGenerator, CymlRules):
     def visit_bool(self, node):
         self.write(str(node.value))
 
+    def visit_str(self, node):
+        self.safe_double(node)
+
     def visit_string(self, node):
         self.safe_double(node)
     
@@ -200,24 +204,23 @@ class CymlGenerator(CodeGenerator, CymlRules):
 
     def visit_module(self, node):
         self.newline(extra=1)
+        if node.comments:
+            self.translate_com(node.comments)
         self.visit(node.body)
     
     def translate_com(self, comments):
         if isinstance(comments, list):
             for n in comments:
-                self.write(f"#{n[3:]}")
+                self.write("#%s"%n[1:])
                 self.newline(1)
         else: 
-            self.write(f"#{comments[3:]}")
+            self.write(f"#{comments[1:]}")
     
     def visit_comments(self, node):
         self.newline(node)
-        if isinstance(node.comments, list):
-            for n in node.comments:
-                self.write(f"#{n[3:]}")
-                self.newline(node)
-        else:
-            self.write(f"#{node.comments[3:]}")  
+        self.translate_com(node.comments)
+
+    
     def visit_comparison(self, node):
         #self.write('(')
         self.visit_binary_op(node)
@@ -297,57 +300,61 @@ class CymlGenerator(CodeGenerator, CymlRules):
 
     def visit_declaration(self, node):
         self.newline(node)
-        for n in node.decl  :           
+        if node.comments:
+            self.translate_com(node.comments)        
+        if node.decl[0].type=="list" and "elements" not in dir(node.decl[0]):
+            self.write("cdef %s "%(node.decl[0].pseudo_type[1].lower() + node.decl[0].pseudo_type[0]))
+        elif node.decl[0].type == "array"and "elements" not in dir(node.decl[0]):
+            if "elts" not in dir(node.decl[0]):
+                self.write("cdef %s "%(node.decl[0].pseudo_type[-1])) 
+            else:
+                self.write("cdef %s "%(node.decl[0].pseudo_type[-1]))
+        else:
+            self.write("cdef %s "%node.decl[0].type)
+            
+        for p, n in enumerate(node.decl) :           
             if 'value' in dir(n) and n.type in ("int", "float", "double"):
-                self.newline(node)
-                self.write("cdef %s %s = "%(n.type, n.name))               
+                self.write("%s = "%(n.name))               
                 self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)
             elif 'value' in dir(n) and n.type=="bool":
-                self.newline(node)
-                self.write("cdef %s %s = "%(n.type, n.name))
+                self.write("%s = "%(n.name))
                 self.write(str(n.value))        
             elif 'value' in dir(n) and n.type=="str":
-                self.newline(node)
-                self.write("cdef %s %s = "%(n.type, n.name))
+                self.write("%s = "%(n.name))
                 self.emit_string(n)   
-            elif 'value' not in dir(n) and n.type in ("int", "float", "str", "bool"):
-                self.newline(node)  
-                self.write("cdef %s %s "%(n.type, n.name))           
+            elif 'value' not in dir(n) and n.type in ("int", "float", "str", "bool"): 
+                self.write("%s "%(n.name))           
             elif 'elements' in dir(n) and n.elements and n.type in ("list", "tuple"):
-                self.newline(node)
-                self.write("cdef %s %s = "%(n.type, n.name)) 
+                self.write("%s = "%(n.name)) 
                 if n.type=="list":                
                     self.visit_list(n)
                 else: self.visit_tuple(n)
             elif 'args' in dir(n) and n.type=='datetime':
-                self.newline(node)
-                self.write("cdef %s %s = datetime"%(n.type, n.name))
+                self.write("%s = datetime"%(n.name))
                 self.visit_datetime               
             elif 'pairs' in dir(n) and n.type=="dict":
-                self.newline(node)
-                self.write("cdef %s %s = "%(n.type, n.name))
-                self.write(" = ")                 
+                self.write("%s = "%(n.name))               
                 self.visit_dict(n)
             elif n.type=="array" and 'elements' in dir(n):
                 if n.dim == 1:
-                    self.write("cdef %s %s "%(n.type, n.name))
+                    self.write("%s "%(n.name))
                     self.write(" = array('%s',"%n.pseudo_type[1][0])
                     self.write("[")
                     self.comma_separated_list(n.elements)
                     self.write("] )")                    
             elif n.type in ("list"):
-                self.newline(node)
-                self.write("cdef %s%s %s"%(n.pseudo_type[1].lower(),n.pseudo_type[0].lower(), n.name))   
+                self.write(" %s"%(n.name))   
             elif n.type == "array" :
-                self.newline(node)
                 if "elts" not in dir(n):
-                    self.write("cdef %s %s[]"%(n.pseudo_type[-1], n.name)) 
+                    self.write("%s[]"%( n.name)) 
                 else:
-                    self.write("cdef %s %s["%(n.pseudo_type[-1], n.name))
+                    self.write("%s["%(n.name))
                     self.comma_separated_list(n.elts) if isinstance(n.elts, list) else self.visit(n.elts)
                     self.write("]")   
             else:
                 pass
+            if p!= len(node.decl)-1:
+                self.write(", ")
 
 
 

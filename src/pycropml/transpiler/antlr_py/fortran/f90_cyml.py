@@ -1,8 +1,12 @@
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.env import Env
+from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Assignment
+
+
 class F90_Cyml_ast():
+    """G
+    """
     
-   
     def __init__(self, tree, model=None, name=None, var= []):
         self.tree = tree
         self.model = model
@@ -10,11 +14,13 @@ class F90_Cyml_ast():
         self.recursive = False
         self.type_env = Env()
         self.var =  var
+        
 
     def transform(self):
         self.type_env['functions'] = {}
         self.function_name = 'top level'
         self.decl = []
+        #self.visit_top_level(self.tree.body)
         body = self.visit(self.tree.body) if "body" in dir(self.tree) else self.visit(self.tree)
         
         return  {'type': 'module', 'body': body if isinstance(body, list) else [body]}
@@ -24,13 +30,13 @@ class F90_Cyml_ast():
         '''
         Parameters
         ----------
-        node : TYPE
+        node : Node
             DESCRIPTION.
 
         Returns
         -------
-        TYPE
-            DESCRIPTION.
+        dict
+            Common Code Model Representation based on CyML constructs.
 
         '''
         if isinstance(node, list):
@@ -46,7 +52,44 @@ class F90_Cyml_ast():
             return getattr(self, 'visit_%s'%(node.type))(node)
         else: 
             return node
+        
+    def visit_top_level(self, nodes):
+        for n in nodes:
+            if n.type == "function_definition": #isinstance(n, SubroutineSubprogram)
+                self.definitions.append(('function', n.name))
+                self._definition_index['functions'][n.name] = n
+                self.type_env.top['functions'][n.name] = [
+                        'Function'] + ([None] * len(n.params)) + [None]
+                self.type_env.top[n.params] = self.type_env.top['functions'][str(n.params)]
 
+    def visit_import(self, node):
+        return
+    
+    def visit_comments(self, node):
+        return {"type":"comments", "comments":node.comments}
+
+    def visit_tuple(self, node):
+        return {'type':'tuple',
+                'elements':self.visit(node.elements),
+                "pseudo_type": node.pseudo_type}
+
+
+    def visit_function_definition(self, node):
+        pa = self.visit(node.params)
+        block = self.visit(node.block)
+          
+        z = {
+            'type':   "function_definition",
+            'name':   node.name,
+            'params': pa,
+            'return_type':  node.return_type,
+            'pseudo_type': node.pseudo_type,
+            'block': block,
+            'recursive':self.recursive,
+           "comments": node.comments
+
+        }
+        return  z
 
     def visit_declaration(self, node):
         res = []
@@ -54,9 +97,10 @@ class F90_Cyml_ast():
             if de.name not in self.var:
                 z = self.visit(de)
                 self.type_env[z["name"]] = z["pseudo_type"]
-                res.append(z)            
+                res.append(z) 
+                self.var.append(z["name"])           
         if res:
-            return {"type" : "declaration", "decl" : res}
+            return {"type" : "declaration", "decl" : res, "comments":node.comments}
         else:
             pass
 
@@ -80,6 +124,25 @@ class F90_Cyml_ast():
         elif "name" in dir(node): 
             return {'type': 'int', 'name':str(node.name), 'pseudo_type': 'int'}
 
+    def visit_bool(self, node):
+        if "value" in dir(node) and "name" in dir(node): 
+            val = self.visit(node.value)
+            return  {'type': 'bool', 'name': str(node.name), 'value': val["value"].capitalize() if "value" in val else val.capitalize(), 'pseudo_type': 'bool'}
+        elif "value" in dir(node): 
+            val = self.visit(node.value)
+            return {'type': 'bool', 'value': val.capitalize(), 'pseudo_type': 'bool'}
+        elif "name" in dir(node): 
+            return {'type': 'bool', 'name':str(node.name), 'pseudo_type': 'bool'}
+
+    def visit_str(self, node):
+        if "value" in dir(node) and "name" in dir(node): 
+            val = self.visit(node.value)
+            return  {'type': 'str', 'name': node.name, 'value': val["value"], 'pseudo_type': 'str'}
+        elif "value" in dir(node): 
+            val = self.visit(node.value)
+            return {'type': 'str', 'value': val, 'pseudo_type': 'str'}
+        elif "name" in dir(node): return {'type': 'str', 'name':node.name, 'pseudo_type': 'str'}
+
 
     def visit_list(self, node):
         if "value" not in dir(node):
@@ -99,24 +162,21 @@ class F90_Cyml_ast():
                     "function":"copy",
                     "namespace":"system",
                     "pseudo_type": node.pseudo_type,
-                    "args": node.args[0]
+                    "args": self.visit(node.args[0])
                 }
     
     def visit_array(self, node):
         return {"type":"array",
                 "name":str(node.name),
                 "dim": node.dim,
-                "elements":node.elts,
+                "elts":node.elts,
                 "pseudo_type":node.pseudo_type
         }
    
     def visit_assignment(self, node):
         target = self.visit(node.target)
         value = self.visit(node.value)
-        if "name" in value and target["name"]== value["name"]:
-            return
-        else:
-            if "name" in value and (isinstance(value["pseudo_type"], list) and value["pseudo_type"][0]=="list"):
+        if "name" in value and (isinstance(value["pseudo_type"], list) and value["pseudo_type"][0]=="list"):
                 return {'type': 'assignment',
                         'target': target,
                         'op': '=',
@@ -126,24 +186,60 @@ class F90_Cyml_ast():
                                     "pseudo_type": value["pseudo_type"],
                                     "args": value
                                 },
-                        'pseudo_type': 'Void'}
-            return {'type': 'assignment',
+                        'pseudo_type': 'Void',
+                        "comments":node.comments}
+        return {'type': 'assignment',
            'target': target,
            'op': '=',
            'value': value,
-           'pseudo_type': 'Void'}
+           'pseudo_type': 'Void',
+           "comments":node.comments}
     
     def visit_if_statement(self, node):
-        return node
+        return {'type': 'if_statement',
+                 'test': self.visit(node.test),
+                 'block': self.visit(node.block),
+                 'pseudo_type': 'Void',
+                 'otherwise': self.visit(node.otherwise),
+                   "comments": node.comments}
+
+    def visit_implicit_return(self, node):
+        z = self.visit(node.value)
+        
+        return {'type': 'implicit_return',
+         'value': z, 'pseudo_type': z['pseudo_type'],
+           "comments": node.comments}
+
+
+    def visit_else_statement(self, node):
+        return {'type': 'else_statement',
+             'block': self.visit(node.block),
+             'pseudo_type': 'Void',
+           "comments": node.comments}
+    
+    def visit_elseif_statement(self, node):
+        return {'type': 'elseif_statement',
+           'test': self.visit(node.test),
+           'block': self.visit(node.block),
+           'pseudo_type': 'Void',
+           "comments": node.comments}
+    
     
     def visit_for_range_statement(self, node):
+        
+        step = self.visit(node.step)
+        if step["type"] == "unary_op" and step["operator"]=="-":
+            end = {"type":"binary_op", "op":"-","left":self.visit(node.end), "right":{"type":"int", "value":"1"}}
+        else:
+            end ={"type":"binary_op", "op":"+","left":self.visit(node.end), "right":{"type":"int", "value":"1"}}
             
         z =  {'type': 'for_range_statement',
          'start': self.visit(node.start),
-         'end': self.visit(node.end),
-         'step': self.visit(node.step),
+         'end': end,
+         'step': step,
          'index': self.visit(node.index),
-         'block': self.visit(node.block)}
+         'block': self.visit(node.block),
+         "comments": node.comments}
 
         self.decl.append({'type': 'declaration',
                           'decl': [{'type': z["index"]["pseudo_type"],
@@ -188,7 +284,7 @@ class F90_Cyml_ast():
         index = self.visit(node.index)
         return {'type': 'index',
             'sequence': z,
-            'index': index,
+            'index': {"type":"binary_op", "op":"-", "left":index, "right":{"type":"int", "value":"1","pseudo_type":"int"}},
             'pseudo_type': z["pseudo_type"]}
 
     def visit_while_statement(self, node):

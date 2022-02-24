@@ -48,7 +48,7 @@ PROCEDURE
    ;
 
 END
-   : 'END' | 'end'
+   : 'END' | 'end'| 'End'
    ;
 
 DIMENSION
@@ -203,9 +203,6 @@ ELSE
    : 'ELSE' | 'else'
    ;
 
-FORMATSEP 
-   : '/ | ' 
-   ;
 
 ENDIF
    : 'ENDIF' | 'endif'
@@ -394,11 +391,6 @@ RECL
    ;
 
 
-BLANK
-   : 'BLANK' | 'blank'
-   ;
-
-
 EXIST
    : 'EXIST' | 'exist'
    ;
@@ -463,30 +455,40 @@ ENDBLOCKDATA : 'endblockdata' | 'ENDBLOCKDATA' ;
 ENDBLOCK : 'ENDBLOCK' | 'endblock' ;
 
 
-fragment NEWLINE : '\u0020'* '\r'? '\n' ; 
+fragment NEWLINE
+	: '\r\n' | '\r' | '\n'
+	| '\u0085' // <Next Line CHARACTER (U+0085)>'
+	| '\u2028' //'<Line Separator CHARACTER (U+2028)>'
+	| '\u2029' //'<Paragraph Separator CHARACTER (U+2029)>'
+	;
+ 
 
 KIND : 'KIND' | 'kind' ;
 
 LEN : 'LEN' | 'len' ;
 
 //EOS : COMMENTORNEWLINE+ ;
-EOS : (COMMENTORNEWLINE? SPACES* [\r\n] [ \t]* )+;
+//EOS : (COMMENTORNEWLINE? SPACES* [\r\n] [ \t]* )+;
 
 //RN : NEWLINE -> skip;
 
+WS
+   :  ([ \t]  | NEWLINE)+ -> skip
+   ;
+
+COMMENT
+    : (('\t'* '\u0020'* '!'(~ [\r\n])*[\r\n]* ) |({self.column == 0}? ('c'| 'C') (~ [\r\n])* [\r\n]*)) -> skip  ;
+
+/*
 COMMENTORNEWLINE 
    : COMMENT
    |
    NEWLINE
 
    ;
+*/
 
 
-COMMENT
-    : '\t'* '\u0020'* '!'(~ [\r\n])* 
-    |
-    {self.column == 0}? ('c'| 'C') (~ [\r\n])*
-    ;
 
 DOLLAR
    : '$'
@@ -543,6 +545,9 @@ fragment STARCHAR
    : '*'
    ;
 
+FORMATSEP 
+   : '/' | ':'
+   ;
 
 
 POWER
@@ -626,17 +631,17 @@ FALSE
 
 
 XCON
-   : 'XCON'
+   : NUM+ [xX]
    ;
 
 
 PCON
-   : 'PCON'
+   : [+-]?NUM+[pP]
    ;
 
 
 FCON
-   : 'FCON'
+   : ('a'|'A'|'b'|'B'|'e'|'E'|'d'|'D'|(('e'|'E')('n'|'N'|'s'|'S'))|'q'|'Q'|'f'|'F'|'g'|'G'|'i'|'I'|'l'|'L'|'o'|'O'|'z'|'Z')(NUM+|'*')('.'NUM+(('e'|'E'|'d'|'D'|'q'|'Q')NUM+)?)
    ;
 
 
@@ -760,9 +765,9 @@ EXIT : 'EXIT' | 'exit' ;
 
 CYCLE : 'CYCLE' | 'cycle' ;
    
-ENDTYPE : 'ENDTYPE' | 'endtype' ;
+ENDTYPE : 'ENDTYPE' | 'endtype' | 'Endtype' |'EndType';
 
-INTERFACE : 'INTERFACE' | 'interface' ;
+INTERFACE : 'INTERFACE' | 'interface' | 'Interface' ;
    
 SPOFF : 'SPOFF';
 
@@ -773,12 +778,17 @@ ICON
    ;
 
 TYPE 
-   : 'type' | 'TYPE'
+   : 'type' | 'TYPE' | 'Type'
    ;
 
 NAME
    :LETTER ( ALPHANUMERIC_CHARACTER )*
    ;
+
+BLANK
+   : 'BLANK' | 'blank'
+   ;
+
 
 ALPHANUMERIC_CHARACTER : LETTER | NUM | SCORE ;
 
@@ -850,6 +860,3 @@ fragment NUM
 
 
    
-WS
-   :  [ \t] + -> skip
-   ;

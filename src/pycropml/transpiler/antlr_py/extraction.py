@@ -18,11 +18,17 @@ def replace(s,l):
 
     
 from collections import OrderedDict
-def ExtractComments(all_text, c_st_single, c_st_multi, c_end_multi):
+def ExtractComments(all_text, c_st_single, c_st_multi, c_end_multi, pos=None):
     comments = OrderedDict()
     zz = all_text.split("\n")
     while (len(all_text) > 0):
         single_line_pos = all_text.find(c_st_single)
+        if pos and single_line_pos!=0:
+            txt = all_text
+            while txt[single_line_pos-1]!="\n": 
+                single_line_pos = txt.find(c_st_single, single_line_pos+1)
+                if single_line_pos<0: break
+
         multi_line_pos = all_text.find(c_st_multi)
         if (single_line_pos < 0) and multi_line_pos <0 : break
         if (single_line_pos < 0) : single_line_pos = len(all_text)

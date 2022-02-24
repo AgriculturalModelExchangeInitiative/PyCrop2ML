@@ -11,6 +11,9 @@ from pycropml.transpiler.antlr_py.csharp import csharp_generate_tree
 from pycropml.transpiler.antlr_py.fortran import fortran_generate_tree
 from pycropml.transpiler.antlr_py.java import java_generate_tree
 from pycropml.transpiler.antlr_py.xml import xml_generate_tree
+from pycropml.transpiler.antlr_py.grammars.CMakeLexer import CMakeLexer
+from pycropml.transpiler.antlr_py.grammars.CMakeParser import CMakeParser
+from pycropml.transpiler.antlr_py.cmake import cmake_generate_tree
 from antlr4 import *
 import warnings
 import inspect
@@ -25,9 +28,9 @@ from antlr4.error.ErrorListener import ErrorListener, ConsoleErrorListener
 from operator import methodcaller
 from antlr4 import InputStream
 
-languages = ['cs',"bioma", 'f90', 'dssat', 'java', "xml"]
-gen = {'cs':"csharp","bioma":"csharp", 'f90':"fortran", 'dssat':"fortran", "java":"java", "xml":"xml"}
-NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp", 'f90':'Fortran90', 'dssat':'Fortran90', "java":"Java8", "xml":"XML"}
+languages = ['cs',"bioma", 'f90', 'dssat', 'java', "xml", "cmake"]
+gen = {'cs':"csharp","bioma":"csharp", 'f90':"fortran", 'dssat':"fortran", "java":"java", "xml":"xml", "cmake":"cmake"}
+NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp", 'f90':'Fortran90', 'dssat':'Fortran90', "java":"Java8", "xml":"XML", "cmake":"CMake"}
 
 def langLexerParser(ant):
     generator = {

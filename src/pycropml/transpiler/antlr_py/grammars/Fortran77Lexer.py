@@ -1,4 +1,4 @@
-# Generated from gram\fortran\Fortran77Lexer.g4 by ANTLR 4.8
+# Generated from Fortran77Lexer.g4 by ANTLR 4.8
 from antlr4 import *
 from io import StringIO
 from typing.io import TextIO
@@ -1011,7 +1011,7 @@ class Fortran77Lexer(Lexer):
 
     def COMMENT_sempred(self, localctx:RuleContext, predIndex:int):
             if predIndex == 0:
-                return self.column == 0
+                return getCharPositionInLine() == 0
          
 
 

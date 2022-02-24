@@ -18,7 +18,7 @@ GENERATORS = {
     for format in languages
 }
 
-def to_CASG(code, language, comments=None):
+def to_CASG(code, language, comments=None, env=None):
     """Transform CST provided from ANTLR parsers into a common ASG
 
     Args:
@@ -29,7 +29,8 @@ def to_CASG(code, language, comments=None):
     """
     tree = parse.parsef(code,language, start="compilation_unit", strict=False)
     ast_proc = simplifyAntlrTree.process_tree(tree,transformer_cls =GENERATORS[language].Transformer )
-    trans = GENERATORS[language].AstTransformer(ast_proc,code, comments).transformer()
-    print(trans)
-    csag= transform_to_syntax_tree(trans["body"])[0]
-    return csag
+    trans = GENERATORS[language].AstTransformer(ast_proc,code, comments, env).transformer()
+    #print(trans)
+    csag= transform_to_syntax_tree(trans["body"])
+    env = trans["env"]
+    return csag, env
