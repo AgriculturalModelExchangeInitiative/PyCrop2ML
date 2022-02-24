@@ -79,13 +79,16 @@ def fortrancomments(code):
 """
 def execute(package):
 
+    # Read Cmake files
     modu=os.path.join(package, "CMakeLists.txt")
     with open(modu, "r") as f:
         cmakecode = f.read() 
 
+    # Parse Cmake code to retrieve source files
     files = retrievefiles(cmakecode)
     fp = tempfile.TemporaryFile(mode="w+t",encoding="utf8")
  
+    # Merge files in a temporary file
     for f in files:
         fil = open(os.path.join(package, f), "r")
         fp.write(fil.read())
@@ -94,12 +97,14 @@ def execute(package):
     fp.seek(0)
     #print(fp.read())
     
+    # Create the Fortran ASG of the merged files
     code = fp.read()
     d_sorted = fortrancomments(code)
     asgt = to_CASG(code,'f90', comments=d_sorted)[0]
     fp.close() 
     
     extr = DssatExtraction()
+    # Find the not required functions or subroutines
     notreq = extr.notRequiredFunc(asgt)
 
     for f in files:
