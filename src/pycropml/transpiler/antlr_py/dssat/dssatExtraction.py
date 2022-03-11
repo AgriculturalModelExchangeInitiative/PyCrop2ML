@@ -49,6 +49,28 @@ class DssatExtraction(MetaExtraction):
         module = self.getAttNode(moduleNode,**{"name":name})
         return module[0] if module else []
     
+    def getDecl(self, tree, modulenames, varnames):
+        """Get declarations of variables provided from modules imports
+
+        Args:
+            tree (Node): ASG of the code from the merging of all source files
+            modulenames (list): List of the modules names imported in a specific subroutine or function
+            varnames (list): list of variables not declared in a specific subroutine or function
+
+        Returns:
+            dict: dictionary where the key is the name of the variable and its value is its declaration Node
+        """
+        res = {}
+        for modulename in modulenames:
+            m = self.getModule(tree, modulename)
+            for varname in varnames:
+                decl = self.getDeclaration(m,varname)
+                if decl:
+                    res[varname] = decl
+                    continue
+        return res
+
+    
     def getStruct(self, tree, name):
         self.getTypeNode(tree, "struct")
         structNode = self.getTree
@@ -72,7 +94,7 @@ class DssatExtraction(MetaExtraction):
     def externFunction(self, algo): 
         self.getTypeNode(algo, "call_stmt")
         custom_call = self.getTree
-        methNames = set({c.name for c in custom_call}) if custom_call else []
+        methNames = set({c.name for c in custom_call}) if custom_call else set()
         return methNames
 
     def notRequiredFunc(self, tree):

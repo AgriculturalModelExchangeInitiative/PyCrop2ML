@@ -722,20 +722,20 @@ selectCaseRange
 endSelectStmt : (ENDSELECT NAME? ) | ( END SELECT NAME? );
 
 selectCaseBody
-    : caseStmt
+    : caseStmt 
 	| selectCaseBody caseBodyConstruct
     ;
 
 caseBodyConstruct : caseStmt | executionPartConstruct;
 
 caseStmt
-    : CASE caseSelector 
+    : CASE caseSelector
 	| CASE caseSelector NAME 
     ;
 
 caseSelector 
     : LPAREN caseValueRangeList RPAREN
-	| DEFAULT
+    | DEFAULT
     ;
 
 caseValueRangeList : caseValueRange+ ;

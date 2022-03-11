@@ -165,7 +165,7 @@ using CRA.AgroManagement;
     def description(self, node):
         self.write("public string Description") 
         self.open(node)
-        self.write('get { return "%s" ;}'%self.model.description.Abstract.replace("\n", ""))
+        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", ""))
         self.close(node)
         self.newline(extra=1) 
 
