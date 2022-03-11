@@ -350,8 +350,9 @@ def generate_doc(model):
     Author: %s
     Reference: %s
     Institution: %s
-    Abstract: %s
-""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+    ExtendedDescription: %s
+    ShortDescription: %s
+""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
 
     code = '\n'
     code += _doc

@@ -8,7 +8,7 @@ import os
 from path import Path
 import pycropml
 from pycropml.transpiler.main import Main
-from pycropml.transpiler.antlr_py.dssat.run import process_dssat
+from pycropml.transpiler.antlr_py.dssat.run2 import process_dssat
 from pycropml import render_cyml
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest

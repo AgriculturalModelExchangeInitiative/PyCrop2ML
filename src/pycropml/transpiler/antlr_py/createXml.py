@@ -6,7 +6,7 @@ class ns(Namespace):
     "Custom xml namespace"
 
 class Pl2Crop2ml(object):
-    """ Export a platform component into a Crop2ML Model unit.
+    """ Export a platform component into a Crop2ML ModelUnit.
 
     """
     def __init__(self, md, pkgname):
@@ -20,7 +20,7 @@ class Pl2Crop2ml(object):
         self.pkgname = pkgname
 
     def run_unit(self):
-        """ Generate Crop2ML specification of a simple strategy. """
+        """ Generate Crop2ML specification of a ModelUnit. """
         md = self.md
 
         # ModelUnit name id version timestep
@@ -32,7 +32,7 @@ class Pl2Crop2ml(object):
             ns.Authors(doc.Authors),
             ns.Institution(doc.Institution),
             ns.Reference(doc.Reference),
-            ns.Abstract(doc.Abstract),
+            ns.ExtendedExtraction(doc.ExtendedDescription),
             ns.Url(doc.Url if "Url" in dir(doc) else "")
             )
         inputs = ns.Inputs()
@@ -50,7 +50,7 @@ class Pl2Crop2ml(object):
         xml.append(algo)
         if md.function:
             for f in md.function:
-                func = ns.Function(name = f, description="", language="cyml", type="internal", filename="algo/pyx/%s.pyx"%f)
+                func = ns.Function(name = f, description="", language="cyml", type="external", filename="algo/pyx/%s.pyx"%f)
                 xml.append(func)
         parametersets=ns.Parametersets()
         parametersets.append(ns.Parameterset(name="", description=""))
