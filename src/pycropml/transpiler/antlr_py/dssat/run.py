@@ -1,7 +1,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os
-from pycropml.transpiler.antlr_py.to_CASG import to_CASG
+from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
 from pycropml.transpiler.antlr_py.dssat.dssatExtraction import DssatExtraction
 from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
@@ -12,6 +12,26 @@ from pycropml.transpiler.antlr_py.extraction import ExtractComments
 from pycropml.transpiler.antlr_py.codeExtraction import extraction
 from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Declarations, Attr, Assignment, Call_stmt, Implicit_return, Local
 import tempfile
+
+model_tags = ["!%%CyML Model Begin%%", "!%%CyML Model End%%"]
+init_tags=["!%%CyML Init Begin%%", "!%%CyML Init End%%"]
+rates_tags = ["!%%CyML Rate Begin%%", "!%%CyML Rate End%%"]
+states_tags = ["!%%CyML State Begin%%", "!%%CyML State End%%"]
+compute_tags = ["!%%CyML Compute Begin%%", "!%%CyML Compute End%%"]
+ignore_tags = ["!%%CyML Ignore Begin%%", "!%%CyML Ignore End%%"]
+
+start_linecom = ["!", ["C", 1]] # if item is a list: first is the tag and scond is the porition of the tag
+default_mltCom = ['%%%%', '%%%%%'] # use '%%%%' if the language didn't provide multi lines comments
+
+language = 'f90'
+
+endconstruct = "end"
+
+endline = "\n"
+
+cyml_ext = ".pyx"
+
+output_folder = "temp"
 
 def translate(node, asgt, imports, inout=[]):
     """Transform specific nodes based on class of subnodes of node. It also allows to extract some usefull information. At finish
@@ -46,9 +66,9 @@ def translate(node, asgt, imports, inout=[]):
     r = z.process(h)
     
 
-    return translate_simple(r)
+    return translate_simple(r, total_tree=asgt)
 
-def translate_simple(r):
+def translate_simple(r, total_tree=None):
     """ Transform the ASG of Fortran code in the Common Model Representation that is transformed into CyML
 
     Args:
@@ -57,19 +77,24 @@ def translate_simple(r):
     Returns:
         str: The generated CyML code 
     """
-    cd = f90_cyml.F90_Cyml_ast(r)
+    cd = f90_cyml.F90_Cyml_ast(r, treeG=total_tree)
     hh = cd.transform()
     nd = transform_to_syntax_tree(hh)
     codes = writeCyml(nd)
     return codes
 
-def fortrancomments(code):
+def fortrancomments(code, start_linecom=[],default_mltCom = ['%%%%', '%%%%%'] ):
     """
         Extract comments inside Fortran code
     """
-    comments = ExtractComments(code, "C", '%%%%', '%%%%%', pos=1) 
-    comments2 = ExtractComments(code, "!", '%%%%', '%%%%%') 
-    comments.update(comments2)
+    comments = {}
+    if start_linecom:
+        for tag in start_linecom:
+            if isinstance(tag, list):
+                r = ExtractComments(code, tag[0], default_mltCom[0], default_mltCom[1], pos=tag[1]) 
+            else:
+                r = ExtractComments(code, tag, default_mltCom[0], default_mltCom[1]) 
+            comments.update(r)
     d_sorted = OrderedDict({key:value for key, value in sorted(comments.items(), key=lambda item: int(item[0]))})
     return d_sorted
 
@@ -79,7 +104,7 @@ def fortrancomments(code):
 """
 def execute(package):
 
-    # Read Cmake files
+    # Read Cmake files !!!!!!!!
     modu=os.path.join(package, "CMakeLists.txt")
     with open(modu, "r") as f:
         cmakecode = f.read() 
@@ -96,11 +121,13 @@ def execute(package):
         fil.close()
     fp.seek(0)
     #print(fp.read())
+    #!!!!
     
     # Create the Fortran ASG of the merged files
     code = fp.read()
     d_sorted = fortrancomments(code)
-    asgt = to_CASG(code,'f90', comments=d_sorted)[0]
+    dictasgt = to_dictASG(code,language, comments=d_sorted)
+    asgt = to_CASG(dictasgt)
     fp.close() 
     
     extr = DssatExtraction()
@@ -110,16 +137,17 @@ def execute(package):
     for f in files:
         with open(os.path.join(package,f), 'r') as text:
             mod = text.read()
-        res = extraction(mod, "!%%ModelUnit_Start%%","!%%ModelUnit_End%%","!%%Ignore_Start%%","!%%Ignore_End%%")
+        #comments = fortrancomments(mod)
+        res = extraction(mod, model_tags[0],model_tags[1],ignore_tags[0],ignore_tags[1])
         if res:
-            print(f)
-            modunit_asg = to_CASG(res, "f90")
+            modunit_dictasg = to_dictASG(res, language)
+            modunit_asg = to_CASG(modunit_dictasg)
             decl=[]
-            for m in modunit_asg[0][0].block:
+            for m in modunit_asg[0].block:
                 if m and m.type=="declaration":
                     decl.append(m)
 
-            imports = modunit_asg[0][0].imports
+            imports = modunit_asg[0].imports
             attrib = Attr(asgt,imports)
             node_w_attrib = attrib.process(modunit_asg[0])
             zz =attrib.decls
@@ -127,37 +155,52 @@ def execute(package):
             for d in zz:
                 attrname.append(d.decl[0].name)
 
-            initialization =  extraction(res, "!%%Initialization_Start%%","!%%Initialization_End%%")
-            ratecalculation = extraction(res, "!%%Algorithm_RateCalculation_Start%%","!%%Algorithm_RateCalculation_End%%")
-            statecalculation = extraction(res, "!%%Algorithm_StateCalculation_Start%%","!%%Algorithm_StateCalculation_End%%")
-            algoPart = extraction(res, "!%%Algorithm_Part_Start%%","!%%Algorithm_Part_End%%")  
-            initialization = initialization +"\n" + "end"
-            if algoPart:
-                algoPart = algoPart +"\n" + "end"
-
-            ratecalculation = ratecalculation +"\n" + "end"
-            statecalculation = statecalculation 
+            initialization =  extraction(res, init_tags[0],init_tags[1])
+            ratecalculation = extraction(res, rates_tags[0],rates_tags[1])
+            statecalculation = extraction(res, states_tags[0],states_tags[1])
+            algoPart = extraction(res, compute_tags[0],compute_tags[1])  
+            initialization = initialization +endline + endconstruct
+            algoPart = algoPart + endline + endconstruct
+   
+            ratecalculation = ratecalculation + endline + endconstruct
+            statecalculation = statecalculation + endline + endconstruct
             comments_init = fortrancomments(initialization)
             comments_rate = fortrancomments(ratecalculation)
-            initialization_asg = to_CASG(initialization, "f90",comments_init, env = modunit_asg[1])[0][0]
-            ratecalculation_asg = to_CASG(ratecalculation, "f90",comments_rate, env = modunit_asg[1])[0][0]
-            inout = modunit_asg[0][0].inputs + modunit_asg[0][0].outputs + attrname
+            comments_compute = fortrancomments(algoPart)
+            initialization_dictasg = to_dictASG(initialization, language,comments_init, env = modunit_asg[0].env)
+            ratecalculation_dictasg = to_dictASG(ratecalculation, language,comments_rate, env = modunit_asg[0].env)
+            algoPart_dictasg = to_dictASG(algoPart, language,comments_compute, env = modunit_asg[0].env)
+            initialization_asg = to_CASG(initialization_dictasg)
+            ratecalculation_asg = to_CASG(ratecalculation_dictasg)
+            algoPart_asg = to_CASG(algoPart_dictasg)
+            inout = modunit_asg[0].inputs + modunit_asg[0].outputs + attrname
             codes_init = translate(decl+initialization_asg,asgt,imports, inout=inout)
             codes_rates = translate(decl+ratecalculation_asg,asgt,imports,inout=inout)
-            exterfunc = extr.externFunction(modunit_asg[0][0]) # external functions
+            codes_compute = translate(decl+algoPart_asg,asgt,imports,inout=inout)
+            exterfunc = extr.externFunction(modunit_asg[0]) # external functions
             extfunc = exterfunc.difference(notreq)
+            
+            
             for ext in extfunc:
                 func = extr.getSubroutine(asgt, ext)
-                extcode = translate_simple(func)
-            out_init = os.path.join(package, "temp", "init."+f.split(".")[0] + ".pyx")
-            with open(out_init, "w") as fi:
-                fi.write(codes_init)
-            out_algo = os.path.join(package, "temp", f.split(".")[0] + ".pyx")
-            with open(out_algo, "w") as fi:
-                fi.write(codes_rates)
-            exfunc = os.path.join(package, "temp", ext + ".pyx")
-            with open(exfunc, "w") as fi:
-                fi.write(extcode)
+                extcode = translate_simple(func, total_tree=asgt)
+                exfunc = os.path.join(package, output_folder, ext + ".pyx")
+                with open(exfunc, "w") as fi:
+                    fi.write(extcode)
+            
+            if codes_init:
+                out_init = os.path.join(package, output_folder, "init."+f.split(".")[0] + ".pyx")
+                with open(out_init, "w") as fi:
+                    fi.write(codes_init)
+            if codes_rates:
+                out_rates = os.path.join(package, output_folder, f.split(".")[0] + ".pyx")
+                with open(out_rates, "w") as fi:
+                    fi.write(codes_rates)
+            else:
+                out_compute = os.path.join(package, output_folder, f.split(".")[0] + ".pyx")
+                with open(out_compute, "w") as fi:
+                    fi.write(codes_compute)
+
     
     
 

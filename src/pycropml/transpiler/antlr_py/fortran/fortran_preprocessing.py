@@ -55,7 +55,15 @@ class Call_stmt(Middleware):
         name = tree.name
         args = tree.args
         subr = extr.getSubroutine(self.trees, name)
+        otherparams = []
+        if subr.notdeclared:
+            imports = subr.imports
+            res = extr.getDecl(self.trees, imports, subr.notdeclared)
+            for j in res.values():
+                j.type="local"
+                otherparams.append(j) 
         inputs = [args[n] for n in subr.inputs_pos]
+        if otherparams: inputs = otherparams + inputs
         outputs = [args[n] for n in subr.outputs_pos]
         tree =Node(type="assignment", target = Node(type="tuple", elements=outputs), value = Node(type="custom_call", function=name, args=inputs), comments = comments)
         return self.transform_default(tree)
@@ -81,7 +89,7 @@ class Attr(Middleware):
     def __init__(self, trees = None, imports=[]):
         Middleware.__init__(self)
         self.decls = []
-        self.trees = trees
+        self.trees = trees if trees else None
         self.imports = imports
         self.attrinstance = {}
               

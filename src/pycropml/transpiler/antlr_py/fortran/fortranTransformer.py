@@ -6,7 +6,6 @@ from pycropml.transpiler.antlr_py.parse import *
 from pycropml.transpiler.antlr_py.fortran.builtin_typed_api import *
 from pycropml.transpiler.antlr_py.fortran.api_transform import *
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError, PseudoCythonNotTranslatableError, translation_error, type_check_error
-import functools
 from ast import AST
 
 f90_op = {".AND":"and", ".OR":"or"}
@@ -83,7 +82,10 @@ class SubroutineSubprogram(AliasNode):
     _fields_spec = ["subroutineName","subroutineRange", "RECURSIVE"]
 
 class SubroutineRange(AliasNode):
-    _fields_spec = ["subroutineParList", "eos", "body","bodyPlusInternals"]
+    _fields_spec = ["subroutineParList", "endSubroutineStmt", "body","bodyPlusInternals"]
+
+class EndSubroutineStmt(AliasNode):
+    _fields_spec = ['END', "SUBROUTINE", "NAME"]
 
 class TypeSpec(AliasNode):
     _fields_spec =["INTEGER","REAL","DOUBLEPRECISION","COMPLEX","DOUBLE","LOGICAL","CHARACTER","lengthSelector","kindSelector","PRECISION","charSelector","typeName"]
@@ -294,9 +296,139 @@ class SpecificationPartConstruct(AliasNode):
 
 class DeclarationConstruct(AliasNode):
     _fields_spec = ["derivedTypeDef", "interfaceBlock", "typeDeclarationStmt", "specificationStmt"]
- 
+    
+class InterfaceBlock(AliasNode):
+    _fields_spec = ["interfaceStmt", "interfaceBlockBody"]
 
+class InterfaceBlockBody(AliasNode):
+    _fields_spec = ["interfaceBlockBody", "interfaceBodyPartConstruct"]
+
+class InterfaceBodyPartConstruct(AliasNode):
+    _fields_spec = ["interfaceBody", "moduleProcedureStmt"]
+
+class InterfaceBody(AliasNode):
+    _fields_spec = ["functionPrefix", "NAME", "functionInterfaceRange", "SUBROUTINE", "subroutineInterfaceRange"]
+
+class FunctionInterfaceRange(AliasNode):
+    _fields_spec =  ["functionParList" ,"subprogramInterfaceBody"]
+
+class SubroutineInterfaceRange(AliasNode):
+    _fields_spec = ["subroutineParList", "subprogramInterfaceBody"]
+
+class SubprogramInterfaceBody(AliasNode):
+    _fields_spec = ["specificationPartConstruct", "subprogramInterfaceBody"]
+
+class CaseConstruct(AliasNode):
+    _fields_spec = ["NAME", "expression", "selectCaseRange"]
+
+
+class AllocateStmt(AliasNode):
+    _fields_spec = ["allocationList", "variable"]
+    
+class AllocationList(AliasNode):
+    _fields_spec = ["allocation"]
+    
+class Allocation(AliasNode):
+    _fields_spec = ["allocateObject",  "allocatedShape"]
+    
+class AllocateObject(AliasNode):
+    _fields_spec = ["variableName", "allocateObject", "fieldSelector"]
+    
+class AllocatedShape(AliasNode):
+    _fields_spec = ["sectionSubscriptList"]
+    
+class FieldSelector(AliasNode):
+    _fields_spec = ["sectionSubscriptList", "PCT", "NAME"]
+
+
+class SelectCaseRange(AliasNode):
+    _fields_spec = ["selectCaseBody", "endSelectStmt"]
+
+    
+class SelectCaseBody(AliasNode):
+    _fields_spec = ["caseStmt", "selectCaseBody", "caseBodyConstruct"]
+    
+class CaseBodyConstruct(AliasNode):
+    _fields_spec = ["caseStmt", "executionPartConstruct"]
+    
+class CaseStmt(AliasNode):
+    _fields_spec = ["caseSelector"]
+    
+class CaseSelector(AliasNode):
+    _fields_spec = ["caseValueRangeList"]
+    
+
+class CaseValueRangeList(AliasNode):
+    _fields_spec = ["caseValueRange"]
+
+class CaseValueRange(AliasNode):
+    _fields_spec = ["expression"]
+
+class SubroutineArgList(AliasNode):
+    _fields_spec = ["subroutineArg"]
+ 
 class Transformer(BaseNodeTransformer):
+    
+    def visit_SubroutineArgList(self, node):
+        return SubroutineArgList.from_spec(node)
+
+    def visit_AllocateStmt(self, node):
+        return AllocateStmt.from_spec(node)
+    
+    def visit_AllocationList(self, node):
+        return AllocationList.from_spec(node)
+    
+    def visit_Allocation(self, node):
+        return Allocation.from_spec(node)
+    
+    def visit_AllocateObject(self, node):
+        return AllocateObject.from_spec(node)
+    
+    def visit_AllocatedShape(self, node):
+        return AllocatedShape.from_spec(node)
+    
+    def visit_FieldSelector(self, node):
+        return FieldSelector.from_spec(node)
+    
+    def visit_EndSubroutineStmt(self, node):
+        return EndSubroutineStmt.from_spec(node)
+    def visit_CaseConstruct(self, node):
+        return CaseConstruct.from_spec(node)
+    def visit_SelectCaseRange(self, node):
+        return SelectCaseRange.from_spec(node)
+    def visit_SelectCaseBody(self, node):
+        return SelectCaseBody.from_spec(node)
+    def visit_CaseBodyConstruct(self, node):
+        return CaseBodyConstruct.from_spec(node)
+    def visit_CaseStmt(self, node):
+        return CaseStmt.from_spec(node)
+    def visit_CaseSelector(self, node):
+        return CaseSelector.from_spec(node)
+    def visit_CaseValueRangeList(self, node):
+        return CaseValueRangeList.from_spec(node)
+    def visit_CaseValueRange(self, node):
+        return CaseValueRange.from_spec(node)
+    
+    def visit_SubprogramInterfaceBody(self, node):
+        return SubprogramInterfaceBody.from_spec(node)
+    
+    def visit_SubroutineInterfaceRange(self, node):
+        return SubroutineInterfaceRange.from_spec(node)
+    
+    def visit_FunctionInterfaceRange(self, node):
+        return FunctionInterfaceRange.from_spec(node)
+    
+    def visit_InterfaceBody(self, node):
+        return InterfaceBody.from_spec(node)
+    
+    def visit_InterfaceBodyPartConstruct(self, node):
+        return InterfaceBodyPartConstruct.from_spec(node)
+
+    def visit_InterfaceBlockBody(self, node):
+        return InterfaceBlockBody.from_spec(node)
+    
+    def visit_InterfaceBlock(self, node):
+        return InterfaceBlock.from_spec(node)
 
     def visit_DeclarationConstruct(self, node):
         return DeclarationConstruct.from_spec(node)
@@ -520,7 +652,6 @@ class AstTransformer():
         if self.code:
             self.codelines = self.code.split("\n")
 
-    @functools.lru_cache(maxsize=128)
     def transformer(self):
         self.type_env['functions'] = {}
         self.assign = False
@@ -529,7 +660,9 @@ class AstTransformer():
         self.dependencies=[]
         self.recursive = False
         self.struct={}
+        self.notdeclared = set()
         self.out = None
+        self.selector = []
         self._imports=[]
         self._fromimport = {}
         self._definition_index = {'functions': {}}
@@ -550,13 +683,18 @@ class AstTransformer():
                 if n.__class__.__name__ == "SubroutineSubprogram" or n.__class__.__name__ == "FunctionSubprogram": #isinstance(n, SubroutineSubprogram)
                     self.definitions.append(('function', str(n.subroutineName.NAME)))
                     self._definition_index['functions'][str(n.subroutineName.NAME)] = n
-                    self.type_env.top['functions'][str(n.subroutineName.NAME)] = [
+                    if n.subroutineRange.subroutineParList.subroutinePars:
+                        self.type_env.top['functions'][str(n.subroutineName.NAME)] = [
                         'Function'] + ([None] * len(n.subroutineRange.subroutineParList.subroutinePars)) + [None]
+                    else:
+                        self.type_env.top['functions'][str(n.subroutineName.NAME)] = [
+                        'Function'] + [None]
+                        
                     self.type_env.top[str(n.subroutineName.NAME)] = self.type_env.top['functions'][str(n.subroutineName.NAME)]
-                if n.__class__.__name__ == "module" : #isinstance(n, SubroutineSubprogram)
-                    name = str(n.moduleStmt.moduleBodymoduleName)
+                if n.__class__.__name__ == "Module" : #isinstance(n, SubroutineSubprogram)
+                    name = str(n.moduleStmt.moduleName)
                     self._attr_index[name] = {}
-                    self.type_env[name] = {}
+                    self.type_env.top[name] = {}
                     self.definitions.append(('module',name))
 
     def visit(self, node):
@@ -616,6 +754,7 @@ class AstTransformer():
         return res 
     
     def visit_programunit(self, node,eos, mainProgram,functionSubprogram,subroutineSubprogram,blockDataSubprogram, module,comments, location):
+        print("hhhhhh",comments)
         if mainProgram : res =  self.visit(mainProgram)
         if functionSubprogram : res =  self.visit(functionSubprogram)
         if subroutineSubprogram : res =  self.visit(subroutineSubprogram)
@@ -651,16 +790,21 @@ class AstTransformer():
 
     def visit_namedconstantdef(self, node, NAME, expression,comments, location):
         pseudo_type = self.type_env[str(NAME)]
+        if not pseudo_type: self.notdeclared.add(str(NAME))
         res = self.visit(expression)
         return {"type":"assignment", "target":{"type":"local", "name":str(NAME), "pseudo_type":pseudo_type}, "value":res, "comments":comments}
 
     
     def visit_module(self, node, moduleStmt, moduleBody, comments, location):
         body =[]
+        name = self.visit(moduleStmt.moduleName)
+        self.type_env, old_type_env = self.type_env.top.child_env({}), self.type_env
         if moduleBody : 
             body = self.visit(moduleBody)
-        name = self.visit(moduleStmt.moduleName)
-        return {"type":"module", "name":name, "block":body, "comments":comments}
+        res = {"type":"module", "name":name, "block":body, "comments":comments}
+        self.notdeclared = set()
+        self.type_env = Env(dict(list(TYPED_API.items())), None)
+        return res
     
     def visit_submodulestmt(self, node, moduleSubprogramPartConstruct, location):
         return self.visit(moduleSubprogramPartConstruct)
@@ -678,7 +822,8 @@ class AstTransformer():
     def visit_bodyconstruct(self, node, specificationPartConstruct, executableConstruct, comments, location):
         if specificationPartConstruct: res =self.visit(specificationPartConstruct)
         if executableConstruct: res = self.visit(executableConstruct)
-        if res: res["comments"] = comments
+        if isinstance(res, dict): res["comments"] = comments
+        if isinstance(res, list): res.append({"type":"comments", "comments":comments})
         return res
         
 
@@ -692,17 +837,18 @@ class AstTransformer():
         if useStmt: res = self.visit(useStmt)
         if res and isinstance(res, dict):
             res["comments"] =  comments
-            return res
-        elif isinstance(res, list): res.append({"type":"comments", "comments":comments})
-        return 
+        elif comments and isinstance(res, list): 
+            res.append({"type":"comments", "comments":comments})
+        return res
 
     def visit_declarationconstruct(self, node, derivedTypeDef, interfaceBlock, typeDeclarationStmt, specificationStmt,comments, location):
         if derivedTypeDef: res = self.visit(derivedTypeDef)
         if interfaceBlock: res = self.visit(interfaceBlock)
         if typeDeclarationStmt: res = self.visit(typeDeclarationStmt)
-        if specificationStmt:   res = self.visit(specificationStmt) 
+        if specificationStmt:   
+            res = self.visit(specificationStmt) 
         if res and isinstance(res, dict): res["comments"] =  comments
-        elif res and isinstance(res, list): res.append({"type":"comments", "comments":comments})
+        elif res and comments and isinstance(res, list): res.append({"type":"comments", "comments":comments})
         return res
     
   
@@ -749,7 +895,7 @@ class AstTransformer():
             if str(node.NAME) in SYSTEM_API: self._fromimport[str(node.NAME)] = list(SYSTEM_API.values())
             else :                 
                 self._imports.append(str(NAME))
-                self.type_env.top['_%s' % str(NAME)], self.type_env.top[str(NAME)] = self.type_env.top[str(NAME)], 'library'
+                self.type_env['_%s' % str(NAME)], self.type_env[str(NAME)] = self.type_env[str(NAME)], 'library'
         return res
     
     def translate_list(self, inputs):
@@ -765,32 +911,35 @@ class AstTransformer():
     def visit_implicitstmt(self, node, implicitSpecList,comments,location):
         return None
     
-    def _attrFromCode(self, location):
+    def _attrFromCode(self, location, endline):
         inp, out = [], []
-        codes = self.codelines[location:]
+        codes = self.codelines[location-1:endline]
+        num = None
         for k,v in enumerate(codes):
-            if "input" in v.lower() or "output" in v.lower() or 'inout' in v.lower() :
-                location = k
+            if "!input" in v.lower() or "!output" in v.lower() or '!inout' in v.lower() :
+                num = k
                 break
+        if not num: return [], []
+        location = num
         line_ = codes[location]
         k = 0
-        while line_.lower().endswith("input") or line_.lower().endswith("output") or line_.lower().endswith("inout") :
+        while line_.lower().endswith("!input") or line_.lower().endswith("!output") or line_.lower().endswith("!inout") :
             line=line_.replace(" ", "")\
                     .replace("&", "")\
                     .split(",")
-            if line[-1].lower().endswith("input"):
+            if line[-1].lower().endswith("!input"):
                 for i,j in enumerate(line):
                     if i==0 and "(" in j:
                         inp.append(j[j.index("(")+1:])
                     elif i!=len(line)-1:
                         inp.append(j)
-            elif line[-1].lower().endswith("output"):
+            elif line[-1].lower().endswith("!output"):
                 for i,j in enumerate(line):
                     if i==len(line)-1:
                         out.append(j[:j.index(")")])
                     else:
                         out.append(j)
-            elif line[-1].lower().endswith("inout") :
+            elif line[-1].lower().endswith("!inout") :
                 for i,j in enumerate(line):
                     if i==0 and "(" in j:
                         inp.append(j[j.index("(")+1:])
@@ -812,10 +961,14 @@ class AstTransformer():
 
     def visit_subroutinesubprogram(self, node, subroutineName,subroutineRange, RECURSIVE,comments, location):
         self._imports=[]
+        self.sel = []
+        self.notdeclared=set()
         name = self.visit(subroutineName)
+        self.type_env, old_type_env = self.type_env.top.child_env({}), self.type_env
         z = self.visit(subroutineRange) 
+        endline = z["endline"]
         params = z["_params"]
-        inp, out = self._attrFromCode(location[0]-1)
+        inp, out = self._attrFromCode(location[0], endline)
         decl = [m["decl"] for m in z["_body"] if (isinstance(m, dict) and m["type"]=="declaration")]
         d = [item for sublist in decl for item in sublist]
         arguments, inputs_name =[], []
@@ -859,29 +1012,39 @@ class AstTransformer():
                 'inputs':inputs_name,
                 'inputs_pos':[k for k,v in enumerate(params) if v in inputs_name],
                 'outputs_pos':[k for k,v in enumerate(params) if v in outputs_name],
-                "outputs":outputs_name}
+                "outputs":outputs_name,
+                'notdeclared':self.notdeclared,
+                'env':self.type_env}
         from copy import deepcopy
         outs = deepcopy(outputs)
         outs_ = []
         for o in outs:
             o['type'] = "local"
             outs_.append(o)
-        self.type_env.top["functions"][res["name"]] = [res["return_type"]]
+        #self.type_env.top["functions"][res["name"]] = [res["return_type"]]
         res["block"].append({'type': 'implicit_return',
                             'value': {'type': 'tuple',
                             'pseudo_type': return_type[0],
                             'elements': outs_},
                             'pseudo_type':return_type[0]
                             })
+        self.type_env = old_type_env
         self._imports=[]
+        self.notdeclared = set()
         return res
 
-    def visit_subroutinerange(self, node, subroutineParList, eos, body,bodyPlusInternals,comments,location):
+    def visit_subroutinerange(self, node, subroutineParList, body,bodyPlusInternals,endSubroutineStmt,comments,location):
         if body :
             bod = self.visit(body.bodyConstruct)
         else : bod = self.visit(bodyPlusInternals)
-        params = self.translate_list(subroutineParList.subroutinePars)
-        return {"_params":params, "_body": bod}
+        if subroutineParList.subroutinePars:
+            params = self.translate_list(subroutineParList.subroutinePars)
+        else: params = []
+        endline = self.visit(endSubroutineStmt)
+        return {"_params":params, "_body": bod, "endline":endline}
+    
+    def visit_endsubroutinestmt(self, node, END, SUBROUTINE, NAME, comments,location ):
+        return location[0]
     
     def visit_body(self, node,bodyConstruct, comments, location):
         return self.visit(bodyConstruct)
@@ -945,7 +1108,7 @@ class AstTransformer():
                 zj["dim"] = len(attr["DIMENSION"])
                 zj["elts"] = attr["DIMENSION"]
                 zj["pseudo_type"] = ["array", elemtype_]                            
-            self.type_env[str(j["name"])] = zj["pseudo_type"]
+            self.type_env.top[str(j["name"])] = zj["pseudo_type"]
             if "value" in j: zj["value"] = j["value"]
             if attr and 'INTENT' in attr : zj["attr"] = attr['INTENT']
             z.append(zj)     
@@ -961,7 +1124,7 @@ class AstTransformer():
             node = attrSpecSeq
             attrSpecSeq = node.attrSpecSeq
             attrSpec = node.attrSpec
-            self.visit_attrspecseq(node, attrSpecSeq,attrSpec, location)
+            self.visit_attrspecseq(node, attrSpecSeq,attrSpec,comments, location)
         
         return self.attr 
     
@@ -998,6 +1161,11 @@ class AstTransformer():
     
     def visit_assignmentstmt(self, node, label, NAME, sFExprListRef, substringRange, expression,comments, eos, 
                             nameDataRef, sFDummyArgNameList, PCT,location):
+
+        id_type = self.type_env.top[str(NAME)]
+        if id_type is None:
+            self.notdeclared.add(str(NAME))
+            
         if sFDummyArgNameList:
             pass
         elif PCT:
@@ -1005,7 +1173,7 @@ class AstTransformer():
             if not sFExprListRef:
                 return {"type":"assignment", 
                         "target":{"type":"attr", 
-                                  "object":{"type":self.type_env[str(NAME)], "name": str(NAME), "pseudo_type":self.type_env[str(NAME)]},
+                                  "object":{"type":self.type_env.top[str(NAME)], "name": str(NAME), "pseudo_type":self.type_env.top[str(NAME)]},
                                   "name":nam
                                   },
                         "value":self.visit(expression),
@@ -1013,7 +1181,7 @@ class AstTransformer():
         else :
             if not sFExprListRef and not substringRange :
                 res = {"type":"assignment",
-                        "target": {"type":"local", "name":str(NAME), "pseudo_type": self.type_env[str(NAME)]} ,
+                        "target": {"type":"local", "name":str(NAME), "pseudo_type": self.type_env.top[str(NAME)]} ,
                         "value" : self.visit(expression),
                         "pseudo_type":"VOID",
                         "comments":comments}
@@ -1026,14 +1194,15 @@ class AstTransformer():
             elif sFExprListRef and not nameDataRef:
                 if not label:
                     if not substringRange:
+                        value = self.visit(expression)
                         return {'type': 'assignment',
                             'target': {'type': 'index',
                                 'sequence': {'type': 'local',
                                 'name': self.visit(NAME),
-                                'pseudo_type': self.type_env[str(NAME)]},
+                                'pseudo_type': id_type},
                                 'index': self.visit(sFExprListRef),
-                                'pseudo_type':  self.type_env[str(NAME)][-1]},
-                            'value': self.visit(expression),
+                                'pseudo_type':  value["pseudo_type"]},
+                            'value': value,
                             'pseudo_type': 'Void',
                         "comments":comments}
         
@@ -1046,7 +1215,7 @@ class AstTransformer():
 
     def visit_expression(self, node, level5Expr, expression, definedBinaryOp, comments,location):
         if definedBinaryOp:
-            return
+            print(f"definedBinaryOp not yet implemented at {location}")
         else: 
             res = self.visit(level5Expr)
             return res[0]
@@ -1058,7 +1227,6 @@ class AstTransformer():
     def visit_datastmtset(self, node,dse1 , dse2, comments,location):
         res1 = self.visit(dse1)
         res2 = self.visit(dse2)
-        
         if len(res1)==1:
             if len(res2)>1:
                 return    {'type': 'assignment',
@@ -1072,15 +1240,13 @@ class AstTransformer():
             else:
                 return {'type': 'assignment',
                             'target': res1[0],
-                            'value': {'type': res1[0]["pseudo_type"], "value": res2[0], 'pseudo_type': res1[0]["pseudo_type"]},
+                            'value': {'type': res1[0]["pseudo_type"], "value": res2[0][0], 'pseudo_type': res1[0]["pseudo_type"]},
                             'pseudo_type':"void",
                         "comments":comments}
         else:
             return [{"type":"assignment", "target":j, "value":{"type":j["pseudo_type"],"value":k[0],"type":j["pseudo_type"] }, 'pseudo_type':"void",
                         "comments":comments} for j,k in zip(res1, res2)]
                 
-                
-        return
     
     def visit_dse1(self, node, dataStmtObject,comments, location):
         if isinstance(dataStmtObject, list):
@@ -1106,7 +1272,7 @@ class AstTransformer():
     def visit_datastmtobject(self, node, variable, dataImpliedDo , comments,location):
         if variable: 
             res = self.visit(variable)
-            return {"type":"local", "name":res, "pseudo_type":self.type_env[res],
+            return {"type":"local", "name":res, "pseudo_type":self.type_env.top[res],
                         "comments":comments}
         elif dataImpliedDo:
             print(f'datastmtobject not implemented at {location}')
@@ -1118,7 +1284,7 @@ class AstTransformer():
         elements = self.visit(derivedTypeBody)
         res = {"type":"declaration", "decl":[{"type":"struct", "name":name, "elements": self.bodycomp}],
                         "comments":comments}
-        self.type_env[name] = self.bodycomp
+        self.type_env.top[name] = self.bodycomp
         self.struct.update({name:self.bodycomp})
         return res
 
@@ -1353,9 +1519,11 @@ class AstTransformer():
                 val = val.encode('utf-8')
             return {'type':'str', 'value': val, "pseudo_type":"str"}
         if logicalConstant : return {"type":"bool", "value": self.visit(logicalConstant), "pseudo_type":"bool"}
-        if arrayConstructor : return self.visit(arrayConstructor)
+        if arrayConstructor : 
+            print(location, "ooopppppp")
+            return self.visit(arrayConstructor)
         else:
-            pass
+            print(f"visit_primary not implemented at {location}")
 
     def visit_unsignedarithmeticconstant(self, node,  ICON, RDCON, complexConst, UNDERSCORE, kindParam,comments, location):
         if ICON: return self.visit(ICON)
@@ -1365,10 +1533,88 @@ class AstTransformer():
 
         return 
     
-    def visit_caseconstruct(self, node, NAME, COLON, SELECTCASE, CASE,LPAREN, expression, RPAREN, eos, SELECT, selectCaseRange,comments, location):
-        
-        
-        return 
+    def visit_caseconstruct(self, node, NAME, expression, selectCaseRange,comments, location):
+        self._if = 0
+        selector = self.visit(expression)
+        self.sel.append(selector)
+        ##TODO check the type of selector 
+        body = self.visit(selectCaseRange)
+        """
+        for b in body:
+            if "case" in b:
+                test
+        R = {
+            'type': 'if_statement',
+            'test': test,
+            'block': block,
+            'pseudo_type': 'Void',
+            'otherwise': otherwise,
+            "comments":comments
+        }"""
+        return body
+
+    def visit_selectcaserange(self, node, selectCaseBody, endSelectStmt, comments, location):
+        if selectCaseBody:
+            body = self.visit(selectCaseBody)
+            self.sel.pop()
+            self._if = 1
+            return body
+        elif endSelectStmt: 
+            self.sel.pop()
+            self._if = 1
+
+    
+    def visit_selectcasebody(self, node, caseStmt, selectCaseBody, caseBodyConstruct, comments, location):
+        if caseStmt:
+            r = self.visit(caseStmt)
+            return r
+        else:
+            body = self.visit(selectCaseBody)
+            casebody = self.visit(caseBodyConstruct)
+            if self._if==1:
+                body["block"].append(casebody)
+            else:
+                if not self.case:
+                    body["otherwise"][-1]["block"].append(casebody)  
+                else: body["otherwise"].append(casebody)
+            self.case = False
+            return body
+    
+    def visit_casebodyconstruct(self, node, caseStmt, executionPartConstruct, comments, location):
+        self.case = False
+        if caseStmt:
+            self.case = True
+            res = self.visit(caseStmt)
+        else:
+            res = self.visit(executionPartConstruct)
+        return res
+    
+    def visit_casestmt(self, node, caseSelector,comments, location):
+        res = self.visit(caseSelector)
+        return res
+    
+    def visit_caseselector(self, node, caseValueRangeList, comments, location):
+        if caseValueRangeList:
+            res = self.visit(caseValueRangeList)
+            if len(res)==1: 
+                res = res[0]
+                test={"type":"comparison", "op": "==", "left":self.sel[-1], "right":res}
+                if self._if ==0:
+                    r = {"type":"if_statement", "test":test, "block":[],"otherwise":[]}
+                else:
+                    r = {"type":"elseif_statement", "test":test, "block":[]}
+            else: return {"case":res}
+        else: 
+            r = {"type":"else_statement", "block":[]}
+        self._if = self._if + 1
+        return r
+       
+    def visit_casevaluerangelist(self, node, caseValueRange, comments, location):
+        res = self.translate_list(caseValueRange)
+        return res
+    
+    def visit_casevaluerange(self, node, expression, comments, location):
+        return self.visit(expression)
 
     def visit_ifconstruct(self, node,ifThenStmt, conditionalBody, elseIfConstruct, elseConstruct, comments,location):
         otherwise = []
@@ -1550,17 +1796,19 @@ class AstTransformer():
                 'pseudo_type': "unknown",
                 'function': function
             }
-    def visit_namedataref(self, node, NAME, SIZE, REAL, complexDataRefTail,comments, location):        
-        if not complexDataRefTail:
-            id_type = self.type_env.top[str(NAME)]
-            if id_type is None:
-                """ raise type_check_error(
-                    '%s is not defined at line %s and column %s' %(str(identifier), location[0], location[1]))""" # remove cote
+    def visit_namedataref(self, node, NAME, SIZE, REAL, complexDataRefTail,comments, location):  
+            
 
-            return {"type":"local", "name": str(NAME), "pseudo_type":id_type}
+        if not complexDataRefTail:
+            id = str(NAME)
+            id_type = self.type_env.top[id]
+            if id not in self.type_env.top.values:
+                self.notdeclared.add(str(NAME))
+
+            return {"type":"local", "name": id, "pseudo_type":id_type}
         
         else :
-            if NAME :  func = str(NAME) 
+            if NAME :  func = str(NAME)
             if SIZE : func = str(SIZE)
             if REAL : func = str(REAL)
             args = self.translate_list(complexDataRefTail)
@@ -1617,7 +1865,7 @@ class AstTransformer():
     
     def visit_functionarg(self, node,NAME, expression,comments, location):
 
-        return {"type":"assignment", "target":{"type":"local", "name":str(NAME), "pseudo_type":self.type_env.top[str(NAME)]},
+        return {"type":"assignment", "target":{"type":"local", "name":str(NAME), "pseudo_type":self.type_env[str(NAME)]},
                                             "value":self.visit(expression),
                                             "pseudo_type":"VOID" ,
                                              "comments":comments}
@@ -1643,7 +1891,7 @@ class AstTransformer():
             if not isinstance(api, dict):
                 z = api.expand(args)
                 return z
-        id_type = self.type_env.top[name]
+        id_type = self.type_env[name]
         if id_type and isinstance(id_type, list):
             return {'type': 'index',
                     'sequence': {'type': 'local',
@@ -1687,10 +1935,11 @@ class AstTransformer():
         if executableConstruct: res = self.visit(executableConstruct)
         if formatStmt: res = self.visit(formatStmt)
         if dataStmt: res = self.visit(dataStmt)
-        if entryStmt: res = self.visit(doubleDoStmt)
-        if res: 
-            res["comments"] = comments
-            return res
+        if entryStmt: res = self.visit(entryStmt)
+        if doubleDoStmt: res = self.visit(doubleDoStmt)
+        if isinstance(res, dict): res["comments"] = comments
+        if isinstance(res, list): res.append({"type":"comments", "comments":comments})
+        return res
     
     def visit_executableConstruct(self, node,actionStmt, doConstruct, ifConstruct, caseConstruct, whereConstruct, comments,location):
         if actionStmt : res = self.visit(actionStmt)
@@ -1708,7 +1957,7 @@ class AstTransformer():
     def visit_loopcontrol(self, node,variableName,expression,commaExpr,WHILE,comments, location):
         if not WHILE : 
             nm = self.visit(variableName)
-            index = {'type': 'local', 'pseudo_type': self.type_env.top[nm], 'name': nm}
+            index = {'type': 'local', 'pseudo_type': self.type_env[nm], 'name': nm}
             start = self.visit(expression[0])
             end = self.visit(expression[1])
             if commaExpr:
@@ -1886,10 +2135,81 @@ class AstTransformer():
             res["comments"] =  comments
             return res
         else: return {"type":"comments", "comments":comments}
-        
+
+    def visit_interfaceblock(self, node, interfaceStmt, interfaceBlockBody, comments, location):
+        return 
+
+    def visit_interfaceblockbody(self, node, interfaceBlockBody, interfaceBodyPartConstruct, comments, location):
+        return
+
+    def visit_interfacebodypartconstruct(self, node, interfaceBody, moduleProcedureStmt, comments, location):
+        return
+
+    def visit_interfacebody(self, node, functionPrefix, NAME, functionInterfaceRange, SUBROUTINE, subroutineInterfaceRange, comments, location):
+        return
+
+    def visit_functioninterfacerange(self, node, functionParList, subprogramInterfaceBody, comments, location):
+        return
+    
+    def visit_subroutineinterfacerange(self, node, subroutineParList, subprogramInterfaceBody, comments, location):
+        return
+
+    def visit_subprograminterfacebody(self, node, specificationPartConstruct, subprogramInterfaceBody, comments, location ):
+        print(f"visit_subprograminterfacebody not implemented yet at {location}")
+        return       
         
 
-       
+    def visit_allocatestmt(self, node,allocationList, variable, comments, location):
+        if variable:
+            print(f"visit_allocatestmt not yet implemented {location}")
+        else:
+            self.res = []
+            r = self.visit(allocationList)
+            return r
+    
+    def visit_allocationlist(self, node, allocation,comments, location):
+        
+        return self.visit(allocation)
+    
+    def visit_allocation(self, node, allocateObject,  allocatedShape, comments, location):
+        if not allocatedShape:
+            return self.visit(allocateObject)
+        else:
+            r1 = self.visit(allocateObject)
+            r2 = self.visit(allocatedShape) 
+            res =     {'type': 'ExprStatNode',
+                        'expr': {'type': 'standard_method_call',
+                        'receiver': r1,
+                        'message': 'allocate',
+                        'args': r2,
+                        'pseudo_type': 'int'}} 
+        return res
+    
+    def visit_allocateobject(self, node, variableName, allocateObject, fieldSelector, comments, location):
+        if variableName:
+            r = self.visit(variableName)
+            id_type = self.type_env[r]
+            if id_type is None:
+                self.notdeclared.add(r)
+            return {"type":"local", "name":r, "pseudo_type":id_type}
+        else:
+            r1 = self.visit(allocateObject)
+            r2 = self.visit(fieldSelector)
+            self.res.append(r2)     
+            return self.res
+    
+    def visit_allocatedshape(self, node, sectionSubscriptList, comments, location):
+        return self.visit(sectionSubscriptList)
+    
+    def visit_fieldselector(self, node, sectionSubscriptList, PCT, NAME, comments, location):
+        if sectionSubscriptList:
+            return self.visit(sectionSubscriptList)
+        else:
+            print(f"visit_fieldselector not yet implemented {location}")
+            return
+    
+    def visit_subroutinearglist(self, node, subroutineArg,comments, location):
+        return self.visit(subroutineArg)
 
 
 

@@ -39,3 +39,17 @@ The transformation process involves these steps:
 3.2. For each 
 
 
+Subroutines to ModelUnits:
+- For the list of arguments, make sure you specify whether these are inputs only INTENT(in), outputs only INTENT(out) or if they are both inputs and outputs INTENT(inout). 
+- Variables without INTENT keyword are considered local variables
+
+
+
+
+Requirements:
+
+- EXternal procedures:
+DO NOT USE THEM: modules are allowed! 
+CyMLTx doesn't handle procedures written with different programming language or using external libraries
+
+- Exhaustive use of the "implicit none" directive to detect bad variable usage

@@ -1,19 +1,22 @@
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.env import Env
 from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Assignment
+from pycropml.transpiler.antlr_py.fortran.fortranExtraction import FortranExtraction
+
 
 
 class F90_Cyml_ast():
     """G
     """
     
-    def __init__(self, tree, model=None, name=None, var= []):
+    def __init__(self, tree, model=None, name=None, var= [], treeG=None):
         self.tree = tree
         self.model = model
         self.name = name
         self.recursive = False
         self.type_env = Env()
-        self.var =  var
+        self.var = var if var else []
+        self.treeG = treeG if treeG else None
         
 
     def transform(self):
@@ -75,9 +78,16 @@ class F90_Cyml_ast():
 
 
     def visit_function_definition(self, node):
-        pa = self.visit(node.params)
-        block = self.visit(node.block)
-          
+        varnotdeclared = node.notdeclared
+        imports = node.imports
+        print(node.name, varnotdeclared)
+        extr2 = FortranExtraction()
+        if varnotdeclared:
+            res = extr2.getDecl(self.treeG, imports, varnotdeclared)
+            otherparams = list(res.values())
+        else: otherparams=[]
+        pa = otherparams + self.visit(node.params)
+        block = self.visit(node.block)       
         z = {
             'type':   "function_definition",
             'name':   node.name,
@@ -90,6 +100,12 @@ class F90_Cyml_ast():
 
         }
         return  z
+
+    def visit_module(self, node):
+        return self.visit(node.block)
+
+    def visit_test(self, node):
+        return {"type":"main", "body":self.visit(node.body)}
 
     def visit_declaration(self, node):
         res = []
@@ -169,7 +185,7 @@ class F90_Cyml_ast():
         return {"type":"array",
                 "name":str(node.name),
                 "dim": node.dim,
-                "elts":node.elts,
+                "elts":self.visit(node.elts),
                 "pseudo_type":node.pseudo_type
         }
    

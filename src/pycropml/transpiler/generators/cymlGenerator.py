@@ -255,6 +255,9 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.operator_exit()
 
     def visit_function_definition(self, node):
+        self.write("from math import *")
+        self.newline(node)
+        self.write("from array import array")
         self.newline(node)
         if node.comments:
             self.translate_com(node.comments)
@@ -262,12 +265,16 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.newline(node)
         self.write('def %s(' % node.name)
         for i, pa in enumerate(node.params):
-            #if pa.type == "local": 
-            self.write("%s %s"%(pa.pseudo_type if isinstance(pa.pseudo_type, str) else pa.pseudo_type[-1]+pa.pseudo_type[0],pa.name))
-            if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
+            if isinstance(pa.pseudo_type, str):
+                self.write("%s %s"%(pa.pseudo_type, pa.name))
+            elif pa.pseudo_type[0]=="array" and "elts" in dir(pa):
+                self.write("%s %s[%s]"%(pa.pseudo_type[-1], pa.name, pa.elts[0].name if "name" in dir(pa.elts[0]) else pa.elts[0].value))
+            else:
+                self.write("%s %s"%(pa.pseudo_type[-1]+pa.pseudo_type[0],pa.name))
+            """if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
                 #self.write(pa.name)
                 self.write(" = ")
-                self.visit(pa)  
+                self.visit(pa)  """
             if i!= (len(node.params)-1):
                 self.write(',\n         ')
         self.write('):')
@@ -301,8 +308,9 @@ class CymlGenerator(CodeGenerator, CymlRules):
     def visit_declaration(self, node):
         self.newline(node)
         if node.comments:
-            self.translate_com(node.comments)        
-        if node.decl[0].type=="list" and "elements" not in dir(node.decl[0]):
+            self.translate_com(node.comments)    
+
+        if node.decl[0].type=="list" and ("elements" not in dir(node.decl[0]) or not node.decl[0].elements):
             self.write("cdef %s "%(node.decl[0].pseudo_type[1].lower() + node.decl[0].pseudo_type[0]))
         elif node.decl[0].type == "array"and "elements" not in dir(node.decl[0]):
             if "elts" not in dir(node.decl[0]):
