@@ -4,10 +4,8 @@ platform:
 environment:
   matrix:
     - CONDA_RECIPE: conda
-      CONDA_VERSION: 2
-      PYTHON_VERSION: 27
-    - CONDA_RECIPE: conda
       CONDA_VERSION: 3
+      PYTHON_VERSION: 3
 
 install:
   - git clone https://github.com/OpenAlea/appveyor-ci.git

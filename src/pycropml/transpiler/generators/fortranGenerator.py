@@ -637,10 +637,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
         self.write(" , DIMENSION(")
-        if not node.elts: self.write(":")
+        if "elts" not in dir(node) or not node.elts: self.write(":")
         else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )")  
-        if not node.elts and node.name not in self.parameters :
+        if ("elts" not in dir(node) or not node.elts) and node.name not in self.parameters :
+            print(self.parameters, "hh")
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):

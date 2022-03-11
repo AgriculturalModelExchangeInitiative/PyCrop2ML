@@ -1234,6 +1234,7 @@ class AstTransformer():
     def newtype(self, name):
         tt={"intarray":["array",["array", "int"]],
             "doublearray":["array", ["array", "double"]],
+            "floatarray":["array", ["array", "float"]],
             "booleanarray":["array", ["array","bool"]],
             "stringarray":["array",["array","str"]],
             "intlist":["list",["list", "int"]],
@@ -1258,7 +1259,7 @@ class AstTransformer():
     def checktype(self,base):
         typet = ["int", "float","bool","datetime","str","list","dict",
                  "intlist","floatlist","booleanlist","datelist","stringlist","struct",
-                 "double", "doublelist", "doublearray", "intarray","doublearray", "array" ]
+                 "double", "doublelist", "doublearray","floatarray", "intarray", "array" ]
         types =  list(self.struct.keys())
         z = typet+types
         if base not in z:

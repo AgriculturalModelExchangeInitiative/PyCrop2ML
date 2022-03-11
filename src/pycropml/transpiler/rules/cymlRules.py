@@ -130,7 +130,8 @@ class CymlRules(GeneralRule):
         'array': {
             'len': 'len',
             'append': '.append',
-            'allocate':".allocate"
+            'allocate':".allocate",
+            'sum': 'sum',
         },
         'dict': {
 			'len': 'len',

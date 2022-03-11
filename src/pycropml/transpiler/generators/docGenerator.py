@@ -43,7 +43,8 @@ class DocGenerator(CodeGenerator):
             * Author: %s
             * Reference: %s
             * Institution: %s
-            * Abstract: %s""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+            * ExtendedDescription: %s
+            * ShortDescription: %s""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
         
         return _doc
     

@@ -1,50 +1,50 @@
-lexer grammar Fortran90Lexer;
+lexer grammar Fortran90Lexer; 
+ 
 
-
-RECURSIVE 
-   : 'RECURSIVE' | 'recursive' ;
-
-
-CONTAINS
-   :
-   ('contains'|'CONTAINS')
-   ;
-
-MODULE
-   : 'MODULE' | 'module'
-   ;
-
-ENDMODULE
-   : 'ENDMODULE' | 'endmodule'
-   ;
-
-PROGRAM
-   : 'program' | 'PROGRAM'
-   ;
-
-ENTRY
-   : 'entry' | 'ENTRY'
-   ;
-
-FUNCTION
-   : 'function' | 'FUNCTION'
-   ;
-
-
-BLOCK
-   : 'block' | 'BLOCK'
-   ;
-
+RECURSIVE  
+   : 'RECURSIVE' | 'recursive' |'Recursive' ; 
+ 
+ 
+CONTAINS 
+   : 
+   ('contains'|'CONTAINS' |'Contains') 
+   ; 
+ 
+MODULE 
+   : 'MODULE' | 'module' |'Module'
+   ; 
+ 
+ENDMODULE 
+   : 'ENDMODULE' | 'endmodule' |'Endmodule'
+   ; 
+ 
+PROGRAM 
+   : 'program' | 'PROGRAM' |'Program'
+   ; 
+ 
+ENTRY 
+   : 'entry' | 'ENTRY' |'Entry'
+   ; 
+  
+FUNCTION 
+   : 'function' | 'FUNCTION' | 'Function'
+   ; 
+ 
+ 
+BLOCK 
+   : 'block' | 'BLOCK' | 'Block'
+   ; 
+ 
 SUBROUTINE
-   : 'subroutine' | 'SUBROUTINE'
+   : 'subroutine' | 'SUBROUTINE' | 'Subroutine'
    ;
 
 ENDINTERFACE
-   : 'ENDINTERFACE' | ' endinterface'
+   : 'ENDINTERFACE' | ' endinterface' |'Endinterface'
    ;
 
 PROCEDURE
-   : 'procedure'  | 'PROCEDURE'
+   : 'procedure'  | 'PROCEDURE' | 'Procedure'
    ;
 
 END
@@ -52,34 +52,36 @@ END
    ;
 
 DIMENSION
-   : 'dimension' | 'DIMENSION'
+   : 'dimension' | 'DIMENSION' | 'Dimension'
    ;
 
-TARGET : 'TARGET' | 'target' ;
+TARGET : 'TARGET' | 'target' |'Target' ;
 
-ALLOCATABLE : 'ALLOCATABLE' | 'allocatable' ;
+ALLOCATABLE : 'ALLOCATABLE' | 'allocatable' |'Allocatable' ;
 
-OPTIONAL : 'OPTIONAL' | 'optional' ;
+OPTIONAL : 'OPTIONAL' | 'optional' |'Optional' ;
 
 NAMELIST : 'NAMELIST' | 'namelist' ;
 
-INTENT : 'INTENT' | 'intent' ;
+INTENT : 'INTENT' | 'intent' |'Intent' ;
 
-IN : 'IN' | 'in' ;
+IN : 'IN' | 'in' |'In' ;
 
-OUT : 'OUT' | 'out' ;
+OUT : 'OUT' | 'out' |'Out' ;
 
-INOUT : 'INOUT' | 'inout' ;
+INOUT : 'INOUT' | 'inout' | 'Inout' ;
 
-OPERATOR : 'operator' | 'OPERATOR';
+OPERATOR : 'operator' | 'OPERATOR' | 'Operator';
 
-USE : 'USE' | 'use' ;
+USE : 'USE' | 'use' |'Use' ;
 
-ONLY : 'ONLY' | 'only' ;
+ONLY : 'ONLY' | 'only' |'Only' ;
 
 IMPLIEDT : '=>' ;
 
-ASSIGNMENT : 'ASSIGNMENT' | 'assignment' ;
+ASSIGNMENT : 'ASSIGNMENT' | 'assignment' |'Assignment' ;
+
+
 
 DOP : '.''\\a'+'.';
 
@@ -97,44 +99,44 @@ DOUBLEPRECISION : 'DOUBLEPRECISION' | 'doubleprecision' | 'double precision' | '
 
 DOUBLECOLON : '::' ;
 
-ASSIGNSTMT : 'assign' | 'ASSIGN' ;
+ASSIGNSTMT : 'assign' | 'ASSIGN' |'Assign';
 
-COMMON : 'COMMON' | 'common' ;
+COMMON : 'COMMON' | 'common' |'Common';
 
-ELSEWHERE : 'ELSEWHERE' | 'elsewhere' ;
+ELSEWHERE : 'ELSEWHERE' | 'elsewhere' |'Elsewhere' ;
 
 REAL
-   : 'REAL' | 'real'
+   : 'REAL' | 'real' |'Real'
    ;
 
 
 
 EQUIVALENCE
-   : 'EQUIVALENCE' | 'equivalence'
+   : 'EQUIVALENCE' | 'equivalence' |'Equivalence'
    ;
 
 
 BLOCKDATA
-   : 'blockdata' | 'BLOCKDATA'
+   : 'blockdata' | 'BLOCKDATA' |'Blockdata'
    ;
 
 
 POINTER
-   : 'pointer' | 'POINTER'
+   : 'pointer' | 'POINTER' |'Pointer'
    ;
 
 fragment PRIVATES
-    : 'private' | 'PRIVATE'
+    : 'private' | 'PRIVATE' |'Private'
     ;
 
 PRIVATE : PRIVATES ;
 
 SEQUENCE
-   : 'sequence' | 'SEQUENCE'
+   : 'sequence' | 'SEQUENCE' |'Sequence'
    ;
    
 fragment PUBLIC 
-    : 'public' | 'PUBLIC'
+    : 'public' | 'PUBLIC' | 'Public'
     ;
 
 ACCESSSPEC
@@ -142,55 +144,55 @@ ACCESSSPEC
    ;
 
 IMPLICIT
-   : 'implicit' | 'IMPLICIT'
+   : 'implicit' | 'IMPLICIT' | 'Implicit'
    ;
 
 NONE
-   : 'none' | 'NONE'
+   : 'none' | 'NONE' | 'None'
    ;
 
 CHARACTER
-   : 'character' | 'CHARACTER'
+   : 'character' | 'CHARACTER' | 'Character'
    ;
 
 
 PARAMETER
-   : 'parameter' | 'PARAMETER'
+   : 'parameter' | 'PARAMETER' | 'Parameter'
    ;
 
 
 EXTERNAL
-   : 'external' | 'EXTERNAL'
+   : 'external' | 'EXTERNAL' | 'External'
    ;
 
 
 INTRINSIC
-   : 'intrinsic' | 'INTRINSIC'
+   : 'intrinsic' | 'INTRINSIC' |'Intrinsic'
    ;
 
 
 SAVE
-   : 'save' | 'SAVE'
+   : 'save' | 'SAVE' |'Save'
    ;
 
 
 DATA
-   : 'data' | 'DATA'
+   : 'data' | 'DATA' | 'Data'
    ;
 
 
 GO
-   : 'GO' | 'go'
+   : 'GO' | 'go'  | 'Go'
    ;
 
 
 GOTO
-   : 'GOTO' | 'goto' 
+   : 'GOTO' | 'goto' | 'Goto'
    ;
 
 
 IF
-   : 'IF' | 'if'
+   : 'IF' | 'if' | 'If'
    ;
 
 
@@ -214,23 +216,23 @@ RESULT
 
 
 ELSEIF
-   : 'ELSEIF' | 'elseif'
+   : 'ELSEIF' | 'elseif' | 'Elseif'
    ;
 
 
 DO
-   : 'DO' | 'do'
+   : 'DO' | 'do' |'Do'
    ;
 
-INCLUDE : 'INCLUDE' | 'include' ;
+INCLUDE : 'INCLUDE' | 'include' |'Include' ;
 
 CONTINUE
-   : 'CONTINUE' | 'continue'
+   : 'CONTINUE' | 'continue' |'Continue'
    ;
 
-ENDWHERE : 'ENDWHERE' | 'endwhere' ;
+ENDWHERE : 'ENDWHERE' | 'endwhere' | 'Endwhere';
 
-WHERE : 'WHERE' | 'where' ;
+WHERE : 'WHERE' | 'where' |'Where' ;
 
 ENDSELECT : 'ENDSELECT' | 'endselect' ;
 
@@ -238,17 +240,17 @@ SELECTCASE : 'SELECTCASE' | 'selectcase';
 
 SELECT: 'SELECT' | 'select' ;
 
-CASE : 'case' | 'CASE' ;
+CASE : 'case' | 'CASE' |'Case' ;
 
-DEFAULT : 'DEFAULT' | 'default';
+DEFAULT : 'DEFAULT' | 'default' | 'Default';
 
-DIRECT : 'DIRECT' | 'direct' ;
+DIRECT : 'DIRECT' | 'direct' |'Direct' ;
 
 STOP
-   : 'STOP' | 'stop'
+   : 'STOP' | 'stop' | 'Stop'
    ;
 
- REC : 'REC' | 'rec'
+ REC : 'REC' | 'rec' |'Rec'
    ;
 
 ENDDO
@@ -332,7 +334,7 @@ CALL
 
 
 RETURN
-   : 'RETURN' | 'return'
+   : 'RETURN' | 'return' | 'Return'
    ;
 
 
@@ -453,6 +455,8 @@ REWIND
 ENDBLOCKDATA : 'endblockdata' | 'ENDBLOCKDATA' ;
 
 ENDBLOCK : 'ENDBLOCK' | 'endblock' ;
+
+
 
 
 fragment NEWLINE
@@ -716,12 +720,12 @@ PRECISION
 
 
 INTEGER
-   : 'INTEGER' | 'integer'
+   : 'INTEGER' | 'integer' |'Integer'
    ;
 
 
-LOGICAL
-   : 'LOGICAL' | 'logical'
+LOGICAL 
+   : 'LOGICAL' | 'logical' | 'Logical'
    ;
 
 fragment SCORE : '_';
@@ -754,7 +758,8 @@ SCON
    ('"') (~('"') | '""')*  ('"')
    ;
 
-RDCON : NUM+ '.' NUM* EXPON?
+RDCON : NUM+ '.' NUM* EXPON? 
+      | NUM* '.' NUM+ EXPON?
       ;
 
 DEALLOCATE : 'DEALLOCATE' | 'deallocate' ;
@@ -799,9 +804,12 @@ STAR
    : STARCHAR
    ;
 
+
+
 STRINGLITERAL
    : '"' ~ ["\r\n]* '"'
    ;
+
    
 EOL
    : [\r\n] +

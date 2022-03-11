@@ -15,4 +15,5 @@ class Description(object):
         self.Authors= ''
         self.Institution = ''
         self.Reference = ''
-        self.Abstract = ''
+        self.ShortDescription = ''
+        self.ExtendedDescription = ''

@@ -18,19 +18,29 @@ GENERATORS = {
     for format in languages
 }
 
-def to_CASG(code, language, comments=None, env=None):
-    """Transform CST provided from ANTLR parsers into a common ASG
+def to_dictASG(code, language,comments=None, env=None):
+
+    """Transform CST provided from ANTLR parsers into a common language ASG
 
     Args:
         filePath (Path): path of the class
 
     Returns:
-        Node: A common Abstract Semantic Graph CASG
+        dict: A common Abstract Semantic Graph CASG of a specific language in dict format
     """
     tree = parse.parsef(code,language, start="compilation_unit", strict=False)
     ast_proc = simplifyAntlrTree.process_tree(tree,transformer_cls =GENERATORS[language].Transformer )
     trans = GENERATORS[language].AstTransformer(ast_proc,code, comments, env).transformer()
-    #print(trans)
-    csag= transform_to_syntax_tree(trans["body"])
-    env = trans["env"]
-    return csag, env
+    return trans
+
+def to_CASG(dictree):
+    """Transform CST provided from ANTLR parsers into a common language ASG
+
+    Args:
+        filePath (Path): path of the class
+
+    Returns:
+        Node: A common Abstract Semantic Graph CASG of a specific language
+    """
+    csag= transform_to_syntax_tree(dictree["body"])
+    return csag

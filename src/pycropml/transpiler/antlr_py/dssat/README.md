@@ -7,7 +7,7 @@ It includes the CMakeLists file that contains the source files.
 For the transformation, we need to identify:
     * the subroutines that correspond to the Crop2ML ModelUnits. 
     * The parts of these subroutines that represent initialization, rate calculation, state calculation. If rate and state  calculations are not separated, algorithm part must be identified 
-    * Given that some parts could be specific to DSSAT environment such as I/O operations, data formatting, and variables declarations statements for these constructions, it is necessary to skip these parts. 
+    * Given that some parts could be specific to DSSAT environment such as I/O operations, data formatting, and variables declarations statements for these constructions, it is necessary to skip these parts. Then these subroutines that are called inside the code must be specified.
 
 For that, we defined some tags (opened and closed) that will be introduced in the source files to distinguish each parts
 
@@ -21,7 +21,7 @@ For that, we defined some tags (opened and closed) that will be introduced in th
 |!%%Algorithm_Part_Start%% / !%%Algorithm_Part_End%%| Algorithm part  
 |!%%Ignore_Start%% / !%%Ignore_End%%| Ignored Statement
 
-
+For the not required subroutines, a tag "!%%NotRequired%%" is placed before these subroutines
 
 Transformation process
 ======================
@@ -30,6 +30,26 @@ The transformation process involves these steps:
 1. A parser of CMake file is used to extract the different source files
 
 
-2. Provide the Fortran90 grammar based on ANTLR that allows parsing Fortran fix and free-form. 
+2. These files are merged in one temporal file and parsed to generate a Fortran ASG (asgT)
+
+3. For each file of the source files:
+
+3.1. We identify and extract the subroutines that are tagged with ModelUnit tags.
+
+3.2. For each 
 
 
+Subroutines to ModelUnits:
+- For the list of arguments, make sure you specify whether these are inputs only INTENT(in), outputs only INTENT(out) or if they are both inputs and outputs INTENT(inout). 
+- Variables without INTENT keyword are considered local variables
+
+
+
+
+Requirements:
+
+- EXternal procedures:
+DO NOT USE THEM: modules are allowed! 
+CyMLTx doesn't handle procedures written with different programming language or using external libraries
+
+- Exhaustive use of the "implicit none" directive to detect bad variable usage

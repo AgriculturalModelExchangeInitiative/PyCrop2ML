@@ -234,6 +234,7 @@ FUNCTION_API = {
         'min':      StandardCall('global', 'min', expander=min_expander),
         'max':      StandardCall('global', 'max', expander=max_expander),
         'amax1':      StandardCall('global', 'max', expander=max_expander),
+        'amin1':      StandardCall('global', 'max', expander=min_expander),
         'abs':      StandardCall('global', 'abs', expander = abs_expander),
         'size':      StandardMethodCall('list', 'len', expander=len_expander),
         'int':      StandardMethodCall('float', 'int', expander=int_expander),

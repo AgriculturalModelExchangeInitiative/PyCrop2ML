@@ -162,7 +162,7 @@ class Model2Package(object):
             outputs.append(_out)
 
         _factory = node.Factory(name=model.name,
-                                description=model.description.Abstract,
+                                description=model.description.ExtendedDescription,
                                 nodemodule=signature(model),
                                 nodeclass=signature(model)+"_",
                                 inputs=inputs,

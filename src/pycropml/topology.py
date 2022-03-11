@@ -285,7 +285,7 @@ class Topology():
                 code += self.generate_function_signature(self.model) +'\n'
                 code += self.val_init(self.model)
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in self.model.outputs]) + '\n'                
+                code += '\n'+tab + 'return  ' + ', '.join( self.listab) + '\n'                
         return code
 
     def generate_function_signature(self,model):
@@ -316,13 +316,14 @@ class Topology():
     def val_init(self, model):
         inputs = model.inputs
         outputs = model.outputs
+        statenames = [st.name for st in model.states]
         #inout = inputs + outputs
         tab=""
-        listab=[]
-        for inp in outputs:
-            if inp.name not in listab:
+        self.listab=[]
+        for inp in inputs:
+            if inp.name not in self.listab and inp.name in statenames:
                 name = inp.name
-                listab.append(name)
+                self.listab.append(name)
                 if inp.datatype=="INT":
                     tab +="    cdef int %s = 0\n"%(name)
                 if inp.datatype=="DOUBLE":
