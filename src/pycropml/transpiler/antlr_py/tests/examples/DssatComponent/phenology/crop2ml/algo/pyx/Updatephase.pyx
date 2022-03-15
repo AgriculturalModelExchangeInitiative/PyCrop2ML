@@ -17,6 +17,11 @@ elif phase_t1 >= 1.0 and phase_t1 < 2.0:
             hasLastPrimordiumAppeared = 1
         else:
             appFLN = minFinalNumber + (sLDL * (maxDL - dayLength))
+            if appFLN / 2.0 <= leafNumber_t1:
+                finalLeafNumber = appFLN
+                hasLastPrimordiumAppeared = 1
+            else:
+                phase = phase_t1
         if hasLastPrimordiumAppeared == 1:
             phase = 2.0
     else:
@@ -60,5 +65,12 @@ elif phase_t1 == 4.5:
         phase = phase_t1
 elif phase_t1 >= 5.0 and phase_t1 < 6.0:
     localDegfm = degfm
+    if ignoreGrainMaturation:
+        localDegfm = -1.0
+    if cumulTTFromZC_91 >= localDegfm:
+        phase = 6.0
+    else:
+        phase = phase_t1
 elif phase_t1 >= 6.0 and phase_t1 < 7.0:
     phase = phase_t1
+return (finalLeafNumber, phase, hasLastPrimordiumAppeared)

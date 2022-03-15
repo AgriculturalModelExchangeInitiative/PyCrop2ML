@@ -419,7 +419,7 @@ class Transformer(BaseNodeTransformer):
         return Element_initializer.from_spec(node)"""
 
 class AstTransformer():
-    def __init__(self, tree, code: str=None, comments:str=None):
+    def __init__(self, tree, code: str=None, comments:str=None, env:str=None):
         self.tree = tree
         self.base = 0
         self.type_env = Env(dict(list(TYPED_API.items())), None)

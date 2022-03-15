@@ -75,11 +75,16 @@ class Assignment(Middleware):
     def __init__(self):
         Middleware.__init__(self)
         self.structfields = dict(list())
+        self.targets = []
               
     def process(self, tree):
         return self.transform(tree,in_block=False)
     
     def action_assignment(self, tree):
+        if tree.target.type == "local":
+            self.targets.append(tree.target.name)
+        else:
+            self.targets.append(tree.target.sequence.name)
         if tree.value.type == "local" and "name" in dir(tree.target) and  tree.target.name == tree.value.name:
             return Node(type="comments", comments = tree.comments)
         else:

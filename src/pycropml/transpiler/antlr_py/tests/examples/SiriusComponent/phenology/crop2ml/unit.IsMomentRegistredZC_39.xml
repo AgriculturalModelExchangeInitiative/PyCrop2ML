@@ -4,9 +4,10 @@
         <Authors>Pierre Martre</Authors>
         <Institution>INRA Montpellier</Institution>
         <Reference>(&apos;&apos;,)</Reference>
-        <Abstract>if FlagLeafLiguleJustVisible is already Registred </Abstract></Description>
+        <ExtendedExtraction></ExtendedExtraction>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="STRINGLIST" default="" description="List containing appearance of each stage" max="" min="" name="calendarMoments_t1" unit="" variablecategory="state"/></Inputs>
+        <Input datatype="STRINGLIST" default="" description="List containing appearance of each stage" inputtype="variable" max="" min="" name="calendarMoments_t1" unit="" variablecategory="state"/></Inputs>
     <Outputs>
         <Output datatype="INT" description=" if Flag leaf ligule has already appeared " max="1" min="0" name="isMomentRegistredZC_39" unit="" variablecategory="state"/></Outputs>
     <Algorithm filename="algo/pyx/IsMomentRegistredZC_39.pyx" language="cyml" platform=""/>

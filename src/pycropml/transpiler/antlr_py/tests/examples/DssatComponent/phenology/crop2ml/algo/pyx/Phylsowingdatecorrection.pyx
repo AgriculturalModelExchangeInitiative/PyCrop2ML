@@ -8,3 +8,4 @@ else:
         fixPhyll = p * (1 - (rp * min(sowingDay, sDws)))
     else:
         fixPhyll = p
+return (fixPhyll)

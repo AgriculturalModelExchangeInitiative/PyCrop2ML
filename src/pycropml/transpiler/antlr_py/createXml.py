@@ -26,13 +26,12 @@ class Pl2Crop2ml(object):
         # ModelUnit name id version timestep
         xml = ns.ModelUnit(modelid=self.pkgname + "." + str(md.name), name=str(md.name), timestep="1", version="001")
         doc = md.description
-        print(doc.Reference, "vbhh")
         desc = ns.Description(
             ns.Title(doc.Title),
             ns.Authors(doc.Authors),
             ns.Institution(doc.Institution),
             ns.Reference(doc.Reference),
-            ns.ExtendedExtraction(doc.ExtendedDescription),
+            ns.ExtendedDescription(doc.ExtendedDescription),
             ns.Url(doc.Url if "Url" in dir(doc) else "")
             )
         inputs = ns.Inputs()
@@ -77,7 +76,7 @@ class Pl2Crop2ml(object):
             ns.Authors(doc.Authors),
             ns.Institution(doc.Institution),
             ns.Reference(doc.Reference),
-            ns.Abstract(doc.Abstract)
+            ns.ExtendedDescription(doc.ExtendedDescription)
             )
 
         xml.append(desc)

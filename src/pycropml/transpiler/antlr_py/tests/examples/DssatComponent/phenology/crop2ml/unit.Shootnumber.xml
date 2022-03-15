@@ -4,15 +4,16 @@
         <Authors></Authors>
         <Institution></Institution>
         <Reference>Modeling development phase in the </Reference>
-        <Abstract></Abstract></Description>
+        <ExtendedDescription></ExtendedDescription>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="DOUBLE" default="288.0" description="shoot number for the whole canopy" max="10000" min="0" name="canopyShootNumber_t1" unit="shoot m-2" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="3.34" description="Leaf number " max="10000" min="0" name="leafNumber" unit="leaf" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="288.0" description="number of plant /m" max="500" min="0" name="sowingDensity" parametercategory="species" unit="plant m-2"/>
-        <Input datatype="DOUBLE" default="600.0" description="max value of shoot number for the canopy" max="1000" min="280" name="targetFertileShoot" parametercategory="species" unit="shoot"/>
-        <Input datatype="DOUBLELIST" default="[288.0]" description="store the amount of new tiller created at each time a new tiller appears" max="None" min="None" name="tilleringProfile_t1" unit="" variablecategory="state"/>
-        <Input datatype="INTLIST" default="[1, 1, 1]" description="store the number of tiller for each leaf layer" max="None" min="None" name="leafTillerNumberArray_t1" unit="leaf" variablecategory="state"/>
-        <Input datatype="INT" default="1" description="Number of tiller which appears" max="10000" min="0" name="numberTillerCohort_t1" unit="" variablecategory="state"/></Inputs>
+        <Input datatype="DOUBLE" default="288.0" description="shoot number for the whole canopy" inputtype="variable" max="10000" min="0" name="canopyShootNumber_t1" unit="shoot m-2" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="3.34" description="Leaf number " inputtype="variable" max="10000" min="0" name="leafNumber" unit="leaf" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="288.0" description="number of plant /m" inputtype="parameter" max="500" min="0" name="sowingDensity" parametercategory="species" unit="plant m-2"/>
+        <Input datatype="DOUBLE" default="600.0" description="max value of shoot number for the canopy" inputtype="variable" max="1000" min="280" name="targetFertileShoot" parametercategory="species" unit="shoot"/>
+        <Input datatype="DOUBLELIST" default="[288.0]" description="store the amount of new tiller created at each time a new tiller appears" inputtype="variable" max="None" min="None" name="tilleringProfile_t1" unit="" variablecategory="state"/>
+        <Input datatype="INTLIST" default="[1, 1, 1]" description="store the number of tiller for each leaf layer" inputtype="variable" max="None" min="None" name="leafTillerNumberArray_t1" unit="leaf" variablecategory="state"/>
+        <Input datatype="INT" default="1" description="Number of tiller which appears" inputtype="variable" max="10000" min="0" name="numberTillerCohort_t1" unit="" variablecategory="state"/></Inputs>
     <Outputs>
         <Output datatype="DOUBLE" description="average shoot number per plant in the canopy" max="10000" min="0" name="averageShootNumberPerPlant" unit="shoot m-2" variablecategory="state"/>
         <Output datatype="DOUBLE" description="shoot number for the whole canopy" max="10000" min="0" name="canopyShootNumber" unit="shoot m-2" variablecategory="state"/>
@@ -20,7 +21,7 @@
         <Output datatype="DOUBLELIST" description="store the amount of new tiller created at each time a new tiller appears" max="None" min="None" name="tilleringProfile" unit="dimensionless" variablecategory="state"/>
         <Output datatype="INT" description="Number of tiller which appears" max="10000" min="0" name="numberTillerCohort" unit="dimensionless" variablecategory="state"/></Outputs>
     <Algorithm filename="algo/pyx/ShootNumber.pyx" language="cyml" platform=""/>
-    <Function description="" filename="algo/pyx/fibonacci.pyx" language="cyml" name="fibonacci" type="internal"/>
+    <Function description="" filename="algo/pyx/fibonacci.pyx" language="cyml" name="fibonacci" type="external"/>
     <Parametersets>
         <Parameterset description="" name=""/></Parametersets>
     <Testsets>

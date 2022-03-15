@@ -1,5 +1,5 @@
-cdef floatlist TTList
-cdef floatlist GAIList
+cdef floatlist  TTList
+cdef floatlist  GAIList
 cdef float SumTT 
 cdef int count = 0
 cdef float gai_ = 0.0

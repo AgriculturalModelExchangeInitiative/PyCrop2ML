@@ -128,6 +128,7 @@ class PythonRules(GeneralRule):
         },
         'array': {
             'len': 'len',
+            'sum':"sum",
             'append': '.append',
             'allocate': lambda node: Node("assignment", target = node.receiver, value=Node("call", function = "array", args=[Node("str", value=b'f'),Node("binary_op", op="*", left = Node("list", elements=[Node("int", value="0")]),right=node.args)]))
         },
