@@ -29,3 +29,10 @@ if isVernalizable == 1 and vernaprog_t1 < 1.0:
         vernaprog = max(1.0, vernaprog)
     else:
         potlfno = aMXLFNO - ((aMXLFNO - minLeafNumber) * vernaprog)
+        if primordno >= potlfno:
+            minFinalNumber = max((potlfno + primordno) / 2.0, minFinalNumber_t1)
+            vernaprog = max(1.0, vernaprog)
+            calendarMoments.append("EndVernalisation")
+            calendarCumuls.append(cumulTT)
+            calendarDates.append(currentdate)
+return (vernaprog, minFinalNumber, calendarMoments, calendarDates, calendarCumuls)

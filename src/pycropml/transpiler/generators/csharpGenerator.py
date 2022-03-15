@@ -502,7 +502,9 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 if n.type=="array":
                     self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
                     if len(n.elts)==1:
-                        self.write(" = new %s[%s];"%(self.types[n.pseudo_type[1]], n.elts[0].value)) 
+                        self.write(" = new %s["%(self.types[n.pseudo_type[1]]))
+                        self.visit(n.elts[0])
+                        self.write('];')
                     elif len(n.elts) == 0:
                         self.write(" = new %s[];"%(self.types[n.pseudo_type[1]])) 
                     else:

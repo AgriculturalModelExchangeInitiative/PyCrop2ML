@@ -290,7 +290,7 @@ class CppGenerator(CodeGenerator,CppRules):
         i=0
         tplte=False
         for pa in params:
-            if isinstance(pa.pseudo_type, list) and pa.pseudo_type[0]=="array":
+            if pa and isinstance(pa.pseudo_type, list) and pa.pseudo_type[0]=="array":
                 if len(pa.elts)==0:
                     tplte=True
                     elt ="SIZE_%s"%i
@@ -356,17 +356,19 @@ class CppGenerator(CodeGenerator,CppRules):
         return newNode    
 
     def visit_module(self, node):
-        self.write(f'#ifndef _{self.model.name.upper()}_\n'
-                   f'#define _USE_MATH_DEFINES\n'
-                   f'#include <cmath>\n'
-                   f'#include <iostream>\n'
-                   f'#include <vector>\n'
-                   f'#include <string>\n'
-                   f'#include <numeric>\n'
-                   f'#include <algorithm>\n'
-                   f'#include <array>\n'
-                   f'#include <map>\n'
-                   f'#include <tuple>\n')
+        
+        if self.model: self.write(f'#ifndef _{self.model.name.upper()}_\n')
+                   
+        self.write('#define _USE_MATH_DEFINES\n'
+                   '#include <cmath>\n'
+                   '#include <iostream>\n'
+                   '#include <vector>\n'
+                   '#include <string>\n'
+                   '#include <numeric>\n'
+                   '#include <algorithm>\n'
+                   '#include <array>\n'
+                   '#include <map>\n'
+                   '#include <tuple>\n')
         if self.model:
             self.write(f'#include "{self.model.name.capitalize()}.h"\n')
 
@@ -542,7 +544,7 @@ class CppGenerator(CodeGenerator,CppRules):
                 if n.type=="list":
                     self.write("vector<%s> %s;"%(self.types[n.pseudo_type[1]],n.name))
                 if n.type=="array":
-                    self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts.name if "name" in dir(n.elts) else n.elts.value))
+                    self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts[0].name if "name" in dir(n.elts[0]) else n.elts[0].value))
                     self.write("%s;"%n.name)
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
@@ -628,17 +630,18 @@ class CppGenerator(CodeGenerator,CppRules):
         self.write(" %s"%pa.name) if (pa and "name" in dir(pa)) else ''        
 
     def visit_array_decl(self, node, pa=None):
-        v =self.array_parameter([pa])[0]
-        if pa.name in v: size = v[pa.name]
-        else: size = pa.elts[0].value
+        if pa: 
+            v =self.array_parameter([pa])[0]
+            if pa.name in v: size = v[pa.name]
+            else: size = pa.elts[0].value
         if not isinstance(node[1], list):
-            self.write("%s, %s"%(self.types[node[1]],size))
+            if pa: self.write("%s, %s"%(self.types[node[1]],size))
             self.write('>& ')
         else:
             node = node[1]
             self.visit_decl(node)
             self.write('>& ')
-        self.write(pa.name)
+        if pa: self.write(pa.name)
         
         
     def visit_decl(self, node, pa=None):

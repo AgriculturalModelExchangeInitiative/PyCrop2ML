@@ -4,14 +4,15 @@
         <Authors></Authors>
         <Institution></Institution>
         <Reference>Modeling development phase in the </Reference>
-        <Abstract></Abstract></Description>
+        <ExtendedDescription></ExtendedDescription>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="DOUBLE" default="741.510096671757" description="cumul thermal times at current date" max="10000" min="-200" name="cumulTT" unit="" variablecategory="auxiliary"/>
-        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing apparition of each stage" max="None" min="None" name="calendarMoments" unit="" variablecategory="state"/>
-        <Input datatype="DATELIST" default="[&apos;2007/3/21&apos;]" description="List containing  the dates of the wheat developmental phases" max="None" min="None" name="calendarDates" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLELIST" default="[0.0]" description="list containing for each stage occured its cumulated thermal times" max="None" min="None" name="calendarCumuls" unit="" variablecategory="state"/>
-        <Input datatype="DATE" default="2007/3/27" description="current date" max="None" min="None" name="currentdate" unit="" variablecategory="auxiliary"/>
-        <Input datatype="DOUBLE" default="1" description="the name of the phase" max="7" min="0" name="phase" unit="" variablecategory="state"/></Inputs>
+        <Input datatype="DOUBLE" default="741.510096671757" description="cumul thermal times at current date" inputtype="variable" max="10000" min="-200" name="cumulTT" unit="" variablecategory="auxiliary"/>
+        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing apparition of each stage" inputtype="variable" max="None" min="None" name="calendarMoments" unit="" variablecategory="state"/>
+        <Input datatype="DATELIST" default="[&apos;2007/3/21&apos;]" description="List containing  the dates of the wheat developmental phases" inputtype="variable" max="None" min="None" name="calendarDates" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLELIST" default="[0.0]" description="list containing for each stage occured its cumulated thermal times" inputtype="variable" max="None" min="None" name="calendarCumuls" unit="" variablecategory="state"/>
+        <Input datatype="DATE" default="2007/3/27" description="current date" inputtype="variable" max="None" min="None" name="currentdate" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="1" description="the name of the phase" inputtype="variable" max="7" min="0" name="phase" unit="" variablecategory="state"/></Inputs>
     <Outputs>
         <Output datatype="STRINGLIST" description="List containing apparition of each stage" max="None" min="None" name="calendarMoments" unit="" variablecategory="state"/>
         <Output datatype="DATELIST" description="List containing  the dates of the wheat developmental phases" max="None" min="None" name="calendarDates" unit="" variablecategory="state"/>

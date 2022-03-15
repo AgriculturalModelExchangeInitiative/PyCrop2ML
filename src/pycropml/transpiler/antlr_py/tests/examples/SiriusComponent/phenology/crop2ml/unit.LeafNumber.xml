@@ -4,13 +4,14 @@
         <Authors>Pierre MARTRE</Authors>
         <Institution>INRA Montpellier</Institution>
         <Reference>(&apos;&apos;,)</Reference>
-        <Abstract>calculate leaf number. LeafNumber increase is caped at one more leaf per day</Abstract></Description>
+        <ExtendedExtraction></ExtendedExtraction>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="INT" default="1" description="true if flag leaf has appeared (leafnumber reached finalLeafNumber)" max="1" min="0" name="hasFlagLeafLiguleAppeared" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="1" description=" the name of the phase" max="7" min="0" name="phase" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0" description="Actual number of phytomers" max="25" min="0" name="leafNumber_t1" unit="leaf" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0" description="phyllochron" max="1000" min="0" name="phyllochron_t1" unit="Â°C d leaf-1" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0.0" description="Thermal time increase of the day" max="100.0" min="0.0" name="deltaTT" unit="Â°C d" variablecategory="auxiliary"/></Inputs>
+        <Input datatype="INT" default="1" description="true if flag leaf has appeared (leafnumber reached finalLeafNumber)" inputtype="variable" max="1" min="0" name="hasFlagLeafLiguleAppeared" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="1" description=" the name of the phase" inputtype="variable" max="7" min="0" name="phase" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0" description="Actual number of phytomers" inputtype="variable" max="25" min="0" name="leafNumber_t1" unit="leaf" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0" description="phyllochron" inputtype="variable" max="1000" min="0" name="phyllochron_t1" unit="Â°C d leaf-1" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0.0" description="Thermal time increase of the day" inputtype="variable" max="100.0" min="0.0" name="deltaTT" unit="Â°C d" variablecategory="auxiliary"/></Inputs>
     <Outputs>
         <Output datatype="DOUBLE" description="Actual number of phytomers" max="25" min="0" name="leafNumber" unit="leaf" variablecategory="state"/></Outputs>
     <Algorithm filename="algo/pyx/LeafNumber.pyx" language="cyml" platform=""/>

@@ -7,3 +7,4 @@ if phase >= 1.0 and phase < 4.0:
         else:
             phyllochron_ = phyllochron_t1
         leafNumber = leafNumber_t1 + min(deltaTT / phyllochron_, 0.999)
+return (leafNumber)

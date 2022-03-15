@@ -4,11 +4,12 @@
         <Authors>Pierre Martre</Authors>
         <Institution></Institution>
         <Reference>Modeling development phase in the </Reference>
-        <Abstract></Abstract></Description>
+        <ExtendedDescription></ExtendedDescription>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing appearance of each stage at previous day" max="None" min="None" name="calendarMoments_t1" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLELIST" default="[0.0]" description="list containing for each stage occured its cumulated thermal times at previous day" max="None" min="None" name="calendarCumuls_t1" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="8.0" description="cumul TT at current date" max="10000" min="-200" name="cumulTT" unit="" variablecategory="auxiliary"/></Inputs>
+        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing appearance of each stage at previous day" inputtype="variable" max="None" min="None" name="calendarMoments_t1" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLELIST" default="[0.0]" description="list containing for each stage occured its cumulated thermal times at previous day" inputtype="variable" max="None" min="None" name="calendarCumuls_t1" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="8.0" description="cumul TT at current date" inputtype="variable" max="10000" min="-200" name="cumulTT" unit="" variablecategory="auxiliary"/></Inputs>
     <Outputs>
         <Output datatype="DOUBLE" description="cumul TT from Anthesis to current date " max="5000" min="0" name="cumulTTFromZC_65" unit="" variablecategory="auxiliary"/>
         <Output datatype="DOUBLE" description="cumul TT from FlagLeafLiguleJustVisible to current date " max="5000" min="0" name="cumulTTFromZC_39" unit="" variablecategory="auxiliary"/>

@@ -5,7 +5,6 @@ from pycropml.transpiler.antlr_py.java.api_transform import *
 from pycropml.transpiler.env import Env
 from pycropml.transpiler.helpers import *
 from pycropml.transpiler.antlr_py import parse
-from pycropml.transpiler.antlr_py.java.api_declarations import Declarations
 import ast
 from ast import AST
 

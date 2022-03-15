@@ -1,5 +1,4 @@
-from cgitb import reset
-from pydoc import Doc
+
 from pycropml.transpiler.env import Env
 from pycropml.transpiler.helpers import *
 from pycropml.transpiler.antlr_py.parse import *
@@ -655,6 +654,8 @@ class AstTransformer():
     def transformer(self):
         self.type_env['functions'] = {}
         self.assign = False
+        self.index = []
+        self.indexnames = []
         self.function_name = 'top level'
         self.definitions = []
         self.dependencies=[]
@@ -754,7 +755,6 @@ class AstTransformer():
         return res 
     
     def visit_programunit(self, node,eos, mainProgram,functionSubprogram,subroutineSubprogram,blockDataSubprogram, module,comments, location):
-        print("hhhhhh",comments)
         if mainProgram : res =  self.visit(mainProgram)
         if functionSubprogram : res =  self.visit(functionSubprogram)
         if subroutineSubprogram : res =  self.visit(subroutineSubprogram)
@@ -961,6 +961,8 @@ class AstTransformer():
 
     def visit_subroutinesubprogram(self, node, subroutineName,subroutineRange, RECURSIVE,comments, location):
         self._imports=[]
+        self.index = []
+        self.indexnames = []
         self.sel = []
         self.notdeclared=set()
         name = self.visit(subroutineName)
@@ -1009,11 +1011,15 @@ class AstTransformer():
                 "block":body,
                 "imports":self._imports,
                 "comments":comments,
-                'inputs':inputs_name,
+                'inputs_name':inputs_name,
                 'inputs_pos':[k for k,v in enumerate(params) if v in inputs_name],
                 'outputs_pos':[k for k,v in enumerate(params) if v in outputs_name],
-                "outputs":outputs_name,
+                "outputs_name":outputs_name,
                 'notdeclared':self.notdeclared,
+                'inputs':arguments,
+                'outputs':outputs,
+                'index': self.index,
+                'indexnames':self.indexnames,
                 'env':self.type_env}
         from copy import deepcopy
         outs = deepcopy(outputs)
@@ -1958,6 +1964,9 @@ class AstTransformer():
         if not WHILE : 
             nm = self.visit(variableName)
             index = {'type': 'local', 'pseudo_type': self.type_env[nm], 'name': nm}
+            if nm not in self.indexnames:
+                self.index.append(index)
+                self.indexnames.append(nm)
             start = self.visit(expression[0])
             end = self.visit(expression[1])
             if commaExpr:

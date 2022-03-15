@@ -185,7 +185,7 @@ class BiomaExtraction(MetaExtraction):
         description.Authors = desc["authors"].decode("utf-8")
         description.Institution=desc["institution"].decode("utf-8")
         description.Reference = desc["Reference"].decode("utf-8") if "Reference" in desc else "", 
-        description.Abstract = desc["description"].decode("utf-8")
+        description.ExtendedDescription = desc["description"].decode("utf-8")
         description.Url = desc["url"].decode("utf-8")
         return description
 
@@ -238,7 +238,8 @@ class BiomaExtraction(MetaExtraction):
         self.model.inputs = inputs
         self.model.outputs = outputs
 
-        funcs = self.externFunction(tree)
+        algo = self.getAlgo(tree)
+        funcs = self.externFunction(tree, algo)
         self.model.function = [func.name for func in funcs] if funcs else []
     
     def modelcomposition(self, models, tree):

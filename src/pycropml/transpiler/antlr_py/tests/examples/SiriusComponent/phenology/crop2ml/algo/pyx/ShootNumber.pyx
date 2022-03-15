@@ -1,7 +1,7 @@
 cdef int emergedLeaves 
 cdef int shoots 
 cdef int i 
-cdef intlist lNumberArray_rate
+cdef intlist  lNumberArray_rate
 tilleringProfile = copy(tilleringProfile_t1)
 emergedLeaves = max(1, ceil(leafNumber - 1.0))
 shoots = fibonacci(emergedLeaves)

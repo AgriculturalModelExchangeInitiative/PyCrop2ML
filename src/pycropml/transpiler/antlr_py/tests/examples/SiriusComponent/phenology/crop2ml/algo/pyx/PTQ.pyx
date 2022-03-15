@@ -1,5 +1,5 @@
-cdef floatlist TTList
-cdef floatlist PARList
+cdef floatlist  TTList
+cdef floatlist  PARList
 cdef int i 
 cdef int count 
 cdef float SumTT 

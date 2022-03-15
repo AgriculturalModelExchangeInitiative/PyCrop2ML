@@ -4,9 +4,10 @@
         <Authors></Authors>
         <Institution></Institution>
         <Reference>Modeling development phase in the </Reference>
-        <Abstract></Abstract></Description>
+        <ExtendedDescription></ExtendedDescription>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing appearance of each stage at previous time" max="None" min="None" name="calendarMoments_t1" unit="" variablecategory="state"/></Inputs>
+        <Input datatype="STRINGLIST" default="[&apos;Sowing&apos;]" description="List containing appearance of each stage at previous time" inputtype="variable" max="None" min="None" name="calendarMoments_t1" unit="" variablecategory="state"/></Inputs>
     <Outputs>
         <Output datatype="INT" description="if Flag leaf ligule has already appeared " max="1" min="0" name="isMomentRegistredZC_39" unit="" variablecategory="state"/></Outputs>
     <Algorithm filename="algo/pyx/IsMomentRegistredZC_39.pyx" language="cyml" platform=""/>
