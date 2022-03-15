@@ -23,3 +23,4 @@ if choosePhyllUse == "Test":
         phyllochron = p
     else:
         phyllochron = p * pincr
+return (phyllochron)

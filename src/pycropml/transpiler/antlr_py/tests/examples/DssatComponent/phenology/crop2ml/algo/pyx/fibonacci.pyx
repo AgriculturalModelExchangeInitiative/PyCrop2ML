@@ -1,3 +1,6 @@
+from math import *
+from array import array
+
 def fibonacci(int n):
     if n <= 1:
         return n

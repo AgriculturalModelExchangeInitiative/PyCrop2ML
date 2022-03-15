@@ -18,6 +18,7 @@ from pycropml.composition import ModelComposition
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract_compo
 from pycropml.transpiler.antlr_py.extraction import ExtractComments
 
+
 class DssatExtraction(MetaExtraction):
     def __init__(self):
         MetaExtraction.__init__(self)
@@ -36,10 +37,11 @@ class DssatExtraction(MetaExtraction):
                     res.append(n)
         return res
     
-    def getSubroutine(self, tree, name):
+    def getSubroutine(self, tree, name=None):
         self.getTypeNode(tree, "function_definition")
         functionNode = self.getTree
-        functions = self.getAttNode(functionNode,**{"name":name})
+        if name:functions = self.getAttNode(functionNode,**{"name":name})
+        else: return functionNode
         return functions[0] if functions else []
 
     
@@ -110,10 +112,11 @@ class DssatExtraction(MetaExtraction):
     
     def modelcomposition(self, file, models, tree):
         comments = ExtractComments(file, "!", "////", "////")
-        self.mc = extract_compo(comments)
+        newcom = list(comments.values())
+        com = '\n'.join(newcom)
+        self.mc = extract_compo(com)
         inputlink = []
         outputlink = []
-        inp = {}
         subroutines = self.getSubroutine(tree)
         algo = [f for f in subroutines if f.name.startswith("model")]
         self.getTypeNode(algo[0].block,"custom_call")

@@ -174,6 +174,7 @@ class CppRules(GeneralRule):
         },
         'array':{
                 'len': translateLenArray,
+                'sum': translateSum,
                 'append': '.Add'
 
                 

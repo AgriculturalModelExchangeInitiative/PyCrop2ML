@@ -96,6 +96,7 @@ def extract(comment):
 
 def attval(pat_name, string):  
     att = re.findall(pat_name, string, re.MULTILINE)
+    print("hhkkkk", att)
     lines = att[0][0].split('\n')[1:-1]
     dic = {}
     for line in lines:

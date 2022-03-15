@@ -4,27 +4,28 @@
         <Authors></Authors>
         <Institution></Institution>
         <Reference>Modeling development phase in the </Reference>
-        <Abstract></Abstract></Description>
+        <ExtendedDescription></ExtendedDescription>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="DOUBLE" default="5.0" description="Sowing date corrected Phyllochron" max="10000.0" min="0.0" name="fixPhyll" unit="" variablecategory="auxiliary"/>
-        <Input datatype="DOUBLE" default="0.0" description="Actual number of phytomers" max="25.0" min="0.0" name="leafNumber" unit="leaf" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="8.0" description="Leaf number above which the phyllochron is increased by Pincr" max="30.0" min="0.0" name="lincr" parametercategory="species" unit="leaf"/>
-        <Input datatype="DOUBLE" default="0.0" description="Leaf number up to which the phyllochron is decreased by Pdecr" max="100.0" min="0.0" name="ldecr" parametercategory="species" unit="leaf"/>
-        <Input datatype="DOUBLE" default="0.4" description="Factor decreasing the phyllochron for leaf number less than Ldecr" max="10.0" min="0.0" name="pdecr" parametercategory="species" unit="-"/>
-        <Input datatype="DOUBLE" default="1.5" description="Factor increasing the phyllochron for leaf number higher than Lincr" max="10.0" min="0.0" name="pincr" parametercategory="species" unit="-"/>
-        <Input datatype="DOUBLE" default="0.0" description="Photothermal quotient " max="10000.0" min="0.0" name="ptq" unit="MJ " variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0.0" description="Green Area Index" max="10000.0" min="0.0" name="gAImean" unit="m2 m-2" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0.45" description="Exctinction Coefficient" max="50.0" min="0.0" name="kl" parametercategory="species" unit="-"/>
-        <Input datatype="DOUBLE" default="0.0" description="Slope to intercept ratio for Phyllochron  parametrization with PhotoThermal Quotient" max="1000.0" min="0.0" name="pTQhf" parametercategory="genotypic" unit=""/>
-        <Input datatype="DOUBLE" default="20.0" description="Phyllochron at PTQ equal 1" max="1000.0" min="0.0" name="B" parametercategory="species" unit=""/>
-        <Input datatype="DOUBLE" default="120.0" description="Phyllochron " max="1000.0" min="0.0" name="p" parametercategory="species" unit=""/>
-        <Input datatype="STRING" default="Default" description="Switch to choose the type of phyllochron calculation to be used" max="" min="" name="choosePhyllUse" parametercategory="species" unit="-"/>
-        <Input datatype="DOUBLE" default="0.0" description="Area Leaf" max="1000.0" min="0.0" name="areaSL" parametercategory="genotypic" unit="cm2"/>
-        <Input datatype="DOUBLE" default="0.0" description="Area Sheath" max="1000.0" min="0.0" name="areaSS" parametercategory="genotypic" unit="cm2"/>
-        <Input datatype="DOUBLE" default="0.0" description="LAR minimum" max="1000.0" min="0.0" name="lARmin" parametercategory="genotypic" unit="leaf-1 "/>
-        <Input datatype="DOUBLE" default="0.0" description="LAR maximum" max="1000.0" min="0.0" name="lARmax" parametercategory="genotypic" unit="leaf-1 "/>
-        <Input datatype="DOUBLE" default="0.0" description="Sowing Density" max="1000.0" min="0.0" name="sowingDensity" parametercategory="genotypic" unit="plant m-2"/>
-        <Input datatype="DOUBLE" default="0.0" description="Leaf Number efficace" max="1000.0" min="0.0" name="lNeff" parametercategory="genotypic" unit="leaf"/></Inputs>
+        <Input datatype="DOUBLE" default="5.0" description="Sowing date corrected Phyllochron" inputtype="variable" max="10000.0" min="0.0" name="fixPhyll" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="0.0" description="Actual number of phytomers" inputtype="variable" max="25.0" min="0.0" name="leafNumber" unit="leaf" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="8.0" description="Leaf number above which the phyllochron is increased by Pincr" inputtype="parameter" max="30.0" min="0.0" name="lincr" parametercategory="species" unit="leaf"/>
+        <Input datatype="DOUBLE" default="0.0" description="Leaf number up to which the phyllochron is decreased by Pdecr" inputtype="parameter" max="100.0" min="0.0" name="ldecr" parametercategory="species" unit="leaf"/>
+        <Input datatype="DOUBLE" default="0.4" description="Factor decreasing the phyllochron for leaf number less than Ldecr" inputtype="parameter" max="10.0" min="0.0" name="pdecr" parametercategory="species" unit="-"/>
+        <Input datatype="DOUBLE" default="1.5" description="Factor increasing the phyllochron for leaf number higher than Lincr" inputtype="parameter" max="10.0" min="0.0" name="pincr" parametercategory="species" unit="-"/>
+        <Input datatype="DOUBLE" default="0.0" description="Photothermal quotient " inputtype="variable" max="10000.0" min="0.0" name="ptq" unit="MJ " variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0.0" description="Green Area Index" inputtype="variable" max="10000.0" min="0.0" name="gAImean" unit="m2 m-2" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0.45" description="Exctinction Coefficient" inputtype="parameter" max="50.0" min="0.0" name="kl" parametercategory="species" unit="-"/>
+        <Input datatype="DOUBLE" default="0.0" description="Slope to intercept ratio for Phyllochron  parametrization with PhotoThermal Quotient" inputtype="parameter" max="1000.0" min="0.0" name="pTQhf" parametercategory="genotypic" unit=""/>
+        <Input datatype="DOUBLE" default="20.0" description="Phyllochron at PTQ equal 1" inputtype="parameter" max="1000.0" min="0.0" name="B" parametercategory="species" unit=""/>
+        <Input datatype="DOUBLE" default="120.0" description="Phyllochron " inputtype="parameter" max="1000.0" min="0.0" name="p" parametercategory="species" unit=""/>
+        <Input datatype="STRING" default="Default" description="Switch to choose the type of phyllochron calculation to be used" inputtype="parameter" max="" min="" name="choosePhyllUse" parametercategory="species" unit="-"/>
+        <Input datatype="DOUBLE" default="0.0" description="Area Leaf" inputtype="parameter" max="1000.0" min="0.0" name="areaSL" parametercategory="genotypic" unit="cm2"/>
+        <Input datatype="DOUBLE" default="0.0" description="Area Sheath" inputtype="parameter" max="1000.0" min="0.0" name="areaSS" parametercategory="genotypic" unit="cm2"/>
+        <Input datatype="DOUBLE" default="0.0" description="LAR minimum" inputtype="parameter" max="1000.0" min="0.0" name="lARmin" parametercategory="genotypic" unit="leaf-1 "/>
+        <Input datatype="DOUBLE" default="0.0" description="LAR maximum" inputtype="parameter" max="1000.0" min="0.0" name="lARmax" parametercategory="genotypic" unit="leaf-1 "/>
+        <Input datatype="DOUBLE" default="0.0" description="Sowing Density" inputtype="parameter" max="1000.0" min="0.0" name="sowingDensity" parametercategory="genotypic" unit="plant m-2"/>
+        <Input datatype="DOUBLE" default="0.0" description="Leaf Number efficace" inputtype="parameter" max="1000.0" min="0.0" name="lNeff" parametercategory="genotypic" unit="leaf"/></Inputs>
     <Outputs>
         <Output datatype="DOUBLE" description="the rate of leaf appearance " max="1000" min="0" name="phyllochron" unit="" variablecategory="state"/></Outputs>
     <Algorithm filename="algo/pyx/Phyllochron.pyx" language="cyml" platform=""/>

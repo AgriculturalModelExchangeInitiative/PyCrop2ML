@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 from path import Path
 import os
-from pycropml.transpiler.antlr_py.to_CASG import to_CASG
+from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
 from pycropml.transpiler.antlr_py.bioma.biomaExtraction import BiomaExtraction
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.antlr_py.csharp import cs_cyml
@@ -41,23 +41,26 @@ vinfoAsg = []
 for vi in varInfo:
     with open(vi, "r") as f:
         v = f.read()
-    asg = to_CASG(v, 'cs')
+    dictasg = to_dictASG(v, 'cs')
+    asg = to_CASG(dictasg)
     vinfoAsg.append(asg)
 
 with open(compositeStrat, "r") as f:
     strat = f.read()
-compo = to_CASG(strat, 'cs')
+dictcompo = to_dictASG(strat, 'cs')
+compo = to_CASG(dictcompo)
 
 models = []
 for fil in simpleStrat:
     print(fil)
     with open(fil, "r") as f:
         strat = f.read()
-    strAsg = to_CASG(strat,'cs')
+    dictstrat = to_dictASG(strat,'cs')
+    strAsg = to_CASG(dictstrat)
     z = BiomaExtraction()
     p2 = z.prec_cur_states(strAsg)
-    funcs = z.externFunction(strAsg)
     algo = z.getAlgo(strAsg)
+    funcs = z.externFunction(strAsg, algo)
     var =  z.totalvar(strAsg)
     cd = cs_cyml.Cs_Cyml_ast(algo.block, var = var)
     h = cd.transform()

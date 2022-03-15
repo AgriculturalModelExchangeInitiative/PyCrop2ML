@@ -7,3 +7,4 @@ if phase >= 1.0 and phase < 4.0:
                 calendarMoments.append("FlagLeafLiguleJustVisible")
                 calendarCumuls.append(cumulTT)
                 calendarDates.append(currentdate)
+return (calendarMoments, calendarDates, calendarCumuls, hasFlagLeafLiguleAppeared)

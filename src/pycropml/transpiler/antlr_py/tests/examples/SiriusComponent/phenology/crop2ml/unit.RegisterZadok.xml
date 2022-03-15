@@ -4,26 +4,27 @@
         <Authors>Pierre MARTRE</Authors>
         <Institution>INRA/LEPSE Montpellier</Institution>
         <Reference>(&apos;&apos;,)</Reference>
-        <Abstract>Record the zadok stage in the calendar    	</Abstract></Description>
+        <ExtendedExtraction></ExtendedExtraction>
+        <Url></Url></Description>
     <Inputs>
-        <Input datatype="STRINGLIST" default="" description="List containing appearance of each stage" max="" min="" name="calendarMoments" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0" description="final leaf number" max="25" min="0" name="finalLeafNumber" unit="leaf" variablecategory="state"/>
-        <Input datatype="DOUBLELIST" default="" description="list containing for each stage occured its cumulated thermal times" max="" min="" name="calendarCumuls" unit="Â°C d" variablecategory="state"/>
-        <Input datatype="DATELIST" default="" description="List containing  the dates of the wheat developmental phases" max="" min="" name="calendarDates" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="0" description="Actual number of phytomers" max="25" min="0" name="leafNumber" unit="leaf" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="1" description=" the name of the phase" max="7" min="0" name="phase" unit="" variablecategory="state"/>
-        <Input datatype="INT" default="0" description="true if the zadok stage has changed this time step" max="1" min="0" name="hasZadokStageChanged_t1" unit="" variablecategory="state"/>
-        <Input datatype="STRING" default="" description="zadok stage" max="" min="" name="currentZadokStage_t1" unit="" variablecategory="state"/>
-        <Input datatype="DOUBLE" default="112.330110409888" description="cumul thermal times at currentdate" max="10000" min="-200" name="cumulTT" unit="Â°C d" variablecategory="auxiliary"/>
-        <Input datatype="DOUBLE" default="" description=" cumul TT from Anthesis to current date " max="-5000D" min="0" name="cumulTTFromZC_65" unit="Â°C d" variablecategory="auxiliary"/>
-        <Input datatype="DATE" default="" description="current date " max="" min="" name="currentdate" unit="" variablecategory="auxiliary"/>
-        <Input datatype="DOUBLE" default="300.0" description="Duration of the endosperm endoreduplication phase" max="10000" min="0" name="der" parametercategory="constant" unit="Â°C d"/>
-        <Input datatype="DOUBLE" default="0.9" description="Slope of the relationship between Haun stage at terminal spikelet and final leaf number" max="10000" min="0" name="slopeTSFLN" parametercategory="constant" unit=""/>
-        <Input datatype="DOUBLE" default="2.6" description="Intercept of the relationship between Haun stage at terminal spikelet and final leaf number" max="10000" min="0" name="intTSFLN" parametercategory="constant" unit=""/></Inputs>
+        <Input datatype="DATELIST" default="" description="List containing  the dates of the wheat developmental phases" inputtype="variable" max="" min="" name="calendarDates" unit="" variablecategory="state"/>
+        <Input datatype="STRINGLIST" default="" description="List containing appearance of each stage" inputtype="variable" max="" min="" name="calendarMoments" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="1" description=" the name of the phase" inputtype="variable" max="7" min="0" name="phase" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLELIST" default="" description="list containing for each stage occured its cumulated thermal times" inputtype="variable" max="" min="" name="calendarCumuls" unit="Â°C d" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0" description="Actual number of phytomers" inputtype="variable" max="25" min="0" name="leafNumber" unit="leaf" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="0" description="final leaf number" inputtype="variable" max="25" min="0" name="finalLeafNumber" unit="leaf" variablecategory="state"/>
+        <Input datatype="STRING" default="" description="zadok stage" inputtype="variable" max="" min="" name="currentZadokStage_t1" unit="" variablecategory="state"/>
+        <Input datatype="INT" default="0" description="true if the zadok stage has changed this time step" inputtype="variable" max="1" min="0" name="hasZadokStageChanged_t1" unit="" variablecategory="state"/>
+        <Input datatype="DOUBLE" default="112.330110409888" description="cumul thermal times at currentdate" inputtype="variable" max="10000" min="-200" name="cumulTT" unit="Â°C d" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="" description=" cumul TT from Anthesis to current date " inputtype="variable" max="-5000D" min="0" name="cumulTTFromZC_65" unit="Â°C d" variablecategory="auxiliary"/>
+        <Input datatype="DATE" default="" description="current date " inputtype="variable" max="" min="" name="currentdate" unit="" variablecategory="auxiliary"/>
+        <Input datatype="DOUBLE" default="300.0" description="Duration of the endosperm endoreduplication phase" inputtype="parameter" max="10000" min="0" name="der" parametercategory="constant" unit="Â°C d"/>
+        <Input datatype="DOUBLE" default="0.9" description="Slope of the relationship between Haun stage at terminal spikelet and final leaf number" inputtype="parameter" max="10000" min="0" name="slopeTSFLN" parametercategory="constant" unit=""/>
+        <Input datatype="DOUBLE" default="2.6" description="Intercept of the relationship between Haun stage at terminal spikelet and final leaf number" inputtype="parameter" max="10000" min="0" name="intTSFLN" parametercategory="constant" unit=""/></Inputs>
     <Outputs>
+        <Output datatype="DATELIST" description="List containing  the dates of the wheat developmental phases" max="" min="" name="calendarDates" unit="" variablecategory="state"/>
         <Output datatype="STRINGLIST" description="List containing appearance of each stage" max="" min="" name="calendarMoments" unit="" variablecategory="state"/>
         <Output datatype="DOUBLELIST" description="list containing for each stage occured its cumulated thermal times" max="" min="" name="calendarCumuls" unit="Â°C d" variablecategory="state"/>
-        <Output datatype="DATELIST" description="List containing  the dates of the wheat developmental phases" max="" min="" name="calendarDates" unit="" variablecategory="state"/>
         <Output datatype="INT" description="true if the zadok stage has changed this time step" max="1" min="0" name="hasZadokStageChanged" unit="" variablecategory="state"/>
         <Output datatype="STRING" description="zadok stage" max="" min="" name="currentZadokStage" unit="" variablecategory="state"/></Outputs>
     <Algorithm filename="algo/pyx/RegisterZadok.pyx" language="cyml" platform=""/>

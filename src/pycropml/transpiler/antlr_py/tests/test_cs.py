@@ -1,9 +1,10 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
+from functools import total_ordering
 from path import Path
 import os
-from pycropml.transpiler.antlr_py.to_CASG import to_CASG
+from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
 
 
 cwd = Path(__file__).dirname()
@@ -17,4 +18,6 @@ print(strat)
 
 with open(strat, "r") as f:
     code = f.read()
-strAsg = to_CASG(code,'cs')
+
+strdict = to_dictASG(code,'cs')
+strAsg = to_CASG(strdict)

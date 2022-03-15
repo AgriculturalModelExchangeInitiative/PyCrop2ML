@@ -169,6 +169,7 @@ class CsharpRules(GeneralRule):
         },
         'array':{
                 'len': translateLenArray,
+                'sum':translateSum,
                 'append': '.Append'
 
                 
