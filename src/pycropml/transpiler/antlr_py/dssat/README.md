@@ -52,8 +52,7 @@ For that, we defined some tags (opened and closed) that will be introduced in th
 | %%CyML State Begin%% / %%CyML State End%% | State Calculation part 
 | %%CyML Compute Begin%% / %%CyML Compute End%% | Algorithm part  
 | %%CyML Ignore Begin%% / %%CyML Ignore End%% | Ignored Statement
-| %%CyML Description Begin%% / %%CyML Description End%% | Ignored Statement
-
+| %%CyML Description Begin%% / %%CyML Description End%% | Description
 
 <u> **Model description:** </u>
 
