@@ -1,7 +1,32 @@
 
 <u> **From crop DSSAT modeling platform to Crop2ML framework** </u>
 
-DSST modelers provide an autonomous crop model component.
+<u> **Expectations:** </u>
+
+A modeler provides an autonomous crop model component. A component could be defined by a set of simpler components (units)
+that could be composed hierarchically. The interaction of components is only determined based on their inputs and outputs. Simpler component could be tested independently of others by using only its inouts and outputs.
+Based on this component, Crop2ML Models are generated. It consists of creating:
+- Model Specification (Meta-information of component)
+- Model Algorithms
+- Model Initialization
+- External Functions (Functions developed by platforms modelers called by the component)
+
+ Specification is generated in a declarative approch, in XML format validated by a DTD whereas Algorithms, Initialization and Functions are generated in CyML language.
+
+<u> **Requirements:** </u>
+
+ The original code provided by the platform (source) should follow these guidelines:
+ 1. Define explicitely the inputs and outputs of each units of the component.
+ 2. In the case where platform doesn't provide a mechanism to set inputs and outputs meta-information, it could be done by code comments inside the source code of the component
+ 3. !!! Important: The invokation of a routine with the same values of inputs should produce the same values of outputs. This requirement avoids using outputs as global variables and mechanism that preserves local variables or arrays (maintains its value from one call to the next) in the routine.  Likely a routine should not be depend on any computational state other than its inputs and outputs.
+ 4. Composite variables could be used. However, since that CyML/Crop2ML doesn't provide this datatype, an automatic decomposition of these variables is done. It requires to explicitely describe all the fields of the composite variable that is used in the main parts of the component (Algorithm, Initialization, Function) 
+ 5. State variables initialization implemented in the Initialization part must depend only on parameters and the exogenous (driven) variables of the component.
+ 6. Algorithm part depends on parameters, exogenous variables, initialized states and states variables. It could also depend on auxiliary or rates variables dependeing on the component modularity.
+
+
+
+
+DSSAT modelers provide an autonomous crop model component.
 It includes the CMakeLists file that contains the source files.
 
 For the transformation, we need to identify:
