@@ -41,11 +41,11 @@ Based on this component, Crop2ML Models are generated. It consists of creating:
 Based on the previous requirements, the original component could be manually transformed to take into account them. Besides, since components are implemented with different approaches and that they could be embedded with the specificities of the platforms, it is useful to provide mechanism that will allow to identify the main part of the components to make easy model transformation.
 Then for the transformation, we need to identify:
 
-    * the routines that correspond to the Crop2ML ModelUnits. 
+- the routines that correspond to the Crop2ML ModelUnits. 
 
-    * The parts of these subroutines that represent initialization and algorithm (computation). Algorithm could be divided into rate calculation, state calculation.
+- The parts of these subroutines that represent initialization and algorithm (computation). Algorithm could be divided into rate calculation, state calculation.
 
-    * Given that some parts could be specific to the platform environment such as I/O operations, data formatting, and the variables declarations statements for these constructs, it is necessary to skip these parts. ATTENTION!!! The code must be syntactically valid after ignoring some parts otherwise it cannot be parsed.
+- Given that some parts could be specific to the platform environment such as I/O operations, data formatting, and the variables declarations statements for these constructs, it is necessary to skip these parts. ATTENTION!!! The code must be syntactically valid after ignoring some parts otherwise it cannot be parsed.
 
 For that, we defined some tags (opened and closed) that will be introduced in the source files to distinguish each part. Each tag should be preceded by the symbol of comment of language of the source code ("!" in fortran, "#" in Python).
 
