@@ -2,7 +2,7 @@
 From crop DSSAT modeling platform to Crop2ML framework
 ======================================================
 
-<u> **General Expectations:** </u>
+<u> **General Expectations** </u>
 
 A modeler provides an autonomous crop model component. A component could be defined by a set of simpler components (units)
 that could be composed hierarchically. The interaction of components is only determined based on their inputs and outputs. Simpler component could be tested independently of others by using only its inputs and outputs.
@@ -14,7 +14,7 @@ Based on this component, Crop2ML Models are generated. It consists of creating:
 
  Specification is generated in a declarative approch, in XML format validated by a DTD whereas Algorithms, Initialization and Functions are generated in CyML language.
 
-<u> **General Requirements:** </u>
+<u> **General Requirements** </u>
 
  The original code provided by the platform (source) should follow these guidelines:
  1. Define explicitely the inputs and outputs of each unit of the component.
@@ -36,7 +36,7 @@ Based on this component, Crop2ML Models are generated. It consists of creating:
 
         9.4. Usual mathematical functions
 
- <u> **Manual transformation part:** </u>
+ <u> **Manual transformation part** </u>
  
 Based on the previous requirements, the original component could be manually transformed to take into account them. Besides, since components are implemented with different approaches and that they could be embedded with the specificities of the platforms, it is useful to provide mechanism that will allow to identify the main part of the components to make easy model transformation.
 Then for the transformation, we need to identify:
@@ -60,7 +60,7 @@ For that, we defined some tags (opened and closed) that will be introduced in th
 | %%CyML Ignore Begin%% / %%CyML Ignore End%% | Ignored Statement
 | %%CyML Description Begin%% / %%CyML Description End%% | Description
 
-<u> **Model description:** </u>
+<u> **Model description** </u>
 
 A simple format is provided for the description of inputs and outputs. It will be contained in the description tags.
 Each variable or parters will be described as folloxs as:
@@ -90,7 +90,7 @@ The transformation process involves these steps:
    4.4. If initialization or/and Algorithm or rate or/and state are found, the part of code is extracted from the file and is transformed into CyML. The local variables of each part are well filtred.
 
 
-<u> **Application with DSSAT components:** </u>
+<u> **Application with DSSAT components** </u>
 
 DSSAT modelers provide an autonomous crop model component.
 It includes the CMakeLists file that contains the source files. A parser of CMake file is used to extract the different source files.
