@@ -123,7 +123,7 @@ class Model2Package(object):
             list_inputs.append(inp.name)
         for out in outputs:
             if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+my_input(out)+"\n"
+                output_declaration += tab+"cdef "+my_input(out, True)+"\n"
 
         for algorithm in model_unit.algorithms:                                  
             if (algorithm.language=="Cyml") or (algorithm.language=="cyml"):
@@ -145,18 +145,21 @@ class Model2Package(object):
         outputs = model_unit.outputs
         inputs = model_unit.inputs
         tab = ' '*4
-        list_inputs=[]        
+        list_inputs=[]   
+        outs = []     
         
         """ we  declare all outputs which are not in inputs"""
         output_declaration=""
         z=[]
         for inp in inputs:
-            if "parametercategory" not in dir(inp):
+            if "variablecategory" in dir(inp) and inp.variablecategory=="state":
                 list_inputs.append(inp.name)
-                output_declaration += tab+"cdef "+my_input(inp, defa=False)+"\n"
-        for out in outputs:
-            if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+my_input(out, defa = False)+"\n"
+                """if inp.datatype in ("DOUBLE", "FLOAT"):
+                    inp.default = "0.0"
+                if inp.datatype == "INT":
+                    inp.default = "0" """
+                output_declaration += tab+"cdef "+my_input(inp, defa=True)+"\n"
+                outs.append(inp)
         code =""
         if model_unit.initialization:
             file_init = model_unit.initialization[0].filename
@@ -164,7 +167,10 @@ class Model2Package(object):
             par = []
             for inp in inputs:
                 if "parametercategory" in dir(inp):
-                    par.append(inp)        
+                    par.append(inp)  
+                elif inp.variablecategory=="exogenous":
+                    par.append(inp)
+                        
             with open(path_init, 'r') as f:
                 code_init = f.read() 
             if code_init is not None :         
@@ -172,7 +178,7 @@ class Model2Package(object):
                 code += self.generate_function_signature("init_%s"%signature(model_unit),par) +'\n'
                 code += output_declaration
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'            
+                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outs]) + '\n'            
         return code
 
             
@@ -195,7 +201,7 @@ class Model2Package(object):
         code = 'def %s('%(func_name,)
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
-        ins = [ my_input(inp) for inp in inputs]
+        ins = [ my_input(inp, False) for inp in inputs]
         separator = ',\n'+ code_size*' '
         code += separator.join(ins)
         code+= '):'
@@ -394,7 +400,7 @@ def transf(type_, elem):
     else: return elem
 
 
-def my_input(_input, defa=True):
+def my_input(_input, defa=False):
     name = _input.name
     _type = _input.datatype
         
@@ -413,7 +419,7 @@ def my_input(_input, defa=True):
                 return "str %s='%s'"%(name, default)
             elif DATATYPE[_type] == "datetime":                   
                 return "datetime %s=%s"%(name, transfDate(_type,default))                               
-            elif _type in DATATYPE:                  
+            elif _type in DATATYPE:                
                 default = float(default) if DATATYPE[_type]=="float" else int(default)                                    
                 return '%s %s=%s'%(DATATYPE[_type], name, default)
         else:
