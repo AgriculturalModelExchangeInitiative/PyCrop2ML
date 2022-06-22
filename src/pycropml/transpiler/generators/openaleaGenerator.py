@@ -71,7 +71,8 @@ class OpenaleaCompo(PythonCompo):
                     'url': 'http://pycropml.rtfd.org',
                     'icon': ''}
         name = mc.name
-        path = Path(os.path.join(mc.path,"src","openalea"))
+        wra_path = mc.path.split(os.path.sep)[-1]
+        path = Path(os.path.join(mc.path,"src","openalea", wra_path))
         _package = package.UserPackage(name, metainfo, path)
         for model in mc.model:
             if not model.package_name or model.package_name=="unit":		
@@ -118,7 +119,7 @@ class OpenaleaCompo(PythonCompo):
             outputs.append(_out)
 
         _factory = node.Factory(name=model.name,
-                                description=model.description.Abstract,
+                                description=model.description.ExtendedDescription,
                                 nodemodule=model.name.capitalize(),
                                 nodeclass="model_%s"%(signature(model)),
                                 inputs=inputs,
