@@ -144,7 +144,11 @@ class Topology():
         return module
 
     def createGraph(self):
-        d= defaultdict(list)        
+        d= defaultdict(list)  
+        if not self.model.internallink:
+            for mod in self.model.model:
+                d[mod.name].append(mod.name)
+            return nx.DiGraph(d, name = self.model.name) 
         for mod in self.model.model:
             for inter in self.model.internallink:    
                 source = inter["source"].split(".")[0]
@@ -164,6 +168,8 @@ class Topology():
         return edge_inout
     
     def topologicalSort(self):
+        if not self.model.internallink:
+            return 
         ordV = list(nx.topological_sort(self.createGraph()))
         return ordV
 
@@ -222,6 +228,11 @@ class Topology():
         return inout
 
     def algorithm(self):
+        if not self.topologicalSort():
+            code = ""
+            for mod in self.model.model:
+                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[mod.name][1]),mod.name.strip().replace(' ','_').lower(),','.join(self.minout()[mod.name][0]))
+            return code
         code=""
         W= self.topologicalSort()
         edge = self.create_edgeInOut()

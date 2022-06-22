@@ -8,6 +8,14 @@ from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 
+
+
+
+def initVal(type_):
+    if type_=="f": return 0.0
+    if type_=="i": return 0
+    
+
 class PythonGenerator(CodeGenerator, PythonRules):
     """This class contains the specific properties of 
     python language and use the NodeVisitor to generate a python
@@ -270,21 +278,21 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_declaration(self, node):
         self.newline(node)
         for n in node.decl  :           
-            if n.type in ("int", "float"):
+            if n.type in ("int", "float") and "value" in dir(n):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ")                 
-                self.write(n.value) if "value" in dir(n) else self.write("None")
-            elif n.type=="bool":
+                self.write(n.value) 
+            elif n.type=="bool" and "value" in dir(n):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ") 
-                self.write(str(n.value)) if "value" in dir(n) else self.write("None")       
-            elif  n.type=="str":
+                self.write(str(n.value))       
+            elif  n.type=="str" and "value" in dir(n):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" = ") 
-                self.emit_string(n) if "value" in dir(n) else self.write("''")               
+                self.emit_string(n)              
             elif n.type in ("list", "tuple"):
                 self.newline(node)
                 self.write(n.name)
@@ -308,7 +316,15 @@ class PythonGenerator(CodeGenerator, PythonRules):
                     self.write(" = array('%s',"%n.pseudo_type[1][0])
                     self.write("[")
                     self.comma_separated_list(n.elements)
-                    self.write("] )")                    
+                    self.write("] )") 
+            elif n.type=="array" and 'elements' not in dir(n):
+                if n.elts:
+                    c = n.pseudo_type[1][0]
+                    self.write(n.name)
+                    self.write(" = array('%s',"%n.pseudo_type[1][0])
+                    self.write("[%s]*"%initVal(c))
+                    self.visit(n.elts[0]) 
+                    self.write(")")                  
             elif n.type in ("list"):
                 self.newline(node)
                 self.write(n.name)
@@ -316,10 +332,15 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
 
     def visit_array(self,node): 
-        #self.write(node.name)
-        self.write("[")
-        self.comma_separated_list(node.elements)
-        self.write("]")
+        if node.elements.type != "list":
+            self.write('[')
+            self.visit(node.elements.left.elements[0])
+            self.write(']*')
+            self.visit(node.elements.right)
+        else:
+            self.write("[")
+            self.comma_separated_list(node.elements)
+            self.write("]")
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -355,9 +376,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_importfrom(self, node):
         if self.imp:
             self.newline(node)
-            if node.namespace=="math":
-                self.write("from math import *")  
-            else:
+            if node.namespace not in ["math", "array"]:
                 self.write('from %s import ' % (node.namespace))
                 for idx, item in enumerate(node.name):
                     if idx:

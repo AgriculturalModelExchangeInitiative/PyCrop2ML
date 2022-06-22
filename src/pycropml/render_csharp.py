@@ -30,6 +30,8 @@ class Model2Package(object):
     DATATYPE['DOUBLELIST'] = "List<double>"
     DATATYPE['INTLIST'] = "List<int>"
     DATATYPE['DATELIST']="List<string>"
+    DATATYPE['DOUBLEARRAY']="double[]"
+    DATATYPE['INTARRAY']="int[]"
 
     num = 0
 

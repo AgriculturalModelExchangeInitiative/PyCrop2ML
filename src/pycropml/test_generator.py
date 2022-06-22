@@ -31,6 +31,10 @@ def generate_test_py(model,dir=None, package=None):
     name = name.replace(' ', '_').lower()
     model_name = name
     psets = m.parametersets    
+    list_var=[]
+    for inp in m.inputs:
+        list_var.append(inp.name)
+    
     if package is not None:
         rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package)))
     else:
@@ -66,16 +70,19 @@ def generate_test_py(model,dir=None, package=None):
                 ins = inouts['inputs']
                 outs = inouts['outputs']
 
-                code = "params= model_%s(" % model_name
-                test_codes.append(code)
-
                 run_param = params.copy()
                 run_param.update(ins)
+
+                for i, j in enumerate(m.inputs):
+                    if j.name not in list(run_param.keys()):
+                        run_param[j.name]=j.default 
+
                 for k, v in six.iteritems(run_param):
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
-                    code = tab + "%s = %s," % (k, transf(type_[0], v)) 
+                    code = "%s = %s" % (k, transf(type_[0], v)) 
                     test_codes.append(code)
-                code = "     )"
+
+                code = "params= model_{0}({1})\n".format(model_name, ', '.join(list_var))
                 test_codes.append(code)
 
                 for j, k in enumerate(m.outputs):
