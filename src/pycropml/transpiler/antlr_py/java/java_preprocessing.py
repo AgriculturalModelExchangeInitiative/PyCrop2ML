@@ -23,15 +23,16 @@ class Declarations(Middleware):
             test  =False
             if "value" in dir(decl) and decl.value.type == "custom_call" and decl.value.function == "getValue" and decl.value.instance.name in self.all_decl:
                 self.kvnames[decl.name] = decl.value.instance.name
-            elif "value" not in dir(decl):
+                
+            elif not hasattr(decl, "value") and not hasattr(decl, "init"):
                 newdecl = decl
-                if decl.type == "array":
-                    for el in decl.elements:
-                        if el.name in self.declnames:
+                if decl.type == "array" and "elts" in dir(decl):
+                    for el in decl.elts:
+                        if "name" in dir(el) and el.name in self.declnames:
                             test = True
                         break
                 if test:
-                    newdecl = Node(type = "array", name=decl.name, dim= len(decl.elements), elements = [], pseudo_type=decl.pseudo_type) 
+                    newdecl = Node(type = "array", name=decl.name, dim= len(decl.elts), elts = [], pseudo_type=decl.pseudo_type) 
                     tree = Node(type = 'ExprStatNode',
                         expr = Node(type = 'standard_method_call',
                         receiver = Node(type = 'local',
@@ -39,7 +40,7 @@ class Declarations(Middleware):
                         pseudo_type = newdecl.pseudo_type,
                         ),
                         message = 'allocate',
-                        args = decl.elements,
+                        args = decl.elts,
                         pseudo_type = "Void"),
                         comments = tree.comments)                   
                     
@@ -48,8 +49,13 @@ class Declarations(Middleware):
                 self.declarations.append(Node(type="declaration", decl=[newdecl], comments=tree.comments))
                 self.declnames.append(decl.name)
             else: 
-                tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = decl.value, comments = tree.comments)
-                del decl.value
+                if hasattr(decl, "value"):
+                    tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = decl.value, comments = tree.comments)
+                    del decl.value
+                elif hasattr(decl, "init"):
+                    z = Node(type="array", init=decl.init)
+                    tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = z, comments = tree.comments)
+                    del decl.init
                 self.declarations.append(Node(type="declaration", decl=[decl], comments = [])) 
                 self.declnames.append(decl.name)               
                 res.append(self.transform_default(tree))
@@ -129,6 +135,20 @@ class Assignment(Middleware):
         and tree.value.receiver.type== "custom_call" \
         and tree.value.receiver.function == "getVariable":
             pass
+        elif tree.value.type == "RefTypeCasting" \
+        and tree.value.message=="Integer" \
+        and tree.value.receiver.type== "member_access" \
+        and isinstance(tree.value.receiver.name, Node) and tree.value.receiver.name.type== "custom_call":
+            if  tree.value.receiver.name.function == "getVariable":
+                args = tree.value.receiver.name.args[0].attribute
+                res = Node(type = 'standard_method_call',
+                            receiver = Node(type ="local", name = args, pseudo_type ="todoo"),
+                            args  = [],
+                            message = "int",
+                            pseudo_type = "int")
+                return self.transform_default(res)
+            else:
+                print(tree.y, "in java preprocessing")     
         else:
             return self.transform_default(tree)
     

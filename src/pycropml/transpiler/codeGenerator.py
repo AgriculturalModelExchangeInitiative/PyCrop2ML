@@ -108,7 +108,7 @@ class CodeGenerator(NodeVisitor):
         '+': 9, '-': 9,
         '*': 10, '@': 10, '/': 10, '//': 10, '%': 10,
         # unary: '+': 11, '-': 11, '~': 11
-        '**': 12,
+        '**': 12
     }
     
     unop_precedence = {

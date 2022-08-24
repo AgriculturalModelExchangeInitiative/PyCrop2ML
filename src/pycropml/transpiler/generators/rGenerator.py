@@ -23,6 +23,8 @@ class RGenerator(CodeGenerator, RRules):
         self.imp=True
         self.index=[]
         self.funcname=None
+        self.write("library(gsubfn)")
+        self.newline(1)
         if self.model: 
             self.doc= DocGenerator(model, "#'")
 
@@ -107,7 +109,12 @@ class RGenerator(CodeGenerator, RRules):
         #self.write("%s"%str(node.value))
     
     def visit_tuple(self, node):
-        self.emit_sequence(node.elements, u"()")
+        self.write("list[")
+        for n in node.elements:
+            self.write(n.name)
+            if n!=node.elements[len(node.elements)-1]:
+                self.write(", ")
+        self.write("]")  
               
     def visit_pair(self, node):
         self.visit(node.key)
@@ -313,11 +320,29 @@ class RGenerator(CodeGenerator, RRules):
             elif n.type in ("list", "array"):
                 self.newline(node)
                 self.write(n.name)
-                self.write(" <- vector()")                  
+                if n.type=="list": self.write(" <- vector()")   
+                if n.type=="array": 
+                    self.write(" <- array(dim=c(")   
+                    self.visit(n.elts[0]) 
+                    self.write(",1,1))")               
 
 
     def visit_array(self,node): 
-        self.write(node.name)
+        if node.elements.type != "list":
+            self.write(" array(")  
+            self.write("c(")
+            self.visit(node.elements.left.elements[0])
+            self.write("), dim=c(")
+            self.visit(node.elements.right) 
+            self.write(",1,1))")            
+        else:
+            self.write(" <- array(")  
+            self.write("c(")
+            self.comma_separated_list(node.elements)
+            self.write("), dim=c(")
+            self.visit(n.elts[0]) 
+            self.write(",1,1))")    
+
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -373,10 +398,11 @@ class RGenerator(CodeGenerator, RRules):
         self.visit(node.start)
         self.write(", ")
         self.visit(node.end)
-        self.write("-1")
-        if node.step.value!=1:
-            self.write(', ')
-            self.visit(node.step)
+        if node.step.type=='unary_op' and node.step.operator=="-":
+            self.write("+1")
+        else: self.write("-1") 
+        self.write(', ')
+        self.visit(node.step)
         self.write(')){')
         self.body(node.block)
         self.newline(node )

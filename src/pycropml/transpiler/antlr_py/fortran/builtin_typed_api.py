@@ -82,8 +82,16 @@ def add(l, r):
         return [l, r, 'int']
     elif l == 'str' and r == 'str':
         return [l, r, 'str']
-    elif isinstance(l, list) and l[0] == "List" and l == r:
+    elif isinstance(l, list)  and l == r:
         return [l, r, l]
+    elif isinstance(l, list) and r=="int" :
+        return [l, r, l]
+    elif isinstance(r, list) and l=="int" :
+        return [l, r, r]
+    elif isinstance(r, list) and l=="float" :
+        return [l, r, [r[0], "float"]] 
+    elif isinstance(l, list) and r=="float" :
+        return [l, r, [l[0], "float"]]     
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]
     elif l =="unknown" or r=="unknown":
@@ -101,8 +109,16 @@ def sub(l, r):
         return [l, r, 'int']
     elif l == 'str' and r == 'str':
         return [l, r, 'str']
-    elif isinstance(l, list) and l[0] == "List" and l == r:
+    elif isinstance(l, list)  and l == r:
         return [l, r, l]
+    elif isinstance(l, list) and r=="int" :
+        return [l, r, l]
+    elif isinstance(r, list) and l=="int" :
+        return [l, r, r]
+    elif isinstance(r, list) and l=="float" :
+        return [l, r, [r[0], "float"]] 
+    elif isinstance(l, list) and r=="float" :
+        return [l, r, [l[0], "float"]] 
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]
     elif l =="unknown" or r=="unknown":
@@ -122,6 +138,16 @@ def mul(l, r):
         return [l, r, r]
     elif r == 'int' and (isinstance(l, list) and l[0] == "List" or l == 'str'):
         return [l, r, l]
+    elif isinstance(l, list)  and l == r:
+        return [l, r, l]
+    elif isinstance(l, list) and r=="int" :
+        return [l, r, l]
+    elif isinstance(r, list) and l=="int" :
+        return [l, r, r]
+    elif isinstance(r, list) and l=="float" :
+        return [l, r, [r[0], "float"]] 
+    elif isinstance(l, list) and r=="float" :
+        return [l, r, [l[0], "float"]] 
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]    
     else:
@@ -136,6 +162,14 @@ def div(l, r, lo=None):
     elif l == 'int' and r == 'int':
         return [l, r, 'int']
         #raise PseudoCythonTypeCheckError("cast one variable at line %s position %s between /: %s and %s" % (lo[0], lo[1], serialize_type(l), serialize_type(r)))
+    elif isinstance(l, list)  and (l == r or r=="int"):
+        return [l, r, l]
+    elif isinstance(r, list) and l=="int" :
+        return [l, r, r]
+    elif isinstance(r, list) and l=="float" :
+        return [l, r, [r[0], "float"]] 
+    elif isinstance(l, list) and r=="float" :
+        return [l, r, [l[0], "float"]] 
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]    
     else:
@@ -150,6 +184,10 @@ def pow_(l, r):
     elif l =="unknown" or r=="unknown":
         return [l, r, "unknown"]    
     else:
+        if isinstance(l, list) and  r in ['float', 'int']: return [l, r, [l[0], pow_(l[-1], r)[-1]]]
+        elif isinstance(r, list) and  l in ['float', 'int']: return [l, r, [r[0], pow_(r[-1], l)[-1]]]
+        elif isinstance(r, list)  and isinstance(l, list): return [l, r, mul(l[-1], r[-1])]
+        
         raise PseudoCythonTypeCheckError("wrong types for **: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def mod(l, r):
@@ -242,7 +280,15 @@ TYPED_API = {
     },
     "str":{
         "index":["str","int"],
-    }
+    },
+    'array': {
+        'array': ['array'],
+        'len':      ['int'],
+        'index':       ['@t', 'int'],
+        'count':       ['@t', 'int'],
+        'append':       ['@t', ['array', '@t']],
+        'allocate': ['@t','int']
+    },
 }
     
 ORIGINAL_METHODS = {

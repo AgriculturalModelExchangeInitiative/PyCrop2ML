@@ -22,7 +22,9 @@ param_datatype ={"STRING":"String",
                 "STRINGLIST": "ListString",
                 "DOUBLELIST": "ListDouble",
                 "INTLIST": "ListInteger",
-                "BOOLEANLIST": "ListBoolean"}
+                "BOOLEANLIST": "ListBoolean",
+                "DOUBLEARRAY":"ArrayDouble",
+                "INTARRAY":"ArrayInteger"}
 
 def getdefault(x):
     if "default" in dir(x):
@@ -165,7 +167,7 @@ using CRA.AgroManagement;
     def description(self, node):
         self.write("public string Description") 
         self.open(node)
-        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", ""))
+        self.write('get { return "%s" ;}'%(self.model.description.ExtendedDescription.replace("\n", "") if self.model.description.ExtendedDescription else ""))
         self.close(node)
         self.newline(extra=1) 
 
@@ -419,6 +421,10 @@ using CRA.AgroManagement;
                             self.visit_decl(arg.pseudo_type)
                             self.write(" ")
                             self.write(arg.name)
+                            if arg.name in self.exogenous:
+                                self.write(" = ex.%s"%arg.name) 
+                            elif arg.name in self.auxiliary:
+                                    self.write(" = a.%s"%arg.name) 
                             if not node.name.startswith("init_"):
                                 if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.%s"%arg.name)
@@ -426,15 +432,13 @@ using CRA.AgroManagement;
                                     self.write(" = s1.%s"%arg.name[:-3])
                                 if arg.name in self.rates:
                                     self.write(" = r.%s"%arg.name)
-                                if arg.name in self.auxiliary:
-                                    self.write(" = a.%s"%arg.name) 
-                                if arg.name in self.exogenous:
-                                    self.write(" = ex.%s"%arg.name) 
                             else:
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                    if not arg.elts:
+                                        pass
+                                    else: self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
                             self.write(";")                   
         self.indentation -= 1 
         self.body(node.block)

@@ -74,9 +74,9 @@ def simplify(kind, generics):
 # refactoring here in future
 
 def add(l, r):
-    if l == 'float' and r in ['float', 'int']  or r == 'float' and l in ['float', 'int'] :
+    if (l == 'float' and r in ['float', 'int'])  or (r == 'float' and l in ['float', 'int']) :
         return [l, r, 'float']
-    elif l == 'double' and r in ['float', 'int','double']  or r == 'double' and l in ['float', 'int',"double"] :
+    elif (l in ['double', "Double"] and r in ['float', 'int','double', "Double"])  or (r in ['double', "Double"] and l in ['float', 'int',"double", "Double"])  :
         return [l, r, 'double']
     elif l == 'int' and r == 'int':
         return [l, r, 'int']
@@ -95,7 +95,7 @@ def add(l, r):
 def sub(l, r):
     if l == 'float' and r in ['float', 'int']  or r == 'float' and l in ['float', 'int'] :
         return [l, r, 'float']
-    elif l == 'double' and r in ['float', 'int','double']  or r == 'double' and l in ['float', 'int',"double"] :
+    elif (l in ['double', "Double"] and r in ['float', 'int','double', "Double"])  or (r in ['double', "Double"] and l in ['float', 'int',"double", "Double"]) :
         return [l, r, 'double']
     elif l == 'int' and r == 'int':
         return [l, r, 'int']
@@ -112,9 +112,9 @@ def sub(l, r):
         #raise PseudoCythonTypeCheckError("wrong types for +: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def mul(l, r):
-    if l in ['float', 'double'] and r in ['float', 'int', 'double'] :
+    if l in ['float', 'double', "Double"] and r in ['float', 'int', 'double', "Double"] :
         return [l, r, 'float']
-    elif r in ['float', 'double'] and l in ['float', 'int', 'double'] :
+    elif r in ['float', 'double', "Double"] and l in ['float', 'int', 'double', "Double" ]:
         return [l, r, 'float']
     elif l == 'int' and r == 'int':
         return [l, r, 'int']
@@ -129,9 +129,9 @@ def mul(l, r):
         #raise PseudoCythonTypeCheckError("wrong types for *: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def div(l, r, lo=None):
-    if l in ['float', 'double'] and r in ['float', 'int', 'double'] :
+    if l in ['float', 'double', "Double"] and r in ['float', 'int', 'double', "Double"] :
         return [l, r, 'float']
-    elif r in ['float', 'double'] and l in ['float', 'int', 'double'] :
+    elif r in ['float', 'double', "Double"] and l in ['float', 'int', 'double', "Double"] :
         return [l, r, 'float']
     elif l == 'int' and r == 'int':
         return [l, r, 'int']
@@ -188,7 +188,8 @@ def binary_or(l, r):
 
 TYPED_API = {
     'system':{
-        "max":['Number','Number']
+        "max":['Number','Number'],
+        "abs":['Number', "Number"]
     },
         
     'math': {
@@ -200,14 +201,16 @@ TYPED_API = {
         'cos':          ['double', 'double'],
         'acos':          ['double', 'double'],
         'log':          ['double', 'double', 'double'],
+        'ln':          ['double', 'double'],
         'sqrt':         ['Number', 'double'],
         'ceil':      ['double', 'int'],
         'exp':          ['double','double'],
         'PI': 'PI',
         'Floor':          ['double','double'],
-        'Max':          ['Number','Number'],
-        'Min':          ['Number','Number'],
-        'Round':          ['double','double']
+        'max':          ['Number','Number'],
+        'min':          ['Number','Number'],
+        'round':          ['double','double'],
+        'pow':          ['double','int','double']
     },
 
     'operators': {
@@ -228,7 +231,7 @@ TYPED_API = {
         'contains?':       ["@t", "bool"],
         'Remove':        ['@t','bool'],
         'Insert':     ['int','@t', ["List", '@t']],
-        'len':     ['int'],
+        'len':     [["List", '@t'],'int'],
         'index':      ['@t','int'],
     },
 }

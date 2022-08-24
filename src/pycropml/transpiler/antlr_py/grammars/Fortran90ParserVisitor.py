@@ -909,8 +909,23 @@ class Fortran90ParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by Fortran90Parser#caseValueRange.
-    def visitCaseValueRange(self, ctx:Fortran90Parser.CaseValueRangeContext):
+    # Visit a parse tree produced by Fortran90Parser#litteralExpression.
+    def visitLitteralExpression(self, ctx:Fortran90Parser.LitteralExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by Fortran90Parser#afterColonExpression.
+    def visitAfterColonExpression(self, ctx:Fortran90Parser.AfterColonExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by Fortran90Parser#beforeColonExpression.
+    def visitBeforeColonExpression(self, ctx:Fortran90Parser.BeforeColonExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by Fortran90Parser#midlleColonExpression.
+    def visitMidlleColonExpression(self, ctx:Fortran90Parser.MidlleColonExpressionContext):
         return self.visitChildren(ctx)
 
 

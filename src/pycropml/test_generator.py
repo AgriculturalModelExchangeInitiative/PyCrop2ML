@@ -3,7 +3,9 @@ from pycropml import render_java
 from pycropml import render_csharp
 from pycropml import render_cpp
 from pycropml import render_r
-from pycropml.render_cyml import transf
+from pycropml.render_cyml import transf, signature
+from pycropml.modelunit import ModelUnit
+from pycropml.nameconvention import signature1
 import six
 
 
@@ -19,7 +21,7 @@ def splitunit(unit):
         
     
 
-def generate_test_py(model,dir=None, package=None):
+def generate_test_py(model:ModelUnit,dir=None, package=None):
     from path import Path
     import os
     
@@ -32,18 +34,27 @@ def generate_test_py(model,dir=None, package=None):
     model_name = name
     psets = m.parametersets    
     list_var=[]
+    init_var_in = []
+    init_var_out = []
     for inp in m.inputs:
         list_var.append(inp.name)
+        if hasattr(inp, "parametercategory"):
+            init_var_in.append(inp.name)  
+        elif inp.variablecategory=="exogenous":
+            init_var_in.append(inp.name)
+        elif inp.variablecategory=="state":
+            init_var_out.append(inp.name)
     
     if package is not None:
-        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package)))
+        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package.replace("-", "_"))))
     else:
         rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py")))
     
     import_test = f'import numpy\nfrom datetime import datetime\n'
     import_test += f'import sys\n'
     import_test += f'sys.path.append("{rel_dir_src}")\n'
-    import_test += f'from {name.capitalize()} import model_{name}\n'
+    import_test += f'from {signature1(model)} import model_{name}\n'
+    if m.initialization: import_test += f'from {name.capitalize()} import init_{name}\n'
     code_test = [import_test]
     for v_tests in m.testsets:
 
@@ -61,6 +72,7 @@ def generate_test_py(model,dir=None, package=None):
                 params.update(psets[test_paramsets].params)
             for each_run in test_runs:
                 test_codes = []
+                test_codes2 = []
 
                 # make a function that transforms a title into a function name
                 tname = list(each_run.keys())[0].replace(' ', '_')
@@ -69,19 +81,35 @@ def generate_test_py(model,dir=None, package=None):
                 (run, inouts) = list(each_run.items())[0]
                 ins = inouts['inputs']
                 outs = inouts['outputs']
-
+                name_categ = {}
                 run_param = params.copy()
                 run_param.update(ins)
 
                 for i, j in enumerate(m.inputs):
                     if j.name not in list(run_param.keys()):
                         run_param[j.name]=j.default 
-
+                    name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory
+                    
+                
                 for k, v in six.iteritems(run_param):
+                    print(k)
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
                     code = "%s = %s" % (k, transf(type_[0], v)) 
-                    test_codes.append(code)
+                    if v and name_categ[k] != "state" :
+                        test_codes.append(code) 
 
+                for k, v in six.iteritems(ins):
+                    print(k)
+                    type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
+                    code = "%s = %s" % (k, transf(type_[0], v)) 
+                    if v and name_categ[k] == "state" :
+                        test_codes2.append(code)                   
+
+                
+                if m.initialization: 
+                    code = ', '.join(init_var_out) + " = " + f"init_{signature1(m)}({','.join(init_var_in)})" 
+                    test_codes.append(code)
+                    test_codes.extend(test_codes2) 
                 code = "params= model_{0}({1})\n".format(model_name, ', '.join(list_var))
                 test_codes.append(code)
 

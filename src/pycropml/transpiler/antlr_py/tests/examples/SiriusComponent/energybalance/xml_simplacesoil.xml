@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Simplace.SoilTemp.STMPsimCalculator" name="STMPsimCalculator" timestep="1" version="001">
+    <Description>
+        <Title>STMPsimCalculator model</Title>
+        <Authors>Gunther Krauss</Authors>
+        <Institution>INRES Pflanzenbau, Uni Bonn</Institution>
+        <URI>http://www.simplace.net/doc/simplace_modules/</URI>
+        <Reference>(&apos;http://www.simplace.net/doc/simplace_modules/&apos;,)</Reference>
+        <ExtendedDescription>as given in the documentation</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="iSoilWaterContent" description="Content of water in Soil" inputtype="variable" 
+               variablecategory="exogenous" datatype="DOUBLE" max="20" min="1.5" default="5" unit="mm"/>
+        <Input name="iSoilSurfaceTemperature" description="Temperature at soil surface" inputtype="variable" 
+               variablecategory="exogenous" datatype="DOUBLE" max="20" min="1.5" default="" unit="deg"/>
+       
+    </Inputs>
+    <Outputs>
+        <Output name="SoilTempArray" description="Array of temperature " datatype="DOUBLEARRAY" 
+                variablecategory="auxiliary" len="" max="40" min="-20" unit="degC"/>
+    </Outputs>
+
+
+    <Algorithm language="cyml" platform="" filename="algo/pyx/STMPsimCalculator.pyx"/>
+
+
+    <Parametersets/>
+    <Testsets/></ModelUnit>

@@ -307,6 +307,9 @@ class RecordCompo(CppCompo):
         self.model = model
         self.name = name
         CppCompo.__init__(self,tree, model, self.name)
+    
+    def visit_module(self, node):
+        return 
 
 
 transType = {"double":"toDouble",

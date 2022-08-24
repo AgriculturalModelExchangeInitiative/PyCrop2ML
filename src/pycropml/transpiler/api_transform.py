@@ -142,7 +142,11 @@ def datetime_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'datetime', 'function': 'datetime', 'args': args, 'pseudo_type': 'datetime'}
 
 def array_expander(type, message, args):
-    return {'type': 'array', 'elements': args[-1]["elements"], 'dim': len(args[-1]["elements"]), 'pseudo_type': ['array',args[-1]["pseudo_type"][-1]]}
+    if args[-1]["type"]=="list":
+        res = {'type': 'array', 'elements': args[-1]["elements"], 'dim': len(args[-1]["elements"]), 'pseudo_type': ['array',args[-1]["pseudo_type"][-1]]}
+    else:
+        res = {'type': 'array', 'elements': args[-1], 'pseudo_type': ['array',args[-1]["pseudo_type"][-1]]}
+    return res
 
 def copy_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function':'copy', 'args': args[0], 'pseudo_type': args[0]["pseudo_type"]}
@@ -169,6 +173,9 @@ def pow_expander(type, message, args):
 def modulo_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'modulo', 'args': args, 'pseudo_type':"int"}
 
+def round_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'round', 'args': args, 'pseudo_type':"float"}
+
 def integr_expander(type, message, args):
     
     if isinstance(args[0]["pseudo_type"], list) and isinstance(args[1]["pseudo_type"] ,list):
@@ -186,6 +193,7 @@ FUNCTION_API = {
     'global': {
         'input':    StandardCall('io', 'read'),
         'print':    StandardCall('io', 'display'),
+        "round":    StandardCall('global', 'round',expander=round_expander ),
         'str':      StandardCall('global', 'to_string'),
         'min':      StandardCall('global', 'min', expander=min_expander),
         'max':      StandardCall('global', 'max', expander=max_expander),
@@ -216,7 +224,8 @@ FUNCTION_API = {
         'atan':     StandardCall('math', 'atan'),
         'sqrt':     StandardCall('math', 'sqrt'),
         'ceil':     StandardCall('math', 'ceil'),
-        'exp':      StandardCall('math', 'exp')
+        'exp':      StandardCall('math', 'exp'),
+        'floor':    StandardCall('math', 'floor'),
         
     },
     'datetime':{

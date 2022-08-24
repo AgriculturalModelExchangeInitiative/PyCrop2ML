@@ -1,4 +1,5 @@
 # coding: utf8
+from pycropml.nameconvention import signature2
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.csharpRules import CsharpRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
@@ -68,7 +69,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
@@ -90,6 +91,20 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.newline(node)
         self.write('break;')    
 
+    def visit_none(self, node):
+        pass
+
+    def visit_ExprStatNode(self, node):
+        self.newline(node)
+        if "value" in dir(node.expr) and node.expr.type=="str":
+            com = self.comment(node.expr.value.decode('utf8'))
+            for co in com: 
+                if co!='//':
+                    self.write(co)
+                    self.newline()
+        else:
+            self.visit(node.expr)
+            if not self.result[-1].endswith(";"): self.write(";") 
          
     def visit_import(self, node):
         pass
@@ -150,10 +165,21 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.write("d")
 
     def visit_array(self, node):
-        self.write("new %s[] "%self.types[node.pseudo_type[1]])        
-        self.write(u'{')
-        self.comma_separated_list(node.elements)
-        self.write(u'}')
+        if hasattr(node, "elts"):
+            self.write("new %s[ "%self.types[node.pseudo_type[1]]) 
+            self.visit(node.elts)
+            self.write("]")
+            
+        elif isinstance(node.elements, Node):
+            self.write("new %s["%self.types[node.pseudo_type[1]]) 
+            self.visit(node.elements.left.elements[0])
+            self.write("]")
+        else:
+            self.write("new %s[] "%self.types[node.pseudo_type[1]])        
+            self.write(u'{')
+            self.comma_separated_list(node.elements)
+            self.write(u'}')
+    
                 
     def visit_dict(self, node):
         self.write("new ")
@@ -228,6 +254,10 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 else: self.write("%s.Add("%node.target.name)
                 self.visit( node.value.args[1])
                 self.write(");")
+                
+            elif node.value.type=="none":
+                pass
+                         
             else:
                 self.visit(node.target)
                 self.write(' = ')
@@ -419,7 +449,10 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                    print(arg.y)
+                                    if not arg.elts:
+                                        pass
+                                    else: self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
                             self.write(";")                   
             self.indentation -= 1 
         self.body(node.block)
@@ -500,21 +533,21 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 if n.type=="list":
                     self.write("List<%s> %s = new List<%s>();"%(self.types[n.pseudo_type[1]],n.name, self.types[n.pseudo_type[1]]))
                 if n.type=="array":
-                    self.write(self.types[n.type]%(self.types[n.pseudo_type[1]], n.name))
-                    if len(n.elts)==1:
-                        self.write(" = new %s["%(self.types[n.pseudo_type[1]]))
-                        self.visit(n.elts[0])
-                        self.write('];')
-                    elif len(n.elts) == 0:
-                        self.write(" = new %s[];"%(self.types[n.pseudo_type[1]])) 
-                    else:
-                        print ("TODO")
+                    self.write(f"{self.types[n.pseudo_type[1]]}[]")
+                    self.write(f" {n.name} ;") if n.dim ==0 else self.write(f" {n.name} = ")
+                    if n.elts:
+                        self.write(f" new {self.types[n.pseudo_type[1]]} ")
+                        for j in n.elts:
+                            self.write("[")
+                            self.visit(j)
+                            self.write("]")
+                        self.write(";")
             if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
                 if n.type=="local":
                     self.write(n.value)
-                else: self.visit(n)
+                else: self.visit(n.value)
                 self.write(";")           
             elif  n.type=='datetime':
                 self.newline(node)
@@ -1153,6 +1186,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         h = 'from datetime import datetime\n'
         for m in self.model.inputs:
             if "parametercategory" in dir(m):
+                if "len" in dir(m): m.len="100"
                 h +="cdef " + my_input(m) + "\n"
         return h
     
@@ -1211,7 +1245,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write('//Declaration of the associated strategies')
         self.newline(1)
         for m in self.model.model:
-            name = m.name
+            name = signature2(m)
             self.write("%s _%s = new %s();"%(name, name, name))
             self.newline(1)
       

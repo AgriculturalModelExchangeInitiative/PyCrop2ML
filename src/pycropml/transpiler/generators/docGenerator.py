@@ -40,7 +40,7 @@ class DocGenerator(CodeGenerator):
         _doc = "- Description:"           
         _doc += """
             * Title: %s
-            * Author: %s
+            * Authors: %s
             * Reference: %s
             * Institution: %s
             * ExtendedDescription: %s

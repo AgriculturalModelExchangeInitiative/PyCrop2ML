@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.SQ_Energy_Balance.SoilEvaporation" name="SoilEvaporation" timestep="1" version="001">
+    <Description>
+        <Title>SoilEvaporation model</Title>
+        <Authors>Peter D. Jamieson, Glen S. Francis, Derick R. Wilson, Robert J. Martin</Authors>
+        <Institution>New Zealand Institute for Crop and Food Research Ltd., New Zealand Institute for Crop and Food Research Ltd., New Zealand Institute for Crop and Food Research Ltd., New Zealand Institute for Crop and Food Research Ltd. </Institution>
+        <URI></URI>
+        <Reference></Reference>
+        <ExtendedDescription>Starting from a soil at field capacity, soil evaporation  is assumed to                be energy limited during the first phase of evaporation and diffusion limited thereafter.                Hence, the soil evaporation model considers these two processes taking the minimum between                the energy limited evaporation (PtSoil) and the diffused limited                evaporation </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="diffusionLimitedEvaporation" description="the evaporation from the diffusion limited soil " inputtype="variable" variablecategory="state" datatype="DOUBLE" max="5000" min="0" default="" unit="g m-2 d-1"/>
+        <Input name="energyLimitedEvaporation" description="energy Limited Evaporation " inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="5000" min="0" default="" unit="g m-2 d-1"/></Inputs>
+    <Outputs>
+        <Output name="soilEvaporation" description="soil Evaporation" datatype="DOUBLE" variablecategory="auxiliary" max="5000" min="0" unit="g m-2 d-1"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/SoilEvaporation.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

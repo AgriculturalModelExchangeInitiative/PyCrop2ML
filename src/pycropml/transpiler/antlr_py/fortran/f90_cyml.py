@@ -1,7 +1,9 @@
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.env import Env
-from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Assignment
+from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Assignment, TransformLocal
 from pycropml.transpiler.antlr_py.fortran.fortranExtraction import FortranExtraction
+from pycropml.transpiler.ast_transform import transform_to_syntax_tree
+
 
 
 
@@ -80,7 +82,6 @@ class F90_Cyml_ast():
     def visit_function_definition(self, node):
         varnotdeclared = node.notdeclared
         imports = node.imports
-        print(node.name, varnotdeclared)
         extr2 = FortranExtraction()
         if varnotdeclared:
             res = extr2.getDecl(self.treeG, imports, varnotdeclared)
@@ -163,6 +164,8 @@ class F90_Cyml_ast():
     def visit_list(self, node):
         if "value" not in dir(node):
             z = []
+            if "elements" in dir(node):
+                z = self.visit(node.elements)
         elif "name" not in dir(node):
             z = self.visit(node.init.value)
         else:
@@ -180,8 +183,14 @@ class F90_Cyml_ast():
                     "pseudo_type": node.pseudo_type,
                     "args": self.visit(node.args[0])
                 }
+        if "elements" in dir(node):
+            return res
     
     def visit_array(self, node):
+        if "name" not in dir(node):
+            return {'type': 'array',
+                 'elements': self.visit(node.elements),
+                 'pseudo_type': node.pseudo_type}            
         return {"type":"array",
                 "name":str(node.name),
                 "dim": node.dim,
@@ -338,3 +347,30 @@ class F90_Cyml_ast():
                     'value': self.visit(node.value),
                     'pseudo_type': node.pseudo_type
         } 
+    
+    def visit_whereconstruct(self, node):
+        test = self.visit(node.test)
+        print(test, "yuuuuuuuuuuuu")
+        body = self.visit(node.body)
+        m = transform_to_syntax_tree(body)
+        r = TransformLocal()
+        arr = r.process(m)
+        res = {'type': 'for_statement',
+        'sequences': {'type': 'for_sequence_with_index',
+            'sequence': test["left"]},
+        'iterators': {'type': 'for_iterator_with_index',
+            'index': {'type': 'local', 'pseudo_type': 'int', 'name': 'i_cyml'},
+            'iterator': {'type': 'local', 'pseudo_type': test["left"]["pseudo_type"][-1], 'name': 'j_cyml'}},
+        'block': {'type': 'if_statement',
+            'test': {'type': 'comparison',
+            'op': test["op"],
+            'left': {'type': 'local',
+            'name': 'j_cyml',
+            'pseudo_type':  test["left"]["pseudo_type"][-1]},
+            'right': test["right"],
+            'pseudo_type': 'bool'},
+            'block': arr,
+            'pseudo_type': 'Void',
+            'otherwise': []},
+        'pseudo_type': 'Void'}
+        return res

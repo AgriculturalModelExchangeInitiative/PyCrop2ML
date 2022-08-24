@@ -54,7 +54,7 @@ bodyPlusInternals
 	| bodyPlusInternals internalSubprogram
     ;
 
-internalSubprogram : specificationPartConstruct ;
+internalSubprogram : functionSubprogram | subroutineSubprogram ;
 
 specificationPartConstruct :
 	implicitStmt                        
@@ -270,7 +270,7 @@ accessStmt
 	| ACCESSSPEC  
     ;
 
-accessIdList : accessId (COMMA accessId) ;
+accessIdList : accessId (COMMA accessId)* ;
 
 accessId : genericName | genericSpec ;
 
@@ -402,8 +402,8 @@ assumedSizeSpec
 interfaceBlock : interfaceStmt interfaceBlockBody endInterfaceStmt ;
 
 endInterfaceStmt 
-    : ENDINTERFACE 
-	| END INTERFACE  
+    : (ENDINTERFACE 
+	| END INTERFACE ) NAME? 
     ;
 
 interfaceStmt
@@ -681,10 +681,10 @@ executableConstruct
     | whereConstruct
     ;
 
-whereConstruct 
-    : where endWhereStmt
-	| elseWhere endWhereStmt
-    ;
+whereConstruct  
+    : where endWhereStmt 
+	| elseWhere endWhereStmt 
+    ; 
 
 elseWhere 
     : where elsewhereStmt
@@ -741,10 +741,10 @@ caseSelector
 caseValueRangeList : caseValueRange+ ;
 
 caseValueRange 
-    : expression
-	| expression COLON
-	| COLON expression
-    | expression COLON expression
+    : expression                        #litteralExpression
+	| expression COLON                  #afterColonExpression
+	| COLON expression                  #beforeColonExpression
+    | expression COLON expression       #midlleColonExpression
     ;
 
 ifConstruct : ifThenStmt conditionalBody elseIfConstruct* elseConstruct? endIfStmt ;
@@ -1288,7 +1288,7 @@ orOperand
    ;
 
 andOperand
-   : level4Expr (LNOT level4Expr)*
+   : LNOT? level4Expr
    ;
 
 

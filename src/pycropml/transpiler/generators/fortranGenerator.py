@@ -81,7 +81,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
@@ -144,7 +144,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write("call Add(%s,"%node.target.name)
             self.visit( node.value.args[1])
             self.write(")")
-        elif (node.value.type == "custom_call" and not self.recursive and node.value.pseudo_type=="tuple") or (node.value.type == "custom_call" and node.value.function.startswith('model_')):
+        elif (node.target.type=="tuple" and node.value.type == "custom_call") or (node.value.type == "custom_call" and not self.recursive and node.value.pseudo_type=="tuple") or (node.value.type == "custom_call" and node.value.function.startswith('model_')):
             self.newline(node)
             node =Node("subroutine", receiver = node.target,function=node.value.function, args=node.value.args ) 
             self.write('call ')
@@ -158,6 +158,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.visit(node.target)
             self.write(' = ')
             self.visit(node.value)
+    
+    def visit_tuple(self,node):   
+        pass
     
     def visit_tab(self, node):
         self.write("[")
@@ -264,9 +267,12 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(u'/)')    
 
     def visit_array(self, node):
-        self.write(u'(/')
-        self.comma_separated_list(node.elements)
-        self.write(u'/)')    
+        if node.elements.type != "list":
+            self.visit(node.elements.left.elements[0])
+        else:
+            self.write(u'(/')
+            self.comma_separated_list(node.elements)
+            self.write(u'/)')    
     
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
@@ -346,8 +352,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_breakstatnode(self, node):
         self.newline(node)
         self.write('exit')
-
+    
     def visit_module(self, node):
+        self.visit(node.body)
+
+
+    """ 
+       def visit_module(self, node):
         if self.model is not None:
             self.write("MODULE %smod"%self.model.name.capitalize())
         else:
@@ -382,6 +393,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.indentation -= 1        
         self.newline(node)      
         self.write("END MODULE")
+    """
 
 
     def visit_function(self, node):
@@ -398,7 +410,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(', &\n        '.join(parameters))
         if len(self.z.returns)==1 and "name" in dir(self.z.returns[0].value):
             self.write(') RESULT(%s)'%(','.join(self.transform_return(node)[0])) )
-        elif len(self.z.returns)>1 :        
+        elif len(self.z.returns)>1 or "name" not in dir(self.z.returns[0].value) :        
             self.write(') RESULT(res_cyml)') 
         else:
             self.write(') RESULT(%s)'%(','.join(self.transform_return(node)[0])) )
@@ -452,6 +464,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             break
         
         if node.name.startswith("model_") or node.name.startswith("init_") or test :node.type="subroutine_def"
+        elif node.name == "main": node.type = "program"
         elif node.recursive or  self.z.returns[0].value.type!="tuple": 
             node.type="function"
         else:
@@ -504,6 +517,34 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node)
         self.write("END FUNCTION %s"%node.name) if node.recursive==True else self.write("END SUBROUTINE %s"%node.name)
         self.newline(node)
+    
+    def visit_program(self, node):
+        self.write("PROGRAM MAIN")
+        self.newline(node)
+        self.write("IMPLICIT NONE")
+        self.newline(node)
+        self.indentation +=1
+        self.initialValue=[]
+        newNode = self.add_features(node)
+        self.visit_declaration(newNode) #self.visit_decl(node)         
+        if self.initialValue:
+            for n in self.initialValue:
+                if len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
+                    self.write("%s = " %n.name)
+                    self.write(u'(/')
+                    self.comma_separated_list(n.value)
+                    self.write(u'/)')
+                    self.newline(node) 
+                elif isinstance(n.pseudo_type, str):
+                    if n.value==b'': self.write('%s = ""' %(n.name))
+                    else: self.write("%s = %s" %(n.name, n.value))
+                    self.newline(node) 
+        self.newline(node)
+        self.body(node.block)
+        self.newline(node)
+        self.indentation -=1
+        self.write("END PROGRAM MAIN")
+        
     
     def subOrFun(self, node):
         res = False # if subroutine
@@ -718,7 +759,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if "elements" in dir(node.receiver):
             elts = node.receiver.elements
         else: elts = [node.receiver]
-        argname = [n.name for n in node.args]
+        argname=[]
+        for n in node.args:
+            if "name" in dir(n): argname.append(n.name)
         for n in elts:
             if n.name not in argname:
                 self.write(',')
@@ -776,10 +819,12 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit(node.start)
         self.write(' , ')
         self.visit(node.end)
-        self.write("-1")
-        if node.step.value!=1:
-            self.write(', ')
-            self.visit(node.step)
+        if node.step.type=='unary_op' and node.step.operator=="-":
+            self.write("+1")
+        else: self.write("-1") 
+        self.write(', ')
+        self.visit(node.step)
+
         self.body(node.block)
         self.newline(node)       
         self.write("END DO")

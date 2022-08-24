@@ -24,13 +24,11 @@
  * More information on <http://www.simplace.net>
  */
 
-package net.simplace.sim.components.util;
+
 
 import static java.lang.StrictMath.*;
 
 import net.simplace.sim.util.FWSimVariable;
-
-import java.util.TreeMap;
 
 
 /**

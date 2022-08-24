@@ -33,8 +33,9 @@ class OpenaleaGenerator(PythonGenerator):
         self.newline(node)
         self.write("# coding: utf8")
         self.newline(node)
-        self.newline(node)
-        self.write("from copy import copy\n")
+        #self.write("from pycropml.units import u")
+        #self.newline(node)
+        self.write("from copy import copy\nfrom array import array\nfrom math import *\nfrom typing import *\nfrom datetime import datetime\n")
         self.newline(node)
         self.visit(node.body)
 
@@ -46,6 +47,16 @@ class OpenaleaGenerator(PythonGenerator):
 
     def visit_float(self, node):
         self.write(node.value)
+
+    def visit_importfrom(self, node):
+        if self.imp:
+            self.newline(node)
+            if node.namespace not in ["math", "array", "typing", "datetime"]:
+                self.write('from %s import ' % (node.namespace))
+                for idx, item in enumerate(node.name):
+                    if idx:
+                        self.write(', ')
+                    self.write(item)
 
 class OpenaleaCompo(PythonCompo):
 

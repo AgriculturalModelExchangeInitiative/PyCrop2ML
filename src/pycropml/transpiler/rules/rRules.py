@@ -124,7 +124,8 @@ class RRules(GeneralRule):
         },
         'array': {
             'len': 'len',
-            'append': '.append'
+            'append': '.append',
+            'sum':'sum'
         },
         'dict': {
 			'len': 'len',
