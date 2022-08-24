@@ -9,6 +9,7 @@ from path import Path
 import numpy 
 from datetime import datetime
 import os.path
+from pycropml.modelunit import ModelUnit
 import six
 import shutil
 from . import error
@@ -43,7 +44,6 @@ class Model2Package(object):
             self.pkg_name = "CropModel"
         else: self.pkg_name = pkg_name
         self.cwd = Path(self.dir)
-        print(self.cwd)
         self.rep = os.path.abspath(os.path.dirname(self.cwd))
 
     def run(self):
@@ -106,11 +106,11 @@ class Model2Package(object):
                     with open(filefunc.encode('utf-8'), 'r') as f:
                         source = f.read()
                         self.code += source 
+                        self.code += "\n\n\n"
         if model_unit.initialization is not None: self.code += self.initialization(model_unit)      
         return self.code
 
     def generate_algorithm(self, model_unit):
-        print(model_unit.name)
         outputs = model_unit.outputs
         inputs = model_unit.inputs
         tab = ' '*4
@@ -135,7 +135,7 @@ class Model2Package(object):
             lines = [tab+l for l in development.split('\n') if l.split()]
             code = output_declaration
             code += '\n'.join(lines)
-            code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
+            code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n\n\n'
             self.code = code
         else:
             raise error.Error("algorithm is not defined in model unit")
@@ -150,6 +150,7 @@ class Model2Package(object):
         
         """ we  declare all outputs which are not in inputs"""
         output_declaration=""
+        other = ""
         z=[]
         for inp in inputs:
             if "variablecategory" in dir(inp) and inp.variablecategory=="state":
@@ -160,6 +161,9 @@ class Model2Package(object):
                     inp.default = "0" """
                 output_declaration += tab+"cdef "+my_input(inp, defa=True)+"\n"
                 outs.append(inp)
+                if not inp.default:
+                    other += tab + inp.name + " = " + default_value(inp)+"\n"
+        
         code =""
         if model_unit.initialization:
             file_init = model_unit.initialization[0].filename
@@ -177,6 +181,7 @@ class Model2Package(object):
                 lines = [tab+l for l in code_init.split('\n') if l.split()]
                 code += self.generate_function_signature("init_%s"%signature(model_unit),par) +'\n'
                 code += output_declaration
+                code += other
                 code += '\n'.join(lines)
                 code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outs]) + '\n'            
         return code
@@ -340,7 +345,15 @@ class Model2Package(object):
         return files
 
 
-def signature(model):
+def signature(model:ModelUnit):
+    """_summary_
+
+    Args:
+        model (ModelUnit): A Python object of a Crop2ML model Unit
+
+    Returns:
+        str: name
+    """
     name = model.name
     name = name.strip()
     name = name.replace(' ', '_').lower()
@@ -348,7 +361,7 @@ def signature(model):
     return name
 
 
-def generate_doc(model):
+def generate_doc(model:ModelUnit):
     desc = model.description
         
     _doc = """
@@ -435,7 +448,18 @@ def my_input(_input, defa=False):
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return ("%s %s[%s]"%(DATATYPE[_type], name, length))
             else:
-                return ("%s %s"%(DATATYPE2[_type], name))            
+                return ("%s %s"%(DATATYPE2[_type], name))     
+
+def default_value(inp):
+    type_ = inp.datatype
+    if type_.endswith("LIST"): return "[]"
+    elif type_ == "INT": return "0"
+    elif type_ =="DOUBLE": return "0.0"
+    elif type_ == "DATE": return "None"
+    elif type_.endswith("ARRAY") and not inp.len: return "None"
+    elif type_.endswith("ARRAY")  and inp.len: 
+        if type_=="INTARRAY" : return f"array('i', [0]*{inp.len})"
+        if type_=="DOUBLEARRAY" : return f"array('f', [0.0]*{inp.len})"    
 
 DATATYPE2 = {}
 DATATYPE2['INT'] = "int"

@@ -128,6 +128,33 @@ def max_expander(type, message, args):
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
 
+
+
+def ceil_expander(type, message, args):
+    return {"type": 'standard_method_call',
+                "receiver":{"type" : 'standard_call',
+                "namespace" : 'math',
+                "function" :'ceil',
+                "args": args ,
+                "pseudo_type" : 'int'},
+                "args": [],
+                "message" : 'float',
+                "pseudo_type" : 'float'}
+
+def floor_expander(type, message, args):
+    return {"type": 'standard_method_call',
+                "receiver":{"type" : 'standard_call',
+                "namespace" : 'math',
+                "function" :'floor',
+                "args": args ,
+                "pseudo_type" : 'int'},
+                "args": [],
+                "message" : 'float',
+                "pseudo_type" : 'float'}
+
+
+
+
 def log10_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'math', 'function': 'log', 'args': args+[{"type":"int", "value":"10"}], 'pseudo_type': "float"}
 
@@ -189,7 +216,7 @@ def integr_expander(type, message, args):
 FUNCTION_API = {
     'global': {
         'input':    StandardCall('io', 'read'),
-        'print':    StandardCall('io', 'display'),
+        'print':    StandardCall('io', 'println'),
         'str':      StandardCall('global', 'to_string'),
         'min':      StandardCall('global', 'min', expander=min_expander),
         'max':      StandardCall('global', 'max', expander=max_expander),
@@ -204,6 +231,12 @@ FUNCTION_API = {
         
         
     },
+    
+    'System%out':
+        {
+            'println':    StandardCall('io', 'print'),
+                   
+        },
 
     'Math': {
         'log':      StandardCall('math', 'log'),
@@ -216,12 +249,12 @@ FUNCTION_API = {
         'asin':     StandardCall('math', 'asin'),
         'atan':     StandardCall('math', 'atan'),
         'sqrt':     StandardCall('math', 'sqrt'),
-        'ceil':     StandardCall('math', 'ceil'),
+        'ceil':     StandardCall('math', 'ceil', expander=ceil_expander),
         'abs':      StandardCall('global', 'abs', expander = abs_expander),
         'exp':      StandardCall('math', 'exp'),
         'round':      StandardCall('System', 'round'),
         'pow':      StandardCall('math', 'pow'),
-        'floor':      StandardCall('math', 'floor'),
+        'floor':      StandardCall('math', 'floor', expander=floor_expander),
         'min':      StandardCall('system', 'min', expander=min_expander)
         
     },

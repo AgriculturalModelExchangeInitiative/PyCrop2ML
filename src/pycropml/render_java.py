@@ -77,7 +77,8 @@ class Model2Package(object):
             if   test_paramsets.strip()!="" and test_paramsets not in list(psets.keys()):
                 print(' Unknow parameter %s'%test_paramsets)
             else:
-                if   test_paramsets.strip()!="" :  params.update(psets[test_paramsets].params)                     
+                if   test_paramsets.strip()!="" :  
+                    params.update(psets[test_paramsets].params)                    
                 for each_run in test_runs :
                     des = ""                    
                     # make a function that transforms a title into a function name
@@ -92,9 +93,9 @@ class Model2Package(object):
                     outs = inouts['outputs']                          
                     run_param = params.copy()
                     run_param.update(ins)                   
-                    for testinp in inputs:
+                    """for testinp in inputs:
                         if testinp.name not in list(run_param.keys()):
-                            run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)
+                            run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)"""
                     for k, v in six.iteritems(run_param):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         if type_v not in ("DATE", "DATELIST"):
@@ -158,6 +159,12 @@ DATATYPE['BOOLEAN'] = "boolean"
 DATATYPE['DATE'] = "LocalDateTime"
 DATATYPE['DATELIST'] = "Arrays.asList"
 
+cymltype={
+"INT": "Integer",
+"DOUBLE": "Double",
+"STRING": "String",
+"BOOLEAN":"Boolean",
+"DATE":"LocalDateTime"}
 
 def transfDouble(type_v,elem):
     return str(elem)   
@@ -166,17 +173,27 @@ def transfString(type_v, elem):
 def transfList(type_v, elem):
     res = ",".join(list(map(transf,[type_v.split("LIST")[0]]*len(elem),elem )))
     return "new ArrayList<>(%s(%s))"%(DATATYPE[type_v],res)
+
 def transf(type_v, elem):
     if type_v == "BOOLEAN":
         return elem.lower()
-    if type_v=="DOUBLE":
+    elif type_v=="DOUBLE":
         return transfDouble(DATATYPE[type_v], elem)
     elif type_v in ("STRING", "DATE"):
         return transfString(DATATYPE[type_v], elem)
     elif type_v=="INT":
         return str(elem)
-    elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST", "DATELIST"):
+    elif type_v.endswith("LIST"):
         return transfList(type_v,eval(elem))
+    elif type_v.endswith("ARRAY"):
+        return transfArray(type_v, eval(elem))
+
+def transfArray(type_v,elem):
+    if isinstance(elem, list):
+        res = ",".join(list(map(transf,[type_v.split("ARRAY")[0]]*len(elem),elem )))
+        return "new %s[] {%s}"%(cymltype[type_v.split("ARRAY")[0]],res)
+    else:
+        return str(elem)
 
 def transfDate(categ,name, elem):
     return "%s.set%s(LocalDateTime.of(%s));"%(categ,name, strtoList(elem))

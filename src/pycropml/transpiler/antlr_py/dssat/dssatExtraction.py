@@ -8,13 +8,7 @@
  In Description property (Description)
 
  """
-from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.antlr_py.extract_metadata import MetaExtraction
-from pycropml.modelunit import ModelUnit
-from pycropml.description import Description
-from pycropml.inout import Input, Output
-from pycropml.function import Function
-from pycropml.composition import ModelComposition
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract_compo
 from pycropml.transpiler.antlr_py.extraction import ExtractComments
 

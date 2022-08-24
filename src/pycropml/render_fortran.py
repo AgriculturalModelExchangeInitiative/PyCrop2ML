@@ -62,6 +62,7 @@ class Model2Package(object):
         tab = ' '*4
         m = model_unit
         model_name = signature(m) 
+        print(model_name)
         psets = m.parametersets
         list_var=[]
         list_inouts=[]
@@ -73,7 +74,7 @@ class Model2Package(object):
                 list_var.append(out.name)
                 list_inouts.append(out)
         self.codetest = "PROGRAM test\n"
-        self.codetest += tab+ "USE" + " %smod\n"%model_unit.name.capitalize()
+        #self.codetest += tab+ "USE" + " %smod\n"%model_unit.name.capitalize()
         test_codes = []
         decl_ins= [ tab + self.my_input(var) for var in list_inouts]
         test_codes.append(''.join(decl_ins))
@@ -101,13 +102,20 @@ class Model2Package(object):
                     code = tab +'print *, "--------test_%s_%s-------" \n'%(tname,m.name)                                         
                     run_param = params.copy()
                     run_param.update(ins)
-                    for testinp in m.inputs:
-                        if testinp.name not in list(run_param.keys()):
-                            run_param[testinp.name]=testinp.default                                      
+                    if model_name=="canopytemperature": print("    ", m.inputs)  
+                    for i, j in enumerate(m.inputs):
+                        if j.name not in list(run_param.keys()):
+                            if model_name=="canopytemperature": 
+                                print("    ", j)
+                                print("    ", j.name,j.default, j.description, m.inputs[i].default )
+                            run_param[j.name]=j.default 
+                            #if model_name=="canopytemperature": print("    ", run_param)                                     
                     for k, v in six.iteritems(run_param):
                         typ = [inp.datatype for inp in list_inouts if inp.name == k][0]
+                        
                         if typ == "STRING" or typ == "DATE": code += '    %s = "%s"\n'%(k,v.replace('"', ''))
-                        elif typ != "BOOLEAN" and typ != "STRINGLIST" and typ!= "DATELIST": code += "    %s = %s\n"%(k,v)
+                        elif typ != "BOOLEAN" and typ != "STRINGLIST" and typ!= "DATELIST": 
+                            code += "    %s = %s\n"%(k,v)
                         elif typ == "BOOLEAN": code +="    %s = .%s.\n"%(k, v.capitalize())
                         else:
                             value = ""

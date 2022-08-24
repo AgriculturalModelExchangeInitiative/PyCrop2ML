@@ -190,6 +190,12 @@ TYPED_API = {
     'system':{
         "max":['Number','Number']
     },
+    'io': {
+        'print':     ['*Any', 'Void'],
+        'read':        ['String'],
+        'read_file':   ['String', 'String'],
+        'write_file':  ['String', 'String', 'Void']
+    },
         
     'math': {
         'abs':         ["Number", "Number"],
@@ -199,7 +205,7 @@ TYPED_API = {
         'asin':          ['Number', 'double'],
         'cos':          ['double', 'double'],
         'acos':          ['double', 'double'],
-        'log':          ['double', 'double', 'double'],
+        'log':          ['double', 'double'],
         'ln': ["Number", "double"],
         'sqrt':         ['Number', 'double'],
         'ceil':      ['double', 'int'],

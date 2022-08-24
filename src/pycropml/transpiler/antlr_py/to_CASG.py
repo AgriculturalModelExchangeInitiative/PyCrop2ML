@@ -2,14 +2,15 @@ from pycropml.transpiler.antlr_py import parse, simplifyAntlrTree
 from  pycropml.transpiler.antlr_py.csharp  import csharpTransformer
 from pycropml.transpiler.antlr_py.fortran import fortranTransformer
 from pycropml.transpiler.antlr_py.java import javaTransformer
+from pycropml.transpiler.antlr_py.python import pythonTransformer
 from pycropml.transpiler.antlr_py.xml import xmlTransformer
 
 from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from path import Path
 import pycropml.transpiler.antlr_py
 
-languages = ['cs',"bioma", "dssat", "f90", "java", "simplace", "xml"]
-NAMES = {'cs':'csharp','sirius':'csharp',"bioma":"csharp", "dssat":"fortran", "f90":"fortran", "java":"java", "simplace":"java", "xml":"xml"}
+languages = ['cs',"bioma", "dssat", "f90", "java", "simplace", "xml", "py"]
+NAMES = {'cs':'csharp','sirius':'csharp',"bioma":"csharp", "dssat":"fortran", "f90":"fortran", "java":"java", "simplace":"java", "xml":"xml", "py":"python", "openalea":"python"}
 
 GENERATORS = {
     format: getattr(getattr(

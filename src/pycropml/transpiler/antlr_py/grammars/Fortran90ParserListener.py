@@ -1628,12 +1628,39 @@ class Fortran90ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran90Parser#caseValueRange.
-    def enterCaseValueRange(self, ctx:Fortran90Parser.CaseValueRangeContext):
+    # Enter a parse tree produced by Fortran90Parser#litteralExpression.
+    def enterLitteralExpression(self, ctx:Fortran90Parser.LitteralExpressionContext):
         pass
 
-    # Exit a parse tree produced by Fortran90Parser#caseValueRange.
-    def exitCaseValueRange(self, ctx:Fortran90Parser.CaseValueRangeContext):
+    # Exit a parse tree produced by Fortran90Parser#litteralExpression.
+    def exitLitteralExpression(self, ctx:Fortran90Parser.LitteralExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#afterColonExpression.
+    def enterAfterColonExpression(self, ctx:Fortran90Parser.AfterColonExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#afterColonExpression.
+    def exitAfterColonExpression(self, ctx:Fortran90Parser.AfterColonExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#beforeColonExpression.
+    def enterBeforeColonExpression(self, ctx:Fortran90Parser.BeforeColonExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#beforeColonExpression.
+    def exitBeforeColonExpression(self, ctx:Fortran90Parser.BeforeColonExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#midlleColonExpression.
+    def enterMidlleColonExpression(self, ctx:Fortran90Parser.MidlleColonExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#midlleColonExpression.
+    def exitMidlleColonExpression(self, ctx:Fortran90Parser.MidlleColonExpressionContext):
         pass
 
 

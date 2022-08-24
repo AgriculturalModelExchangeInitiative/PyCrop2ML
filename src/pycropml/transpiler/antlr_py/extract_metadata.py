@@ -62,28 +62,45 @@ class MetaExtraction():
                 nodes.append(node)
         return nodes
     
-    def getmethod(self, tree, nameMethod):
+    def getmethod(self, tree, nameMethod, func=False, class_type=None):
         """This method return a specific method name. It can be used to get the algorithm
 
         Args:\n
-            - tree (Node): a tree where the method will be extracted \n
-            - nameMethod (str): the name of the method described 
+            - tree (Node): a tree from where the method will be extracted \n
+            - nameMethod (str): the name of the method 
 
         Returns:
             Node: a specific method
         """
-        self.getTypeNode(tree, "methodDef")
+        if func:
+            self.getTypeNode(tree, "function_definition")
+        else:
+            self.getTypeNode(tree, "methodDef")
         methNode = self.getTree
-        meth = self.getAttNode(methNode,**{"name":nameMethod})
-        return meth[0] if meth else []
+        meth = self.getAttNode(methNode,**{"name":nameMethod}) if not class_type else  self.getAttNode(methNode,**{"name":nameMethod, "class_":class_type})
+        if meth:
+            if len(meth)==1: return meth[0]
+            else: return meth
+        else: return None
 
-    def externFunction(self, tree, algo):
+    def externFunction(self, tree, algo, type_=False, rec=None):
         self.getTypeNode(algo, "custom_call")
         custom_call = self.getTree
-        methNames = [c.function for c in custom_call] if custom_call else []
-        meth = [self.getmethod(tree, name) for name in methNames ] if methNames else []
-        return meth
-    
+        res_meth = []
+        for c in custom_call:
+            if c and c.function!=rec:
+                namespace = c.namespace if "namespace" in dir(c) else None
+                res_meth.append((c.function, namespace))
+        
+        getmeth = []
+        if res_meth:
+            for r in res_meth:
+                if r[-1]:
+                    mth = self.getmethod(tree, r[0], type_, r[-1].pseudo_type)
+                else:
+                     mth = self.getmethod(tree, r[0], type_)
+                getmeth.append(mth)
+        return getmeth
 
 
 

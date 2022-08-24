@@ -4,7 +4,7 @@
         <Authors>Pierre Martre</Authors>
         <Institution>INRA Montpellier</Institution>
         <Reference>(&apos;&apos;,)</Reference>
-        <ExtendedExtraction></ExtendedExtraction>
+        <ExtendedDescription></ExtendedDescription>
         <Url></Url></Description>
     <Inputs>
         <Input datatype="STRINGLIST" default="" description="List containing appearance of each stage" inputtype="variable" max="" min="" name="calendarMoments_t1" unit="" variablecategory="state"/>

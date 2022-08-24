@@ -760,13 +760,12 @@ SCON
 
 RDCON : NUM+ '.' NUM* EXPON? 
       | NUM* '.' NUM+ EXPON?
+      | NUM+ EXPON
       ;
 
 DEALLOCATE : 'DEALLOCATE' | 'deallocate' ;
 
 NULLIFY : 'NULLIFY' | 'nullify' ;
-
-EXIT : 'EXIT' | 'exit' ;
 
 CYCLE : 'CYCLE' | 'cycle' ;
    
@@ -789,6 +788,8 @@ TYPE
 NAME
    :LETTER ( ALPHANUMERIC_CHARACTER )*
    ;
+
+EXIT : 'EXIT' | 'exit' ;
 
 BLANK
    : 'BLANK' | 'blank'

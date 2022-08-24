@@ -22,7 +22,9 @@ param_datatype ={"STRING":"String",
                 "STRINGLIST": "ListString",
                 "DOUBLELIST": "ListDouble",
                 "INTLIST": "ListInteger",
-                "BOOLEANLIST": "ListBoolean"}
+                "BOOLEANLIST": "ListBoolean",
+                "DOUBLEARRAY":"DOUBLEARRAY",
+                "INTARRAY":"INTARRAY"}
 
 def getdefault(x):
     if "default" in dir(x):
@@ -164,7 +166,7 @@ using CRA.AgroManagement;
     def description(self, node):
         self.write("public string Description") 
         self.open(node)
-        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", ""))
+        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", "") if self.model.description.ExtendedDescription else "")
         self.close(node)
         self.newline(extra=1) 
 
@@ -226,7 +228,13 @@ using CRA.AgroManagement;
         self.newline(node)
         self.write('_pd.Add("Date", "");')
         self.newline(node)
-        self.write('_pd.Add("Publisher", "%s");'%self.model.description.Institution)
+        self.write('_pd.Add("Publisher", "' )
+        m = self.model.description.Institution.split(',')
+        for i, j in enumerate(m):
+            if i!= len(m) - 1:
+                self.write("%s, "%j.replace("\n", "").strip())
+            else:
+                self.write('%s "); '%j.replace("\n", "").strip())
         self.close(node)
         self.newline(extra=1) 
 
@@ -835,7 +843,7 @@ using CRA.AgroManagement;
     def description(self, node):
         self.write("public string Description") 
         self.open(node)
-        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", ""))
+        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", "")) if self.model.description.ExtendedDescription else self.write('get { return "" ;}')
         self.close(node)
         self.newline(extra=1) 
 
@@ -906,7 +914,13 @@ using CRA.AgroManagement;
         self.newline(node)
         self.write('_pd.Add("Date", "");')
         self.newline(node)
-        self.write('_pd.Add("Publisher", "%s");'%self.model.description.Institution)
+        self.write('_pd.Add("Publisher", "' )
+        m = self.model.description.Institution.split(',')
+        for i, j in enumerate(m):
+            if i!= len(m) - 1:
+                self.write("%s, "%j.replace("\n", "").strip())
+            else:
+                self.write('%s "); '%j.replace("\n", "").strip())
         self.close(node)
         self.newline(extra=1) 
 

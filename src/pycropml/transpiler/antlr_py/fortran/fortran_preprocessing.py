@@ -7,6 +7,46 @@ from pycropml.transpiler.antlr_py.dssat.dssatExtraction import DssatExtraction
 types = ["int", "float", "str", "list", "array", "bool"]
 
 
+class Retrive_from_Comparison(Middleware):
+    
+    def __init__(self, localvar=[]):
+        self.localvar = localvar
+        Middleware.__init__(self)
+              
+    def process(self, tree):
+        return self.transform(tree,in_block=False)
+    
+    def action_comparison(self, tree):
+        if tree.left.type == "local" and isinstance(tree.left.pseudo_type, list):
+            self.var = tree.left
+            
+                                
+                                
+                                
+class TransformLocal(Middleware):
+    
+    def __init__(self, localvar=[]):
+        self.localvar = localvar
+        Middleware.__init__(self)
+              
+    def process(self, tree):
+        return self.transform(tree,in_block=False)
+    
+    def action_local(self, tree):
+        if isinstance(tree.pseudo_type, list):
+            if tree.pseudo_type[0]=="array":
+                res = Node(type = 'index',
+                sequence = Node(type = 'local',
+                name = tree.name,
+                pseudo_type = tree.pseudo_type),
+                index = Node(type = 'local',
+                name = 'i_cyml',
+                pseudo_type = 'int'),
+                pseudo_type = tree.pseudo_type[-1])
+                tree = res
+        return tree
+        
+        
 class Declarations(Middleware):
     
     def __init__(self, localvar=[]):

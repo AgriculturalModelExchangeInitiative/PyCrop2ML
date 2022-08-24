@@ -108,7 +108,8 @@ class CsharpRules(GeneralRule):
             'ceil':         '(int) Math.Ceiling',
             'round':        'Math.Round',
             'exp':         'Math.Exp',
-            'pow':          'Math.Pow'
+            'pow':          'Math.Pow',
+            'floor':  'Math.floor'
 
         },
         'io': {
@@ -170,7 +171,8 @@ class CsharpRules(GeneralRule):
         'array':{
                 'len': translateLenArray,
                 'sum':translateSum,
-                'append': '.Append'
+                'append': '.Append',
+                "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("array", elts = node.args, pseudo_type=node.receiver.pseudo_type ))
 
                 
                 }

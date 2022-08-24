@@ -54,7 +54,7 @@ class CppGenerator(CodeGenerator,CppRules):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec:# and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
@@ -1084,6 +1084,7 @@ def header_mu_cpp(models, rep, name):
                 newtree = AstTransformer(func_tree,path_func)
                 dictAst = newtree.transformer()
                 nodeAst= transform_to_syntax_tree(dictAst)
+                print(dictAst, "hyyyyyyy", nodeAst.body[0].name)
                 z ={nodeAst.body[0].name: [nodeAst.body[0].return_type,nodeAst.body[0].params]}
                 h.append(z) 
         if m.initialization:
@@ -1206,7 +1207,7 @@ class CppCompo(CppTrans):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_Model(s, s1, r, a);"%(name.capitalize()))
+            self.write("_%s.Calculate_Model(s, s1, r, a, ex);"%(name.capitalize()))
             self.newline(node)
         else:
             self.newline(node)
@@ -1226,6 +1227,7 @@ class CppCompo(CppTrans):
         h = 'from datetime import datetime\n'
         for m in self.model.inputs:
             if "parametercategory" in dir(m):
+                if "len" in dir(m): m.len="100"
                 h +="cdef " + my_input(m) + "\n"
         return h
     
