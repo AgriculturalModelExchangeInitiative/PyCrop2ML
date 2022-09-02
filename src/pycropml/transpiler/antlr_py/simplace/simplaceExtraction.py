@@ -74,8 +74,14 @@ class SimplaceExtraction(MetaExtraction):
         test = self.getTest(tree)
         self.getTypeNode(test.block, "if_statement")
         if self.getTree and self.getTree[0].block:
-            in_val = self.getAttNode(self.getTree[0].block, **{"function":"setValue"}) 
-            out_val = self.getAttNode(self.getTree[1].block, **{"function":"setValue"}) 
+            if len(self.getTree)==3:
+                in_val1 = self.getAttNode(self.getTree[0].block, **{"function":"setValue"}) 
+                in_val2 = self.getAttNode(self.getTree[1].block, **{"function":"setValue"}) 
+                in_val = in_val1+in_val2
+                out_val = self.getAttNode(self.getTree[2].block, **{"function":"setValue"}) 
+            else:
+                in_val = self.getAttNode(self.getTree[0].block, **{"function":"setValue"}) 
+                out_val = self.getAttNode(self.getTree[1].block, **{"function":"setValue"})                 
             res_inputs = {}
             res_outputs = {}
             for in_ in in_val:

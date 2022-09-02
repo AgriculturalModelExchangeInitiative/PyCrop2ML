@@ -123,7 +123,9 @@ class CsharpRules(GeneralRule):
             'max': 'Math.Max',
             'abs': 'Math.Abs',
             'pow': translatePow,
-            'copy': translateCopy},
+            'copy': translateCopy,
+            "round":"Math.Round"},
+        
 
         'datetime':{
             'datetime': ' new DateTime'

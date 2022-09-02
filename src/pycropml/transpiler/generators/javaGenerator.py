@@ -265,7 +265,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.visit(node.value)
                 self.write(");")
                 self.newline(node)
-            if node.value.type == "standard_call" and node.value.function=="integr":
+            elif node.value.type == "standard_call" and node.value.function=="integr":
                 self.write("%s = new ArrayList<>(%s);"%(node.target.name,node.value.args[0].name))
                 self.newline(node)
                 if isinstance(node.value.args[1].pseudo_type, list):
@@ -303,6 +303,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.write(f'zz_{node.value.function} = Calculate_{node.value.function}(')
                 self.comma_separated_list(node.value.args)
                 self.write(");")
+                self.meta = Custom_call(self.module)
+                r = self.meta.process(node)
                 if node.value.function in self.meta.extern:
                     func = self.meta.extern[node.value.function]
                     outs = [n.name for n in func.block[-1].value.elements]
@@ -431,6 +433,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
     def visit_function_definition(self, node):      
         self.newline(node)
         self.funcname = node.name
+        self.meta = Custom_call(self.module)
+        r = self.meta.process(node)
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
             if node.name=="main":
                 self.write("public static void main(String[] args)") 

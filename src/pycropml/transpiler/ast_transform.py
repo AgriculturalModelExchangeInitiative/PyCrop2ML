@@ -1045,7 +1045,6 @@ class AstTransformer():
         self.units={}
         right_node = self.visit_node(operand2)
         self.units={}
-        print(location, "sgfghijj")
         binop_type = TYPED_API['operators'][op](
             left_node['pseudo_type'], right_node['pseudo_type'])[-1]
         return {'type': 'binary_op',
@@ -1356,7 +1355,6 @@ class AstTransformer():
                     if isinstance(de.default, ExprNodes.UnaryMinusNode):
                         decl["value"] = str(-float(value_node["value"]["value"]))
                     else:
-                        print(location,decl )
                         if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
                             decl["value"] = value_node["value"] 
                         else: decl["value"] = value_node
