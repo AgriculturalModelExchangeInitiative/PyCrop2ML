@@ -50,11 +50,11 @@ def generate_test_py(model:ModelUnit,dir=None, package=None):
     else:
         rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py")))
     
-    import_test = f'import numpy\nfrom datetime import datetime\n'
+    import_test = f'import numpy\nfrom datetime import datetime\nfrom array import array\n'
     import_test += f'import sys\n'
     import_test += f'sys.path.append("{rel_dir_src}")\n'
     import_test += f'from {signature1(model)} import model_{name}\n'
-    if m.initialization: import_test += f'from {name.capitalize()} import init_{name}\n'
+    if m.initialization: import_test += f'from {name.lower()} import init_{name}\n'
     code_test = [import_test]
     for v_tests in m.testsets:
 
@@ -151,9 +151,9 @@ def generate_test_py(model:ModelUnit,dir=None, package=None):
                         test_codes.append(code)
 
                     if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):              
-                        code = "%s_estimated = numpy.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
+                        code = "%s_estimated = numpy.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = numpy.around(params, %s)"%(k.name,outs[k.name][1])
                         test_codes.append(code)
-                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
+                        code = "%s_computed = %s"%(k.name,outs[k.name][0]) if k.datatype=="DOUBLELIST" else "%s_computed = numpy.around(array('f', %s),%s)"%(k.name,outs[k.name][0], outs[k.name][1])
                         test_codes.append(code)
 
                         code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)

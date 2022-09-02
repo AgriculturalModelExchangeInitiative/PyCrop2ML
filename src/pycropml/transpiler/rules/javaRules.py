@@ -124,7 +124,8 @@ class JavaRules(GeneralRule):
             'max': 'Math.max',
             'abs': 'Math.abs',
             'pow': translatePow,
-            'copy':translateCopy
+            'copy':translateCopy,
+            "round":"Math.round",
         },
         'datetime':{
                 'datetime':translateDateTime #trans_format_parse

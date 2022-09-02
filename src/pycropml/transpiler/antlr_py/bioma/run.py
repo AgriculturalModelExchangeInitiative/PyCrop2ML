@@ -332,7 +332,6 @@ def run_bioma(component, output):
                     if d.name not in dep_names:
                         dep.append(d)
                         dep_names.append(d.name)   
-                print(dep_names)        
                 for ex in dep:  # dep is the list of external function in the order of dependency
                     if ex.name not in func_names:  # to avoid duplicating dependent functions in different auxiliary functions
                         func = z.externFunction(total_tree, ex)  
@@ -343,7 +342,6 @@ def run_bioma(component, output):
                             if ex.class_!= rr.class_:
                                 rr.name = "_" + rr.class_ + "__" + rr.name +"_" 
                                 params_not_declared[rr.name]   = []     
-                        print(ex.name,ex.namespace, [(rr.name, rr.class_, rr.namespace) for rr in extfunc])
                         res = []
                         res_ = []
                         res_inout[ex.name] = {"inputs":None, "outputs":None}
@@ -397,6 +395,7 @@ def run_bioma(component, output):
                         env = {xx.name:xx.pseudo_type for j in decl[name] for xx in j.decl}
                         zz = CheckingInOut(env)
                         r_ch = zz.process(p_cust)
+                        
                         inputs_p_node, outputs_p_node = redefine_params(p_cust,all_var_pa, member_category,zz.inputs, zz.outputs,extfunc, instance_dclass)
                         p_cust.params = inputs_p_node  
                         res_inout[name]["inputs"] = inputs_p_node 
@@ -412,6 +411,7 @@ def run_bioma(component, output):
                             res_inout[name]["outputs"] = return_.value                    
                         r.append(p_cust)
                         func_names.append(p_cust.name)
+                        print(p_cust.name,[pp.name for pp in p_cust.params], p_cust.type)
 
                 cd = cs_cyml.Cs_Cyml_ast(r)
                 h = cd.transform()
@@ -423,7 +423,7 @@ def run_bioma(component, output):
 
         rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category)
         env = {m.name:m.pseudo_type for j in rr.declarations for m in j.decl}
-        zz = CheckingInOut(env, isAlgo = True)
+        zz = CheckingInOut( {},isAlgo = True)
         r_ch = zz.process(vv)
         z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs)))
         z.model.function = [n.name for n in funcs if f]

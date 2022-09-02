@@ -449,7 +449,6 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    print(arg.y)
                                     if not arg.elts:
                                         pass
                                     else: self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
@@ -547,7 +546,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 self.write(" = ")
                 if n.type=="local":
                     self.write(n.value)
-                else: self.visit(n.value)
+                else: self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)
                 self.write(";")           
             elif  n.type=='datetime':
                 self.newline(node)
@@ -688,7 +687,8 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     self.visit(arg)
                 self.write(')')
     
-    def visit_standard_call(self, node):        
+    def visit_standard_call(self, node): 
+        print(node.namespace)       
         node.function = self.functions[node.namespace][node.function]
         self.visit_call(node)  
         

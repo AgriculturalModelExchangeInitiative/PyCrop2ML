@@ -93,7 +93,7 @@ class SimplaceGenerator(JavaGenerator):
                 if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array"):
                     self.write(self.types[n.pseudo_type])
                     self.write(' %s;'%n.name) 
-                if 'elements' not in dir(n) and n.type in ("list","array"):
+                elif 'elements' not in dir(n) and n.type in ("list","array"):
                     if n.type=="list":
                         self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                     if n.type=="array":
@@ -105,7 +105,8 @@ class SimplaceGenerator(JavaGenerator):
                                 self.visit(n)
                                 self.write(']')
                         self.write(";")
-                if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
+                elif 'value' in dir(n) and n.value is not None and n.type in ("int", "float", "str", "bool"):
+                    print(n.y)
                     self.write("%s %s"%(self.types[n.type], n.name))
                     self.write(" = ")
                     if n.type=="local":
@@ -526,6 +527,7 @@ def transfString(type_v, elem):
 def transfList(type_v, elem):
     if isinstance(elem, str) and elem.strip() =="": return 'null'
     elem = eval(elem)
+    if isinstance(elem, int) or isinstance(elem, float): return "null"
     res = ",".join(list(map(transf,[type_v.split("LIST")[0]]*len(elem),elem )))
     return "new %s[] {%s}"%(cymltype[type_v.split("LIST")[0]],res)
 

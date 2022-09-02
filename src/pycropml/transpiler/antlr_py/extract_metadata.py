@@ -87,10 +87,11 @@ class MetaExtraction():
         self.getTypeNode(algo, "custom_call")
         custom_call = self.getTree
         res_meth = []
-        for c in custom_call:
-            if c and c.function!=rec:
+        for c in custom_call :
+            if c and c.function!=rec :
                 namespace = c.namespace if "namespace" in dir(c) else None
-                res_meth.append((c.function, namespace))
+                if (c.function, namespace) not in res_meth:
+                    res_meth.append((c.function, namespace))
         
         getmeth = []
         if res_meth:
