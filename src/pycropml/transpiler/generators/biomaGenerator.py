@@ -26,14 +26,15 @@ param_datatype ={"STRING":"String",
                 "DOUBLEARRAY":"ArrayDouble",
                 "INTARRAY":"ArrayInteger"}
 
-def getdefault(x):
-    if "default" in dir(x):
-        if x.datatype == "STRING": return '"%s"'%x.default if x.default is not None  else "-1D"
-        elif x.datatype == "BOOLEAN": return x.default.lower() if x.default is not None  else "-1D"
-        elif x.datatype in ("DATE", "DATELIST"): return "-1D"
-        elif x.datatype.endswith("LIST"): return x.default if x.default is not None else "-1D"
-        else: return x.default if x.default is not None else "-1D"
-    else: return "-1D"
+def getdefault(x, typ):
+    df = "-1D"
+    if typ in dir(x):
+        if  x.datatype=="DOUBLE" or x.datatype == "INT":
+            p = getattr(x, typ) 
+            if p is not None:
+                df = p
+    return df
+    
 
 class BiomaGenerator(CsharpGenerator):
     """ This class contains the specific properties of
@@ -91,15 +92,15 @@ using CRA.AgroManagement;
         for p in self.model.parameters:
             self.write("VarInfo v%s = new VarInfo();"%n)
             self.newline(node)
-            self.write("v%s.DefaultValue = %s;"%(n, getdefault(p)))
+            self.write("v%s.DefaultValue = %s;"%(n, getdefault(p, "default")))
             self.newline(node)
             self.write('v%s.Description = "%s";'%(n,p.description))
             self.newline(node)
             self.write("v%s.Id = 0;"%n)
             self.newline(node)
-            self.write("v%s.MaxValue = %s;"%(n, p.max if p.max is not None else getdefault(p)))
+            self.write("v%s.MaxValue = %s;"%(n, getdefault(p, "max")))
             self.newline(node)
-            self.write("v%s.MinValue = %s;"%(n, p.min if p.min is not None else getdefault(p)))
+            self.write("v%s.MinValue = %s;"%(n, getdefault(p, "min")))
             self.newline(node)
             self.write('v%s.Name = "%s";'%(n, p.name))
             self.newline(node)
@@ -229,7 +230,13 @@ using CRA.AgroManagement;
         self.newline(node)
         self.write('_pd.Add("Date", "");')
         self.newline(node)
-        self.write('_pd.Add("Publisher", "%s");'%self.model.description.Institution)
+        self.write('_pd.Add("Publisher", "' )
+        m = self.model.description.Institution.split(',')
+        for i, j in enumerate(m):
+            if i!= len(m) - 1:
+                self.write("%s, "%j.replace("\n", "").strip())
+            else:
+                self.write('%s "); '%j.replace("\n", "").strip())
         self.close(node)
         self.newline(extra=1) 
 
@@ -250,9 +257,9 @@ using CRA.AgroManagement;
     def varinfodef(self, node, pa):
         self.write('%sVarInfo.Name = "%s";'%(pa.name, pa.name)); self.newline(node)
         self.write('%sVarInfo.Description = "%s";'%(pa.name, pa.description)); self.newline(node)
-        self.write('%sVarInfo.MaxValue = %s;'%(pa.name,pa.max if pa.max is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.MinValue = %s;'%(pa.name, pa.min if pa.min is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.DefaultValue = %s;'%(pa.name, getdefault(pa))); self.newline(node)
+        self.write('%sVarInfo.MaxValue = %s;'%(pa.name,getdefault(pa, "max"))); self.newline(node)
+        self.write('%sVarInfo.MinValue = %s;'%(pa.name,getdefault(pa, "min"))); self.newline(node)
+        self.write('%sVarInfo.DefaultValue = %s;'%(pa.name,getdefault(pa, "default"))); self.newline(node)
         self.write('%sVarInfo.Units = "%s";'%(pa.name, pa.unit if ("unit" in dir(pa) and pa.unit is not None) else "dimensionless")); self.newline(node)
         self.write('%sVarInfo.ValueType = VarInfoValueTypes.GetInstanceForName("%s");'%(pa.name, param_datatype[pa.datatype])); self.newline(node)
 
@@ -672,9 +679,9 @@ using CRA.ModelLayer.ParametersManagement;
         for pa in node :
             self.write('_%s.Name = "%s";'%(pa.name, pa.name)); self.newline(node)
             self.write('_%s.Description = "%s";'%(pa.name, pa.description)); self.newline(node)
-            self.write('_%s.MaxValue = %s;'%(pa.name,pa.max if ("max" in dir(pa) and pa.max is not None) or pa.max=="" else getdefault(pa))); self.newline(node)
-            self.write('_%s.MinValue = %s;'%(pa.name, pa.min if ("min" in dir(pa) and pa.min is not None) or pa.min=="" else getdefault(pa))); self.newline(node)
-            self.write('_%s.DefaultValue = %s;'%(pa.name, getdefault(pa))); self.newline(node)
+            self.write("_%s.MaxValue = %s;"%(pa.name, getdefault(pa, "max"))); self.newline(node)    
+            self.write("_%s.MinValue = %s;"%(pa.name, getdefault(pa, "min"))); self.newline(node)
+            self.write('_%s.DefaultValue = %s;'%(pa.name, getdefault(pa, "default"))); self.newline(node)
             self.write('_%s.Units = "%s";'%(pa.name, pa.unit if ("unit" in dir(pa) and pa.unit is not None) else "dimensionless")); self.newline(node)
             self.write('_%s.ValueType = VarInfoValueTypes.GetInstanceForName("%s");'%(pa.name, param_datatype[pa.datatype])); self.newline(node)
             self.newline(extra=1)
@@ -913,10 +920,16 @@ using CRA.AgroManagement;
         self.newline(node)
         self.write('_pd.Add("Date", "");')
         self.newline(node)
-        self.write('_pd.Add("Publisher", "%s");'%self.model.description.Institution)
+        self.write('_pd.Add("Publisher", "' )
+        m = self.model.description.Institution.split(',')
+        for i, j in enumerate(m):
+            if i!= len(m) - 1:
+                self.write("%s, "%j.replace("\n", "").strip())
+            else:
+                self.write('%s "); '%j.replace("\n", "").strip())
         self.close(node)
         self.newline(extra=1) 
-
+        
     def getStrategyDomainClassesTypes(self, node):	
         self.write("public IEnumerable<Type> GetStrategyDomainClassesTypes()")
         self.open(node)
@@ -937,9 +950,9 @@ using CRA.AgroManagement;
     def varinfodef(self, node, pa):
         self.write('%sVarInfo.Name = "%s";'%(pa.name, pa.name)); self.newline(node)
         self.write('%sVarInfo.Description = "%s";'%(pa.name, pa.description)); self.newline(node)
-        self.write('%sVarInfo.MaxValue = %s;'%(pa.name,pa.max if pa.max is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.MinValue = %s;'%(pa.name, pa.min if pa.min is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.DefaultValue = %s;'%(pa.name, getdefault(pa))); self.newline(node)
+        self.write("%sVarInfo.MaxValue = %s;"%(pa.name, getdefault(pa, "max"))); self.newline(node)            
+        self.write("%sVarInfo.MinValue = %s;"%(pa.name, getdefault(pa, "min"))); self.newline(node)
+        self.write("%sVarInfo.DefaultValue = %s;"%(pa.name, getdefault(pa, "default"))); self.newline(node)
         self.write('%sVarInfo.Units = "%s";'%(pa.name, pa.unit if ("unit" in dir(pa) and pa.unit is not None) else "dimensionless")); self.newline(node)
         self.write('%sVarInfo.ValueType = VarInfoValueTypes.GetInstanceForName("%s");'%(pa.name, param_datatype[pa.datatype])); self.newline(node)
 
