@@ -29,10 +29,11 @@ def translatePrint(node):
         x=[]
         for n in node.args[0].elements:
             if "value" in dir(n) and n.value in [b'\r', b'\t', b'\n']: continue
-            x.append(Node(type="ExprStatNode", expr=Node(type="custom_call", function="System.out.println", args=[n])))
+            x.append(Node(type="ExprStatNode", expr=Node(type="custom_call", function="print", args=[n])))
         return x
     else:
-        return Node(type="ExprStatNode", expr=Node(type="custom_call", function="System.out.println", args=node.args))
+        return {"type":"ExprStatNode", "expr":{'type':"custom_call", "function":"print", "args":node.args}}
+    
 def translatePow(node): 
     if node.pseudo_type=="int":
         return Node(type="custom_call", function="(int) Math.pow", args=node.args)
@@ -72,14 +73,14 @@ class Java_CymlRules(GeneralRule):
         "float": "float",
         "double": "float",
         "Double": "float",
-        "Integer": "float",
+        "Integer": "int",
         "bool": "boolean",
         "array": "array",
         "List": "list",
-        "tuple": "Pair",
+        "tuple": "tuple",
         "String": "str",
         "HashMap": "dict",
-        "datetime": "LocalDateTime"
+        "LocalDateTime": "datetime"
     }
     types2 = {
         "int": "Integer",
@@ -92,19 +93,20 @@ class Java_CymlRules(GeneralRule):
 
     functions = {
         'math': {
-            'ln':          'Math.log10',
-            'log':         'Math.log',
-            'tan':         'Math.tan',
-            'sin':         'Math.sin',
-            'cos':         'Math.cos',
-            'asin':        'Math.asin',
-            'acos':        'Math.acos',
-            'atan':         'Math.atan',
-            'sqrt':         'Math.sqrt',
-            'ceil':         '(int) Math.ceil',
-            'round':        'Math.round',
-            'exp':         'Math.exp',
-            'pow':          'Math.pow'
+            'ln':          'log10',
+            'log':         'log',
+            'tan':         'tan',
+            'sin':         'sin',
+            'cos':         'cos',
+            'asin':        'asin',
+            'acos':        'acos',
+            'atan':         'atan',
+            'sqrt':         'sqrt',
+            'ceil':         '(int) ceil',
+            'round':        'round',
+            'exp':         'exp',
+            'pow':          'pow',
+            'floor':  'floor'
 
         },
         'io': {
@@ -114,9 +116,9 @@ class Java_CymlRules(GeneralRule):
             'write_file': 'File.WriteAllText'
         },
         'system': {
-            'min': 'Math.min',
-            'max': 'Math.max',
-            'abs': 'Math.abs',
+            'min': 'min',
+            'max': 'max',
+            'abs': 'abs',
             'pow': translatePow,
             'copy':translateCopy
         },
@@ -129,7 +131,7 @@ class Java_CymlRules(GeneralRule):
             
         'math':{
                 
-            'pi': 'Math.PI'
+            'pi': 'pi'
                 
                 }            
         }
@@ -151,59 +153,26 @@ class Java_CymlRules(GeneralRule):
             'float': 'Double.'
         },
         'list': {
-            'len': translateLenList,
-            'append': '.add',
-            'sum': translateSum,
-            'pop': '.remove',
-            'insert_at': ".insert",
-            'contains?': '.contains',
-            'not contains?': translateNotContains,
-            'index': '.indexOf'
+            'len': 'len',
+            'append': 'append',
+            'sum': 'sum',
+            'pop': 'pop',
+            'insert_at': "insert_at",
+            'contains?': 'contains?',
+            'not contains?': "not contains?",
+            'index': 'index'
         },
         'dict': {
-            'len': translateLenDict,
+            'len': 'len',
             'keys': translateDictkeys, # in assignment
             'values':translateDictValues, # in assignment
             'get':'.get'
         },
         'array':{
-                'len': translateLenArray,
-                'append': '.add'   
+                'len': "len",
+                'append': 'append'   
                 }
     }
-    get_properties = '''
-    { return %s; }'''
-    set_properties = '''
-    { this.%s= _%s; } 
-    '''
-    constructor = '''
-    public %s() { }'''
-
-    copy_constr = '''
-    public %s(%s toCopy, boolean copyAll) // copy constructor 
-    {
-        if (copyAll)
-        {'''
-    copy_constrList = '''
-            for (%s c : toCopy.%s)
-            {
-                _%s.add(c);
-            }
-            this.%s = _%s;'''
-    copy_constrArray = '''
-        for (int i = 0; i < %s; i++)
-        {
-            _%s[i] = toCopy._%s[i];
-        }'''
-    get_properties_compo = '''
-    { return _%s.get%s(); }'''
-    set_properties_compo = '''
-    { %s } '''
-
-    copy_constr_compo = '''
-    public %s(%s toCopy) // copy constructor 
-    {'''
-
 
 def argsToStr(args):
     t=[]

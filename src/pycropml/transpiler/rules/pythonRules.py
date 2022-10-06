@@ -85,7 +85,12 @@ class PythonRules(GeneralRule):
             'pow': 'pow',
             'modulo': translateModulo,
             "copy":translateCopy,
-            "integr":translateIntegr},
+            "integr":translateIntegr,
+            'round':'round',
+            'list':'list',
+            'range':'range'
+            
+        },
         'datetime':{
             'datetime': 'datetime'
         }

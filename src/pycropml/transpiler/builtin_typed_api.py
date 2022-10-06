@@ -195,7 +195,8 @@ TYPED_API = {
         'sqrt':         ['Number', 'float'],
         'ceil':         ['float', 'int'],
         'exp':          ['float','float'],
-        'pi': 'pi'
+        'pi': 'pi',
+        'floor':["Number", "int"]
         
         
     },
@@ -270,7 +271,7 @@ TYPED_API = {
         'index':       ['@t', 'int'],
         'count':       ['@t', 'int'],
         'append':       ['@t', ['array', '@t']],
-        'allocate': ['@t','int']
+        'allocate': ['int',['array', '@t']]
     },
 
     '_generic_list':    ['list', '@t'],
@@ -382,7 +383,7 @@ KEY_TYPES = {'str', 'int', 'float', 'bool'}
 
 PSEUDO_KEY_TYPES = {'str', 'int', 'float', 'bool'}
 
-BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow', "mean", "count", "copy", "integr","array"}
+BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow', "mean", "count", "copy", "integr","array", "round", 'list', 'range'}
 
 FORBIDDEN_TOP_LEVEL_FUNCTIONS = {'map', 'filter'}
 

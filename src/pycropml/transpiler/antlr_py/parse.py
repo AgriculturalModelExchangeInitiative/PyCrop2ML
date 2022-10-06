@@ -8,12 +8,15 @@ from pycropml.transpiler.antlr_py.grammars.Fortran90Parser import Fortran90Parse
 from pycropml.transpiler.antlr_py.grammars.XMLParser import XMLParser
 from pycropml.transpiler.antlr_py.grammars.XMLLexer import XMLLexer
 from pycropml.transpiler.antlr_py.csharp import csharp_generate_tree
+from pycropml.transpiler.antlr_py.python import python_generate_tree
 from pycropml.transpiler.antlr_py.fortran import fortran_generate_tree
 from pycropml.transpiler.antlr_py.java import java_generate_tree
 from pycropml.transpiler.antlr_py.xml import xml_generate_tree
 from pycropml.transpiler.antlr_py.grammars.CMakeLexer import CMakeLexer
 from pycropml.transpiler.antlr_py.grammars.CMakeParser import CMakeParser
 from pycropml.transpiler.antlr_py.cmake import cmake_generate_tree
+from pycropml.transpiler.antlr_py.grammars.PythonLexer import PythonLexer
+from pycropml.transpiler.antlr_py.grammars.PythonParser import PythonParser
 from antlr4 import *
 import warnings
 import inspect
@@ -28,9 +31,9 @@ from antlr4.error.ErrorListener import ErrorListener, ConsoleErrorListener
 from operator import methodcaller
 from antlr4 import InputStream
 
-languages = ['cs',"bioma", 'f90', 'dssat', 'java', "xml", "cmake"]
-gen = {'cs':"csharp","bioma":"csharp", 'f90':"fortran", 'dssat':"fortran", "java":"java", "xml":"xml", "cmake":"cmake"}
-NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp", 'f90':'Fortran90', 'dssat':'Fortran90', "java":"Java8", "xml":"XML", "cmake":"CMake"}
+languages = ['cs',"bioma", 'f90', 'dssat', 'java', "xml", "cmake", "py", "openalea"]
+gen = {'cs':"csharp","bioma":"csharp", 'f90':"fortran", 'dssat':"fortran", "java":"java", "xml":"xml", "cmake":"cmake", "py":"python", "openalea":"python"}
+NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp", 'f90':'Fortran90', 'dssat':'Fortran90', "java":"Java8", "xml":"XML", "cmake":"CMake", "py":"Python", "openalea":"Python"}
 
 def langLexerParser(ant):
     generator = {
@@ -45,8 +48,6 @@ def langLexerParser(ant):
 
 LexersGenerators = langLexerParser("Lexer")
 ParsersGenerators = langLexerParser("Parser")
-
-
 
 
 genTree= {

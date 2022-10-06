@@ -1,9 +1,0 @@
-<ModelComposition id="Dssat.Pheno_Pkg.Phenology" name="Phenology" timestep="1" version="001">
-    <Description>
-        <Title>Phenology</Title>
-        <Authors>Pierre MARTRE</Authors>
-        <Institution></Institution>
-        <Reference>Modeling development phase in the </Reference>
-        <ExtendedDescription></ExtendedDescription></Description>
-    <Composition>
-        <Links/></Composition></ModelComposition>

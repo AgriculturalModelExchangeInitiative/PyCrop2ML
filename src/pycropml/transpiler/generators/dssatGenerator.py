@@ -16,11 +16,10 @@ class DssatGenerator(FortranGenerator):
         self.name = name
         self.indent_with=' '*4
         dir_lib = Path(os.path.dirname(lib.__file__))
-        self.f_src=dir_lib/"f90"/"list_sub.f90"
         FortranGenerator.__init__(self, tree, model, name)
         pkg = self.model.path.split(os.path.sep)[-1] 
         self.f_dest = os.path.join(self.model.path,"src","dssat",pkg,"list_sub.f90") 
-
+        self.f_src=dir_lib/"dssat"/"list_sub.f90"
 
 class DssatCompo(FortranCompo):
     """ This class generates Dssat module
@@ -30,3 +29,7 @@ class DssatCompo(FortranCompo):
         self.model = model
         self.name = name
         FortranCompo.__init__(self,tree, model, self.name)
+        dir_lib = Path(os.path.dirname(lib.__file__))
+        pkg = self.model.path.split(os.path.sep)[-1] 
+        self.f_dest = os.path.join(self.model.path,"src","dssat",pkg,"list_sub.f90") 
+        self.f_src=dir_lib/"dssat"/"list_sub.f90"

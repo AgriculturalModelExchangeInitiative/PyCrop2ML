@@ -266,6 +266,16 @@ class WhileStatement(AliasNode):
 class StatementNoShortIf(AliasNode):
     _fields_spec =[ "statementWithoutTrailingSubstatement", "labeledStatementNoShortIf", "ifThenElseStatementNoShortIf", "whileStatementNoShortIf","forStatementNoShortIf"]
  
+ 
+class ArrayInitializer(AliasNode):
+    _fields_spec =[ "variableInitializerList"]
+
+class VariableInitializerList(AliasNode):
+    _fields_spec =[ "variableInitializer"]
+
+class MethodInvocation_lf_primary(AliasNode):
+    _fields_spec =["typeArguments", "Identifier", "argumentList"]
+                   
 class Transformer(BaseNodeTransformer):
     def visit_CompilationUnit(self, node):
         return CompilationUnit.from_spec(node)
@@ -513,10 +523,17 @@ class Transformer(BaseNodeTransformer):
     def visit_StatementNoShortIf(self, node):
         return StatementNoShortIf.from_spec(node)
 
+    def visit_ArrayInitializer(self, node):
+        return ArrayInitializer.from_spec(node)
 
+    def visit_VariableInitializerList(self, node):
+        return VariableInitializerList.from_spec(node)
+
+    def visit_MethodInvocation_lf_primary(self, node):
+        return MethodInvocation_lf_primary.from_spec(node)
     
 class AstTransformer():
-    def __init__(self, tree, code = None, comments=None):
+    def __init__(self, tree, code :str = None ,comments: str=None, env=None):
         self.tree = tree
         self.base = 0
         self.code=code
@@ -562,7 +579,7 @@ class AstTransformer():
             if x:
                 fields['location'] = x["line_start"],x["column_start"]
                 while self.comments and x["line_start"] >= list(self.comments.keys())[0]:
-                    comment.append(list(self.comments.values())[0])
+                    comment.append(list(self.comments.values())[0].encode("utf-8"))
                     self.comments.popitem(0)
                 fields['comments'] = comment
             else:
@@ -606,10 +623,11 @@ class AstTransformer():
         pass
     
     def visit_typedeclaration(self, node,classDeclaration,interfaceDeclaration,location,comments):
+        res = None
         if classDeclaration:
             res = self.visit(classDeclaration)
         if comments: res["comments"] = comments
-        return res
+        return res 
     
     def visit_classdeclaration(self, node,normalClassDeclaration, enumDeclaration, location,comments):
         if normalClassDeclaration:
@@ -697,9 +715,9 @@ class AstTransformer():
         methdecl = self.visit(methodDeclarator)  # a dict "id" for method name and "args" for arguments
         methdecl["typ"] = return_type
         return methdecl
-        if typeParameters:
+        """if typeParameters:
             tparams = self.visit(typeParameters)
-            print(f"methodheader not yet implemented {location}")
+            print(f"methodheader not yet implemented {location}")"""
     
 
     def visit_methoddeclarator(self, node,Identifier, formalParameterList,dims, location,comments):
@@ -789,8 +807,9 @@ class AstTransformer():
             s = {"type":typ, "name":d["id"], "pseudo_type":pseudo_type}
             if "value" in d: 
                 if d["value"]["type"] == "array": 
-                    s["dim"] = d["value"]["dim"] 
-                    s["elements"] = d["value"]["elements"]
+                    if "dim" in d["value"]: s["dim"] = d["value"]["dim"] 
+                    if "elts" in d["value"]: s["elts"] = d["value"]["elts"]
+                    if "init" in d["value"]: s["init"] = d["value"]["init"]
                 else: 
                     s["value"] = d["value"]
             self.type_env.top[d["id"]] = pseudo_type
@@ -931,9 +950,11 @@ class AstTransformer():
     
     def visit_preincrementexpression(self, node,unaryExpression, location,comments):
         print(f"preincrementexpression not implemented {location}")
+        return self.visit(unaryExpression)
         
     def visit_predecrementexpression(self, node,unaryExpression, location,comments):
         print(f"predecrementexpression not implemented {location}")
+        return self.visit(unaryExpression)
 
     def visit_unaryexpressionnotplusminus(self, node,postfixExpression, unaryExpression, castExpression,TILDE,BANG, location,comments):
         if postfixExpression:
@@ -941,7 +962,15 @@ class AstTransformer():
         if castExpression:
             return self.visit(castExpression)
         if unaryExpression:
-            print(f"unaryexpressionnotplusminus not implemented {location}")
+            res = self.visit(unaryExpression)
+            if BANG: op = "not"
+            else: op = "~"
+            return {
+                'type': 'unary_op',
+                        'operator': op,
+                        'value': res,
+                        'pseudo_type': "bool"
+            } 
 
 
     def visit_postfixexpression(self, node,primary, expressionName, postIncrementExpression_lf_postfixExpression, postDecrementExpression_lf_postfixExpression, location,comments):
@@ -972,9 +1001,16 @@ class AstTransformer():
                 typ = self.visit(primitiveType)
             elif classOrInterfaceType:
                 typ = self.visit(classOrInterfaceType)
-            return {"type":"array", "dim":dimexp["length"], "elements":dimexp["expr"], "pseudo_type":["array", typ]}
+            return {"type":"array", "dim":dimexp["length"], "elts":dimexp["expr"], "pseudo_type":["array", typ]}
         else:
-            print(f"arraycreationexpression not implemented {location}")
+            init = self.visit(arrayInitializer)
+            return {"type":"array", "init":init, "pseudo_type":["array", init[0]["pseudo_type"]]}
+    
+    def visit_arrayinitializer(self, node,variableInitializerList, comments, location):
+        return self.visit(variableInitializerList)
+    
+    def visit_variableinitializerlist(self, node,variableInitializer, comments, location):
+        return self.visit(variableInitializer)
             
     def visit_dimexprs(self, node, dimExpr, location,comments):
         expr = []
@@ -1047,7 +1083,7 @@ class AstTransformer():
         if IntegerLiteral: return {'type': 'int', 'value': self.visit(IntegerLiteral), 'pseudo_type': 'int'}
         if FloatingPointLiteral: 
             val = self.visit(FloatingPointLiteral)
-            if val.endswith("d"): return {'type': 'double', 'value': val[:-1], 'pseudo_type': 'double'}
+            if val.endswith("d"): return {'type': 'double', 'value': val[:-1]+".0" if "." not in val[:-1] else val[:-1], 'pseudo_type': 'double'}
             else: return {'type': 'float', 'value': val, 'pseudo_type': 'float'}
         if CharacterLiteral: 
             return {'type': 'char', 'value': str(self.visit(CharacterLiteral)), 'pseudo_type': 'char'}
@@ -1099,7 +1135,6 @@ class AstTransformer():
             receiver_type = self.type_env[receiver] 
             receiver_type = receiver_type[0] if isinstance(receiver_type, list) else receiver_type
             rec =  {"type":"local" , "name":receiver, "pseudo_type":self.type_env[receiver]} 
-        
             if receiver in FUNCTION_API:
                 api = FUNCTION_API[receiver].get(method) 
                 return self.util_methodinvocation(api,receiver,method,args, location,comments)
@@ -1129,6 +1164,13 @@ class AstTransformer():
                 res.append(self.visit(j))
         else: res = [self.visit(expression)]
         return res
+    
+    def visit_typename(self, node, Identifier, packageOrTypeName, DOT, comments, location):
+        id = self.visit(Identifier)
+        if not packageOrTypeName:
+            return id
+        else:
+            return  self.visit(packageOrTypeName) + "%" + id
                 
     
     def visit_methodinvocation(self,node,methodName, argumentList,typeName,typeArguments,Identifier,expressionName, location,comments):
@@ -1159,7 +1201,7 @@ class AstTransformer():
         if primitiveType:
             cas = self.visit(primitiveType)
             args = self.visit(unaryExpression)
-            if cas in ("int", "double"):
+            if cas in ("int", "double", "float", "char"):
                 res = {'type': 'standard_method_call',
                             'receiver': args,
                             'args': [],
@@ -1530,5 +1572,15 @@ class AstTransformer():
         if forStatementNoShortIf  : res = self.visit(forStatementNoShortIf)    
         if comments and isinstance(res, dict): res["comments"] = comments
         if comments and isinstance(res, list): res.insert(0,{"type":"comments", "comments": comments})
-        return res        
+        return res    
+    
+    def visit_methodinvocation_lf_primary(self, node,typeArguments, Identifier, argumentList, comments, location) :
+        args = self.visit(argumentList)  
+        id = self.visit(Identifier)
+        #TODO Continue
+        return  {'type': 'methodcall',
+                        'args': args,
+                        'message': id,
+                        'pseudo_type': "unknowwn"}
+         
         

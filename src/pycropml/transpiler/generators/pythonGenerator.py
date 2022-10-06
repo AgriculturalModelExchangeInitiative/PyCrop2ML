@@ -7,6 +7,15 @@ from pycropml.render_cyml import signature
 from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+from pycropml.transpiler.pseudo_tree import Node
+
+
+
+
+def initVal(type_):
+    if type_=="f": return 0.0
+    if type_=="i": return 0
+    
 
 class PythonGenerator(CodeGenerator, PythonRules):
     """This class contains the specific properties of 
@@ -62,6 +71,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.visit(node.target)
             self.write(' = ')
             self.visit(node.value)
+    
+    def visit_none(self, node):
+        self.write("None")
 
     def visit_cond_expr_node(self, node):
         self.visit(node.true_val)
@@ -191,7 +203,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(node)
         #self.write("from pycropml.units import u")
         #self.newline(node)
-        self.write("from copy import copy\nfrom array import array\nfrom math import *\n")
+        self.write("from copy import copy\nfrom array import array\nfrom math import *\nfrom typing import *\nfrom datetime import datetime\n")
         self.newline(node)
         self.visit(node.body)
 
@@ -211,7 +223,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
@@ -232,10 +244,24 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_function_definition(self, node):
         self.newline(extra=1)
         self.newline(node)
+        self.funcname = node.name
+        if self.model and  self.funcname.split("model_")[1]==signature(self.model):
+            self.write("#%%CyML Model Begin%%")
+            self.newline(node)
+        if  self.funcname.startswith("init_"):
+            self.write("#%%CyML Init Begin%%")
+            self.newline(node)
         self.write('def %s(' % node.name)
         for i, pa in enumerate(node.params):
             #if pa.type == "local": 
-            self.write(pa.name)
+            if not isinstance(pa.pseudo_type, list):
+                self.write("%s:%s"%(pa.name,pa.pseudo_type))
+            elif isinstance(pa.pseudo_type, list):
+                if pa.pseudo_type[0] not in ["dict", "array"] :
+                    self.write("%s:%s[%s]"%(pa.name, pa.pseudo_type[0].capitalize(),  pa.pseudo_type[1]))
+                elif pa.pseudo_type[0] == "dict": self.write("%s:%s[%s, %s]"%(pa.name, pa.pseudo_type[0].capitalize(),  pa.pseudo_type[1], pa.pseudo_type[2]))
+                else: self.write("%s:'%s[%s]'"%(pa.name, pa.pseudo_type[0].capitalize(),  pa.pseudo_type[1]))
+                
             if "value" in dir(pa) or "elements" in dir(pa) or "pairs" in dir(pa) :
                 #self.write(pa.name)
                 self.write(" = ")
@@ -256,8 +282,16 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.newline(node)
             self.write('    """\n')
             self.newline(node)
-            self.model = None
         self.body(node.block)
+        if self.model and self.funcname.split("model_")[1]==signature(self.model):
+            self.newline(node)
+            self.write("#%%CyML Model End%%")
+            self.newline(node)
+        if self.funcname.startswith("init_"):
+            self.newline(node)
+            self.write("#%%CyML Init End%%")
+            self.newline(node)
+        self.model = None
         
     def visit_implicit_return(self, node):
         self.newline(node)
@@ -267,59 +301,98 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.write('return ')
         self.visit(node.value)
 
+
     def visit_declaration(self, node):
         self.newline(node)
-        for n in node.decl  :           
-            if n.type in ("int", "float"):
+        for n in node.decl  : 
+            if n.type in ("int", "float", "bool", "str") and "value" not in dir(n):
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s"%(n.name, n.pseudo_type))       
+            elif n.type in ("int", "float") and "value" in dir(n):
+                self.newline(node)
+                self.write("%s:%s"%(n.name, n.pseudo_type))
                 self.write(" = ")                 
-                self.write(n.value) if "value" in dir(n) else self.write("None")
-            elif n.type=="bool":
+                self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)
+            elif n.type=="bool" and "value" in dir(n):
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s"%(n.name, n.pseudo_type))
                 self.write(" = ") 
-                self.write(str(n.value)) if "value" in dir(n) else self.write("None")       
-            elif  n.type=="str":
+                self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)      
+            elif  n.type=="str" and "value" in dir(n):
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s"%(n.name, n.pseudo_type))
                 self.write(" = ") 
-                self.emit_string(n) if "value" in dir(n) else self.write("''")               
+                #self.emit_string(n)   
+                self.visit(n.value) if isinstance(n.value, Node) else self.emit_string(n)           
             elif n.type in ("list", "tuple"):
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s[%s]"%(n.name, n.pseudo_type[0].capitalize(),  n.pseudo_type[1]))
                 self.write(" = ") 
                 if n.type=="list":                
                     self.visit_list(n) if "elements" in dir(n) else self.write("[]")
                 else: self.visit_tuple(n)
             elif 'args' in dir(n) and n.type=='datetime':
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s"%(n.name, n.pseudo_type))
                 self.write(" = datetime") 
-                self.visit_datetime               
+                self.visit_datetime(n)               
             elif 'pairs' in dir(n) and n.type=="dict":
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s[%s, %s]"%(n.name, n.pseudo_type[0].capitalize(),  n.pseudo_type[1], n.pseudo_type[2]))
                 self.write(" = ")                 
                 self.visit_dict(n)
             elif n.type=="array" and 'elements' in dir(n):
-                if n.dim == 1:
-                    self.write(n.name)
+                    self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))
                     self.write(" = array('%s',"%n.pseudo_type[1][0])
                     self.write("[")
                     self.comma_separated_list(n.elements)
-                    self.write("] )")                    
+                    self.write("] )") 
+            elif n.type=="array" and 'elements' not in dir(n):
+                if n.elts:
+                    c = n.pseudo_type[1][0]
+                    self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))
+                    self.write(" = array('%s',"%n.pseudo_type[1][0])
+                    self.write("[%s]*"%initVal(c))
+                    self.visit(n.elts[0]) if isinstance(n.elts, list) else self.visit(n.elts)
+                    self.write(")")   
+                else:
+                    self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))           
             elif n.type in ("list"):
                 self.newline(node)
-                self.write(n.name)
+                self.write("%s:%s[%s]"%(n.name, n.pseudo_type[0].capitalize(),  n.pseudo_type[1]))
                 self.write(" = []")                  
 
 
     def visit_array(self,node): 
-        #self.write(node.name)
-        self.write("[")
-        self.comma_separated_list(node.elements)
-        self.write("]")
+        if hasattr(node, "elts"):
+            type_ = node.pseudo_type[-1]
+            newtype= newtype_func(type_)
+            self.write("array('%s', [None]*"%newtype)
+            self.visit(node.elts)            #one dimension array
+            self.write(")")
+            
+        elif isinstance(node.elements, Node):
+            if node.elements.type == "standard_call" and node.elements.function=="range":
+                self.write("array('%s', range"%newtype_func(node.elements.args[0].pseudo_type))
+                self.write("(")
+                self.comma_separated_list(node.elements.args)
+                self.write("))")
+                
+            else:
+                type_ = node.elements.left.elements[0].type
+                newtype= newtype_func(type_)
+                self.write("array('%s', ["%newtype)
+                self.visit(node.elements.left.elements[0])
+                self.write(']*')
+                self.visit(node.elements.right)
+                self.write(")")
+        else:
+            type_ = node.elements[0].type
+            newtype= newtype_func(type_)
+            self.write("array('%s',"%newtype)
+            self.write("[")
+            self.comma_separated_list(node.elements)
+            self.write("])")
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -355,9 +428,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_importfrom(self, node):
         if self.imp:
             self.newline(node)
-            if node.namespace=="math":
-                self.write("from math import *")  
-            else:
+            if node.namespace not in ["math", "array", "typing", "datetime"]:
                 self.write('from %s import ' % (node.namespace))
                 for idx, item in enumerate(node.name):
                     if idx:
@@ -573,6 +644,11 @@ class PythonSimulation(CodeGenerator):
 
 
 
+def newtype_func(type_):
+    if type_=="int" or type_=="bool": newtype="i"
+    elif type_=="float": newtype="f"
+    elif type_=="str": newtype="u"
+    return newtype
         
 
 

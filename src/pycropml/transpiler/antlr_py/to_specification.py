@@ -6,6 +6,7 @@ from pycropml.description import Description
 from pycropml.inout import Input, Output
 from pycropml.transpiler.antlr_py.extraction import ExtractComments 
 from collections import OrderedDict
+from pycropml.composition import ModelComposition
 
 
     
@@ -57,7 +58,7 @@ def extractMetaInfo(comments, symbol):
     startend = symbol + description_tags[1] # end of description extraction
     # Transform comments to a list of comments. Each item represents 
     # an entire description of an input/output
-    commentsPart = extraction(comments, startcom, startend)  
+    commentsPart = extraction(comments, startcom, startend)[0]  # suppose that there is one ModelUnit in a file or one place where metainfo is described
     commentsPart = commentsPart.replace(symbol, '').split('\n')
     commentList = []
     for line_ in commentsPart:
@@ -83,8 +84,8 @@ def extractMetaInfo(comments, symbol):
     return result
 
 
-def createObjectModel(head: dict, description: dict, inputs:list, outputs: list, init:bool=False, funcs:list=[], parametersets:dict=[], testsets:dict=[]):
-    """ generate Crop2ML Python ModelUnit
+def createObjectModel(head: dict, description: dict, inputs:list, outputs: list, init:dict={}, funcs:list=[], parametersets:dict=[], testsets:dict=[]):
+    """ generate Crop2ML ModelUnit Python object
     
     head (dict) : {Name:name, version: version, id:id, timestep:timestep }
     description (dict) : description element of modelUnit (Title, Authors, Reference, Institution, ExtendedDescription)
@@ -106,9 +107,77 @@ def createObjectModel(head: dict, description: dict, inputs:list, outputs: list,
     for n in outputs:
         m.outputs.append(Output(n))
     
-    if init: m.initialization[0].name = m.name
-     
+    if init: 
+        m.initialization.append(init)
+    if funcs:
+        for f in funcs:
+            m.function.append(f)
     return m
+
+def model_desc(desc):
+    name = desc["name"][:-9] if desc["name"].endswith("Component") else desc["name"]
+    description = Description()
+    description.Title = name+" model" 
+    description.Authors = desc["authors"]
+    description.Institution=desc["institution"]
+    description.Reference = desc["Reference"] if "Reference" in desc else None, 
+    description.ExtendedDescription = desc["description"]
+    description.Url = desc["url"]
+    return description
+
+def createObjectCompo(desc, models):
+    inputlink = []
+    outputlink = []
+    mc = ModelComposition({"name":desc["name"], "version":"001", "timestep":"1"})
+    description = model_desc(desc)
+    mc.add_description(description)
+    mc.model = [m.name for m in models]
+    inps, outs = [], []
+    md = models
+    inps = [n.name for m in md for n in m.inputs ]
+    outs = [n.name for m in md for n in m.outputs ]
+    #m_in = set(inps) - set(outs)
+    inits=[]
+    inpsl = []
+    for m in md:
+        if "initialization" in dir(m) and m.initialization and  m.initialization[0]:
+            mo = [r.name for r in m.inputs if "variablecategory" in dir(r) and r.variablecategory=="state"]
+            inits.extend(mo)
+    otherVar = [n.name for m in md for n in m.inputs if "parametercategory" in dir(n) or ("variablecategory" in dir(n) and n.variablecategory=="exogenous")]
+    
+    m_in = inits + otherVar  
+        
+            
+    z = {}
+    internallink= []
+    for m in md:
+        vi = list(set([n.name for n in m.inputs ]).intersection(m_in))
+        vo = [n.name for n in m.outputs]
+        for v in vi:
+            inputlink.append({"target": m.name + "." + v, "source":v})
+            for v in vo: z.update({v:m.name})
+
+    for k, v in z.items():
+        outputlink.append({"source": v + "." + k, "target":k})
+
+    for i in range(0, len(md)-1):
+        mi = md[i]
+        print(mi.name, i)
+        for j in range(i+1, len(md)):
+            mj = md[j]
+            print(mj.name, j)
+            vi = list(set([n.name for n in mi.outputs ]).intersection(set([n.name for n in mj.inputs ])))
+            if vi: 
+                for k in vi:
+                    internallink.append({"source": mi.name + "." + k, "target":mj.name + "." + k})
+
+    mc.inputlink = inputlink
+    mc.outputlink = outputlink
+    mc.internallink = internallink
+    
+    return mc
+    
+    
 
 def extractcomments(code, start_linecom=[],default_mltCom = ['%%%%', '%%%%%'] ):
     """

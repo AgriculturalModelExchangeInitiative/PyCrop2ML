@@ -22,16 +22,27 @@ param_datatype ={"STRING":"String",
                 "STRINGLIST": "ListString",
                 "DOUBLELIST": "ListDouble",
                 "INTLIST": "ListInteger",
-                "BOOLEANLIST": "ListBoolean"}
+                "BOOLEANLIST": "ListBoolean",
+                "DOUBLEARRAY":"DOUBLEARRAY",
+                "INTARRAY":"INTARRAY"}
 
-def getdefault(x):
-    if "default" in dir(x):
-        if x.datatype == "STRING": return '"%s"'%x.default if x.default is not None  else "-1D"
-        elif x.datatype == "BOOLEAN": return x.default.lower() if x.default is not None  else "-1D"
-        elif x.datatype in ("DATE", "DATELIST"): return "-1D"
-        elif x.datatype.endswith("LIST"): return x.default if x.default is not None else "-1D"
-        else: return x.default if x.default is not None else "-1D"
-    else: return "-1D"
+def getdefault(x, typ):
+    df = "-1D"
+    if typ in dir(x):
+        if  x.datatype=="DOUBLE" or x.datatype == "INT":
+            p = getattr(x, typ) 
+            if p and p is not None:
+                df = p
+    return df
+    
+
+def noValue(pa):
+    if "DOUBLE" in pa.datatype or "DATE" in pa.datatype: df = "-1D"
+    if "INT" in pa.datatype: df = '-1'
+    if "BOOLEAN" in pa.datatype: df = 'false'
+    if "STRING" in pa.datatype: df = "null"
+    return df
+
 
 class SiriusGenerator(CsharpGenerator):
     """ This class contains the specific properties of
@@ -88,15 +99,15 @@ using CRA.AgroManagement;
         for p in self.model.parameters:
             self.write("VarInfo v%s = new VarInfo();"%n)
             self.newline(node)
-            self.write("v%s.DefaultValue = %s;"%(n, getdefault(p)))
+            self.write("v%s.DefaultValue = %s;"%(n, getdefault(p, "default")))
             self.newline(node)
             self.write('v%s.Description = "%s";'%(n,p.description))
             self.newline(node)
             self.write("v%s.Id = 0;"%n)
             self.newline(node)
-            self.write("v%s.MaxValue = %s;"%(n, p.max if p.max is not None else getdefault(p)))
+            self.write("v%s.MaxValue = %s;"%(n, getdefault(p, "max")))
             self.newline(node)
-            self.write("v%s.MinValue = %s;"%(n, p.min if p.min is not None else getdefault(p)))
+            self.write("v%s.MinValue = %s;"%(n, getdefault(p, "min")))
             self.newline(node)
             self.write('v%s.Name = "%s";'%(n, p.name))
             self.newline(node)
@@ -164,7 +175,7 @@ using CRA.AgroManagement;
     def description(self, node):
         self.write("public string Description") 
         self.open(node)
-        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", ""))
+        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", "") if self.model.description.ExtendedDescription else "")
         self.close(node)
         self.newline(extra=1) 
 
@@ -226,7 +237,13 @@ using CRA.AgroManagement;
         self.newline(node)
         self.write('_pd.Add("Date", "");')
         self.newline(node)
-        self.write('_pd.Add("Publisher", "%s");'%self.model.description.Institution)
+        self.write('_pd.Add("Publisher", "' )
+        m = self.model.description.Institution.split(',')
+        for i, j in enumerate(m):
+            if i!= len(m) - 1:
+                self.write("%s, "%j.replace("\n", "").strip())
+            else:
+                self.write('%s "); '%j.replace("\n", "").strip())
         self.close(node)
         self.newline(extra=1) 
 
@@ -243,13 +260,14 @@ using CRA.AgroManagement;
         self.write("_modellingOptionsManager.SetParametersDefaultValue();")
         self.close(node)
         self.newline(extra=1)
-
+        
     def varinfodef(self, node, pa):
         self.write('%sVarInfo.Name = "%s";'%(pa.name, pa.name)); self.newline(node)
         self.write('%sVarInfo.Description = "%s";'%(pa.name, pa.description)); self.newline(node)
-        self.write('%sVarInfo.MaxValue = %s;'%(pa.name,pa.max if pa.max is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.MinValue = %s;'%(pa.name, pa.min if pa.min is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.DefaultValue = %s;'%(pa.name, getdefault(pa))); self.newline(node)
+        self.write('%sVarInfo.MaxValue = %s;'%(pa.name,getdefault(pa, "max"))); self.newline(node)
+        self.write('%sVarInfo.MinValue = %s;'%(pa.name,getdefault(pa, "min"))); self.newline(node)
+        self.write('%sVarInfo.DefaultValue = %s;'%(pa.name,getdefault(pa, "default"))); self.newline(node)
+            
         self.write('%sVarInfo.Units = "%s";'%(pa.name, pa.unit if ("unit" in dir(pa) and pa.unit is not None) else "dimensionless")); self.newline(node)
         self.write('%sVarInfo.ValueType = VarInfoValueTypes.GetInstanceForName("%s");'%(pa.name, param_datatype[pa.datatype])); self.newline(node)
 
@@ -433,7 +451,10 @@ using CRA.AgroManagement;
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                    if arg.elts:
+                                        length =  arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
+                                        if length:
+                                            self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], length))
                             self.write(";")                   
         self.indentation -= 1 
         self.body(node.block)
@@ -666,9 +687,11 @@ using CRA.ModelLayer.ParametersManagement;
         for pa in node :
             self.write('_%s.Name = "%s";'%(pa.name, pa.name)); self.newline(node)
             self.write('_%s.Description = "%s";'%(pa.name, pa.description)); self.newline(node)
-            self.write('_%s.MaxValue = %s;'%(pa.name,pa.max if ("max" in dir(pa) and pa.max is not None) or pa.max=="" else getdefault(pa))); self.newline(node)
-            self.write('_%s.MinValue = %s;'%(pa.name, pa.min if ("min" in dir(pa) and pa.min is not None) or pa.min=="" else getdefault(pa))); self.newline(node)
-            self.write('_%s.DefaultValue = %s;'%(pa.name, getdefault(pa))); self.newline(node)
+
+            self.write("_%s.MaxValue = %s;"%(pa.name, getdefault(pa, "max"))); self.newline(node)    
+            self.write("_%s.MinValue = %s;"%(pa.name, getdefault(pa, "min"))); self.newline(node)
+            self.write('_%s.DefaultValue = %s;'%(pa.name, getdefault(pa, "default"))); self.newline(node)
+
             self.write('_%s.Units = "%s";'%(pa.name, pa.unit if ("unit" in dir(pa) and pa.unit is not None) else "dimensionless")); self.newline(node)
             self.write('_%s.ValueType = VarInfoValueTypes.GetInstanceForName("%s");'%(pa.name, param_datatype[pa.datatype])); self.newline(node)
             self.newline(extra=1)
@@ -835,7 +858,7 @@ using CRA.AgroManagement;
     def description(self, node):
         self.write("public string Description") 
         self.open(node)
-        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", ""))
+        self.write('get { return "%s" ;}'%self.model.description.ExtendedDescription.replace("\n", "")) if self.model.description.ExtendedDescription else self.write('get { return "" ;}')
         self.close(node)
         self.newline(extra=1) 
 
@@ -906,7 +929,13 @@ using CRA.AgroManagement;
         self.newline(node)
         self.write('_pd.Add("Date", "");')
         self.newline(node)
-        self.write('_pd.Add("Publisher", "%s");'%self.model.description.Institution)
+        self.write('_pd.Add("Publisher", "' )
+        m = self.model.description.Institution.split(',')
+        for i, j in enumerate(m):
+            if i!= len(m) - 1:
+                self.write("%s, "%j.replace("\n", "").strip())
+            else:
+                self.write('%s "); '%j.replace("\n", "").strip())
         self.close(node)
         self.newline(extra=1) 
 
@@ -930,9 +959,10 @@ using CRA.AgroManagement;
     def varinfodef(self, node, pa):
         self.write('%sVarInfo.Name = "%s";'%(pa.name, pa.name)); self.newline(node)
         self.write('%sVarInfo.Description = "%s";'%(pa.name, pa.description)); self.newline(node)
-        self.write('%sVarInfo.MaxValue = %s;'%(pa.name,pa.max if pa.max is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.MinValue = %s;'%(pa.name, pa.min if pa.min is not None else getdefault(pa))); self.newline(node)
-        self.write('%sVarInfo.DefaultValue = %s;'%(pa.name, getdefault(pa))); self.newline(node)
+        self.write("%sVarInfo.MaxValue = %s;"%(pa.name, getdefault(pa, "max"))); self.newline(node)            
+        self.write("%sVarInfo.MinValue = %s;"%(pa.name, getdefault(pa, "min"))); self.newline(node)
+        self.write("%sVarInfo.DefaultValue = %s;"%(pa.name, getdefault(pa, "default"))); self.newline(node)
+            
         self.write('%sVarInfo.Units = "%s";'%(pa.name, pa.unit if ("unit" in dir(pa) and pa.unit is not None) else "dimensionless")); self.newline(node)
         self.write('%sVarInfo.ValueType = VarInfoValueTypes.GetInstanceForName("%s");'%(pa.name, param_datatype[pa.datatype])); self.newline(node)
 
@@ -1123,7 +1153,8 @@ using CRA.AgroManagement;
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Estimate(s,s1, r, a, ex);"%(name))
+            nm = [m.name for m in self.model.model if m.name.lower() == name][0]
+            self.write("_%s.Estimate(s,s1, r, a, ex);"%(nm))
             self.newline(node)
         else:
             self.newline(node)

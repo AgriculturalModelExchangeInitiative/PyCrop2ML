@@ -4,18 +4,18 @@ from pycropml.transpiler.antlr_py.to_specification import *
 
 specification ="""
 
-!<CyML Description Begin>
+!%%CyML Description Begin%%
 ! ABD      Average bulk density for soil profile (g [soil] / cm3 [soil])
 !            (10.5, [0.5 - 100.0])  state variable
 ! TLL      Total soil water in the profile at the lower limit of
 !            plant-extractable water (cm) (, [0.0 - 10000]) exogenous variable
-!<CyML Description End>
+!%%CyML Description End%%
 """
 specification2 = """
-#<CyML Description Begin>
+#%%CyML Description Begin%%
 # ABD(L)      Average bulk density for soil profile (g [soil] / cm3 [soil])
 #            (10.5, [0.5 - 100.0])  state variable   
-#<CyML Description End>
+#%%CyML Description End%%
 
 """
 

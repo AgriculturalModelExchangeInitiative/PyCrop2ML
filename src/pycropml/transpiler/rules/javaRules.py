@@ -10,6 +10,12 @@ def translateSum(node):
     elif node.pseudo_type=="int":
         return Node("method_call", receiver=node.receiver, message=".stream().mapToInt(Integer::intValue).sum()", args=[], pseudo_type=node.pseudo_type)
 
+def translateSumArray(node): 
+    if node.pseudo_type=="float":
+        return Node(type="method_call", receiver=Node(type="call", function="Arrays.stream", args=[node.receiver], pseudo_type=node.pseudo_type), message=".mapToDouble(Double::doubleValue).sum()")
+    elif node.pseudo_type=="int":
+        return Node(type="method_call", receiver=Node(type="call", function="Arrays.stream", args=[node.receiver], pseudo_type=node.pseudo_type), message=".mapToInt(Integer::intValue).sum()")
+
 def translateDateTime(node): 
     x="""
         try{
@@ -41,6 +47,8 @@ def translatePow(node):
 def translateCopy(node):
     return Node(type="call", function = "new ArrayList<>", args=[Node("local", name=node.args.name)])
 
+def translateLog(node):
+    return Node(type="call", function = "Math.log10", args=[node.args[0]])
 
 class JavaRules(GeneralRule):
     def __init__(self):
@@ -68,10 +76,10 @@ class JavaRules(GeneralRule):
     }
 
     types = {
-        "int": "int",
-        "float": "double",
-        "bool": "boolean",
-        "array": "%s[] %s;",
+        "int": "Integer",
+        "float": "Double",
+        "bool": "Boolean",
+        "array": "%s[] %s",
         "list": "List",
         "tuple": "Pair",
         "str": "String",
@@ -90,7 +98,7 @@ class JavaRules(GeneralRule):
     functions = {
         'math': {
             'ln':          'Math.log',
-            'log':         'Math.log',
+            'log':         translateLog,
             'tan':         'Math.tan',
             'sin':         'Math.sin',
             'cos':         'Math.cos',
@@ -101,7 +109,8 @@ class JavaRules(GeneralRule):
             'ceil':         '(int) Math.ceil',
             'round':        'Math.round',
             'exp':         'Math.exp',
-            'pow':          'Math.pow'
+            'pow':          'Math.pow',
+            'floor':  'Math.floor'
 
         },
         'io': {
@@ -115,7 +124,8 @@ class JavaRules(GeneralRule):
             'max': 'Math.max',
             'abs': 'Math.abs',
             'pow': translatePow,
-            'copy':translateCopy
+            'copy':translateCopy,
+            "round":"Math.round",
         },
         'datetime':{
                 'datetime':translateDateTime #trans_format_parse
@@ -165,7 +175,7 @@ class JavaRules(GeneralRule):
         },
         'array':{
                 'len': translateLenArray,
-                'sum': translateSum,
+                'sum': translateSumArray,
                 'append': '.add',
                 "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("array", elts = node.args, pseudo_type=node.receiver.pseudo_type ))
                 }
@@ -184,7 +194,7 @@ class JavaRules(GeneralRule):
         if (copyAll)
         {'''
     copy_constrList = '''
-            for (%s c : toCopy.%s)
+            for (%s c : toCopy.get%s())
             {
                 _%s.add(c);
             }
@@ -192,7 +202,7 @@ class JavaRules(GeneralRule):
     copy_constrArray = '''
         for (int i = 0; i < %s; i++)
         {
-            _%s[i] = toCopy._%s[i];
+            %s[i] = toCopy.get%s()[i];
         }'''
     get_properties_compo = '''
     { return _%s.get%s(); }'''

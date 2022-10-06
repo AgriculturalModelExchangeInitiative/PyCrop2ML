@@ -1,20 +1,6 @@
 from pycropml.transpiler.antlr_py.parse import *
 from pycropml.transpiler.helpers import *
-import  pycropml.transpiler.antlr_py.csharp.csharpTransformer
 import pycropml.transpiler.antlr_py
-
-languages = ['cs',"bioma"]
-NAMES = {'cs':'csharp','sirius':'csharp',"bioma":"csharp"}
-
-GENERATORS = {
-    format: getattr(getattr(
-                    pycropml.transpiler.antlr_py,
-                    '%s' % NAMES[format]), '%sTransformer'% NAMES[format])
-    for format in languages
-}
-
-
-
 
 
 def process_tree( antlr_tree: ParseTree,

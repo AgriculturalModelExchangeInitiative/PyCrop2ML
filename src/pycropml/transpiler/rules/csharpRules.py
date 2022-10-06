@@ -108,7 +108,8 @@ class CsharpRules(GeneralRule):
             'ceil':         '(int) Math.Ceiling',
             'round':        'Math.Round',
             'exp':         'Math.Exp',
-            'pow':          'Math.Pow'
+            'pow':          'Math.Pow',
+            'floor':  'Math.Floor'
 
         },
         'io': {
@@ -122,7 +123,9 @@ class CsharpRules(GeneralRule):
             'max': 'Math.Max',
             'abs': 'Math.Abs',
             'pow': translatePow,
-            'copy': translateCopy},
+            'copy': translateCopy,
+            "round":"Math.Round"},
+        
 
         'datetime':{
             'datetime': ' new DateTime'
@@ -153,6 +156,7 @@ class CsharpRules(GeneralRule):
         'list': {
             'len': translateLenList,
             'append': '.Add',
+            'extend': '.AddRange',
             'sum': translateSum,
             'pop': '.RemoveAt',
             'insert_at': ".Insert",
@@ -170,7 +174,8 @@ class CsharpRules(GeneralRule):
         'array':{
                 'len': translateLenArray,
                 'sum':translateSum,
-                'append': '.Append'
+                'append': '.Append',
+                "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("array", elts = node.args, pseudo_type=node.receiver.pseudo_type ))
 
                 
                 }
@@ -184,7 +189,7 @@ class CsharpRules(GeneralRule):
     public_properties_wrap = '''{ get { return %s.%s;}} 
      '''  
     constructor = '''
-    public %s() { }
+        public %s() { }
     '''
 
     copy_constr = '''

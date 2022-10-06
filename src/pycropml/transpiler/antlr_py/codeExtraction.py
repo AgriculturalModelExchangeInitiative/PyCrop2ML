@@ -39,12 +39,17 @@ def extraction(package,files, balise_start, balise_end, ignore_start=None, ignor
     return res
 """
 def extraction(text_, balise_start, balise_end, ignore_start=None, ignore_end=None):
+    res = []
     container = ''
     start = False
     text = text_.split("\n")
     for line in text:
         if balise_end in line:
-            break
+            res.append(container)
+            container = ''
+            start = False
+            continue
+            #break
             #start = False
             #record_file(package,fil_,container)
             #container = ''
@@ -56,6 +61,18 @@ def extraction(text_, balise_start, balise_end, ignore_start=None, ignore_end=No
             container += line + "\n"
         elif balise_start in line:
             start = True
+    return res
+
+
+def remove(text_, ignore_start, ignore_end):
+    container = ''
+    start = True
+    text = text_.split("\n")
+    for line in text:
+        if ignore_start and ignore_start in line:
+            start = False
+        elif ignore_end and ignore_end in line:
+            start = True  
+        elif start == True:
+            container += line + "\n"
     return container
-
-

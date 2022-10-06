@@ -34,7 +34,8 @@ class CymlRules(GeneralRule):
                  ">=": ">=",
                  "<=": "<=",
                  "!=": "!=",
-                 "%":"%"
+                 "%":"%",
+                 "&":"&"
                  }
 
     unary_op = {
@@ -69,14 +70,15 @@ class CymlRules(GeneralRule):
             'ceil':         'ceil',
             'round':        'round',
             'exp':         'exp',
-            "floor": "floor"
+            "floor": "floor",
+            "pow": "pow"
 
         },
        'io': {
             'print':    translatePrint,
-            'read':       'read',
-            'read_file':  'File.ReadAllText',
-            'write_file': 'File.WriteAllText'
+            'read':       'read',            # not correct TODO
+            'read_file':  'File.ReadAllText', # not correct TODO
+            'write_file': 'File.WriteAllText' # not correct TODO
         },
         'system': {
             'min': 'min',
@@ -85,9 +87,14 @@ class CymlRules(GeneralRule):
             'pow': 'pow',
             'modulo': translateModulo,
             "copy":translateCopy,
-            "integr":translateIntegr},
+            "integr":translateIntegr,
+            "round":"round"
+            
+            
+        },
         'datetime':{
-            'datetime': 'datetime'
+            'datetime': 'datetime',
+            
         }
     }
     constant = {
@@ -103,7 +110,8 @@ class CymlRules(GeneralRule):
 
         'int': {
             'float': 'float',
-            'int':'int'
+            'int':'int',
+            'double':'float'
         },
         'float': {
             'int': 'int'

@@ -233,7 +233,8 @@ class AstTransformer():
                         e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
                     #if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
-                    a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
+                    if value_node["type"] != "none":
+                        a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
                         name, self.function_name, location[0])) 
             z =  {
                 'type': 'assignment',
@@ -387,7 +388,9 @@ class AstTransformer():
                 'pseudo_type': 'Void'
             }"""
 
-
+    def visit_nonenode(self, node,  location):
+        return {"type":"none", "value":"None"}
+        
     def visit_inplaceassignmentnode(self, node, lhs, rhs, location):
         z = node.end_pos()
         newNode = ExprNodes.BinopNode(
@@ -770,8 +773,7 @@ class AstTransformer():
                         raise PseudoCythonTypeCheckError("Types incompatibility at line %s"%location[0])
                     #q = self._type_check(argx+returnx,message, param_types)[-1]
                     self.function_name = v 
-                if message == self.function_name: self.recursive = True 
-                                                  
+                if message == self.function_name: self.recursive = True                                
                 return {
                     "type": "custom_call",
                     "args": self.visit_node(args),
@@ -905,7 +907,7 @@ class AstTransformer():
         val1 = self.visit_node(true_val)
         val2 = self.visit_node(false_val)
         a = self._compatible_types(
-            val1["pseudo_type"], val2["pseudo_type"], "can't change the type of variable")
+            val1["pseudo_type"], val2["pseudo_type"], "can't change the type of variable at %s"%location[0])
         return {
             'type': 'cond_expr_node',
             'test': self.visit_node(test),
@@ -1161,12 +1163,16 @@ class AstTransformer():
         self.checktype(base_type.name)
         typet = ["intlist","floatlist","booleanlist","datetime","datelist"]
         typearray = ["intarray"]
+        
         if base_type.name in typet :
             decl = {"name": name, "type": self.visit_node(base_type)[0]}
         if base_type.name in typearray :
             decl = {"name": name, "type": self.visit_node(base_type)[0], "dim":1, "elts":[]}
         else :
             decl = {"name": name, "type": base_type.name}
+            
+        #self.type_env[name] = ["array", decl["type"]]
+        
         if default and type(default) not in ( ExprNodes.ListNode, ExprNodes.DictNode, ExprNodes.TupleNode):
             de = self.visit_node(default)
             if isinstance(default, ExprNodes.UnaryMinusNode):
@@ -1237,6 +1243,7 @@ class AstTransformer():
             "floatarray":["array", ["array", "float"]],
             "booleanarray":["array", ["array","bool"]],
             "stringarray":["array",["array","str"]],
+            "strarray":["array",["array","str"]],
             "intlist":["list",["list", "int"]],
             "floatlist":["list", ["list", "float"]],
             "booleanlist":["list", ["list","bool"]],
@@ -1258,8 +1265,8 @@ class AstTransformer():
     
     def checktype(self,base):
         typet = ["int", "float","bool","datetime","str","list","dict",
-                 "intlist","floatlist","booleanlist","datelist","stringlist","struct",
-                 "double", "doublelist", "doublearray","floatarray", "intarray", "array" ]
+                 "intlist","floatlist","booleanlist","datelist","strlist","stringlist","struct",
+                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray" ]
         types =  list(self.struct.keys())
         z = typet+types
         if base not in z:
@@ -1270,8 +1277,8 @@ class AstTransformer():
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
         self.checktype(base_type.name)
-        typet = ["intlist","floatlist","booleanlist","stringlist","datetime","datelist"]
-        typearray = ["intarray","floatarray","booleanarray","stringarray"]
+        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist"]
+        typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if not self.isattr and self.type_env[de.name]:
@@ -1288,7 +1295,8 @@ class AstTransformer():
                 elif de.default is None:
                     if not self.isattr : self.type_env[de.name] = base_type.name
                     decl["pseudo_type"] = decl["type"]
-                if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
+                
+                """if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
                     value_node = self.visit_node(de.default)
                     if isinstance(de.default, ExprNodes.UnaryMinusNode):
                         decl["value"] = str(-float(value_node["value"]["value"]))
@@ -1297,12 +1305,14 @@ class AstTransformer():
                     if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
                     self._compatible_types(
                         self.visit_node(base_type)[1], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
-                if type(de.default==ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "datetime":
+                """
+                if isinstance(de.default, ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "datetime":
                     decl["pseudo_type"]="datetime"
                     if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
-                    decl["elts"] = self.visit_node(de.default)
-                    
-                if type(de.default==ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "array":
+                    elts = self.visit_node(de.default)
+                    decl["elts"] = [elts] if not isinstance(elts, list) else elts
+
+                elif isinstance(de.default, ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "array":
                     z = self.visit_node(de.default)
                     if "elements" in z: 
                         a = decl["name"]
@@ -1318,7 +1328,7 @@ class AstTransformer():
                         if len(z["args"][1]["elements"])!=0: decl["elements"] = z["args"][1]["elements"]
                         decl["dim"] = 1
                     
-                if type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
+                elif type(de.default) in (ExprNodes.ListNode, ExprNodes.TupleNode):
                     arglist = []
                     for arg in de.default.args:
                         arglist.append(self.visit_node(arg))
@@ -1331,13 +1341,28 @@ class AstTransformer():
                         decl["pseudo_type"] = [
                             "tuple"]+[self.visit_node(arg)["pseudo_type"] for arg in arglist]
                     if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
-                if isinstance(de.default, ExprNodes.DictNode):
+                    
+                elif isinstance(de.default, ExprNodes.DictNode):
                     default = self.visit_node(de.default)
                     decl["pairs"] = default["pairs"]
                     decl["pseudo_type"] = default["pseudo_type"]
                     if not self.isattr: self.type_env[de.name] = default["pseudo_type"]
                     a = self._compatible_types(
                         base_type.name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+
+                elif de.default:
+                    
+                    value_node = self.visit_node(de.default)
+                    if isinstance(de.default, ExprNodes.UnaryMinusNode):
+                        decl["value"] = str(-float(value_node["value"]["value"]))
+                    else:
+                        if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
+                            decl["value"] = value_node["value"] 
+                        else: decl["value"] = value_node
+                    decl["pseudo_type"] = value_node["pseudo_type"]
+                    if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
+                    self._compatible_types(
+                        self.visit_node(base_type)[1], decl["pseudo_type"], "can't change the type of variable %s in %s " % (de.name, self.function_name))
             else:
                 if "base" in dir(de.base):
                     name = de.base.base.name
@@ -1354,6 +1379,7 @@ class AstTransformer():
                     if isinstance(de.dimension, ExprNodes.TupleNode):
                         elts = self.visit_node(de.dimension.args)
                     else: elts = self.visit_node(de.dimension)#[]
+                    if not isinstance(elts, list): elts = [elts] 
                 dim = len(elts)
                 decl = {"name": de.base.name, "type": "array", "dim": dim, "elts": elts,
                         "pseudo_type": ["array", base_type.name], "lineno": location}

@@ -33,8 +33,9 @@ class OpenaleaGenerator(PythonGenerator):
         self.newline(node)
         self.write("# coding: utf8")
         self.newline(node)
-        self.newline(node)
-        self.write("from copy import copy\n")
+        #self.write("from pycropml.units import u")
+        #self.newline(node)
+        self.write("from copy import copy\nfrom array import array\nfrom math import *\nfrom typing import *\nfrom datetime import datetime\n")
         self.newline(node)
         self.visit(node.body)
 
@@ -46,6 +47,16 @@ class OpenaleaGenerator(PythonGenerator):
 
     def visit_float(self, node):
         self.write(node.value)
+
+    def visit_importfrom(self, node):
+        if self.imp:
+            self.newline(node)
+            if node.namespace not in ["math", "array", "typing", "datetime"]:
+                self.write('from %s import ' % (node.namespace))
+                for idx, item in enumerate(node.name):
+                    if idx:
+                        self.write(', ')
+                    self.write(item)
 
 class OpenaleaCompo(PythonCompo):
 
@@ -71,7 +82,8 @@ class OpenaleaCompo(PythonCompo):
                     'url': 'http://pycropml.rtfd.org',
                     'icon': ''}
         name = mc.name
-        path = Path(os.path.join(mc.path,"src","openalea"))
+        wra_path = mc.path.split(os.path.sep)[-1]
+        path = Path(os.path.join(mc.path,"src","openalea", wra_path))
         _package = package.UserPackage(name, metainfo, path)
         for model in mc.model:
             if not model.package_name or model.package_name=="unit":		
@@ -96,7 +108,7 @@ class OpenaleaCompo(PythonCompo):
             dtype = input.datatype
             interface = openalea_interface(input)
             if dtype not in ('STRING', 'BOOLEAN' ,'DATE') and 'default' in dir(input):
-                value = eval(input.default)
+                value = eval(input.default) if input.default else 0
                 _in = dict(name=name, interface=interface, value=value)
             elif 'default' in dir(input):
                 value=input.default.capitalize() if dtype=="BOOLEAN" else input.default
@@ -118,7 +130,7 @@ class OpenaleaCompo(PythonCompo):
             outputs.append(_out)
 
         _factory = node.Factory(name=model.name,
-                                description=model.description.Abstract,
+                                description=model.description.ExtendedDescription,
                                 nodemodule=model.name.capitalize(),
                                 nodeclass="model_%s"%(signature(model)),
                                 inputs=inputs,
