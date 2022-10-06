@@ -25,7 +25,7 @@ sphinx
 path.py
 six
 nbformat
-numpy==1.22
+numpy==1.21.6
 Cython
 nbsphinx
 networkx
