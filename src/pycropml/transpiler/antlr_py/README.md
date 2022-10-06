@@ -1,6 +1,5 @@
-=================================================
-From crop modeling platforms to Crop2ML framework
-=================================================
+
+<u>From crop modeling platforms to Crop2ML framework</u>
 
 Motivation
 ==========
