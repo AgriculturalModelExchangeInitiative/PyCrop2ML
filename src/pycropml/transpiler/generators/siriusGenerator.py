@@ -31,7 +31,7 @@ def getdefault(x, typ):
     if typ in dir(x):
         if  x.datatype=="DOUBLE" or x.datatype == "INT":
             p = getattr(x, typ) 
-            if p is not None:
+            if p and p is not None:
                 df = p
     return df
     
@@ -451,7 +451,10 @@ using CRA.AgroManagement;
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                    if arg.elts:
+                                        length =  arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
+                                        if length:
+                                            self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], length))
                             self.write(";")                   
         self.indentation -= 1 
         self.body(node.block)
@@ -1150,7 +1153,8 @@ using CRA.AgroManagement;
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Estimate(s,s1, r, a, ex);"%(name))
+            nm = [m.name for m in self.model.model if m.name.lower() == name][0]
+            self.write("_%s.Estimate(s,s1, r, a, ex);"%(nm))
             self.newline(node)
         else:
             self.newline(node)

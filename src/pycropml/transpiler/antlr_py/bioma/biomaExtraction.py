@@ -239,6 +239,10 @@ class BiomaExtraction(MetaExtraction):
         meth = self.getmethod(tree, "CalculateModel")
         return meth
     
+    def getInit(self, tree):
+        meth = self.getmethod(tree, "Init")
+        return meth
+    
     def instancePastCurrent(self, stra):
         algo = self.getAlgo(stra)
         params = algo.params

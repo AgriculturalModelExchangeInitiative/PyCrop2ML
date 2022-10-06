@@ -380,6 +380,12 @@ class ActionStmt(AliasNode):
 	                    "continueStmt", "endfileStmt", "gotoStmt", "computedGotoStmt", "assignedGotoStmt", "ifStmt"  , "inquireStmt", 
                      "openStmt", "pauseStmt", "printStmt", "readStmt", "returnStmt", "rewindStmt", "stmtFunctionStmt", "stopStmt", 
                      "writeStmt" , "allocateStmt" , "cycleStmt" , "deallocateStmt" , "exitStmt", "nullifyStmt" , "pointerAssignmentStmt" , "whereStmt"]
+
+class AcImpliedDo(AliasNode):
+    _fields_spec = ["acImpliedDo","impliedDoVariable" ,"expression"]
+
+
+
 class Transformer(BaseNodeTransformer):
     
     def visit_SubroutineArgList(self, node):
@@ -623,6 +629,8 @@ class Transformer(BaseNodeTransformer):
         return ExecutableConstruct.from_spec(node)
     def visit_ActionStmt(self, node):
         return ActionStmt.from_spec(node)
+    def visit_AcImpliedDo(self, node):
+        return AcImpliedDo.from_spec(node)
 
 class AstTransformer():
     def __init__(self, tree, code :str = None ,comments: str=None, env=None):
@@ -2000,6 +2008,7 @@ class AstTransformer():
         
         else:
             fname = name
+            print(name, "jjhhhhhhhhh")
             c = self.type_env.top['functions']
             if fname in c:
                 pseudo_type = c[fname][-1]
@@ -2362,6 +2371,10 @@ class AstTransformer():
         res["elements"] = r
         res["pseudo_type"] = ["array", r[0]["pseudo_type"]]  
         return res
+    
+    def visit_acimplieddo(self, node, acImpliedDo,impliedDoVariable ,expression, comments, location):
+        print("akklll", location)
+        return 
 
        
 

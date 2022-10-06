@@ -108,7 +108,7 @@ class OpenaleaCompo(PythonCompo):
             dtype = input.datatype
             interface = openalea_interface(input)
             if dtype not in ('STRING', 'BOOLEAN' ,'DATE') and 'default' in dir(input):
-                value = eval(input.default)
+                value = eval(input.default) if input.default else 0
                 _in = dict(name=name, interface=interface, value=value)
             elif 'default' in dir(input):
                 value=input.default.capitalize() if dtype=="BOOLEAN" else input.default

@@ -84,7 +84,7 @@ def run_simplace(components, output):
     cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
     if not cyml_rep.isdir():
         cyml_rep.mkdir()
-
+    models = []
     for strat in simpleStrat:
         print(strat)
         with open(strat, "r") as f:
@@ -94,7 +94,7 @@ def run_simplace(components, output):
         
         com = extractcomments(code, ["//"], ["/*", "*/"])
         com_meta_info_part = list(extractcomments(code, ["/&&&"], ["/**", "*/"]).values())[0]
-        print(com_meta_info_part)
+        #print(com_meta_info_part)
         dictasgt = to_dictASG(code,"java", com)
         strAsg = to_CASG(dictasgt)
 
@@ -114,15 +114,16 @@ def run_simplace(components, output):
             name_i = "init."+ mm.model.name
             dict_init["name"] = "init"
             dict_init["filename"] = "algo/pyx/" + name_i + ".pyx"
-            mm.model.initialization = [dict_init] 
+            mm.model.initialization = [dict_init]
+            filename = Path(os.path.join(cyml_rep, "init.%s.pyx"%(mm.model.name)))
+            with open(filename, "wb") as tg_file:
+                tg_file.write(initcode.encode('utf-8'))    
         
         filename = Path(os.path.join(cyml_rep, "%s.pyx"%(mm.model.name)))
         with open(filename, "wb") as tg_file:
             tg_file.write(algocode.encode('utf-8'))
 
-        filename = Path(os.path.join(cyml_rep, "init.%s.pyx"%(mm.model.name)))
-        with open(filename, "wb") as tg_file:
-            tg_file.write(initcode.encode('utf-8'))          
+       
         
         funcs = mm.externFunction(strAsg, algo)
         if funcs:
@@ -134,7 +135,7 @@ def run_simplace(components, output):
                     with open(filename, "wb") as tg_file:
                         tg_file.write(code.encode('utf-8'))
         
-       
+        models.append(mm.model)
         xml_ = Pl2Crop2ml(mm.model, "Simplace.SoilTemp").run_unit()               
         filename = os.path.join(output,  "crop2ml", "unit.%s.xml"%(mm.model.name)) # "unit.%s.xml"%(strat.basename().split(".")[0])
         with open(filename, "wb") as xml_file:
@@ -144,7 +145,7 @@ def run_simplace(components, output):
             xml_file.write(r.encode())
 
     op_extr = SimplaceExtraction() 
-    mc = op_extr.modelcomposition(compositeStrat)  
+    mc = op_extr.modelcomposition(compositeStrat, models)  
     generate_compositefile(output, mc, mc.name)
 
 

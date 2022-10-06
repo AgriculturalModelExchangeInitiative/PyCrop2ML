@@ -103,8 +103,26 @@ class Model2Package(object):
                         if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)
                     for k, v in six.iteritems(run_param):
+                        if v: # the input could not be set in testset and no default value. In this case, it's supposed to set through initialization part
+                            type_v = [inp.datatype for inp in inputs if inp.name==k][0]
+                            code_ = 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v))
+                            if m.initialization:
+                                if v and categ(k, inputs) != "s" :
+                                    code += code_ 
+                            else:
+                                code += code_ 
+                    test_codes2 = ""            
+                    for k, v in six.iteritems(ins):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
-                        code += 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v))                     
+                        code_ = 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v))
+                        if v and categ(k, inputs) == "s" :
+                            test_codes2 += code_                  
+                    
+                    if m.initialization: 
+                        code_ = tab*2+"mod.Init(s,s1, r, a, ex);\n" 
+                        code += code_
+                        code += test_codes2 
+                                        
                     code+=tab*2+"mod.CalculateModel(s,s1, r, a, ex);\n"
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
@@ -112,6 +130,8 @@ class Model2Package(object):
                         code += 2*tab + 'Console.WriteLine("%s estimated :");\n'%(k)
                         if type_o.find("LIST")!=-1:
                             code += 2*tab +"for (int i=0; i<%s.%s.Count; i++) Console.WriteLine(%s.%s[i]);\n"%(categ(k, outputs),k, categ(k, outputs), k) 
+                        elif type_o.find("ARRAY")!=-1:
+                            code += 2*tab +"for (int i=0; i<%s.%s.Length; i++) Console.WriteLine(%s.%s[i]);\n"%(categ(k, outputs),k, categ(k, outputs), k)  
                         else:
                             code += 2*tab + "Console.WriteLine(%s.%s);\n"%(categ(k, outputs),k)                  
                     code+=tab+"}\n"
@@ -156,6 +176,10 @@ DATATYPE['STRINGLIST'] = "List<string>"
 DATATYPE['DOUBLELIST'] = "List<double>"
 DATATYPE['INTLIST'] = "List<int>"
 DATATYPE['DATELIST']="List<DateTime>"
+DATATYPE['STRINGARRAY'] = "new string[]"
+DATATYPE['DOUBLEARRAY'] = "new double[]"
+DATATYPE['INTARRAY'] = "new int[]"
+DATATYPE['DATEARRAY']="new DateTime[]"
 
 def transfDouble(type_v,elem):
     return str(elem)+'D'
@@ -181,7 +205,16 @@ def transfDateList(type, elem):
         t = transfDate("DateTime",dat)
         res+=t+","
     return "new List<DateTime>{%s}"%(res)
-  
+
+
+def transfArray(type_v, elem):
+    if isinstance(elem, list):
+        res = ",".join(list(map(transf,[type_v.split("ARRAY")[0]]*len(elem),elem )))
+        return "%s{%s}"%(DATATYPE[type_v],res)
+    else:
+        return str(elem)
+
+
 def transfString(type_v, elem): 
     return ('"%s"'%elem).replace('""', '"')
 def transfList(type_v, elem):
@@ -190,7 +223,7 @@ def transfList(type_v, elem):
 def transf(type_v, elem):
     if type_v == "BOOLEAN":
         return elem.lower()
-    if type_v=="DOUBLE":
+    elif type_v=="DOUBLE":
         return transfDouble(DATATYPE[type_v], elem)
     elif type_v in ("STRING"):
         return transfString(DATATYPE[type_v], elem)
@@ -200,7 +233,11 @@ def transf(type_v, elem):
         return str(elem)
     elif type_v in ("STRINGLIST","DOUBLELIST","INTLIST"):
         return transfList(type_v,eval(elem))
+    elif type_v.endswith("ARRAY"):
+        return transfArray(type_v,eval(elem))
     elif type_v == "DATELIST":
         return transfDateList(type_v,elem)
+    else:
+        print("uuuuuuuiiiiooooooo")
 
 

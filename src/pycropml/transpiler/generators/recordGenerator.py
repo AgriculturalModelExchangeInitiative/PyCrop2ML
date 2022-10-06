@@ -1,5 +1,6 @@
 #  -*- coding: utf-8 -*-
 from pycropml.transpiler.generators.cppGenerator import CppGenerator, CppCompo
+from pycropml.transpiler.antlr_py.toxml import Namespace
 import os
 
 
@@ -16,10 +17,10 @@ class RecordGenerator(CppGenerator):
         self.indent_with=' '*4
         CppGenerator.__init__(self, tree, model, name)
         if model: 
-            self.var = [m.name for m in self.model.states + self.model.rates + self.model.auxiliary]
+            self.var = [m.name for m in self.model.states + self.model.rates + self.model.auxiliary + self.model.exogenous]
             self.parameters = [m.name for m in self.model.parameters]
             o = [l.name for l in self.model.outputs]
-            s = self.model.states + self.model.rates + self.model.auxiliary
+            s = self.model.states + self.model.rates + self.model.auxiliary + self.model.exogenous
             self.st_ext = []
             self.st_int = []
             for j in s:
@@ -31,7 +32,7 @@ class RecordGenerator(CppGenerator):
         if self.model:
             self.header()
             self.namespaceMod()
-        else : self.write("using namespace std;\n")
+        else: self.write("using namespace std;\n")
         self.visit(node.body)
         self.newline(node) 
         self.indentation -= 1
@@ -60,6 +61,7 @@ namespace record {
 """)
 
     def namespaceMod(self):
+        self.write("using namespace std;\n")
         self.write("namespace %s {"%self.name.capitalize())
         self.newline(1)
         self.write("using namespace vle::discrete_time;")
@@ -240,7 +242,7 @@ namespace record {
     * @brief %s (%s)
     */"""%(v.description, v.unit))
                 self.newline(1)
-                self.write("Vect %s"%z) if v.datatype.lower().endswith("list") else self.write("Var %s"%z)
+                self.write("Vect %s"%z) if v.datatype.lower().endswith("list") else self.write("Var %s;"%z)
                 tab.append(z)
 
         self.newline(extra=1)
@@ -253,7 +255,7 @@ namespace record {
         * @brief %s (%s)
         */"""%(v.description, v.unit))
                 self.newline(1)
-                self.write("Vect %s"%z) if v.datatype.lower().endswith("list") else self.write("Var %s"%z)
+                self.write("Vect %s"%z) if v.datatype.lower().endswith("list") else self.write("Var %s;"%z)
                 tab.append(z)
 
         self.newline(extra=1)
@@ -299,17 +301,82 @@ namespace record {
         self.write("}")
      
 
-class RecordCompo(CppCompo):
+class RecordCompo(CppGenerator):
     """ This class generates Record components
     """
     def __init__(self, tree, model=None, name=None):
         self.tree = tree
         self.model = model
         self.name = name
-        CppCompo.__init__(self,tree, model, self.name)
+        CppGenerator.__init__(self,tree, model, self.name)
     
     def visit_module(self, node):
-        return 
+        xml_ = Crop2ML_Vpz(self.model).create()          
+        filename = os.path.join(self.model.model[0].path,  "src", "record",  self.model.path, "%s.vpz"%(self.model.name)) # "unit.%s.xml"%(strat.basename().split(".")[0])
+        with open(filename, "wb") as xml_file:
+            r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            r += '<!DOCTYPE vle_project PUBLIC "-//VLE TEAM//DTD Strict//EN" "https://raw.githubusercontent.com/vle-forge/vle/master/share/dtd/vle-2.1.dtd">\n'
+            r += xml_.unicode(indent=4)#.encode('utf-8')
+            xml_file.write(r.replace("in_", "in").encode())
+
+class ns(Namespace):
+    "Custom xml namespace"
+
+'''
+class Crop2ML2Record(object):
+    """ Export a platform component into a Crop2ML ModelUnit.
+
+    """
+    def __init__(self, md, pkgname):
+        """ Export a workflow into Crop.
+
+        :Parameters:
+          - md : A platform component metainformation
+
+        """
+        self.md = md
+        self.pkgname = pkgname 
+    
+    def run_simplace(self):
+        md = self.md
+        package = md.path.split(os.sep)[-1]
+        
+        xml = ns.configuration(Class=f"net.simplace.sim.components.{package}.{md.name}")
+        
+        simg = ns.simgroup()
+        print(md.ord)     
+        for num, m in enumerate(md.ord):
+            mod = []
+            m_inps = [k  for k in md.inputlink if k["target"].split(".")[0]==m ]
+            m_outs = [k  for k in md.outputlink if k["source"].split(".")[0]==m ]
+            m_inters = [k  for k in md.internallink if k["target"].split(".")[0]==m ]
+            
+            for in_ in m_inps:
+                in_n = in_["source"]
+                id = in_["target"].split(".")[-1]
+                if in_n.endswith("_t1"): in_n = in_n[:-3]
+                
+                r = check_model_output(in_n, md.ord[num+1:], md.model)
+                if in_n not in r:
+                    mod.append(ns.input(id = id, source=f"{md.name}.{in_n}"))
+                else:
+                    mod.append(ns.input(id = id, source=f"{r[in_n]}.{in_n}"))
+            
+            for inter_ in m_inters:
+                source_m, source_o = inter_["source"].split(".")
+                id = inter_["target"].split(".")[-1]
+                mod.append(ns.input(id = id, source=f"{source_m}.{source_o}"))
+                    
+            for out_ in m_outs:
+                id =  out_["source"].split(".")[-1]
+                out_n = out_["target"]
+                mod.append(ns.output(id = id, destination=f"{md.name}.{out_n}"))     
+                 
+            simg.append(ns.simcomponent(mod, id=m, Class=f"net.simplace.sim.components.{package}.{m}"))
+        xml.append(simg)
+        return xml
+
+'''      
 
 
 transType = {"double":"toDouble",
@@ -321,45 +388,37 @@ transType = {"double":"toDouble",
 
 
 class Crop2ML_Vpz():
-    def __init__(self, topology):
-        self.topology = topology
+    def __init__(self, model):
         self.recModel = []
         self.recCon = []
         self.recDyn = []
-        self.mc = self.topology.model
+        self.model = model
+        self.mc = self.model
         self.mu = self.mc.model
         self.tab =" "
 
     def createAtomic(self):
-        sr = "<submodels>\n"
-        z = ""
+        submodels = ns.submodels()
         for m in self.mu:
-            z += self.tab + '<model width=" " height=" " x=" " y=" " dynamics="%s" name="%s" type="atomic">\n'%("dyn"+ m.algorithms[0].filename.split("/")[-1].split(".")[0].capitalize(),m.name)
-            modin = self.tab*2 + "<in>\n"
+            in_ = ns.in_()
+            out_ = ns.out()
             for inp in m.inputs:
                 if "variablecategory" in dir(inp):
-                    modin += self.tab*3 + '<port name="%s"/>\n'%inp.name
-            modin += self.tab*2 + "</in>\n"
-            modout = self.tab*2 +"<out>\n"
+                    in_.append(ns.port(name = inp.name))
             for out in m.outputs:
-                modout += self.tab*3 + '<port name="%s"/>\n'%out.name
-            modout += self.tab*2 +"</out>\n"
-            modout += self.tab + "</model>\n"
-            z = z + modin + modout
-        sr += z + "</submodels>\n"
-        return sr
+                out_.append(ns.port(name = out.name))
+            submodels.append(ns.model(in_, out_,width=" ", height=" ", x=" ", y=" ", dynamics=m.algorithms[0].filename.split("/")[-1].split(".")[0].capitalize(), name=m.name, type="atomic"))
+        return submodels
 
     def createInOutMc(self):
-        z_in = self.tab + "<in>\n"
+        in_ = ns.in_()
+        out_ = ns.out()
         for inp in self.mc.inputs:
             if "variablecategory" in dir(inp):
-                z_in += self.tab*2 +'<port name="%s"/>\n'%inp.name
-        z_in += self.tab + "</in>\n"
-        z_out = self.tab + "<out>\n"
+                in_.append(ns.port(name = inp.name))
         for out in self.mc.outputs:
-            z_out += self.tab*2 +'<port name="%s"/>\n'%out.name
-        z_out += self.tab + "</out>\n"
-        return z_in + z_out
+            out_.append(ns.port(name = out.name))
+        return in_, out_
     
     def  param(self):
         z = []
@@ -370,28 +429,43 @@ class Crop2ML_Vpz():
     
     def createInpCon(self):
         para = self.param()
-        z ="<connections>"
+        connections = ns.connections()
         for m in self.mc.inputlink:
             if m["target"].split(".")[1] not in para:
-                z += '<connection type="input">\n <origin model="%s" port="%s"/>\n <destination model="%s" port="%s"/>\n</connection>\n'%(self.mc.name, m["source"], m["target"].split(".")[0], m["target"].split(".")[1])
-        return z + "</connections>"
+                r = []
+                r.append(ns.origin( model=self.mc.name,  port= m["source"]))
+                r.append(ns.destination( model=m["target"].split(".")[0],  port= m["target"].split(".")[1]))
+                connections.append(ns.connection(r, type="input"))
+        return connections
     
     def createIntCon(self):
-        z =""
+        connections2 = ns.connections()
         for m in self.mc.internallink:
-            z += '<connection type="internal">\n <origin model="%s" port="%s"/>\n <destination model="%s" port="%s"/>\n</connection>\n'%(m["source"].split(".")[0], m["source"].split(".")[1], m["target"].split(".")[0],m["target"].split(".")[1])
-        return z
+            r = []
+            r.append(ns.origin( model=self.mc.name,  port= m["source"]))
+            r.append(ns.destination( model=m["target"].split(".")[0],  port= m["target"].split(".")[1]))
+            connections2.append(ns.connection(r, type="internal")) 
+        return connections2
     
     def createDyn(self):
-        z = "<dynamics>\n"
+        dynamics = ns.dynamics()
         for m in self.mu:
-            z += '<dynamic library="%s" package="%s" name="dyn%s"/>\n'%(m.name.capitalize(), self.mc.name, m.name.capitalize())
-        return z + "</dynamics>\n"
+            dynamics.append(ns.dynamic(library=m.name.capitalize(), package=self.mc.name, name=m.name.capitalize()))
+        #return z + "</dynamics>\n"
+        return dynamics
 
     def create(self):
-        return self.createInOutMc() + \
-                self.createAtomic() + \
-                self.createInpCon() + self.createIntCon() +self.createDyn()
+        in_, out = self.createInOutMc()
+        atom = self.createAtomic()
+        inpcon = self.createInpCon()
+        intcon = self.createIntCon()
+        dyn = self.createDyn()
+        xml = ns.vle_project(ns.structures(ns.model(in_, out,atom, ns.connections(inpcon+intcon),name="top", type="coupled", width="") ),dyn,ns.experiment(name=""), version="0.5", date="Mon, 27 Dec 2010", author="Gauthier Quesnel")
+        return xml
+        
+        #return self.createInOutMc() + \
+                #self.createAtomic() + \
+                #self.createInpCon() + self.createIntCon() +self.createDyn()
 
 
 #mc = Crop2ML_Vpz()

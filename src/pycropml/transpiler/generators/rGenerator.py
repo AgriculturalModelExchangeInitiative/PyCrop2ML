@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
-from pycropml.transpiler.rules.rRules import RRules
+from pycropml.transpiler.rules.rRules import RRules, changetyp
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 import os
 from pycropml.render_cyml import signature
@@ -217,7 +217,7 @@ class RGenerator(CodeGenerator, RRules):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
@@ -322,9 +322,16 @@ class RGenerator(CodeGenerator, RRules):
                 self.write(n.name)
                 if n.type=="list": self.write(" <- vector()")   
                 if n.type=="array": 
-                    self.write(" <- array(dim=c(")   
-                    self.visit(n.elts[0]) 
-                    self.write(",1,1))")               
+                    typ = n.pseudo_type[-1]
+                    newtyp = changetyp(typ)
+                    if n.elts:
+                        self.write(" <- array(%s(), dim=c("%newtyp)   
+                        self.visit(n.elts[0])
+                        self.write(",1,1))")
+                    else:
+                        
+                        self.write("<- array(%s())"%newtyp)
+                                  
 
 
     def visit_array(self,node): 
@@ -341,7 +348,11 @@ class RGenerator(CodeGenerator, RRules):
             self.comma_separated_list(node.elements)
             self.write("), dim=c(")
             self.visit(n.elts[0]) 
-            self.write(",1,1))")    
+            self.write(",1,1))")   
+    
+    
+    def visit_none(self, node):
+        self.write("NULL") 
 
 
     def visit_continuestatnode(self, node):
@@ -430,7 +441,6 @@ class RCompo(RGenerator):
         z=x.split('\\')#.pop()
         z.pop()
         sourcePath = "/".join(z)+"/src/r"
-        print(sourcePath)
         self.write("library (gsubfn) ")
         self.newline()
         self.write("setwd('%s')"%sourcePath)

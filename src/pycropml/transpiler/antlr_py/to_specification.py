@@ -162,8 +162,10 @@ def createObjectCompo(desc, models):
 
     for i in range(0, len(md)-1):
         mi = md[i]
+        print(mi.name, i)
         for j in range(i+1, len(md)):
             mj = md[j]
+            print(mj.name, j)
             vi = list(set([n.name for n in mi.outputs ]).intersection(set([n.name for n in mj.inputs ])))
             if vi: 
                 for k in vi:

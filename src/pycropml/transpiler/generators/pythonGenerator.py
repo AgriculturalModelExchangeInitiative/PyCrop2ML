@@ -323,7 +323,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.write("%s:%s"%(n.name, n.pseudo_type))
                 self.write(" = ") 
                 #self.emit_string(n)   
-                self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)           
+                self.visit(n.value) if isinstance(n.value, Node) else self.emit_string(n)           
             elif n.type in ("list", "tuple"):
                 self.newline(node)
                 self.write("%s:%s[%s]"%(n.name, n.pseudo_type[0].capitalize(),  n.pseudo_type[1]))
@@ -353,7 +353,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
                     self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))
                     self.write(" = array('%s',"%n.pseudo_type[1][0])
                     self.write("[%s]*"%initVal(c))
-                    self.visit(n.elts[0]) 
+                    self.visit(n.elts[0]) if isinstance(n.elts, list) else self.visit(n.elts)
                     self.write(")")   
                 else:
                     self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))           
@@ -366,28 +366,29 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_array(self,node): 
         if hasattr(node, "elts"):
             type_ = node.pseudo_type[-1]
-            if type_=="int" or type_=="bool": newtype="i"
-            if type_=="float": newtype="f"
-            if type_=="str": newtype="u"
+            newtype= newtype_func(type_)
             self.write("array('%s', [None]*"%newtype)
             self.visit(node.elts)            #one dimension array
             self.write(")")
             
         elif isinstance(node.elements, Node):
-            type_ = node.elements.left.elements[0].type
-            if type_=="int" or type_=="bool": newtype="i"
-            if type_=="float": newtype="f"
-            if type_=="str": newtype="u"
-            self.write("array('%s', ["%newtype)
-            self.visit(node.elements.left.elements[0])
-            self.write(']*')
-            self.visit(node.elements.right)
-            self.write(")")
+            if node.elements.type == "standard_call" and node.elements.function=="range":
+                self.write("array('%s', range"%newtype_func(node.elements.args[0].pseudo_type))
+                self.write("(")
+                self.comma_separated_list(node.elements.args)
+                self.write("))")
+                
+            else:
+                type_ = node.elements.left.elements[0].type
+                newtype= newtype_func(type_)
+                self.write("array('%s', ["%newtype)
+                self.visit(node.elements.left.elements[0])
+                self.write(']*')
+                self.visit(node.elements.right)
+                self.write(")")
         else:
             type_ = node.elements[0].type
-            if type_=="int" or type_=="bool": newtype="i"
-            if type_=="float": newtype="f"
-            if type_=="str": newtype="u"
+            newtype= newtype_func(type_)
             self.write("array('%s',"%newtype)
             self.write("[")
             self.comma_separated_list(node.elements)
@@ -643,6 +644,11 @@ class PythonSimulation(CodeGenerator):
 
 
 
+def newtype_func(type_):
+    if type_=="int" or type_=="bool": newtype="i"
+    elif type_=="float": newtype="f"
+    elif type_=="str": newtype="u"
+    return newtype
         
 
 

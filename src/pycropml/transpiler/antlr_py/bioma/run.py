@@ -305,7 +305,8 @@ def run_bioma(component, output):
         
         var =  z.totalvar(st)
         algo = z.getAlgo(st)
-        funcs = z.externFunction(st, algo.block)  
+        init_ = z.getInit(st)
+        funcs = z.externFunction(st, algo.block, False)  
         funcs = [f for f in funcs if f]
         strat_var = z.getStrategyVar(st)
         pa = strat_var[0]
@@ -334,8 +335,9 @@ def run_bioma(component, output):
                         dep_names.append(d.name)   
                 for ex in dep:  # dep is the list of external function in the order of dependency
                     if ex.name not in func_names:  # to avoid duplicating dependent functions in different auxiliary functions
-                        func = z.externFunction(total_tree, ex)  
+                        func = z.externFunction(total_tree, ex, False, ex.name)  
                         extfunc = [p for p in func if p]
+                        print(ex.name, [i.name for i in extfunc])
                         if extfunc and isinstance(extfunc[0], list):
                             extfunc = list(itertools.chain(*extfunc)) 
                         for rr in extfunc:
@@ -420,6 +422,9 @@ def run_bioma(component, output):
                 filename = Path(os.path.join(cyml_rep, "%s.pyx"%(name)))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
+                    
+
+        
 
         rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category)
         env = {m.name:m.pseudo_type for j in rr.declarations for m in j.decl}
@@ -427,6 +432,21 @@ def run_bioma(component, output):
         r_ch = zz.process(vv)
         z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs)))
         z.model.function = [n.name for n in funcs if f]
+        if init_:
+            rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category)
+            dict_init = {}
+            name_i = "init."+ z.model.name
+            dict_init["name"] = "init"
+            dict_init["filename"] = "algo/pyx/" + name_i + ".pyx"
+            z.model.initialization = [dict_init]
+            cd = cs_cyml.Cs_Cyml_ast(rr_.declarations + init_pseudo,  var =var)
+            h = cd.transform()
+            nd = transform_to_syntax_tree(h)
+            initcode = writeCyml(nd)
+            filename = Path(os.path.join(cyml_rep, "init.%s.pyx"%(z.model.name)))
+            with open(filename, "wb") as tg_file:
+                tg_file.write(initcode.encode('utf-8'))   
+               
         models.append(z.model)     
         cd = cs_cyml.Cs_Cyml_ast(rr.declarations + vv,  var =var)
         h = cd.transform()

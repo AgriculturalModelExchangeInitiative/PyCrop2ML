@@ -1,1 +1,0 @@
-soilEvaporation = min(diffusionLimitedEvaporation, energyLimitedEvaporation)

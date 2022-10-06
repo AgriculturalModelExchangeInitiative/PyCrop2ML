@@ -171,6 +171,8 @@ class Topology():
     
     def topologicalSort(self):
         if not self.model.internallink:
+            print(self.model.model[0].name)
+            self.model.ord = [self.model.model[0].name]
             return 
         ordV = list(nx.topological_sort(self.createGraph()))
         self.model.ord = ordV
@@ -281,7 +283,7 @@ class Topology():
         code='from datetime import datetime\nfrom math import *\n'
         tab=' '*4
         for mod in self.model.model:
-            code+= 'from %s.%s import model_%s\n'%(self.name.replace("-", "_"),signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s.%s import model_%s\n'%(self.name.replace("-", "_"),signature(mod), signature(mod))
+            code+= 'from %s.%s import model_%s\n'%(self.name.replace("-", "_"),signature(mod), signature(mod)) if mod.package_name is None else 'from %s.%s import model_%s\n'%(self.name.replace("-", "_"),signature(mod), signature(mod))
         name =signature(self.model)
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"

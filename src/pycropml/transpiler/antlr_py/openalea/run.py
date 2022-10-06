@@ -44,7 +44,9 @@ def run_openalea(components, package):
     files = repowalk.walk(components, 'py')
     composite= Path(components).glob('*Component.py')[0]
     wralea= Path(components).glob('__wralea__.py')[0]
-
+    op_extr = OpenaleaExtraction()
+    op_extr.pm.clear()
+    wf =  op_extr.retrievePackage(components)  
     # dtermine the package name to be used in models file
     m = os.path.basename(Path(package))
     m = m.split("_")
@@ -142,8 +144,8 @@ def run_openalea(components, package):
                     else:
                         generate_unitfile(package, mdata, package_name)  
     
-    op_extr = OpenaleaExtraction() 
-    mc = op_extr.modelcomposition(components, mu_names)  
+    #op_extr = OpenaleaExtraction() 
+    mc = op_extr.modelcomposition(wf, mu_names)  
     generate_compositefile(package, mc, package_name)
 
                     

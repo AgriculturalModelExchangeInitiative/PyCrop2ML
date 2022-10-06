@@ -92,14 +92,15 @@ def generate_test_py(model:ModelUnit,dir=None, package=None):
                     
                 
                 for k, v in six.iteritems(run_param):
-                    print(k)
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
                     code = "%s = %s" % (k, transf(type_[0], v)) 
-                    if v and name_categ[k] != "state" :
-                        test_codes.append(code) 
+                    if m.initialization:
+                        if v and name_categ[k] != "state" and m.initialization :
+                            test_codes.append(code) 
+                    else:
+                        test_codes.append(code)
 
                 for k, v in six.iteritems(ins):
-                    print(k)
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
                     code = "%s = %s" % (k, transf(type_[0], v)) 
                     if v and name_categ[k] == "state" :

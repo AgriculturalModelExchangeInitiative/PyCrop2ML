@@ -1309,8 +1309,9 @@ class AstTransformer():
                 if isinstance(de.default, ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "datetime":
                     decl["pseudo_type"]="datetime"
                     if not self.isattr: self.type_env[de.name] = decl["pseudo_type"]
-                    decl["elts"] = self.visit_node(de.default)
-                    
+                    elts = self.visit_node(de.default)
+                    decl["elts"] = [elts] if not isinstance(elts, list) else elts
+
                 elif isinstance(de.default, ExprNodes.SimpleCallNode) and "function" in dir(de.default) and de.default.function.name == "array":
                     z = self.visit_node(de.default)
                     if "elements" in z: 
@@ -1378,6 +1379,7 @@ class AstTransformer():
                     if isinstance(de.dimension, ExprNodes.TupleNode):
                         elts = self.visit_node(de.dimension.args)
                     else: elts = self.visit_node(de.dimension)#[]
+                    if not isinstance(elts, list): elts = [elts] 
                 dim = len(elts)
                 decl = {"name": de.base.name, "type": "array", "dim": dim, "elts": elts,
                         "pseudo_type": ["array", base_type.name], "lineno": location}

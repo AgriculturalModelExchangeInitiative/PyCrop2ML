@@ -107,7 +107,8 @@ class Model2Package(object):
                         source = f.read()
                         self.code += source 
                         self.code += "\n\n\n"
-        if model_unit.initialization is not None: self.code += self.initialization(model_unit)      
+        if model_unit.initialization is not None and len(model_unit.initialization)!=0 : 
+            self.code += self.initialization(model_unit)      
         return self.code
 
     def generate_algorithm(self, model_unit):

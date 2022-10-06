@@ -19,6 +19,7 @@ class Retrive_from_Comparison(Middleware):
     def action_comparison(self, tree):
         if tree.left.type == "local" and isinstance(tree.left.pseudo_type, list):
             self.var = tree.left
+        return tree
             
                                 
                                 

@@ -17,7 +17,7 @@ def translateIndex(node): return  Node("custom_call",receiver = node.receiver, f
 def translatePrint(node): return Node(type="combine", args=[Node("local", name="print *, "),\
                                                             node.args if "elements" not in dir(node.args[0]) else [arg for arg in node.args[0].elements]])
 
-def translateLog(node):  return Node("binary_op", op = "/", left = Node("call", function='LOG', args=node.args[0]),right = Node("call", function='LOG', args=node.args[1]), pseudo_type="int")
+def translateLog(node):  return Node("binary_op", op = "/", left = Node("call", function='LOG', args=node.args[0]),right = Node("call", function='LOG', args=Node("call", function="REAL", args=node.args[1])), pseudo_type="float")
 
 def translateCopy(node):
     return Node("local", name = node.args.name)
@@ -30,8 +30,29 @@ def translateMIN(node):
             args.append(node.args[i])
         node.type = "call"
         node.args = args
-        node.function = "min"
+        node.function = "MIN"
     return node
+
+def translateMAX(node):
+    args=[]
+    if len(node.args)>=2:
+        for i in range(len(node.args)):
+            if node.args[i].pseudo_type!=node.pseudo_type:
+                node.args[i] = Node(type="call", function=node.pseudo_type,args =node.args[i], pseudo_type=node.pseudo_type )
+            args.append(node.args[i])
+        node.type = "call"
+        node.args = args
+    node.function = "MAX"
+    return node
+
+def translateList(node):
+    print(node.y)
+    if node.args.type == "standard_call":
+        pass
+    return
+
+
+
 
 class FortranRules(GeneralRule):
     def __init__(self):
@@ -82,7 +103,8 @@ class FortranRules(GeneralRule):
                 'sqrt':         'SQRT',
                 'exp' :         'EXP',
                 'ceil':          translateCeil,
-				'pow' : translatePow
+				'pow' : translatePow,
+                'floor': "FLOOR"
             },
        'io': {
             'print':    translatePrint,
@@ -92,18 +114,20 @@ class FortranRules(GeneralRule):
         },
             'system': {
                     'min': translateMIN,
-                    'max': 'MAX',
+                    'max': translateMAX,
                     'abs':'ABS',
                     'round': 'Round',
                     'pow': translatePow,
                     'modulo':   "modulo",
-                    "copy": translateCopy
+                    "copy": translateCopy,
+                    "list": translateList
 
                     },
             'datetime':{
                    'datetime': lambda node : Node(type="str", value=argsToStr(node.args))
 
            }
+            
             
         }
     constant = {

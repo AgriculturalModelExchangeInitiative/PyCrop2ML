@@ -31,7 +31,7 @@ def getdefault(x, typ):
     if typ in dir(x):
         if  x.datatype=="DOUBLE" or x.datatype == "INT":
             p = getattr(x, typ) 
-            if p is not None:
+            if p and p is not None:
                 df = p
     return df
     

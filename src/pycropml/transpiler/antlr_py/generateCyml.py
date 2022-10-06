@@ -1,5 +1,4 @@
 from pycropml.transpiler.generators.cymlGenerator import CymlGenerator
-from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 
 
 def writeCyml(node):

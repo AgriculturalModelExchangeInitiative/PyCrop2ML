@@ -79,7 +79,6 @@ class CheckingInOut(Middleware):
         self.transform(tree.value)
         if tree.target.type == "local":
             t_name = tree.target.name
-            print(tree.target.name)
             type_ = tree.target.pseudo_type
             if t_name not in self.current_scope and not self.isAlgo:
                 self.inputs.append(t_name) 
@@ -122,7 +121,6 @@ class CheckingInOut(Middleware):
     
     def action_declaration(self, tree):
         for d in tree.decl:
-            print(d.name)
             if "value" in dir(d):
                 self.transform_default(d.value)
         return tree
@@ -407,6 +405,7 @@ class Declarations(Middleware):
                         tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = Node(type="array", init= decl.value.init), comments = tree.comments)
                         res.append(self.transform_default(tree))
                 else:
+                    if decl.value.type=="List" and "args" in dir(decl.value) and len(decl.value.args)==1 and decl.value.args[0].name==decl.name: return
                     if isinstance(decl.pseudo_type, Node):
                         r = decl.value.pseudo_type
                         decl.type = r[0] if  isinstance(r, list)   else r

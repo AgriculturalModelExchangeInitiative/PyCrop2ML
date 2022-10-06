@@ -5,6 +5,7 @@ from pycropml.transpiler.rules.fortranRules import FortranRules
 from pycropml.transpiler.interface import middleware
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler import lib
+from pycropml.transpiler.preprocessing import check_range_function
 import os
 from path import Path
 #from pycropml.transpiler.Parser import parser
@@ -135,7 +136,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
         pass
 
     def visit_assignment(self, node):
-        if node.value.type=="cond_expr_node":
+        if node.value.type=="none":
+                pass
+        elif node.value.type=="cond_expr_node":
             self.visit_cond_expr_node(node)
         elif node.value.type == "standard_call" and node.value.function=="integr":
             self.newline(node)
@@ -267,8 +270,26 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(u'/)')    
 
     def visit_array(self, node):
+
         if node.elements.type != "list":
-            self.visit(node.elements.left.elements[0])
+            if node.elements.type == "standard_call" and node.elements.function=="range":
+                self.write(u'(/(i_cyml_r,')
+                if len(node.elements.args)==1:
+                    self.write(u' i_cyml_r=0,')
+                    self.comma_separated_list(node.elements.args)
+                    self.write(u'-1)/)') 
+                elif  len(node.elements.args)>1:  
+                    self.write(u' i_cyml_r=')
+                    self.visit(node.elements.args[0])
+                    self.write(u' ,')
+                    self.visit(node.elements.args[1])
+                    self.write(u'-1') 
+                    if len(node.elements.args)==3:
+                        self.write(u' ,')
+                        self.visit(node.elements.args[2])
+                    self.write(u')/)') 
+                     
+            else: self.visit(node.elements.left.elements[0])
         else:
             self.write(u'(/')
             self.comma_separated_list(node.elements)
@@ -353,12 +374,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node)
         self.write('exit')
     
+    """def visit_module(self, node):
+        self.visit(node.body)"""
+
+
+
     def visit_module(self, node):
-        self.visit(node.body)
-
-
-    """ 
-       def visit_module(self, node):
+        self.nb=0
         if self.model is not None:
             self.write("MODULE %smod"%self.model.name.capitalize())
         else:
@@ -393,7 +415,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.indentation -= 1        
         self.newline(node)      
         self.write("END MODULE")
-    """
+
 
 
     def visit_function(self, node):
@@ -422,6 +444,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node)
         self.visit_declaration(node_params) #self.visit_decl(node)
         self.visit_declaration(self.transform_return(node)[1]) 
+        if check_range_function().process(node):
+            self.visit_declaration([Node(type="int", name="i_cyml_r", pseudo_type="int")])
         interVar = [i for i in newNode if "feat" not in dir(i)]
         self.visit_declaration(interVar)
         if len(self.z.returns)>1: 
@@ -463,7 +487,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
                 test = True
             break
         
-        if node.name.startswith("model_") or node.name.startswith("init_") or test :node.type="subroutine_def"
+        if node.name.startswith("model_") or node.name.startswith("init_") :node.type="subroutine_def"
         elif node.name == "main": node.type = "program"
         elif node.recursive or  self.z.returns[0].value.type!="tuple": 
             node.type="function"
@@ -489,6 +513,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write("IMPLICIT NONE")
         self.initialValue=[]
         newNode = self.add_features(node)
+        if check_range_function().process(node):
+            self.visit_declaration([Node(type="int", name="i_cyml_r", pseudo_type="int")])
         self.visit_declaration(newNode) #self.visit_decl(node)         
         if self.initialValue:
             for n in self.initialValue:
@@ -678,11 +704,10 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
         self.write(" , DIMENSION(")
-        if "elts" not in dir(node) or not node.elts: self.write(":")
+        if "elts" not in dir(node) or not node.elts or len(node.elts)==0: self.write(":")
         else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )")  
-        if ("elts" not in dir(node) or not node.elts) and node.name not in self.parameters :
-            print(self.parameters, "hh")
+        if ("elts" not in dir(node) or not node.elts or len(node.elts)==0): # and node.name not in self.parameters :
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):

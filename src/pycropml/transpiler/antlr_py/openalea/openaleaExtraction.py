@@ -24,9 +24,9 @@ class OpenaleaExtraction(MetaExtraction):
     def modelunit(self, file, tree):
         pass
            
-    def modelcomposition(self, wralea_dir, mu_names):
-        self.pm.clear()
-        self.wf =  self.retrievePackage(wralea_dir) 
+    def modelcomposition(self, wf, mu_names):
+        #self.pm.clear()
+        self.wf =  wf
         doc = self.wf.description
         docs = [x.strip() for x in doc.strip().split('\n')]
         title = docs[0]

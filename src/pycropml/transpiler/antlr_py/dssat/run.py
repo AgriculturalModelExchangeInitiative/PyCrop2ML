@@ -63,6 +63,7 @@ def translate(node, asgt, imports, inout=[], index=[]):
     pp = l.localvar.difference(set(inout)) # remove input output declarations
     #zz = pp.intersection(ass.targets) ### to remove local variables that are not used as targets  in an assignment 
     if index: zz = pp.union(set(index))
+    else: zz=pp
     e = Declarations(localvar=list(zz)) ## pp by zz
     f = e.process(res)
     

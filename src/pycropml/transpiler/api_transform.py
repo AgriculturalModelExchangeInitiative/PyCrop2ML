@@ -128,6 +128,14 @@ def max_expander(type, message, args):
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
 
+
+def list_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'list', 'args': args, 'pseudo_type': ['list',args[0]["pseudo_type"][-1]]}
+def range_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'range', 'args': args, 'pseudo_type': ['list', args[0]["pseudo_type"]]}
+
+
+
 def datetime_expander(type, message, args):
     if len(args)==3:
         a = datetime(eval(args[0]["value"]),eval(args[1]["value"]),eval(args[2]["value"]) )
@@ -205,7 +213,9 @@ FUNCTION_API = {
         'modulo':      StandardCall('global', 'modulo', expander = modulo_expander),
         'copy':      StandardCall('global', 'copy', expander = copy_expander),
         'integr':      StandardCall('global', 'integr', expander = integr_expander),
-        'array': StandardCall('global', 'integr', expander = array_expander)
+        'array': StandardCall('global', 'integr', expander = array_expander),
+        "range": StandardCall('global', 'range', expander = range_expander),
+        "list": StandardCall('global', 'list', expander = list_expander)
         
         
     },

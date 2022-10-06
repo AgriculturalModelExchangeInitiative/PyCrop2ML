@@ -4,9 +4,6 @@ from pycropml.transpiler.rules.cymlRules import CymlRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 import os
 from pycropml.render_cyml import signature
-from path import Path
-from pycropml.transpiler.Parser import parser
-from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml.transpiler.pseudo_tree import Node
 
 class CymlGenerator(CodeGenerator, CymlRules):
@@ -225,7 +222,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
     def translate_com(self, comments):
         if isinstance(comments, list):
             for n in comments:
-                self.write("#%s"%n[1:].decode("utf-8"))
+                self.write("#%s"%n[1:])
                 self.newline(1)
         else: 
             self.write(f"#{comments[1:]}")

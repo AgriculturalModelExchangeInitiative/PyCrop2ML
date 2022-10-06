@@ -215,7 +215,7 @@ class SimplaceExtraction(MetaExtraction):
             
             self.model.testsets.append(tsets)
     
-    def modelcomposition(self, xfile):
+    def modelcomposition(self, xfile, models):
         doc = xml.parse(xfile)
         root = doc.getroot()
         compositeid = root.attrib["class"]
@@ -233,6 +233,8 @@ class SimplaceExtraction(MetaExtraction):
         description = self.model_desc(desc)
         self.mc.add_description(description)
         mods = []
+        inputs = []
+        outputs = []
         for el in list(root):
             for l in list(el):
                 mu_name = l.attrib["id"]
@@ -245,6 +247,7 @@ class SimplaceExtraction(MetaExtraction):
                         mod = attr["source"].split(".")[0]
                         if mod == name or mod not in mods:
                             self.mc.inputlink.append({"target": mu_name + "." + id, "source":var})
+                            inputs.append(var)
                         elif mod in mods:
                             self.mc.internallink.append({"source": mod + "." + var, "target":mu_name + "." + id})
                     elif j.tag == "output":
@@ -252,7 +255,16 @@ class SimplaceExtraction(MetaExtraction):
                         var = attr["destination"].split(".")[-1]
                         mod = attr["destination"].split(".")[0]
                         self.mc.outputlink.append({"source": mu_name + "." + id, "target":var})
+                        outputs.append(var)
         self.mc.model = mods
+        for m in models:
+            for n in m.inputs:
+                if "variablecategory" in dir(n) and n.variablecategory == "state" and n.name not in inputs:
+                    self.mc.inputlink.append({"target": m.name + "." + n.name, "source":n.name}) 
+                    inputs.append(n.name)   
+            for n in m.outputs:
+                if "variablecategory" in dir(n) and n.variablecategory == "state" and n.name not in outputs:
+                    self.mc.outputlink.append({"source": m.name + "." + n.name, "target":n.name})        
         return self.mc
                         
                         

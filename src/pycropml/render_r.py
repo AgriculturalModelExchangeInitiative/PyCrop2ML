@@ -12,6 +12,9 @@ from path import Path
 import numpy 
 import os.path
 import six
+from pycropml.nameconvention import signature1
+import platform
+
 
 class Model2Package(object):
     """ TODO
@@ -45,7 +48,22 @@ class Model2Package(object):
         outputs = m.outputs
         model_name  = signature(m)
         psets = m.parametersets
-        import_test = f'source("../../src/{"r"}/{package}/{m.name.capitalize()}.r")\n'
+        pform = platform.system()
+        list_var=[]
+        init_var_in = []
+        init_var_out = []
+        for inp in m.inputs:
+            list_var.append(inp.name)
+            if hasattr(inp, "parametercategory"):
+                init_var_in.append(inp.name)  
+            elif inp.variablecategory=="exogenous":
+                init_var_in.append(inp.name)
+            elif inp.variablecategory=="state":
+                init_var_out.append(inp.name)
+        if pform == "linux":
+            import_test = f'source("../../src/{"r"}/{package}/{signature1(m)}.r")\n'
+        else:
+            import_test = f'source("..\..\src\{"r"}\{package}\{signature1(m)}.r")\n'
         import_test += "library(assertthat)\n"
         codetest = [import_test]
         for v_tests in m.testsets:
@@ -61,6 +79,7 @@ class Model2Package(object):
                     params.update(psets[test_paramsets].params)
                 for each_run in test_runs :
                     test_codes = []
+                    test_codes2 = []
                     # make a function that transforms a title into a function name
                     tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
@@ -71,20 +90,44 @@ class Model2Package(object):
                     test_codes.append(code)
                     code = "test_%s<-function(){"%(tname)
                     test_codes.append(code)
-                    code = "    params= model_%s("%model_name
-                    test_codes.append(code)
+                    name_categ = {}
+                    
+
                     run_param = params.copy()
                     run_param.update(ins)
-                    n=0
+                    
+                    for i, j in enumerate(m.inputs):
+                        if j.name not in list(run_param.keys()):
+                            run_param[j.name]=j.default 
+                        name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory        
+                        
                     for k, v in six.iteritems(run_param):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
-                        code = tab*2 + "%s = %s"%(k,transf(type_v, v))
-                        if n!=len(run_param)-1:
-                            code +=","
-                            n=n+1
+                        if v:
+                            code = tab + "%s = %s"%(k,transf(type_v, v))
+                            if m.initialization:
+                                if v and name_categ[k] != "state" and m.initialization :
+                                    test_codes.append(code) 
+                            else:
+                                test_codes.append(code)
+            
+                    for k, v in six.iteritems(ins):
+                        type_v = [inp.datatype for inp in inputs if inp.name==k][0]
+                        code = tab + "%s = %s" % (k, transf(type_v, v)) 
+                        if v and name_categ[k] == "state" :
+                            test_codes2.append(code) 
+
+                    if m.initialization: 
+                        code = tab + "param_init" + " = " + f"init_{signature1(m)}({','.join(init_var_in)})" 
                         test_codes.append(code)
-                    code =tab*2 +  ")"
+                        for p in init_var_out:
+                            code = tab + "%s = param_init$%s"%(p,p)
+                            test_codes.append(code)
+                        test_codes.extend(test_codes2) 
+
+                    code = tab + "params= model_{0}({1})\n".format(model_name, ', '.join(list_var))
                     test_codes.append(code)
+                        
                     for k, v in six.iteritems(outs):
                         type_v = [out.datatype for out in outputs if out.name==k][0]     
                         code = tab + "%s_estimated = params$%s"%(k,k) 
@@ -148,6 +191,10 @@ DATATYPE['STRINGLIST'] = "c(%s)"
 DATATYPE['DOUBLELIST'] = "c(%s)"
 DATATYPE['INTLIST'] = "c(%s)"
 DATATYPE['DATELIST']="c(%s)"
+DATATYPE['STRINGARRAY'] = "array(c(%s), dim=c(1,%s))"
+DATATYPE['DOUBLEARRAY'] = "array(c(%s), dim=c(1,%s))"
+DATATYPE['INTARRAY'] = "array(c(%s), dim=c(1,%s))"
+DATATYPE['DATEARRAY']="array(c(%s), dim=c(1,%s))"
 
 def transf(type_v, elem):
     if type_v == "BOOLEAN":
@@ -158,4 +205,7 @@ def transf(type_v, elem):
         return str(elem)
     elif "LIST" in type_v:
         return DATATYPE[type_v.strip()]%",".join(list(map(transf,[type_v.split("LIST")[0]]*len(elem),eval(elem))))
+    elif "ARRAY" in type_v:
+        return DATATYPE[type_v.strip()]%(",".join(list(map(transf,[type_v.split("ARRAY")[0]]*len(elem),eval(elem)))), len(eval(elem)))
+
         

@@ -63,12 +63,18 @@ CyML recognises the usual Python for-in-range integer loop pattern::
     for i in range(n):
         ...
 
+    for i in range(f,n):
+        ...
+
+    for i in range(f,n, s):
+        ...
+
 Like other Python looping statements, break and continue may be used in the
-body, without the loop that have an else clause.
+body, without else clause statement.
 
 
 While Loop
------------------
+----------
 - Like Python While loop
 
 

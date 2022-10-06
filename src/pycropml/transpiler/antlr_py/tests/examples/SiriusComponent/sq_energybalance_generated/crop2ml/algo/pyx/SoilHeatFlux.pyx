@@ -1,1 +1,0 @@
-soilHeatFlux = tau * netRadiationEquivalentEvaporation - soilEvaporation

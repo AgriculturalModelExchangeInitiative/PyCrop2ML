@@ -15,9 +15,9 @@ from pycropml.description import Description
 from pycropml.inout import Input, Output
 from pycropml.function import Function
 from pycropml.composition import ModelComposition
-from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract_compo
+#from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract_compo
 from pycropml.transpiler.antlr_py.extraction import ExtractComments
-
+from pycropml.transpiler.antlr_py.extract_metadata_from_comment import extract_compo
 class FortranExtraction(MetaExtraction):
     def __init__(self):
         MetaExtraction.__init__(self)
@@ -108,19 +108,24 @@ class FortranExtraction(MetaExtraction):
         return set(names)
 
     
-    def modelcomposition(self, file, models, tree):
-        comments = ExtractComments(file, "!", "////", "////")
-        self.mc = extract_compo(comments)
+    def modelcomposition(self, code, models, tree):
+        self.mc = extract_compo(code)
         inputlink = []
         outputlink = []
         inp = {}
-        subroutines = self.getSubroutine(tree)
-        algo = [f for f in subroutines if f.name.startswith("model")]
-        self.getTypeNode(algo[0].block,"custom_call")
+        #subroutines = self.getSubroutine(tree)
+        #algo = [f for f in subroutines if f.name.startswith("model")]
+        self.getTypeNode(tree[0].block,"call_stmt")
         call = self.getTree
-        self.mc.model = [c.function.split("model_")[-1] for c in call]
         inps, outs = [], []
-        md = [n for m in self.mc.model for n in models if m == n.name.split("model_")[-1]]
+        md = []
+        self.mc.model = [c.name.split("model_")[-1]  for c in call]
+        for m in self.mc.model:
+            for n in models:
+                if m.lower() == n.name.lower():
+                    md.append(n)
+                    break
+        self.mc.model = [n.name for n in md]
         inps = [n.name for m in md for n in m.inputs ]
         outs = [n.name for m in md for n in m.outputs ]
         m_in = set(inps) - set(outs)
@@ -135,7 +140,6 @@ class FortranExtraction(MetaExtraction):
 
         for k, v in z.items():
             outputlink.append({"source": v + "." + k, "target":k})
-
         for i in range(0, len(md)-1):
             mi = md[i]
             for j in range(i+1, len(md)):
@@ -148,6 +152,7 @@ class FortranExtraction(MetaExtraction):
         self.mc.inputlink = inputlink
         self.mc.outputlink = outputlink
         self.mc.internallink = internallink
+        return self.mc
    
         """
         call = self.getAttNode(self.getTree, **{"function":"Estimate"})

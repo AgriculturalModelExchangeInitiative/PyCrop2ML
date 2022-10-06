@@ -1,4 +1,4 @@
-from pycropml.transpiler.generators.javaGenerator import JavaGenerator
+from pycropml.transpiler.generators.javaGenerator import JavaGenerator, Custom_call
 from copy import deepcopy
 import os
 import six
@@ -53,6 +53,8 @@ class SimplaceGenerator(JavaGenerator):
 
     def visit_module(self, node):
         package = self.model.path.split(os.sep)[-1]
+        self.module = node
+        self.extfuncs = []
         self.write(f"package net.simplace.sim.components.{package};")
         self.newline()
         self.importSimplace(node)
@@ -83,6 +85,9 @@ class SimplaceGenerator(JavaGenerator):
         self.newline(node)
         self.indentation -= 1 
         self.write("}") 
+        self.newline(node)
+        for ext in self.extfuncs:
+            self.translate_final_class(ext)   
 
 
     def visit_declaration(self, node):
@@ -157,14 +162,21 @@ class SimplaceGenerator(JavaGenerator):
     def visit_function_definition(self, node):
         self.newline(node)
         self.funcname = node.name
+        self.meta = Custom_call(self.module)
+        r = self.meta.process(node)
         self.newline(node)
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
             if node.name=="main":
                 self.write("public static void main(String[] args)") 
             else:
-                self.write("public static ")
-                self.visit_decl(node.return_type) if node.return_type else self.write("void")
-                self.write(" %s("%node.name)
+                if node.return_type[0]=="tuple":
+                    self.extfuncs.append(node)
+                    self.extfunc = node
+                    self.write(f"public {node.name} Calculate_{node.name} (")   
+                else:  
+                    self.write("public static ")
+                    self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                    self.write(" %s("%node.name)
                 for i, pa in enumerate(node.params):
                     self.visit_decl(pa.pseudo_type)
                     self.write(" %s"%pa.name)
@@ -175,6 +187,8 @@ class SimplaceGenerator(JavaGenerator):
             self.write('{') 
             self.newline(node)
         else:
+            self.meta = Custom_call(self.module)
+            r = self.meta.process(node)
             self.write("@Override")
             self.newline(node)
             self.write("protected void process()") if node.name.startswith("model_") else self.write("protected void init()")
@@ -420,6 +434,7 @@ class Pl2Crop2ml(object):
         xml = ns.configuration(Class=f"net.simplace.sim.components.{package}.{md.name}")
         
         simg = ns.simgroup()
+        print(md.ord)     
         for num, m in enumerate(md.ord):
             mod = []
             m_inps = [k  for k in md.inputlink if k["target"].split(".")[0]==m ]

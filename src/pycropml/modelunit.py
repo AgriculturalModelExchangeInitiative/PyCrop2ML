@@ -76,6 +76,19 @@ class ModelUnit(ModelDefinition):
         return au
 
     @property
+    def exogenous(self):
+        ex=[]
+        exname = []
+        for n in self.inputs:
+            if "variablecategory" in dir(n) and n.variablecategory=="exogenous":
+                ex.append(n)
+                exname.append(n.name)
+        for m in self.outputs:
+            if "variablecategory" in dir(m) and m.variablecategory=="exogenous" and m.name not in exname:
+                ex.append(m)
+        return ex
+
+    @property
     def parameters(self):
         pa=[]
         for n in self.inputs:

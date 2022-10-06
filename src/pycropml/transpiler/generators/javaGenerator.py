@@ -12,6 +12,7 @@ from pycropml.transpiler.ast_transform import AstTransformer, transform_to_synta
 from pycropml.transpiler.antlr_py.api_declarations import Middleware
 from pycropml.nameconvention import signature2
 from pycropml.composition import ModelComposition
+from copy import copy
 
 
 class Custom_call(Middleware):
@@ -483,7 +484,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%(self.name.capitalize(), self.name.capitalize(),self.name.capitalize(), self.name.capitalize(), self.name.capitalize()))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -678,8 +679,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.write(" = ")
                 if n.type=="local":
                     self.write(n.value)
-                else: self.visit(n.value)
-                self.write(";")
+                else: self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)
+                self.write(";") 
             elif 'elements' in dir(n) and n.type in ("list", "tuple", "array"):
                 if n.type=="list":
                     self.visit_decl(n.pseudo_type)
@@ -903,7 +904,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         else:
             self.visit_decl(arg.pseudo_type)
 
-
+from copy import deepcopy
 
 class JavaTrans(CodeGenerator,JavaRules):
     """ This class used to generates states, rates, auxiliary and exogenous classes
@@ -935,33 +936,63 @@ class JavaTrans(CodeGenerator,JavaRules):
         "BOOLEAN":'bool',
         "DATE":"datetime"
     }
+   
     def model2Node(self):
         variables=[]
         varnames=[]
         for m in self.models:
-            if isinstance(m, ModelComposition):
-                print(m.diff_in)
             if "function" in dir(m):
                 for f in m.function:
                     self.extern.append(f.name)
             for inp in m.inputs:
                 if inp.name not in varnames:
+                    category = inp.variablecategory if "variablecategory" in dir(inp) else inp.parametercategory
                     variables.append(inp)
-                    varnames.append(inp.name)
+                    varnames.append(category + inp.name)
+                    if isinstance(m, ModelComposition):
+                        k_ = get_key(m.diff_in, inp.name )
+                        if k_:
+                            node_ = deepcopy(inp)
+                            node_.name = k_
+                            variables.append(node_)
+                            varnames.append(category+k_)
             for out in m.outputs:
                 if out.name not in varnames:
+                    category = out.variablecategory if "variablecategory" in dir(out) else out.parametercategory
                     variables.append(out)
-                    varnames.append(out.name)
+                    varnames.append(category + out.name)
+                    if isinstance(m, ModelComposition):
+                        k_ = get_key(m.diff_out, out.name )
+                        if k_:
+                            node_ = deepcopy(out)
+                            node_.name = k_
+                            variables.append(node_)
+                            varnames.append(category + k_)
             if "ext" in dir(m):
                 for ex in m.ext:
                     if ex.name not in varnames:
+                        category = ex.variablecategory if "variablecategory" in dir(ex) else ex.parametercategory
                         variables.append(ex)
-                        varnames.append(ex.name) 
+                        varnames.append(category + ex.name) 
         #print(len(variables))
+        
+        st = []
         for var in variables:
             if "variablecategory" in dir(var):
-                if var.variablecategory=="state" and not var.name.endswith("_t1"):
+                if var.variablecategory=="state" and not var.name.endswith("_t1") and var.name not in st:
                     self.states.append(var)
+                    st.append(var.name)
+                if var.variablecategory=="state" and var.name.endswith("_t1"):
+                    if var.name[:-3] in st:
+                        for i, j in enumerate(self.states):
+                            if var.name[:-3] in j.name:
+                                self.states.remove(j)
+                                break
+                    z = copy(var)
+                    z.name = z.name[:-3]
+                    self.states.append(z)
+                    st.append(z.name)
+                                                 
                 if var.variablecategory=="rate" :
                     self.rates.append(var)
                 if var.variablecategory=="auxiliary":
@@ -1141,31 +1172,31 @@ def to_struct_java(models, rep, name):
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.model2Node()
     states = generator.node_states
-    generator.generate(states, "%sState"%name.capitalize())
+    generator.generate(states, "%sState"%name)
     z= ''.join(generator.result)
-    filename = Path(os.path.join(rep,"%sState.java"%name.capitalize()))
+    filename = Path(os.path.join(rep,"%sState.java"%name))
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
-    generator.generate(rates, "%sRate"%name.capitalize())
+    generator.generate(rates, "%sRate"%name)
     z1= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sRate.java"%name.capitalize()))
+    filename = Path(os.path.join(rep, "%sRate.java"%name))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
     auxiliary = generator.node_auxiliary
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
-    generator.generate(auxiliary, "%sAuxiliary"%name.capitalize())
+    generator.generate(auxiliary, "%sAuxiliary"%name)
     z2= ''.join(generator.result)
-    filename = Path(os.path.join(rep/"%sAuxiliary.java"%name.capitalize()))
+    filename = Path(os.path.join(rep/"%sAuxiliary.java"%name))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8')) 
 
     exogenous = generator.node_exogenous
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
-    generator.generate(exogenous, "%sExogenous"%name.capitalize())
+    generator.generate(exogenous, "%sExogenous"%name)
     z2= ''.join(generator.result)
-    filename = Path(os.path.join(rep/"%sExogenous.java"%name.capitalize()))
+    filename = Path(os.path.join(rep/"%sExogenous.java"%name))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))  
     return 0
@@ -1243,7 +1274,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize(),self.name.capitalize()))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name,self.name,self.name,self.name,self.name))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1256,7 +1287,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.newline(node)
         if not node.name.startswith("init_"):
             self.private(self.node_param)
-            typ = self.model.name.capitalize()+"Component"
+            typ = self.model.name+"Component"
             self.write(self.copy_constr_compo%(typ,typ))###### copy constructor 
             self.copyconstructor(self.node_param)
             self.newline(extra=1)
@@ -1327,11 +1358,15 @@ class JavaCompo(JavaTrans, JavaGenerator):
  
     def get_mo(self,varname):
         listmo=[]
+        name = self.model.diff_in[varname] if varname in self.model.diff_in else None
         for inp in self.model.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
             if var==varname:
                 listmo.append(mod)
+            else:
+                if name and name == var:
+                    listmo.append(mod)  
         return listmo
     
     def instanceModels(self):
@@ -1362,3 +1397,9 @@ def argsToStr(args):
     for arg in args:
         t.append(arg.value)
     return '"%s"'%('-'.join(t))
+
+def get_key(my_dict, val):
+    for key, value in my_dict.items():
+        if val == value:
+            return key
+    return None

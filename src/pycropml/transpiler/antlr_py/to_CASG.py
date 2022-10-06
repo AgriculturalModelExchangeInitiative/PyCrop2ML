@@ -10,7 +10,7 @@ from path import Path
 import pycropml.transpiler.antlr_py
 
 languages = ['cs',"bioma", "dssat", "f90", "java", "simplace", "xml", "py"]
-NAMES = {'cs':'csharp','sirius':'csharp',"bioma":"csharp", "dssat":"fortran", "f90":"fortran", "java":"java", "simplace":"java", "xml":"xml", "py":"python", "openalea":"python"}
+NAMES = {'cs':'csharp','sirius':'csharp',"bioma":"csharp", "dssat":"fortran", "f90":"fortran", "java":"java", "simplace":"java", "xml":"xml", "py":"python", "openalea":"python", "stics":"f90"}
 
 GENERATORS = {
     format: getattr(getattr(

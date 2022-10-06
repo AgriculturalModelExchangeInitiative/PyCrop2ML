@@ -1210,13 +1210,15 @@ class AstTransformer():
             target = self.visit(testlist_star_expr)
             if assign_part:
                 value = self.visit(assign_part)
-                if isinstance(value, dict) and value["type"] == 'declaration': 
+                if isinstance(value, dict) and "type" in value and value["type"] == 'declaration': 
                     target = target["name"] if isinstance(target, dict) else target
                     self.type_env.top[target] = value["decl"][0]["pseudo_type"]
                     value["decl"][0]["name"] = target
                     return value
                 elif isinstance(value, list):
-                    value = {"type":"list", "elements":value, "pseudo_type":value[0]["pseudo_type"]}
+                    r = {"type":"list", "elements":value["value"], "pseudo_type":value[0]["pseudo_type"]}
+                else:
+                    r = value["value"]
                     
                 #elif isinstance(value, dict) and value["type"] == 'attribute': 
                     #value = 
@@ -1224,7 +1226,8 @@ class AstTransformer():
                 return {
                     'type': 'assignment',
                     'target': target,
-                    'value': value,
+                    'value': r,
+                    'op':value["op"],
                     'pseudo_type': 'Void'
                 } 
             else:
@@ -1243,7 +1246,7 @@ class AstTransformer():
         if ASSIGN and not COLON:
             r =  self.visit(testlist_star_expr)
             r = r if len(r)>1 else r[0]
-            return r
+            return {"op":"=", "value":r}
         elif COLON:
             decl = self.visit(test)
             if isinstance(decl, dict):
@@ -1257,6 +1260,13 @@ class AstTransformer():
                 r = self.visit(testlist)
                 de["value"] = r
             return {"type":"declaration", "decl":[de]}
+        else:
+            r = self.visit(testlist)
+            if ADD_ASSIGN: return {"op":"+=", "value":r}
+            if SUB_ASSIGN: return {"op":"-=", "value":r}
+            if MULT_ASSIGN: return {"op":"*=", "value":r}
+            if DIV_ASSIGN: return {"op":"/=", "value":r}
+            if MOD_ASSIGN: return {"op":"%=", "value":r}
 
     
     def visit_testlist_star_expr(self, node, test, star_expr, testlist, comments, location):
