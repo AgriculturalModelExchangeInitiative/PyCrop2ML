@@ -33,7 +33,7 @@ NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'jav
 ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs','bioma':'cs', "openalea":"py", "apsim":"cs", "record":"cpp", "dssat":"f90", "stics":"f90", "sirius2":'cs'}
 
 cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics"]
-langs = ["cs", "cpp", "java", "f90", "r", "python"]
+langs = ["cs", "cpp", "java", "f90", "r", "py"]
 
 domain_class = ["cs", "java", 'sirius','cpp', "bioma", "sirius2"]
 wrapper=["cs", "sirius", "bioma", "sirius2"]
