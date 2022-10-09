@@ -237,6 +237,7 @@ FUNCTION_API = {
         'Floor':      StandardCall('math', 'floor'),
         'Min':      StandardCall('system', 'min', expander=min_expander),
         'Abs':      StandardCall('system', 'abs'),
+        'Truncate':      StandardMethodCall('float', 'int', expander=int_expander)
         
     },
     'datetime':{
