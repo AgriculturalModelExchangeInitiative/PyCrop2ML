@@ -29,8 +29,11 @@ Using pip
 
 ::
    git clone https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML.git
+   
    cd PyCropML
+   
    pip install - r requirements.txt
+   
    pip install .
    
 
