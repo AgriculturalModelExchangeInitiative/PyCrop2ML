@@ -60,9 +60,6 @@ class Model2Package(object):
                 init_var_in.append(inp.name)
             elif inp.variablecategory=="state":
                 init_var_out.append(inp.name)
-        """if pform == "windows":
-            import_test = f'source("..\..\src\{"r"}\{package}\{signature1(m)}.r")\n'
-        else:"""
         import_test = f'source("../../src/{"r"}/{package}/{signature1(m)}.r")\n'
         import_test += "library(assertthat)\n"
         codetest = [import_test]
