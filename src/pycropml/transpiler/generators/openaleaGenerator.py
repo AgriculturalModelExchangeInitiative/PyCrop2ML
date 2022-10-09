@@ -3,6 +3,7 @@ from pycropml.transpiler.generators.pythonGenerator import PythonGenerator, Pyth
 import os
 from pycropml.composition import model_parser
 from path import Path
+
 try:
     from openalea.core import interface as inter
     from openalea.core import package, CompositeNodeFactory, CompositeNode
@@ -131,7 +132,7 @@ class OpenaleaCompo(PythonCompo):
 
         _factory = node.Factory(name=model.name,
                                 description=model.description.ExtendedDescription,
-                                nodemodule=model.name.capitalize(),
+                                nodemodule=signature(model),
                                 nodeclass="model_%s"%(signature(model)),
                                 inputs=inputs,
                                 outputs=outputs,
@@ -162,6 +163,7 @@ def openalea_interface(inout):
     if dtype in ('int', 'float', 'double') :
         interface =inter.IInt if dtype == 'int' else inter.IFloat
         if ('min' in kwds) and ('max' in kwds):
+            #print(inout)
             interface = interface(min=eval(inout.min), max=eval(inout.max))
         elif 'min' in kwds:
             interface = interface (min=eval(inout.min))

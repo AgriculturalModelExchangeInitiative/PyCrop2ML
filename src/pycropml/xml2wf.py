@@ -18,13 +18,17 @@ from pycropml.pparse import model_parser
 class XmlToWf(object):
 
 
-    def __init__(self, xmlwf,dir, pkg_name):
+    def __init__(self, xmlwf,dir_, pkg_name):
         self.xmlwf = xmlwf
-        self.dir=dir
+        self.dir=dir_
         self.pkg_name = pkg_name
         self.inputLinks = self.xmlwf.inputlink
         self.outputLinks = self.xmlwf.outputlink
         self.internalLinks = self.xmlwf.internallink
+        self.diff_in = self.xmlwf.diff_in
+        self.diff_out = self.xmlwf.diff_out
+        print(self.diff_in)
+        print(self.diff_out)
         self.inputs = []
         self.outputs = []
     
@@ -118,6 +122,7 @@ class XmlToWf(object):
                 model= links_sameName[0]["target"].split('.')[0]
                 if model in self.pkg:
                     inputs = self.pkg[model].inputs
+                    if name in list(self.diff_in.values()): name = findname(name, self.diff_in)
                     interface=[inp["interface"] for inp in inputs if inp["name"]==name]
                     for inp in inputs:
                         if inp["name"]==name and "value" in inp:
@@ -140,6 +145,7 @@ class XmlToWf(object):
         # model units outputs must be unique. So model composite output is targeted by an unique output link
         for link in self.outputLinks:
             name =  link["target"]
+            if name in list(self.diff_out.values()): name = findname(name, self.diff_out)
             model_src, out_src= link["source"].split('.')
             if model_src in self.pkg:
                 outputs = self.pkg[model_src].outputs
@@ -162,6 +168,7 @@ class XmlToWf(object):
     def connectInputs(self):
         for link in self.inputLinks:
             src, tgt = link['source'], link['target']
+            if src in list(self.diff_in.values()): src = findname(src, self.diff_in)
             port_out = src
             name_tgt, port_in = tgt.split('.')
             if name_tgt in self.nodes:
@@ -179,6 +186,7 @@ class XmlToWf(object):
     def connectOutputs(self):
         for link in self.outputLinks:
             src, tgt = link['source'], link['target']
+            if tgt in list(self.diff_out.values()): tgt = findname(tgt, self.diff_out)
             name_src, port_out = src.split('.')
             port_in = tgt
             if name_src in self.nodes:
@@ -209,3 +217,9 @@ class XmlToWf(object):
                         print(('Error : ', tgt))
                     continue
                 self.wf.connect(ns, pout, nt, pin)
+
+def findname(val, dictionary):
+    for k, v in dictionary.items():  
+        if v == val:
+            return k   
+    return None
