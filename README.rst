@@ -16,13 +16,21 @@ For more information, refer to `the documentation`__.
 .. __: http://pycrop2ml.readthedocs.io/en/latest/
 
 
+Dependencies
+============
+- openalea.core and openalea.deploy
+
 Installation
 ============
 
-Using Conda
+
+Using pip
 ~~~~~~~~~~~
 
 ::
-
-    conda create -n crop2ml -c amei pycropml
+   git clone https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML.git
+   cd PyCropML
+   pip install - r requirements.txt
+   pip install .
+   
 
