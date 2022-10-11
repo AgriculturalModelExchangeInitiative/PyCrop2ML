@@ -19,7 +19,7 @@ For more information, refer to `the documentation`__.
 Dependencies
 ============
 - openalea.core and openalea.deploy
-::
+
    conda install -c conda-forge -c openalea3 openalea.core openalea.deploy
 
 Installation
@@ -29,7 +29,7 @@ Installation
 Using pip
 ~~~~~~~~~~~
 
-::
+
    git clone https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML.git
    
    cd PyCropML
