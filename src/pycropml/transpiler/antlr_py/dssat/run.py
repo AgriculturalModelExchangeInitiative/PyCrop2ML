@@ -14,6 +14,7 @@ from pycropml.transpiler.antlr_py.codeExtraction import extraction
 from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Declarations, Attr, Assignment, Call_stmt, Implicit_return, Local
 from pycropml.transpiler.antlr_py.to_specification import extractMetaInfo, createObjectModel, extractcomments, createObjectCompo
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml, create_repo
+
 import tempfile
 import copy
 
@@ -25,6 +26,7 @@ rates_tags = ["!%%CyML Rate Begin%%", "!%%CyML Rate End%%"]
 states_tags = ["!%%CyML State Begin%%", "!%%CyML State End%%"]
 compute_tags = ["!%%CyML Compute Begin%%", "!%%CyML Compute End%%"]
 ignore_tags = ["!%%CyML Ignore Begin%%", "!%%CyML Ignore End%%"]
+composition_tags = ["!%%CyML Composition Begin%%", "!%%CyML Composition End%%"]
 
 start_linecom = ["!", ["C", 1]] # if item is a list: first is the tag and scond is the porition of the tag
 default_mltCom = ['%%%%', '%%%%%'] # use '%%%%' if the language didn't provide multi lines comments
@@ -143,6 +145,53 @@ def run_dssat(component, package):
         if res:
             models = []
             totalcomments = fortrancomments(mod)
+            nn=0
+            description = {"Title":"model of soil", "Authors":"Cyrille", "Institution":"INRAE" } 
+            head = {}
+            
+            for com in totalcomments:
+                if totalcomments[com].startswith("C="):
+                    nn = nn+1
+                    if nn==3:
+                        model_name = totalcomments[com+1][1:].strip().split(",")[0]
+                        head["name"] = model_name
+                        description["Title"] = f"Model of {model_name}"
+                    continue
+                if  totalcomments[com][1:].strip()=="@ShortDescription":
+                    shortdescription=[]
+                    while totalcomments[com+1]!="C":
+                        shortdescription.append(totalcomments[com+1][1:].strip())
+                        com = com + 1
+                    description["ShortDescription"]=" ".join(shortdescription)      
+                    continue
+                if  totalcomments[com][1:].strip()=="@ExtendedDescription":
+                    extdescription=[]
+                    while totalcomments[com+1].strip()!="C":
+                        extdescription.append(totalcomments[com+1][1:].strip())
+                        com = com + 1
+                    description["ExtendedDescription"]=" ".join(extdescription)
+                    continue
+                if  totalcomments[com][1:].strip().startswith("@Timestep"):
+                        timestep = totalcomments[com][1:].strip().split("@Timestep")[-1].split("day")[0]
+                        head["timestep"] = timestep
+                        continue
+                if  totalcomments[com][1:].strip().startswith("@Version"):
+                        version = totalcomments[com][1:].strip().split("@Version")[-1].split("day")[0] 
+                        head["version"]=version
+                        continue  
+                if  totalcomments[com][1:].strip().startswith("@Authors"):  
+                    auth = [] 
+                    while totalcomments[com+1].strip()!="C":
+                        auth.append(totalcomments[com+1][1:].strip().replace(")", ""))
+                        com = com + 1
+                    description["Authors"] = ", ".join([n.split("(")[0] for n in auth])
+                    description["Institution"] = ", ".join([n.split("(")[-1] for n in auth])
+                    continue 
+                if  totalcomments[com][1:].strip().startswith("@Reference"):
+                        reference = totalcomments[com+1][1:].strip().split("@Reference")[-1].split("day")[0] 
+                        description["Reference"] = reference
+                        break             
+                    
             modunit_dictasg = to_dictASG(res[0] , language)
             modunit_asg = to_CASG(modunit_dictasg)
 
@@ -272,9 +321,6 @@ def run_dssat(component, package):
                     res.update(var)
                     out_info.append(res)
             
-            head = {"name":modunit_asg[0].name, "version":'1.1', "timestep":"1.0"}
-            description = {"Title":"model of soil", "Authors":"Cyrille", "Institution":"INRAE" }  
-            
             exterfunc = extr.externFunction(modunit_asg[0]) # external functions
             extfunc = exterfunc.difference(notreq) 
             for ext in extfunc:
@@ -286,15 +332,6 @@ def run_dssat(component, package):
             
             model = createObjectModel(head, description, inp_info, out_info, metainfo_init, extfunc)
             models.append(model)
-            desc = {"authors":"Cyrille",
-                    "institution":"INRAE",
-                    "Title": "Soil temp at each layer",
-                    "Reference": 'http://ooooo.html',
-                    "url": "BBbbb",
-                    "name": "SoilTemp",
-                    "description":"I don't know"
-            }
-            mc = createObjectCompo(desc, models)
             
             if initv:
                 out_init = os.path.join(package, "crop2ml", "algo", "pyx", "init."+f.split(".")[0] + ".pyx")
@@ -317,7 +354,7 @@ def run_dssat(component, package):
                         fi.write(codes_states+'\n')
                     
                     
-            xml_ = Pl2Crop2ml(model, "DSSAT_SoilTemp").run_unit()
+            xml_ = Pl2Crop2ml(model, "DSSAT_").run_unit()
             filename = os.path.join(package,  "crop2ml", "unit.%s.xml"%(model.name))
             with open(filename, "wb") as xml_file:
                 r = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -325,13 +362,23 @@ def run_dssat(component, package):
                 r += xml_.unicode(indent=4)#.encode('utf-8')
                 xml_file.write(r.encode())
 
-            xml_ = Pl2Crop2ml(mc, "DSSAT_SoilTemp").run_compo()
-            filename = os.path.join(package, "crop2ml", "composition.%s.xml"%(model.name))
-            with open(filename, "wb") as xml_file:
-                r = '<?xml version="1.0" encoding="UTF-8"?>\n'
-                r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
-                r += xml_.unicode(indent=4)#.encode('utf-8')
-                xml_file.write(r.encode())
+    res_compo = extraction(code, composition_tags[0],composition_tags[1],ignore_tags[0],ignore_tags[1])
+            
+    if not res_compo:    
+        description["name"]=head["name"]+"_"
+        description["version"]=head["version"]
+        description["timestep"]=head["timestep"]
+        description["url"] = ""
+        mc = createObjectCompo(description,models)
+    else:
+        mc = {} #TODO
+    xml_ = Pl2Crop2ml(mc, "DSSAT_").run_compo()
+    filename = os.path.join(package, "crop2ml", "composition.%s.xml"%(model.name))
+    with open(filename, "wb") as xml_file:
+        r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
+        r += xml_.unicode(indent=4)#.encode('utf-8')
+        xml_file.write(r.encode())
 
                     
             

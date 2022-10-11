@@ -186,6 +186,7 @@ class SimplaceGenerator(JavaGenerator):
             self.newline(node)
             self.write('{') 
             self.newline(node)
+            self.indentation+=1
         else:
             self.meta = Custom_call(self.module)
             r = self.meta.process(node)

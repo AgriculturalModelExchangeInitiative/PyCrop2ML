@@ -160,6 +160,8 @@ class SimplaceExtraction(MetaExtraction):
                 default = str(d[7].operator)+default.value
                 
             if default == "null": default = ""
+            if max == "null": max = ""
+            if min == "null": min = ""
     
             desc_dict = {"name":name, "description":dd.decode("utf-8"), 
                          v_categ : category,

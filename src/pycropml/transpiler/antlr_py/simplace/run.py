@@ -94,7 +94,6 @@ def run_simplace(components, output):
         
         com = extractcomments(code, ["//"], ["/*", "*/"])
         com_meta_info_part = list(extractcomments(code, ["/&&&"], ["/**", "*/"]).values())[0]
-        #print(com_meta_info_part)
         dictasgt = to_dictASG(code,"java", com)
         strAsg = to_CASG(dictasgt)
 
@@ -136,6 +135,16 @@ def run_simplace(components, output):
                         tg_file.write(code.encode('utf-8'))
         
         models.append(mm.model)
+        
+        """coms = com_meta_info_part.split("\n")
+        shortdescription = []
+        for k, com in enumerate(coms[2:]):
+            while coms[k].strip()!="*" and len(shortdescription)==0:
+                shortdescription.append(coms[k][1:].strip())
+                k = k+1
+                print(shortdescription)"""
+                
+        
         xml_ = Pl2Crop2ml(mm.model, "Simplace.SoilTemp").run_unit()               
         filename = os.path.join(output,  "crop2ml", "unit.%s.xml"%(mm.model.name)) # "unit.%s.xml"%(strat.basename().split(".")[0])
         with open(filename, "wb") as xml_file:
