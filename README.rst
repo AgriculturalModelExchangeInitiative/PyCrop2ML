@@ -19,6 +19,8 @@ For more information, refer to `the documentation`__.
 Dependencies
 ============
 - openalea.core and openalea.deploy
+::
+   conda install -c conda-forge -c openalea3 openalea.core openalea.deploy
 
 Installation
 ============
@@ -36,4 +38,4 @@ Using pip
    
    pip install .
    
-
+   pip install antlr4-python3-runtime==4.8
