@@ -118,17 +118,19 @@ def model_desc(desc):
     name = desc["name"][:-9] if desc["name"].endswith("Component") else desc["name"]
     description = Description()
     description.Title = name+" model" 
-    description.Authors = desc["authors"]
-    description.Institution=desc["institution"]
+    description.Authors = desc["Authors"]
+    description.Institution=desc["Institution"]
     description.Reference = desc["Reference"] if "Reference" in desc else None, 
-    description.ExtendedDescription = desc["description"]
+    if isinstance(description.Reference, tuple): description.Reference = description.Reference[0] 
+    description.ExtendedDescription = desc["ExtendedDescription"]
+    description.ShortDescription = desc["ShortDescription"]
     description.Url = desc["url"]
     return description
 
 def createObjectCompo(desc, models):
     inputlink = []
     outputlink = []
-    mc = ModelComposition({"name":desc["name"], "version":"001", "timestep":"1"})
+    mc = ModelComposition({"name":desc["name"], "version":desc["version"], "timestep":desc["timestep"]})
     description = model_desc(desc)
     mc.add_description(description)
     mc.model = [m.name for m in models]
@@ -162,10 +164,8 @@ def createObjectCompo(desc, models):
 
     for i in range(0, len(md)-1):
         mi = md[i]
-        print(mi.name, i)
         for j in range(i+1, len(md)):
             mj = md[j]
-            print(mj.name, j)
             vi = list(set([n.name for n in mi.outputs ]).intersection(set([n.name for n in mj.inputs ])))
             if vi: 
                 for k in vi:

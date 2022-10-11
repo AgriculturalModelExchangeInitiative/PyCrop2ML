@@ -227,49 +227,10 @@ def run_stics(component, package):
             mdata = extract(r)
             #metainfo = extractMetaInfo(mod, "!")
             generate_unitfile(package, mdata, package_name)  
-            
-            """metainfo2 = copy.deepcopy(metainfo)
-            for inp in model_inputs:
-                res = {}
-                if inp.name in metainfo.keys():
-                    res["name"] = inp.name
-                    var = metainfo[inp.name]
-                    if var["type"] == "parameter":
-                        var["parametercategory"] = var["category"]
-                        del var["category"]
-                    if var["type"] ==  "variable":
-                        var["variablecategory"] = var["category"]
-                        del var["category"]
-                    var["inputtype"] = var["type"]
-                    del var["type"]
-                    if (isinstance(inp.pseudo_type, list) and inp.pseudo_type[0]!="array") or not isinstance(inp.pseudo_type, list):
-                        del var["len"]
-                    var["datatype"] = transform_type(inp.pseudo_type)
-                    res.update(var)
-                    inp_info.append(res)
-
-            for out in model_outputs:
-                res = {}
-                if out.name in metainfo2.keys():
-                    res["name"] = out.name
-                    var = metainfo2[out.name]
-                    var["variablecategory"] = var["category"]
-                    del var["category"]
-                    del var["type"]
-                    if (isinstance(out.pseudo_type, list) and out.pseudo_type[0]!="array") or not isinstance(out.pseudo_type, list):
-                        del var["len"]
-                    var["datatype"] = transform_type(out.pseudo_type)
-                    res.update(var)
-                    out_info.append(res)
-            
-            head = {"name":modunit_asg[0].name, "version":'1.1', "timestep":"1.0"}
-            """
-                    
+                                
             out_compute = os.path.join(package,  "crop2ml", "algo", "pyx", mdata.name + ".pyx")
             with open(out_compute, "w") as fi:
                 fi.write(codes_compute + '\n')
-                        
-            description = {"Title":"model of soil", "Authors":"Cyrille", "Institution":"INRAE" }  
             
             exterfunc = extr.externFunction(modunit_asg[0]) # external functions
             extfunc = exterfunc.difference(notreq) 
@@ -293,21 +254,21 @@ def run_stics(component, package):
     if res_compo:
         compo_dictasg = to_dictASG(res_compo[0] , language)
         compo_asg = to_CASG(compo_dictasg)
-
-        desc = {"authors":"Cyrille",
-                            "institution":"INRAE",
-                            "Title": "Soil temp at each layer",
-                            "Reference": 'http://ooooo.html',
-                            "url": "BBbbb",
-                            "name": "SoilTemp",
-                            "description":"I don't know"
-        }
         mc = extr.modelcomposition(res_compo[0], models, compo_asg)
         print(mc.inputlink)  
         generate_compositefile(package, mc, package_name)   
     
     else:
-        mc = createObjectCompo(desc, models)
+        description={}
+        description["name"]=mdata.name+"_"
+        description["version"]=mdata.version
+        description["timestep"]=mdata.timestep
+        description["url"] = ""
+        description["Authors"] = mdata.description.Authors
+        description["Institution"] = mdata.description.Institution
+        description["ShortDescription"] = mdata.description.ShortDescription
+        description["ExtendedDescription"] = mdata.description.ExtendedDescription
+        mc = createObjectCompo(description, models)
         print(mc.internallink)   
         generate_compositefile(package, mc, package_name)       
                     
