@@ -20,7 +20,7 @@ def translateCopy(node):
 def translateAllocate(node):
     typ = node.pseudo_type[-1]
     newtyp = changetyp(typ)
-    return Node("assignment", target = node.receiver, value=Node("call", function = "array", args=[Node("call", function=newtyp, args=[]),Node("call", function="c", args = [Node("int", value="1"), node.args])]), pseudo_type=node.pseudo_type)
+    return Node("assignment", target = node.receiver, value=Node("call", function = "vector", args=[Node("empty"),node.args]), pseudo_type=node.pseudo_type)
 
 
 class RRules(GeneralRule):

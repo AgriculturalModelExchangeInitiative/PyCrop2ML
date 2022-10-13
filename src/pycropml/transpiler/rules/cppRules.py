@@ -80,7 +80,7 @@ class CppRules(GeneralRule):
         "float": "double",
         "double": "double",
         "bool": "bool",
-        "array": "array<%s, %s> ", # 
+        "array": "vector<%s, %s> ", # 
         "list": "vector",
         "tuple": "tuple",
         "str": "string",
@@ -94,7 +94,7 @@ class CppRules(GeneralRule):
         "double": "double",
         "float": "double",
         "boolean": "bool",
-        "array": "array<%s, %s> ", # 
+        "array": "vector<%s, %s> ", # 
         "list": "vector",
         "tuple": "tuple",
         "string": "string",
@@ -116,7 +116,8 @@ class CppRules(GeneralRule):
             'ceil':         '(int) ceil',
             'round':        'round',
             'exp':         'exp',
-            'pow':          'pow'
+            'pow':          'pow',
+            'floor':  'floor'
 
         },
         'io': {
@@ -175,7 +176,8 @@ class CppRules(GeneralRule):
         'array':{
                 'len': translateLenArray,
                 'sum': translateSum,
-                'append': '.Add'
+                'append': '.Add',
+                 "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("list", elements = node.args, pseudo_type=node.receiver.pseudo_type ))
 
                 
                 }
