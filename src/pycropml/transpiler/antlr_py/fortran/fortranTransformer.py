@@ -642,6 +642,7 @@ class AstTransformer():
             self.type_env = Env(dict(list(TYPED_API.items())), None)
             self.type_env['arrays']={}
         self.code : str = code
+        print(self.type_env['arrays'])
         if self.code:
             self.codelines = self.code.split("\n")
 
@@ -826,6 +827,7 @@ class AstTransformer():
         res = {"type":"module", "name":name, "block":body, "comments":comments}
         self.notdeclared = set()
         self.type_env = Env(dict(list(TYPED_API.items())), None)
+        self.type_env['arrays'] = {}
         return res
     
     def visit_submodulestmt(self, node, moduleSubprogramPartConstruct, location):
@@ -1123,6 +1125,8 @@ class AstTransformer():
             else:
                 spec = self.visit(arraySpec)
                 z = {"name":str(objectName), "dim": len(spec), "elts":spec}
+                print("boo",self.type_env['arrays'])
+                print(location, z)
                 self.type_env['arrays'].update({str(objectName): spec})
                 return z
         elif expression:

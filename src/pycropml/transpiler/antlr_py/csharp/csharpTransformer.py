@@ -269,6 +269,9 @@ class Array_initializer(AliasNode):
 
 class Enum_member_declaration(AliasNode):
     _fields_spec = ["attributes", "identifier", "expression"]
+    
+class BaseAccessExpression(AliasNode):
+    _fields_spec = ["identifier", "type_argument_list", "expression_list"]
 
 
 class Transformer(BaseNodeTransformer):
@@ -498,6 +501,8 @@ class Transformer(BaseNodeTransformer):
     def visit_Enum_member_declaration(self, node):
         return Enum_member_declaration.from_spec(node)
 
+    def visit_BaseAccessExpression(self, node):
+        return BaseAccessExpression.from_spec(node)
 
     """def visit_Element_initializer(self, node):
         return Element_initializer.from_spec(node)"""
@@ -836,6 +841,9 @@ class AstTransformer():
             return self.visit(enum_definition)
         elif constant_declaration:
             return self.visit(constant_declaration)
+    
+        if event_declaration:
+            pass
         
         else: raise PseudoCythonTypeCheckError("Not implemented common member declaration , %s"%location[0])
     
@@ -1001,7 +1009,7 @@ class AstTransformer():
         #names=[]
         
         if qualified_alias_member is not None:
-            raise PseudoCythonTypeCheckError("Not implemented quaified alias member , %s"%location)
+            raise PseudoCythonTypeCheckError("Not implemented quaified alias member , %s"%location[0])
         
         if len(identifier)==1: 
             #res = self.visit(identifier[0].IDENTIFIER)
@@ -1552,10 +1560,12 @@ class AstTransformer():
         if BANG or OP_PTR or identifier:
             raise PseudoCythonTypeCheckError("Not implemented, %s"%location)
         if member_access:
+            print(res)
             m = self.translate(member_access)
             if isinstance(res, str): res = {"type":"member_access", "name":res, "member":m, "pseudo_type":"unknown"}
             elif isinstance(res, dict) and "name" in res: res = {"type":"member_access", "name":res["name"], "member":m, "pseudo_type":res["pseudo_type"]}
-            else: res = {"type":"member_access", "name":res["class_type"], "member":m, "pseudo_type":"unknown"}
+            elif "class_type" in res: res = {"type":"member_access", "name":res["class_type"], "member":m, "pseudo_type":"unknown"}
+            else: return None
             
             if res["name"] in CONSTANT_API and res["member"] in CONSTANT_API[res["name"]]:
                 return CONSTANT_API.get(res["name"]).get(res["member"]) 
@@ -1570,9 +1580,9 @@ class AstTransformer():
                 rec = {"type":"local", "name": res["name"], "pseudo_type":res["pseudo_type"]}
                 api = PROPERTY_API[receiver].get(m)      
                 if not api:
-                    raise translation_error('pseudo-cython doesn\' t support property %s of %s' % (m, receiver),
+                    raise translation_error('CyMLTx doesn\' t support property %s of %s' % (m, receiver),
                                                 location, [location[0]],
-                                                suggestions='pseudo-cython supports those %s functions\n  %s' % (
+                                                suggestions='CyMLTx supports those %s functions\n  %s' % (
                             receiver,
                             prepare_table(TYPED_API[receiver], ORIGINAL_METHODS.get(receiver)).strip()))
 
@@ -1602,6 +1612,7 @@ class AstTransformer():
                 
                 if receiver in FUNCTION_API:
                     api = FUNCTION_API[receiver].get(method) 
+                    print(location, method, receiver)
                     if not api:
                         raise translation_error('pseudo-cython doesn\' t support %s %s' % (receiver, method),
                                                 location, [location[0]],
@@ -1684,6 +1695,18 @@ class AstTransformer():
         return res
 
 
+    
+    def visit_baseaccessexpression(self, node,identifier, type_argument_list, expression_list , location):
+        return {
+                "type":"baseaccess",
+                "class_type":"base",
+                "name": self.visit(identifier),
+                "args": self.visit(type_argument_list) if type_argument_list else []
+            
+        }
+    
+    
+    
     def visit_typeofexpression(self, node, unbound_type_name , type_ , VOID,location):
         if unbound_type_name is not None:
             r = self.visit(unbound_type_name)

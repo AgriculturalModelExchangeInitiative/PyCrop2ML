@@ -188,10 +188,10 @@ DATATYPE['STRINGLIST'] = "c(%s)"
 DATATYPE['DOUBLELIST'] = "c(%s)"
 DATATYPE['INTLIST'] = "c(%s)"
 DATATYPE['DATELIST']="c(%s)"
-DATATYPE['STRINGARRAY'] = "array(c(%s), dim=c(1,%s))"
-DATATYPE['DOUBLEARRAY'] = "array(c(%s), dim=c(1,%s))"
-DATATYPE['INTARRAY'] = "array(c(%s), dim=c(1,%s))"
-DATATYPE['DATEARRAY']="array(c(%s), dim=c(1,%s))"
+DATATYPE['STRINGARRAY'] = "c(%s)"
+DATATYPE['DOUBLEARRAY'] = "c(%s)"
+DATATYPE['INTARRAY'] = "c(%s)"
+DATATYPE['DATEARRAY']="c(%s)"
 
 def transf(type_v, elem):
     if type_v == "BOOLEAN":
@@ -203,6 +203,6 @@ def transf(type_v, elem):
     elif "LIST" in type_v:
         return DATATYPE[type_v.strip()]%",".join(list(map(transf,[type_v.split("LIST")[0]]*len(elem),eval(elem))))
     elif "ARRAY" in type_v:
-        return DATATYPE[type_v.strip()]%(",".join(list(map(transf,[type_v.split("ARRAY")[0]]*len(elem),eval(elem)))), len(eval(elem)))
+        return DATATYPE[type_v.strip()]%",".join(list(map(transf,[type_v.split("ARRAY")[0]]*len(elem),eval(elem))))
 
         

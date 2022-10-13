@@ -325,30 +325,29 @@ class RGenerator(CodeGenerator, RRules):
                     typ = n.pseudo_type[-1]
                     newtyp = changetyp(typ)
                     if n.elts:
-                        self.write(" <- array(%s(), dim=c("%newtyp)   
+                        self.write(" <- vector(,")   
                         self.visit(n.elts[0])
-                        self.write(",1,1))")
+                        self.write(")")
                     else:
                         
-                        self.write("<- array(%s())"%newtyp)
-                                  
+                        self.write("<- vector()")
+    
+    def visit_empty(self, node):
+        pass              
 
 
     def visit_array(self,node): 
         if node.elements.type != "list":
-            self.write(" array(")  
-            self.write("c(")
+            self.write(" rep(")  
             self.visit(node.elements.left.elements[0])
-            self.write("), dim=c(")
+            self.write(",")
             self.visit(node.elements.right) 
-            self.write(",1,1))")            
-        else:
-            self.write(" <- array(")  
+            self.write(")")            
+        else: 
             self.write("c(")
             self.comma_separated_list(node.elements)
-            self.write("), dim=c(")
-            self.visit(n.elts[0]) 
-            self.write(",1,1))")   
+            self.write(")")
+
     
     
     def visit_none(self, node):

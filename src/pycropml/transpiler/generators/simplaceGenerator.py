@@ -6,6 +6,7 @@ from pycropml.transpiler.antlr_py.toxml import Namespace
 import os
 from path import Path
 from pycropml.nameconvention import signature2
+from pycropml.transpiler.pseudo_tree import Node
 
 class SimplaceGenerator(JavaGenerator):
     def __init__(self, tree, model=None, name=None):
@@ -93,14 +94,14 @@ class SimplaceGenerator(JavaGenerator):
     def visit_declaration(self, node):
         self.newline(node)
         for n in node.decl:
-            if n.name not in self.var:
+            if n.name not in self.var or not self.ismodel:
                 self.newline(node)
                 if 'value' not in dir(n) and n.type not in ("list", "tuple", "dict", "array"):
                     self.write(self.types[n.pseudo_type])
-                    self.write(' %s;'%n.name) 
+                    self.write(' %s%s;'%("t_" if n.name in self.var else "", n.name) )
                 elif 'elements' not in dir(n) and n.type in ("list","array"):
                     if n.type=="list":
-                        self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
+                        self.write("List<%s> %s%s = new ArrayList<>(Arrays.asList());"%("t_" if n.name in self.var else "",self.types2[n.pseudo_type[1]],n.name))
                     if n.type=="array":
                         self.write(self.types[n.type]%(self.types2[n.pseudo_type[1]], n.name))
                         if n.elts:
@@ -111,7 +112,6 @@ class SimplaceGenerator(JavaGenerator):
                                 self.write(']')
                         self.write(";")
                 elif 'value' in dir(n) and n.value is not None and n.type in ("int", "float", "str", "bool"):
-                    print(n.y)
                     self.write("%s %s"%(self.types[n.type], n.name))
                     self.write(" = ")
                     if n.type=="local":
@@ -159,6 +159,82 @@ class SimplaceGenerator(JavaGenerator):
             return self.write("t_%s"%node.name)
         else: self.write(node.name)
 
+
+    def visit_assignment(self, node):
+        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
+            name  = node.value.function.split('model_')[1]
+            self.write("_%s.Calculate_%s(s, s1, r, a, ex);"%(name.capitalize(), name))
+            self.newline(node)
+        else:
+            self.newline(node)
+            if "index" in dir(node.target) and node.target.sequence.pseudo_type[0]=="list": 
+                self.write(node.target.sequence.name)
+                self.write(".set(")
+                self.visit(node.target.index)
+                self.write(',')
+                self.visit(node.value)
+                self.write(");")
+                self.newline(node)
+            elif node.value.type == "standard_call" and node.value.function=="integr":
+                self.write("%s = new ArrayList<>(%s);"%(node.target.name,node.value.args[0].name))
+                self.newline(node)
+                if isinstance(node.value.args[1].pseudo_type, list):
+                    self.write("%s.addAll("%node.target.name)
+                else: self.write("%s.add("%node.target.name)
+                self.visit( node.value.args[1])
+                self.write(");")
+            elif node.value.type == "standard_call" and node.value.function=="datetime":
+                self.newline(node)
+                if len(node.value.args)==3:node.value.args.extend([00,00,00])
+                self.write(" %s = LocalDateTime.of(%s);"%(node.target.name,",".join(node.value.args)))
+                self.newline(node)
+            elif node.value.type =="standard_method_call" and node.value.message in ["keys", "values"]:
+                self.write(node.target.name)
+                self.write(".addAll(")
+                self.visit(node.value)
+                self.write(");")
+                self.newline(node)     
+            elif node.value.type=="array" and "elements" in dir(node.value):
+                if isinstance(node.value.elements, Node):
+                    self.write("Arrays.fill(")
+                    self.visit(node.target)
+                    self.write(", ")
+                    self.visit(node.value.elements.left.elements[0])  
+                    self.write(");")  
+                else:
+                    self.visit(node.target)
+                    self.write(' = ')
+                    self.write("new %s[] "%self.types2[node.value.pseudo_type[1]])
+                    self.write(u'{')
+                    self.comma_separated_list(node.value.elements)
+                    self.write(u'};') 
+            elif node.value.type=="custom_call" and isinstance(node.value.pseudo_type, list) and node.value.pseudo_type[0]=="tuple":
+
+                self.write(f'zz_{node.value.function} = Calculate_{node.value.function}(')
+                self.comma_separated_list(node.value.args)
+                self.write(");")
+                self.meta = Custom_call(self.module)
+                r = self.meta.process(node)
+                if node.value.function in self.meta.extern:
+                    func = self.meta.extern[node.value.function]
+                    outs = [n.name for n in func.block[-1].value.elements]
+                    for k,out in enumerate(outs):
+                        self.newline(node)
+                        if node.target.elements[k].name in self.var: self.write("t_")
+                        self.write(f'{node.target.elements[k].name} = zz_{node.value.function}.get{out}();')
+                        
+            elif node.value.type=="none":
+                pass
+                              
+            else:
+                self.visit(node.target)
+                self.write(' = ')
+                self.visit(node.value) 
+                self.write(";")
+                self.newline(node)
+                
+                
+
     def visit_function_definition(self, node):
         self.newline(node)
         self.funcname = node.name
@@ -166,6 +242,7 @@ class SimplaceGenerator(JavaGenerator):
         r = self.meta.process(node)
         self.newline(node)
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
+            self.ismodel=False
             if node.name=="main":
                 self.write("public static void main(String[] args)") 
             else:
@@ -179,7 +256,8 @@ class SimplaceGenerator(JavaGenerator):
                     self.write(" %s("%node.name)
                 for i, pa in enumerate(node.params):
                     self.visit_decl(pa.pseudo_type)
-                    self.write(" %s"%pa.name)
+                    if pa.name in self.var: self.write(f" t_{pa.name}")
+                    else:self.write(" %s"%pa.name)
                     if i!= (len(node.params)-1):
                         self.write(', ')
                 self.write(')')
@@ -188,6 +266,7 @@ class SimplaceGenerator(JavaGenerator):
             self.newline(node)
             self.indentation+=1
         else:
+            self.ismodel=True
             self.meta = Custom_call(self.module)
             r = self.meta.process(node)
             self.write("@Override")
@@ -197,6 +276,10 @@ class SimplaceGenerator(JavaGenerator):
             self.write('{')
             self.newline(node)
             self.indentation += 1
+            if self.meta.extern:
+                for j,k in self.meta.extern.items():
+                    self.write(f"{j} zz_{j};")
+                    self.newline(node)
             for arg in self.add_features(node):
                 if "feat" in dir(arg):
                     if arg.feat in ("IN") or (node.name.startswith("model_") and arg.feat=="INOUT"):
@@ -384,9 +467,10 @@ class SimplaceGenerator(JavaGenerator):
                 zmin = transf(inp.datatype, inp.min) if (hasattr(inp, "min") and inp.min) else "null"
                 zmax = transf(inp.datatype, inp.max) if (hasattr(inp, "max") and inp.max) else "null"
                 zdefault = transf(inp.datatype, inp.default) if hasattr(inp, "default") else  transf(inp.datatype, "") 
+                unit = inp.unit
 
                 if inp.datatype.startswith("DATE"): zmin, zmax,zdefault= "null", "null", "null"
-                self.write('addVariable(FWSimVariable.createSimVariable("%s", "%s", DATA_TYPE.%s, CONTENT_TYPE.%s,"", %s, %s, %s, this));'%(inp.name, inp.description,DATA_TYPE[inp.datatype],ztype, zmin, zmax, zdefault))
+                self.write('addVariable(FWSimVariable.createSimVariable("%s", "%s", DATA_TYPE.%s, CONTENT_TYPE.%s,"%s", %s, %s, %s, this));'%(inp.name, inp.description,DATA_TYPE[inp.datatype],ztype,unit, zmin, zmax, zdefault))
                 self.newline(node)     
 
 

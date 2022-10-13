@@ -53,6 +53,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.z = middleware(self.tree)
         self.z.transform(self.tree)
         self.therearedate=False
+        self.ismodel=True
         if self.model: 
             self.doc= DocGenerator(model, '//')
             self.generator = JavaTrans([model])
@@ -437,6 +438,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.meta = Custom_call(self.module)
         r = self.meta.process(node)
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
+            self.ismodel = False
             if node.name=="main":
                 self.write("public static void main(String[] args)") 
             else:
@@ -660,7 +662,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)
             if 'value' not in dir(n) and isinstance(n.pseudo_type, str) and n.pseudo_type!="datetime":
                 self.write(self.types[n.pseudo_type])
-                self.write(' %s;'%n.name)  
+                self.write(' %s;'%n.name) 
             if 'elements' not in dir(n) and n.type in ("list","array"):
                 if n.type=="list":
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))

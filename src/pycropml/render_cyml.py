@@ -248,6 +248,7 @@ class Model2Package(object):
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
+                    print(outs.keys())
 
                     code = '\n'
                     test_codes.append(code)
@@ -265,58 +266,59 @@ class Model2Package(object):
                         test_codes.append(code)
                     code = "     )"
                     test_codes.append(code)
-
+                    outnames = list(outs.keys())
                     for j, k in enumerate(m.outputs):
-                        if  k.datatype.strip() in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
-                        
-                            code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                        if k.name in outnames:
+                            if  k.datatype.strip() in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
                             
-                            test_codes.append(code)
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                                
+                                test_codes.append(code)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                            
+                                test_codes.append(code)
+                                code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                            
+                                test_codes.append(code)
+                                                    
+                            if k.datatype.strip() in ("STRING", "BOOL", "INT", "DATE"):
+                                code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                                test_codes.append(code)
                         
-                            test_codes.append(code)
-                            code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
                         
-                            test_codes.append(code)
-                                                   
-                        if k.datatype.strip() in ("STRING", "BOOL", "INT", "DATE"):
-                            code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
-                            test_codes.append(code)
-                       
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                       
-                            code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
-                       
-                           
-                        if k.datatype.strip() in ("DOUBLELIST", "DOUBLEARRAY"):
-                            code = tab + "%s_estimated = np.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
-                            test_codes.append(code)
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                       
-                            code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
-                           
-                           
-                        if k.datatype.strip() in ("INTLIST", "INTARRAY"):
-                            code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
-                            test_codes.append(code)
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                            code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
+                                code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
+                        
+                            
+                            if k.datatype.strip() in ("DOUBLELIST", "DOUBLEARRAY"):
+                                code = tab + "%s_estimated = np.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
+                                test_codes.append(code)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
+                        
+                                code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
+                            
+                            
+                            if k.datatype.strip() in ("INTLIST", "INTARRAY"):
+                                code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                                test_codes.append(code)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
+                                code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
 
-                        if k.datatype.strip() == "DOUBLE":
-                            code = tab + "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
-                            test_codes.append(code)
-                           
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                           
-                            code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
+                            if k.datatype.strip() == "DOUBLE":
+                                code = tab + "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
+                                test_codes.append(code)
+                            
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
+                            
+                                code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
 
                     code = '\n'.join(test_codes)
 
