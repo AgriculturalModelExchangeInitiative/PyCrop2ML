@@ -5,9 +5,9 @@ Pycrop2ml
     :target: http://pycrop2ml.readthedocs.io/en/latest/
     :alt: Documentation Status
  
- .. image:: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml/badge.svg
-    :alt: CodeQL
-    :target: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml/
+.. image:: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml/badge.svg
+    :alt: CodeQL Status
+    :target: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml
 
 .. {# pkglts, doc
 
