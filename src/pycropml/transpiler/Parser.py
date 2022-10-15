@@ -84,5 +84,5 @@ def parser(module):
     else:
         from Cython.Compiler.TreeFragment import parse_from_strings
         if sys.version_info[0]<3: module = unicode(module)
-        tree = parse_from_strings("module",module)
+        #tree = parse_from_strings("module",module)
     return tree
