@@ -12,6 +12,7 @@ from pycropml import render_fortran
 import os
 from pycropml.composition import model_parser
 from . import render_python as rp
+from importlib import reload
 import sys
 
 # The package used to generate Notebook
