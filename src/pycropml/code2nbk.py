@@ -90,11 +90,6 @@ class Model2Nb(object):
         fname = Path(os.path.join(self.dir, "%s.ipynb" % self.name))
         if sys.version_info[0] >= 3:
             with open(file=fname, mode="w", encoding='utf-8') as f:
-                nbf.write(self.nb, f) 
-        else:
-            reload(sys)
-            sys.setdefaultencoding('utf-8')
-            with open(fname,  "w") as f:
-                nbf.write(self.nb, f) 
+                nbf.write(self.nb, f)
 
 
