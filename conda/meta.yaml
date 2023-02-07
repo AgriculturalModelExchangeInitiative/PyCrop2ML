@@ -1,26 +1,24 @@
-{% set version = "1.1.0" %}
+{% set data = load_setup_py_data() %}
 
 package:
   name: pycropml
-  version: {{ version }}
+  version: {{ data.get('version') }}
 
 source:
   path: ..
 
 build:
+  noarch: python
   preserve_egg_dir: True
   number: 0
-  script: python setup.py install --prefix=$PREFIX
+  script: {{PYTHON}} setup.py install 
 
 requirements:
   build:
+    - python {{PY_VER}}
     - setuptools
-    - python {{PY_VER}}* [not win]
-    - python {{PY_VER}}  [win]
-    - pytest-runner
   run:
-    - python {{PY_VER}}* [not win]
-    - python {{PY_VER}}  [win]
+    - python {{PY_VER}}
     - cython
     - path.py
     - numpy
@@ -29,19 +27,26 @@ requirements:
     - networkx
     - unyt
     - nbformat
-    - IPython
+    - ipython
+    - nbsphinx
+    - graphviz
+    - pydot
+    - xmlformatter
+    - openalea.core
+    - antlr4-python3-runtime ==4.8
+
 
 test:
   requires:
     - pytest
-    - pytest-mock
   source_files:
     - test/
     - test/Tutorial
 
   commands:
     - cyml -h
-    - pytest
+    - cd test
+    - pytest -v test_*.py
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
