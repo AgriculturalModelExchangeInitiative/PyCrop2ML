@@ -39,7 +39,7 @@ requirements:
 test:
   requires:
     - pytest
-  source_files:s
+  source_files:
     - test/
     - test/Tutorial
 
