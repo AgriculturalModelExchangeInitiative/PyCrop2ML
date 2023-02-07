@@ -44,10 +44,9 @@ setup_kwds = dict(
     long_description=readme + '\n\n' + history,
     author="Cyrille Ahmed Midingoyi",
     author_email="cyrille.midingoyi@cirad.fr",
-    url='https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML',
+    url=url,
     license='MIT',
     zip_safe=False,
-    url=url,
     packages=pkgs,
     package_dir={'': 'src'},
     
