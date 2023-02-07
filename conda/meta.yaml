@@ -33,13 +33,13 @@ requirements:
     - pydot
     - xmlformatter
     - openalea.core
-    - antlr4-python3-runtime==4.8
+    - antlr4-python3-runtime ==4.8
 
 
 test:
   requires:
     - pytest
-  source_files:
+  source_files:s
     - test/
     - test/Tutorial
 
