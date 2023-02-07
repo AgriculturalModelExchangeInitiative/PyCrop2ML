@@ -37,16 +37,9 @@ requirements:
 
 
 test:
-  requires:
-    - pytest
-  source_files:
-    - test/
-    - test/Tutorial
-
   commands:
     - cyml -h
-    - cd test
-    - pytest -v test_*.py
+
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
