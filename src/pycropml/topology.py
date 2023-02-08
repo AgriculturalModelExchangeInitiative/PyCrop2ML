@@ -387,7 +387,7 @@ class Topology():
         pkg, mc = self.retrive(pkgname)        
         list_var=[]
         mod_inputs=[]
-        for inter in mc.inputlink: 
+        for inter in mc.inputlink:
             var = inter["source"]
             mod = inter["target"].split(".")[0]
             var_mod = inter["target"].split(".")[1]

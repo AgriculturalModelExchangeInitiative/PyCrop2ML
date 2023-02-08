@@ -14,6 +14,11 @@ from setuptools import setup, find_packages
 short_descr = "A Python library to generate components from Crop2ML declarative language"
 readme = open('README.rst').read()
 history = open('HISTORY.rst').read()
+url = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML"
+_version = {}
+with open("src/pycropml/version.py") as fp:
+    exec(fp.read(), _version)
+    version = _version["__version__"]
 
 # find packages
 pkgs = find_packages('src')
@@ -34,28 +39,25 @@ pkg_data['pycropml'] = data_files
 
 setup_kwds = dict(
     name='pycropml',
-    version="1.1.0",
+    version=version,
     description=short_descr,
     long_description=readme + '\n\n' + history,
     author="Cyrille Ahmed Midingoyi",
-    author_email="cyrille.midingoyi@inra.fr",
-    url='https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML',
+    author_email="cyrille.midingoyi@cirad.fr",
+    url=url,
     license='MIT',
     zip_safe=False,
-
     packages=pkgs,
     package_dir={'': 'src'},
     
     
     package_data=pkg_data,
     setup_requires=[
-        "pytest-runner",
         ],
     install_requires=[
         ],
     tests_require=[
         "pytest",
-        "pytest-mock",
         ],
     entry_points={},
     keywords='',
@@ -64,8 +66,6 @@ setup_kwds = dict(
 # change setup_kwds below before the next pkglts tag
 
 setup_kwds["entry_points"] = {"console_scripts": ["cyml = pycropml.main:main"]}
-setup_kwds["url"] = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML"
-#setup_kwds["tests_require"] = ["pytest"]
 
 # do not change things below
 # {# pkglts, pysetup.call
