@@ -83,6 +83,6 @@ def parser(module):
         tree = context.parse(source_desc, scope, pxd=None, full_module_name=module)
     else:
         from Cython.Compiler.TreeFragment import parse_from_strings
-        if sys.version_info[0]<3: module = unicode(module)
+        #if sys.version_info[0]<3: module = unicode(module)
         tree = parse_from_strings("module",module)
     return tree
