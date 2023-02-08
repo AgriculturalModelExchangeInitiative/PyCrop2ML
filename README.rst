@@ -1,11 +1,11 @@
-========================
+=========
 Pycrop2ml
-========================
+=========
 ..  image:: https://readthedocs.org/projects/pycrop2ml/badge/?version=latest
     :target: http://pycrop2ml.readthedocs.io/en/latest/
     :alt: Documentation Status
  
-.. image:: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml/badge.svg
+..  image:: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml/badge.svg
     :alt: CodeQL Status
     :target: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml
 
@@ -31,7 +31,7 @@ Installation
 
 
 Using pip
-~~~~~~~~~~~
+~~~~~~~~~
 
 
    git clone https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML.git

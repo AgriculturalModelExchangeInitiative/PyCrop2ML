@@ -842,8 +842,10 @@ class AstTransformer():
         elif constant_declaration:
             return self.visit(constant_declaration)
     
-        if event_declaration:
+        elif event_declaration:
             pass
+        
+        elif class_definition: pass
         
         else: raise PseudoCythonTypeCheckError("Not implemented common member declaration , %s"%location[0])
     
@@ -1183,8 +1185,9 @@ class AstTransformer():
     def visit_numeric_type(self, node,integral_type,floating_point_type, location):
         if integral_type:
             if integral_type=="int": return {"type":"int", "pseudo_type":"int"}
+            elif integral_type=="long": return {"type":"int", "pseudo_type":"int"}
             elif integral_type=="char": return {"type":"char", "pseudo_type":"char"}
-            else: raise PseudoCythonTypeCheckError("Not implemented integral type , %s"%location)
+            else: raise PseudoCythonTypeCheckError("Not implemented integral type , %s"%location[0])
         if floating_point_type: 
             if floating_point_type=="float": return {"type":"float", "pseudo_type":"float"}
             elif floating_point_type=="double": return {"type":"double", "pseudo_type":"double"}
@@ -1560,7 +1563,6 @@ class AstTransformer():
         if BANG or OP_PTR or identifier:
             raise PseudoCythonTypeCheckError("Not implemented, %s"%location)
         if member_access:
-            print(res)
             m = self.translate(member_access)
             if isinstance(res, str): res = {"type":"member_access", "name":res, "member":m, "pseudo_type":"unknown"}
             elif isinstance(res, dict) and "name" in res: res = {"type":"member_access", "name":res["name"], "member":m, "pseudo_type":res["pseudo_type"]}
@@ -1612,7 +1614,6 @@ class AstTransformer():
                 
                 if receiver in FUNCTION_API:
                     api = FUNCTION_API[receiver].get(method) 
-                    print(location, method, receiver)
                     if not api:
                         raise translation_error('pseudo-cython doesn\' t support %s %s' % (receiver, method),
                                                 location, [location[0]],
@@ -1730,7 +1731,7 @@ class AstTransformer():
         if len(indexer_argument) ==1:
             k = self.visit(indexer_argument)
             return  k
-        else: raise PseudoCythonTypeCheckError("Not implemented bracket expression , %s"%location)
+        else: raise PseudoCythonTypeCheckError("Not implemented bracket expression , %s"%location[0])
         return
     
 

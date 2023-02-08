@@ -301,7 +301,7 @@ def run_bioma(component, output):
         z = BiomaExtraction() 
         description = z.description(st)  
         var_ = z.getFromVarInfo(st,vinfo, dclass)
-        past_cur = z.instancePastCurrent(st) 
+        #past_cur = z.instancePastCurrent(st) 
         
         var =  z.totalvar(st)
         algo = z.getAlgo(st)
@@ -425,7 +425,7 @@ def run_bioma(component, output):
                     
 
         
-
+        print("check member access")
         rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category)
         env = {m.name:m.pseudo_type for j in rr.declarations for m in j.decl}
         zz = CheckingInOut( {},isAlgo = True)
@@ -447,7 +447,8 @@ def run_bioma(component, output):
             with open(filename, "wb") as tg_file:
                 tg_file.write(initcode.encode('utf-8'))   
                
-        models.append(z.model)     
+        models.append(z.model)
+        print(z.model.name)     
         cd = cs_cyml.Cs_Cyml_ast(rr.declarations + vv,  var =var)
         h = cd.transform()
         nd = transform_to_syntax_tree(h)

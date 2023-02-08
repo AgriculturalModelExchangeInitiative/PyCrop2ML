@@ -293,7 +293,7 @@ class Assignment(Middleware):
     def action_assignment(self, tree):
         if tree.target.pseudo_type == "unknown":
             tree.target.pseudo_type = tree.value.pseudo_type
-        if "name" in dir(tree.value) and tree.target.name == tree.value.name: return
+        if "name" in dir(tree.value) and "name" in dir(tree.target) and tree.target.name == tree.value.name: return
         return tree
 
 

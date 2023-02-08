@@ -192,7 +192,9 @@ namespace record {
                     if n.type=="list":
                         self.write("vector<%s> %s;"%(self.types[n.pseudo_type[1]],n.name))
                     if n.type=="array":
-                        self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts.name if "name" in dir(n.elts) else n.elts.value))
+                        if not n.elts:
+                            self.write("vector<%s>"%self.types[n.pseudo_type[1]])
+                        else: self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts.name if "name" in dir(n.elts) else n.elts.value))
                         self.write("%s;"%n.name)
                 if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                     self.write("%s %s"%(self.types[n.type], n.name))
@@ -384,7 +386,8 @@ transType = {"double":"toDouble",
             "string":"toString",
             "intlist":"toMatrix",
             "date":"toDateTime",
-            "boolean":"toBoolean"}
+            "boolean":"toBoolean",
+            "doublearray":"toMatrix"}
 
 
 class Crop2ML_Vpz():

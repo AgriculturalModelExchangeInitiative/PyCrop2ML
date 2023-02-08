@@ -189,6 +189,11 @@ class Cs_Cyml_ast():
 
     def visit_array(self, node):
         if "init" not in dir(node):
+            if "elts" not in dir(node):
+                return {"type":"array",
+                   "name": str(node.name),
+                   "pseudo_type": self.translate_decl(node.pseudo_type),
+                   "dim":0} 
             res = {"type":"array",
                    "name": str(node.name),
                    "pseudo_type": self.translate_decl(node.pseudo_type),
@@ -349,6 +354,7 @@ class Cs_Cyml_ast():
                 "pseudo_type": self.translate_decl(node.pseudo_type)}
     
     def visit_for_range_statement(self, node):
+        print(node.end.y)
         z =  {'type': 'for_range_statement',
          'start': self.visit(node.start),
          'end': self.visit(node.end),
