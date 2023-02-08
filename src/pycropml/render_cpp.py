@@ -30,6 +30,10 @@ class Model2Package(object):
     DATATYPE['DOUBLELIST'] = "vector<double>"
     DATATYPE['INTLIST'] = "vector<int>"
     DATATYPE['DATELIST']="vector<string>"
+    DATATYPE['STRINGARRAY'] = "vector<string>"
+    DATATYPE['DOUBLEARRAY'] = "vector<double>"
+    DATATYPE['INTARRAY'] = "vector<int>"
+    DATATYPE['DATEARRAY']="vector<DateTime>"
 
     num = 0
 
@@ -198,6 +202,10 @@ DATATYPE['STRINGLIST'] = "vector<string>"
 DATATYPE['DOUBLELIST'] = "vector<double>"
 DATATYPE['INTLIST'] = "vector<int>"
 DATATYPE['DATELIST']="vector<DateTime>"
+DATATYPE['STRINGARRAY'] = "vector<string>"
+DATATYPE['DOUBLEARRAY'] = "vector<double>"
+DATATYPE['INTARRAY'] = "vector<int>"
+DATATYPE['DATEARRAY']="vector<DateTime>"
 
 def transfDouble(type_v,elem):
     return str(elem)

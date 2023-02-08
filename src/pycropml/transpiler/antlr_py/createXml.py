@@ -1,4 +1,8 @@
-from py.xml import Namespace
+from pycropml.transpiler.antlr_py.toxml import Namespace
+import xmlformatter
+import os
+from path import Path
+
 
 
 
@@ -6,7 +10,7 @@ class ns(Namespace):
     "Custom xml namespace"
 
 class Pl2Crop2ml(object):
-    """ Export a platform component into a Crop2ML Model unit.
+    """ Export a platform component into a Crop2ML ModelUnit.
 
     """
     def __init__(self, md, pkgname):
@@ -20,40 +24,81 @@ class Pl2Crop2ml(object):
         self.pkgname = pkgname
 
     def run_unit(self):
-        """ Generate Crop2ML specification of a simple strategy. """
+        """ Generate Crop2ML specification of a ModelUnit. """
         md = self.md
 
         # ModelUnit name id version timestep
-        xml = ns.ModelUnit(modelid=self.pkgname + "." + md.name, name=md.name, timestep="1", version="001")
+        xml = ns.ModelUnit(modelid=self.pkgname + "." + str(md.name), name=str(md.name), timestep=md.timestep, version=md.version)
         doc = md.description
         desc = ns.Description(
             ns.Title(doc.Title),
             ns.Authors(doc.Authors),
             ns.Institution(doc.Institution),
-            ns.Reference(doc.Reference),
-            ns.Abstract(doc.Abstract)
+            ns.URI(doc.Url if "Url" in dir(doc) else ""),
+            ns.Reference(doc.Reference if "Reference" in dir(doc) else ""),
+            ns.ExtendedDescription(doc.ExtendedDescription), 
+            ns.ShortDescription(doc.ShortDescription if "ShortDescription" in dir(doc) else "")
             )
         inputs = ns.Inputs()
         outputs = ns.Outputs()
         for inp in md.inputs:
             if "variablecategory" in dir(inp):
-                inputs.append(ns.Input(name=inp.name, description=inp.description, variablecategory=inp.variablecategory,  datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
-            else: inputs.append(ns.Input(name=inp.name, description=inp.description, parametercategory=inp.parametercategory, datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
+                if inp.datatype.endswith("ARRAY"):
+                    inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, len=inp.len, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
+                else: inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
+            else: 
+                if inp.datatype.endswith("ARRAY"):
+                    inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, parametercategory=inp.parametercategory, datatype=inp.datatype, len=inp.len, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))  
+                else: inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, parametercategory=inp.parametercategory, datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
+        
         for inp in md.outputs:
-            outputs.append(ns.Output(name=inp.name, description=inp.description, datatype=inp.datatype, variablecategory=inp.variablecategory, max=inp.max, min = inp.min, unit=inp.unit))
+            if inp.datatype.endswith("ARRAY"):
+                outputs.append(ns.Output(name=inp.name, description=inp.description, datatype=inp.datatype, variablecategory=inp.variablecategory, len=inp.len, max=inp.max, min = inp.min, unit=inp.unit))   
+            else: outputs.append(ns.Output(name=inp.name, description=inp.description, datatype=inp.datatype, variablecategory=inp.variablecategory, max=inp.max, min = inp.min, unit=inp.unit))
         algo =ns.Algorithm(language = "cyml", platform ="", filename="algo/pyx/%s.pyx"%md.name)
         xml.append(desc)
         xml.append(inputs)
         xml.append(outputs)
-        xml.append(algo)
+        if md.initialization:
+            for f in md.initialization:
+                init = ns.Initialization(name = f["name"], language="cyml", filename=f["filename"])
+                xml.append(init)
         if md.function:
             for f in md.function:
-                func = ns.Function(name = f, description="", language="cyml", type="internal", filename="algo/pyx/%s.pyx"%f)
+                func = ns.Function(name = f, description="", language="cyml", type="external", filename="algo/pyx/%s.pyx"%f)
                 xml.append(func)
+        xml.append(algo)
         parametersets=ns.Parametersets()
-        parametersets.append(ns.Parameterset(name="", description=""))
+        
+        for k, v in md.parametersets.items():
+            pa = []
+            for r, s in v.params.items(): pa.append( ns.Param(s, name=r))
+            parametersets.append(ns.Parameterset(pa , name=k, description=v.description))
+            
         testsets=ns.Testsets()
-        testsets.append(ns.Testset(name="", parameterset="",description=""))
+        
+        for testset in md.testsets:
+            test = []
+            for each_run in testset.test:
+                tname = list(each_run.keys())[0].replace(' ', '_')
+                tname = tname.replace('-', '_')
+                (run, inouts) = list(each_run.items())[0]
+                ins = inouts['inputs']
+                outs = inouts['outputs']
+                inp = []
+                out = []
+                for k, v in ins.items():
+                    inp.append(ns.InputValue(v, name = k))
+                for k, v in outs.items():
+                    if isinstance(v, tuple):
+                        out.append(ns.OutputValue(v[0], name = k, precision=v[1]))
+                    else:
+                        out.append(ns.OutputValue(v, name = k))
+                    
+                test.append(ns.Test(inp, out, name=tname))
+                
+            testsets.append(ns.Testset(test, name=testset.name, parameterset=testset.parameterset, description=testset.description))
+        
         xml.append(parametersets)
         xml.append(testsets)
 
@@ -65,7 +110,7 @@ class Pl2Crop2ml(object):
         md = self.md
         name = md.name[:-9] if md.name.endswith("Component") else md.name
         # ModelComposition name id version timestep
-        xml = ns.ModelComposition(name=name, id=self.pkgname + "." + name, version="001", timestep="1")
+        xml = ns.ModelComposition(name=name, id=self.pkgname + "." + name, version=md.version, timestep=md.timestep)
 
         # Extract the description of the wf
         # TODO: Do it in a generic way
@@ -74,8 +119,9 @@ class Pl2Crop2ml(object):
             ns.Title(doc.Title),
             ns.Authors(doc.Authors),
             ns.Institution(doc.Institution),
-            ns.Reference(doc.Reference),
-            ns.Abstract(doc.Abstract)
+            ns.Reference(doc.Reference if "Reference" in dir(doc) else ""),
+            ns.ExtendedDescription(doc.ExtendedDescription),
+            ns.ShortDescription(doc.ShortDescription if "ShortDescription" in dir(doc) else "")
             )
 
         xml.append(desc)
@@ -100,3 +146,52 @@ class Pl2Crop2ml(object):
         xml.append(composition)
 
         return xml
+    
+
+
+def generate_unitfile(package, mu, package_name):
+    """_summary_
+
+    Args:
+        package (str): Path of Crop2ML package where ModelUnit xml file will be stored
+        mu (ModelUnit): ModelUnit object
+    """
+    xml_ = Pl2Crop2ml(mu, package_name).run_unit()
+    filename = os.path.join(package,  "crop2ml", "unit.%s.xml"%(mu.name))
+    with open(filename, "wb") as xml_file:
+        r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        r += '<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">\n'
+        r += xml_.unicode(indent=4)#.encode('utf-8')
+        xml_file.write(r.encode()) 
+        #formatter = xmlformatter.Formatter(indent="1", indent_char="\t", encoding_output="ISO-8859-1", preserve=["literal"])
+        #g = formatter.format_string(r)       
+        #xml_file.write(g)   
+
+def generate_compositefile(package, mc, package_name):
+    """_summary_
+
+    Args:
+        package (str): Path of Crop2ML package where ModelComposite xml file will be stored
+        mu (ModelUnit): ModelComposition object
+    """
+    xml_ = Pl2Crop2ml(mc, package_name).run_compo()
+    filename = os.path.join(package,  "crop2ml", "composition.%s.xml"%(mc.name))
+    with open(filename, "wb") as xml_file:
+        r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
+        r += xml_.unicode(indent=4)#.encode('utf-8')
+        xml_file.write(r.encode()) 
+        #formatter = xmlformatter.Formatter(indent="1", indent_char="\t", encoding_output="ISO-8859-1", preserve=["literal"])
+        #g = formatter.format_string(r)       
+        #xml_file.write(g)
+
+def create_repo(package):
+    crop2ml_rep = Path(os.path.join(package, 'crop2ml'))
+    if not crop2ml_rep.isdir():
+        crop2ml_rep.mkdir()
+    algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
+    if not algo_rep.isdir():
+        algo_rep.mkdir()
+    cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
+    if not cyml_rep.isdir():
+        cyml_rep.mkdir() 

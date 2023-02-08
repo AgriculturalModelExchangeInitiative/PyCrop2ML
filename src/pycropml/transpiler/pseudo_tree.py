@@ -13,6 +13,7 @@ class Node:
         self.__dict__.update(fields) 
         if 'pseudo_type' not in fields:
             self.pseudo_type = 'Void'
+        if 'comments' not in fields: self.comments = []
     
     @property
     def y(self):

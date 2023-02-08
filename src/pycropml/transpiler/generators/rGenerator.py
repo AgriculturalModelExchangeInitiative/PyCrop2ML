@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
-from pycropml.transpiler.rules.rRules import RRules
+from pycropml.transpiler.rules.rRules import RRules, changetyp
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 import os
 from pycropml.render_cyml import signature
@@ -23,6 +23,8 @@ class RGenerator(CodeGenerator, RRules):
         self.imp=True
         self.index=[]
         self.funcname=None
+        self.write("library(gsubfn)")
+        self.newline(1)
         if self.model: 
             self.doc= DocGenerator(model, "#'")
 
@@ -107,7 +109,12 @@ class RGenerator(CodeGenerator, RRules):
         #self.write("%s"%str(node.value))
     
     def visit_tuple(self, node):
-        self.emit_sequence(node.elements, u"()")
+        self.write("list[")
+        for n in node.elements:
+            self.write(n.name)
+            if n!=node.elements[len(node.elements)-1]:
+                self.write(", ")
+        self.write("]")  
               
     def visit_pair(self, node):
         self.visit(node.key)
@@ -210,7 +217,7 @@ class RGenerator(CodeGenerator, RRules):
         self.visit(node.left)
         self.write(u" %s " % self.binary_op[op].replace('_', ' '))
         if "type" in dir(node.right):
-            if node.right.type=="binary_op" and node.right.op not in ("+","-") :
+            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
@@ -313,11 +320,39 @@ class RGenerator(CodeGenerator, RRules):
             elif n.type in ("list", "array"):
                 self.newline(node)
                 self.write(n.name)
-                self.write(" <- vector()")                  
+                if n.type=="list": self.write(" <- vector()")   
+                if n.type=="array": 
+                    typ = n.pseudo_type[-1]
+                    newtyp = changetyp(typ)
+                    if n.elts:
+                        self.write(" <- vector(,")   
+                        self.visit(n.elts[0])
+                        self.write(")")
+                    else:
+                        
+                        self.write("<- vector()")
+    
+    def visit_empty(self, node):
+        pass              
 
 
     def visit_array(self,node): 
-        self.write(node.name)
+        if node.elements.type != "list":
+            self.write(" rep(")  
+            self.visit(node.elements.left.elements[0])
+            self.write(",")
+            self.visit(node.elements.right) 
+            self.write(")")            
+        else: 
+            self.write("c(")
+            self.comma_separated_list(node.elements)
+            self.write(")")
+
+    
+    
+    def visit_none(self, node):
+        self.write("NULL") 
+
 
     def visit_continuestatnode(self, node):
         self.newline(node)
@@ -373,10 +408,11 @@ class RGenerator(CodeGenerator, RRules):
         self.visit(node.start)
         self.write(", ")
         self.visit(node.end)
-        self.write("-1")
-        if node.step.value!=1:
-            self.write(', ')
-            self.visit(node.step)
+        if node.step.type=='unary_op' and node.step.operator=="-":
+            self.write("+1")
+        else: self.write("-1") 
+        self.write(', ')
+        self.visit(node.step)
         self.write(')){')
         self.body(node.block)
         self.newline(node )
@@ -404,7 +440,6 @@ class RCompo(RGenerator):
         z=x.split('\\')#.pop()
         z.pop()
         sourcePath = "/".join(z)+"/src/r"
-        print(sourcePath)
         self.write("library (gsubfn) ")
         self.newline()
         self.write("setwd('%s')"%sourcePath)

@@ -1,4 +1,4 @@
-# Generated from c:\Users\midingoy\Documents\Restore\Users\midingoy\Documents\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\Fortran90Parser.g4 by ANTLR 4.8
+# Generated from Fortran90Parser.g4 by ANTLR 4.8
 from antlr4 import *
 if __name__ is not None and "." in __name__:
     from .Fortran90Parser import Fortran90Parser
@@ -80,66 +80,12 @@ class Fortran90ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran90Parser#implicitStatement.
-    def enterImplicitStatement(self, ctx:Fortran90Parser.ImplicitStatementContext):
+    # Enter a parse tree produced by Fortran90Parser#specificationPartConstruct.
+    def enterSpecificationPartConstruct(self, ctx:Fortran90Parser.SpecificationPartConstructContext):
         pass
 
-    # Exit a parse tree produced by Fortran90Parser#implicitStatement.
-    def exitImplicitStatement(self, ctx:Fortran90Parser.ImplicitStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#parameterStatement.
-    def enterParameterStatement(self, ctx:Fortran90Parser.ParameterStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#parameterStatement.
-    def exitParameterStatement(self, ctx:Fortran90Parser.ParameterStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#formatStatement.
-    def enterFormatStatement(self, ctx:Fortran90Parser.FormatStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#formatStatement.
-    def exitFormatStatement(self, ctx:Fortran90Parser.FormatStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#entryStatment.
-    def enterEntryStatment(self, ctx:Fortran90Parser.EntryStatmentContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#entryStatment.
-    def exitEntryStatment(self, ctx:Fortran90Parser.EntryStatmentContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#declarationConstruction.
-    def enterDeclarationConstruction(self, ctx:Fortran90Parser.DeclarationConstructionContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#declarationConstruction.
-    def exitDeclarationConstruction(self, ctx:Fortran90Parser.DeclarationConstructionContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#includeStatement.
-    def enterIncludeStatement(self, ctx:Fortran90Parser.IncludeStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#includeStatement.
-    def exitIncludeStatement(self, ctx:Fortran90Parser.IncludeStatementContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#useStatement.
-    def enterUseStatement(self, ctx:Fortran90Parser.UseStatementContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#useStatement.
-    def exitUseStatement(self, ctx:Fortran90Parser.UseStatementContext):
+    # Exit a parse tree produced by Fortran90Parser#specificationPartConstruct.
+    def exitSpecificationPartConstruct(self, ctx:Fortran90Parser.SpecificationPartConstructContext):
         pass
 
 
@@ -1682,12 +1628,39 @@ class Fortran90ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran90Parser#caseValueRange.
-    def enterCaseValueRange(self, ctx:Fortran90Parser.CaseValueRangeContext):
+    # Enter a parse tree produced by Fortran90Parser#litteralExpression.
+    def enterLitteralExpression(self, ctx:Fortran90Parser.LitteralExpressionContext):
         pass
 
-    # Exit a parse tree produced by Fortran90Parser#caseValueRange.
-    def exitCaseValueRange(self, ctx:Fortran90Parser.CaseValueRangeContext):
+    # Exit a parse tree produced by Fortran90Parser#litteralExpression.
+    def exitLitteralExpression(self, ctx:Fortran90Parser.LitteralExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#afterColonExpression.
+    def enterAfterColonExpression(self, ctx:Fortran90Parser.AfterColonExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#afterColonExpression.
+    def exitAfterColonExpression(self, ctx:Fortran90Parser.AfterColonExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#beforeColonExpression.
+    def enterBeforeColonExpression(self, ctx:Fortran90Parser.BeforeColonExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#beforeColonExpression.
+    def exitBeforeColonExpression(self, ctx:Fortran90Parser.BeforeColonExpressionContext):
+        pass
+
+
+    # Enter a parse tree produced by Fortran90Parser#midlleColonExpression.
+    def enterMidlleColonExpression(self, ctx:Fortran90Parser.MidlleColonExpressionContext):
+        pass
+
+    # Exit a parse tree produced by Fortran90Parser#midlleColonExpression.
+    def exitMidlleColonExpression(self, ctx:Fortran90Parser.MidlleColonExpressionContext):
         pass
 
 
@@ -1898,30 +1871,12 @@ class Fortran90ParserListener(ParseTreeListener):
         pass
 
 
-    # Enter a parse tree produced by Fortran90Parser#dataStmtValueList.
-    def enterDataStmtValueList(self, ctx:Fortran90Parser.DataStmtValueListContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#dataStmtValueList.
-    def exitDataStmtValueList(self, ctx:Fortran90Parser.DataStmtValueListContext):
-        pass
-
-
     # Enter a parse tree produced by Fortran90Parser#dataStmtValue.
     def enterDataStmtValue(self, ctx:Fortran90Parser.DataStmtValueContext):
         pass
 
     # Exit a parse tree produced by Fortran90Parser#dataStmtValue.
     def exitDataStmtValue(self, ctx:Fortran90Parser.DataStmtValueContext):
-        pass
-
-
-    # Enter a parse tree produced by Fortran90Parser#dataStmtObjectList.
-    def enterDataStmtObjectList(self, ctx:Fortran90Parser.DataStmtObjectListContext):
-        pass
-
-    # Exit a parse tree produced by Fortran90Parser#dataStmtObjectList.
-    def exitDataStmtObjectList(self, ctx:Fortran90Parser.DataStmtObjectListContext):
         pass
 
 

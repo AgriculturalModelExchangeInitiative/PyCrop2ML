@@ -737,10 +737,8 @@ class PackageManager():
         return reader    
 
     def __getitem__(self, key):
-        try:
-            return self.pkgs[key]
-        except KeyError:
-            raise UnknownPackageError(key)
+        return self.pkgs[key]
+
 
     def __setitem__(self, key, val):
         self.pkgs[key] = val

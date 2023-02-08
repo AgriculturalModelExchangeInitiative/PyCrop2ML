@@ -97,11 +97,14 @@ def len_expander(type, message, args):
     if message == 'len' and 'special' in args[0]: # len(sys.argv)
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'arg_count', 'args': [], 'pseudo_type': 'Int'}
     else:
+        """
+        print(a, message, args[0], args[1:])
         q = builtin_type_check(a, message, args[0], args[1:])
         if a =="str" and message =="float" and args[0]["value"]==b"nan":
             return {"type":'notAnumber', 'value' : 'nan', 'pseudo_type':'float'}
         else: 
-            return {'type': 'standard_method_call', 'receiver':args[0], 'args': [], 'message': message, 'pseudo_type': q[-1]}
+        """
+        return {'type': 'standard_method_call', 'receiver':args[0], 'args': [], 'message': message, 'pseudo_type': "int"}
 
 def min_expander(type, message, args):
     if len(args)==1:
@@ -124,6 +127,8 @@ def max_expander(type, message, args):
                 break
             else: pseudo = args[i]["pseudo_type"]
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'max', 'args': args, 'pseudo_type':pseudo}
+
+
   
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
@@ -146,6 +151,10 @@ def array_expander(type, message, args):
 
 def copy_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function':'copy', 'args': args[0], 'pseudo_type': args[0]["pseudo_type"]}
+
+
+def round_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function':'round', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
 
 
 def pow_expander(type, message, args):
@@ -200,6 +209,12 @@ FUNCTION_API = {
         
         
     },
+    "Convert":
+        {
+            "ToInt32":StandardMethodCall("number", "int",  expander=int_expander)
+            
+            
+        },
 
     'Math': {
         'Log':      {
@@ -217,10 +232,12 @@ FUNCTION_API = {
         'Sqrt':     StandardCall('math', 'sqrt'),
         'Ceiling':  StandardCall('math', 'ceil'),
         'Exp':      StandardCall('math', 'exp'),
-        'Round':      StandardCall('System', 'round'),
+        'Round':      StandardCall('system', 'round', expander=round_expander),
         'Pow':      StandardCall('math', 'pow'),
         'Floor':      StandardCall('math', 'floor'),
-        'Min':      StandardCall('system', 'min', expander=min_expander)
+        'Min':      StandardCall('system', 'min', expander=min_expander),
+        'Abs':      StandardCall('system', 'abs'),
+        'Truncate':      StandardMethodCall('float', 'int', expander=int_expander)
         
     },
     'datetime':{
@@ -283,7 +300,8 @@ METHOD_API = {
     },
 
     'array': {
-            'append':   StandardMethodCall('array', 'append')
+            'append':   StandardMethodCall('array', 'append'),
+            'Length':    StandardMethodCall('array', 'len', expander=len_expander),
     },
 
     'tuple': {
@@ -293,14 +311,18 @@ METHOD_API = {
 PROPERTY_API = {
     
     "List":{
-        "Count": StandardMethodCall("List", "len",default={1: [{'type': 'str', 'value': ' ', 'pseudo_type': 'str'}]}, expander=len_expander)
+        "Count": StandardMethodCall("List", "len", expander=len_expander)
+    },
+    "array":{
+        "Length": StandardMethodCall("array", "len", expander=len_expander)
     }
+    
 }
 
 CONSTANT_API = {
       'Math':{
               
-              'PI':{'type':'constant', 'library':'math', 'pseudo_type':'double', 'name':'PI'}
+              'PI':{'type':'constant', 'library':'math', 'pseudo_type':'float', 'name':'pi'}
               
               }  
         }

@@ -7,11 +7,20 @@ def translateNotContains(node):
     return Node("call", function="!", args=[Node("simpleCall", op='%in%', value=node.args, sequence=node.receiver, pseudo_type='Boolean')])
 
 def translateDictkeys(node): return Node("method_call", receiver=node.receiver, message=".keys()", args=[], pseudo_type=node.pseudo_type)
+
 def translatePrint(node): return Node(type="ExprStatNode", expr=Node(type="custom_call", function="print", args= node.args if "elements" not in dir(node.args[0]) else [arg for arg in node.args[0].elements]))
+
 def translateModulo(node): return Node(type="binary_op", op="%", left=node.args[0], right=node.args[1])
+
 def translatePow(node): return Node(type="binary_op", op="**", left=node.args[0], right=node.args[1])
+
 def translateCopy(node):
     return Node("local", name = node.args.name)
+
+def translateAllocate(node):
+    typ = node.pseudo_type[-1]
+    newtyp = changetyp(typ)
+    return Node("assignment", target = node.receiver, value=Node("call", function = "vector", args=[Node("empty"),node.args]), pseudo_type=node.pseudo_type)
 
 
 class RRules(GeneralRule):
@@ -65,7 +74,8 @@ class RRules(GeneralRule):
             'sqrt':         'sqrt',
             'ceil':         'ceiling',
             'round':        'round',
-            'exp':         'exp'
+            'exp':         'exp',
+            'floor':'floor'
 
         },
        'io': {
@@ -123,8 +133,10 @@ class RRules(GeneralRule):
             'day':'day'
         },
         'array': {
-            'len': 'len',
-            'append': '.append'
+            'len': 'length',
+            'append': '.append',
+            'sum':'sum',
+            'allocate': translateAllocate
         },
         'dict': {
 			'len': 'len',
@@ -140,3 +152,12 @@ def argsToStr(args):
     for arg in args:
         t.append(arg.value)
     return "%s"%('/'.join(t))
+
+def changetyp(typ):
+    if typ in ("float", "int", "double"):
+        newtyp = "numeric"
+    elif typ == "bool":
+        newtyp = "logical"
+    elif typ == "str":
+        newtyp = "character"
+    return newtyp

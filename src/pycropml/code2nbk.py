@@ -8,9 +8,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
 import pycropml.test_generator
-from pycropml import render_fortran
 import os
-from . import render_python as rp
 import sys
 
 # The package used to generate Notebook
@@ -38,7 +36,7 @@ class Model2Nb(object):
         self.name = name
         self.dir = dir
 
-    def generate_nb(self, language, tg_rep, namep):
+    def generate_nb(self, language, tg_rep, namep, mc_name=None):
         
         text = u'''\
 # Automatic generation of Notebook using PyCropML
@@ -50,10 +48,10 @@ class Model2Nb(object):
         var = ["Auxiliary", "Rate", "State", "Exogenous"]
         if language in ("cs", "java"):
             for v in var:
-                fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (namep.capitalize(), v, language)))
+                fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (mc_name.capitalize() if language=="java" else mc_name, v, language)))
                 with open(fileVar, "r") as var_file:
                     fi = var_file.read()
-                namev = "%s%s" % (namep.capitalize(), v)
+                namev = "%s%s" % (mc_name.capitalize(), v)
 
                 text = u"""\
 ### Domain Class %s""" % namev
@@ -65,12 +63,13 @@ class Model2Nb(object):
         _cells.append(nbf.v4.new_markdown_cell(text))
         code_tests = getattr(pycropml.test_generator, "generate_test_%s" % language)(self.model, self.dir, package=namep)
 
-        if language in ("cs", "java", "py", "r"):
+        
+        if language in ("cs", "java"):
             _cells.append(nbf.v4.new_code_cell(self.code)) 
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
-        elif language == "cpp":
+        elif language in ("cpp", "r", "py"):
             for code in code_tests:
                 _cells.append(nbf.v4.new_code_cell(code))
 
@@ -87,11 +86,6 @@ class Model2Nb(object):
         fname = Path(os.path.join(self.dir, "%s.ipynb" % self.name))
         if sys.version_info[0] >= 3:
             with open(file=fname, mode="w", encoding='utf-8') as f:
-                nbf.write(self.nb, f) 
-        else:
-            reload(sys)
-            sys.setdefaultencoding('utf-8')
-            with open(fname,  "w") as f:
                 nbf.write(self.nb, f) 
 
 

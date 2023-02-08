@@ -10,6 +10,7 @@ class Cs_CymlRules(GeneralRule):
     def __init__(self):
         GeneralRule.__init__(self)
     binary_op = {"and": "&&",
+                 "&" : "&",
                  "or": "||",
                  "not": "!",
                  "<": "<",
@@ -33,8 +34,10 @@ class Cs_CymlRules(GeneralRule):
 
     types = {
         "int": "int",
+        "Int32": "int",
         "float": "float",
         "double": "float",
+        "Double": "float",
         "bool": "bool",
         "array": "array",
         "List": "list",
@@ -79,9 +82,9 @@ class Cs_CymlRules(GeneralRule):
     }
     constant = {
             
-        'math':{
+        'Math':{
                 
-            'Math.PI': 'pi'
+            'PI': 'pi'
                 
                 }            
     }        

@@ -12,6 +12,9 @@ from path import Path
 import numpy 
 import os.path
 import six
+from pycropml.nameconvention import signature1
+import platform
+
 
 class Model2Package(object):
     """ TODO
@@ -38,14 +41,28 @@ class Model2Package(object):
 '''%comment(generate_doc(model_unit))
         return doc
 
-    def generate_test(self, model_unit):
+    def generate_test(self, model_unit, package=None):
         tab = ' '*4
         m = model_unit
         inputs = m.inputs
         outputs = m.outputs
         model_name  = signature(m)
         psets = m.parametersets
-        self.codetest = ""
+        pform = platform.system()
+        list_var=[]
+        init_var_in = []
+        init_var_out = []
+        for inp in m.inputs:
+            list_var.append(inp.name)
+            if hasattr(inp, "parametercategory"):
+                init_var_in.append(inp.name)  
+            elif inp.variablecategory=="exogenous":
+                init_var_in.append(inp.name)
+            elif inp.variablecategory=="state":
+                init_var_out.append(inp.name)
+        import_test = f'source("../../src/{"r"}/{package}/{signature1(m)}.r")\n'
+        import_test += "library(assertthat)\n"
+        codetest = [import_test]
         for v_tests in m.testsets:
             test_runs = v_tests.test  # different run in the thest
             test_paramsets = v_tests.parameterset  # name of paramsets
@@ -58,7 +75,8 @@ class Model2Package(object):
                 if test_paramsets.strip() != "":
                     params.update(psets[test_paramsets].params)
                 for each_run in test_runs :
-                    test_codes = ["library(assertthat)"]
+                    test_codes = []
+                    test_codes2 = []
                     # make a function that transforms a title into a function name
                     tname = list(each_run.keys())[0].replace(' ', '_')
                     tname = tname.replace('-', '_')
@@ -69,20 +87,44 @@ class Model2Package(object):
                     test_codes.append(code)
                     code = "test_%s<-function(){"%(tname)
                     test_codes.append(code)
-                    code = "    params= model_%s("%model_name
-                    test_codes.append(code)
+                    name_categ = {}
+                    
+
                     run_param = params.copy()
                     run_param.update(ins)
-                    n=0
+                    
+                    for i, j in enumerate(m.inputs):
+                        if j.name not in list(run_param.keys()):
+                            run_param[j.name]=j.default 
+                        name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory        
+                        
                     for k, v in six.iteritems(run_param):
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
-                        code = tab*2 + "%s = %s"%(k,transf(type_v, v))
-                        if n!=len(run_param)-1:
-                            code +=","
-                            n=n+1
+                        if v:
+                            code = tab + "%s = %s"%(k,transf(type_v, v))
+                            if m.initialization:
+                                if v and name_categ[k] != "state" and m.initialization :
+                                    test_codes.append(code) 
+                            else:
+                                test_codes.append(code)
+            
+                    for k, v in six.iteritems(ins):
+                        type_v = [inp.datatype for inp in inputs if inp.name==k][0]
+                        code = tab + "%s = %s" % (k, transf(type_v, v)) 
+                        if v and name_categ[k] == "state" :
+                            test_codes2.append(code) 
+
+                    if m.initialization: 
+                        code = tab + "param_init" + " = " + f"init_{signature1(m)}({','.join(init_var_in)})" 
                         test_codes.append(code)
-                    code =tab*2 +  ")"
+                        for p in init_var_out:
+                            code = tab + "%s = param_init$%s"%(p,p)
+                            test_codes.append(code)
+                        test_codes.extend(test_codes2) 
+
+                    code = tab + "params= model_{0}({1})\n".format(model_name, ', '.join(list_var))
                     test_codes.append(code)
+                        
                     for k, v in six.iteritems(outs):
                         type_v = [out.datatype for out in outputs if out.name==k][0]     
                         code = tab + "%s_estimated = params$%s"%(k,k) 
@@ -96,28 +138,18 @@ class Model2Package(object):
                             code = tab+ "assert_that(all.equal(%s_estimated, %s_computed, scale=1, tol=0.%s)==TRUE)"%(k,k, outs[k][1])
                             test_codes.append(code)
                     code = '\n'.join(test_codes)
-                    self.codetest += code +'\n}\n'
-                    self.codetest += "test_%s()"%tname
-        return self.codetest
+                    code += '\n}\n'
+                    code += "test_%s()"%tname
+                    codetest.append(code)
+                    
+        return codetest
     
 
     def generate_func_test(self, model_unit):
         pass
 
     def write_tests(self):
-        """ TODO: Manage several models rather than just one.
-        """
-        files = []
-        count = 0
-        for model in self.models:
-            codetest = self.generate_test(model)
-            filename = self.dir/"test_%s.r"%signature(model)
-            codetest = "#Test generation'\n\n"+'source("%s/%s.r")'%(self.dir.replace('\\','/'),signature(model)) + codetest
-            with open(filename, "w") as r_file:
-                r_file.write(codetest.encode('utf-8'))
-                files.append(filename)
-            count +=1
-        return files
+       pass
 
 def signature(model):
     name = model.name
@@ -133,8 +165,9 @@ def generate_doc(model):
     Author: %s
     Reference: %s
     Institution: %s
-    Abstract: %s
-""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+    ExtendedDescription: %s
+    ShortDescription: %s
+""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
     code = '\n'
     code += _doc
 
@@ -155,6 +188,10 @@ DATATYPE['STRINGLIST'] = "c(%s)"
 DATATYPE['DOUBLELIST'] = "c(%s)"
 DATATYPE['INTLIST'] = "c(%s)"
 DATATYPE['DATELIST']="c(%s)"
+DATATYPE['STRINGARRAY'] = "c(%s)"
+DATATYPE['DOUBLEARRAY'] = "c(%s)"
+DATATYPE['INTARRAY'] = "c(%s)"
+DATATYPE['DATEARRAY']="c(%s)"
 
 def transf(type_v, elem):
     if type_v == "BOOLEAN":
@@ -165,4 +202,7 @@ def transf(type_v, elem):
         return str(elem)
     elif "LIST" in type_v:
         return DATATYPE[type_v.strip()]%",".join(list(map(transf,[type_v.split("LIST")[0]]*len(elem),eval(elem))))
+    elif "ARRAY" in type_v:
+        return DATATYPE[type_v.strip()]%",".join(list(map(transf,[type_v.split("ARRAY")[0]]*len(elem),eval(elem))))
+
         

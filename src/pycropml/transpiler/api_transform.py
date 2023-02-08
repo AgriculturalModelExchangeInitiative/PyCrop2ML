@@ -128,6 +128,14 @@ def max_expander(type, message, args):
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
 
+
+def list_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'list', 'args': args, 'pseudo_type': ['list',args[0]["pseudo_type"][-1]]}
+def range_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'range', 'args': args, 'pseudo_type': ['list', args[0]["pseudo_type"]]}
+
+
+
 def datetime_expander(type, message, args):
     if len(args)==3:
         a = datetime(eval(args[0]["value"]),eval(args[1]["value"]),eval(args[2]["value"]) )
@@ -142,7 +150,11 @@ def datetime_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'datetime', 'function': 'datetime', 'args': args, 'pseudo_type': 'datetime'}
 
 def array_expander(type, message, args):
-    return {'type': 'standard_call', 'namespace': 'system', 'function': 'array', 'args': args, 'pseudo_type': ['array',args[0]["pseudo_type"]]}
+    if args[-1]["type"]=="list":
+        res = {'type': 'array', 'elements': args[-1]["elements"], 'dim': len(args[-1]["elements"]), 'pseudo_type': ['array',args[-1]["pseudo_type"][-1]]}
+    else:
+        res = {'type': 'array', 'elements': args[-1], 'pseudo_type': ['array',args[-1]["pseudo_type"][-1]]}
+    return res
 
 def copy_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function':'copy', 'args': args[0], 'pseudo_type': args[0]["pseudo_type"]}
@@ -169,6 +181,9 @@ def pow_expander(type, message, args):
 def modulo_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'modulo', 'args': args, 'pseudo_type':"int"}
 
+def round_expander(type, message, args):
+    return {'type': 'standard_call', 'namespace': 'system', 'function': 'round', 'args': args, 'pseudo_type':"float"}
+
 def integr_expander(type, message, args):
     
     if isinstance(args[0]["pseudo_type"], list) and isinstance(args[1]["pseudo_type"] ,list):
@@ -186,6 +201,7 @@ FUNCTION_API = {
     'global': {
         'input':    StandardCall('io', 'read'),
         'print':    StandardCall('io', 'display'),
+        "round":    StandardCall('global', 'round',expander=round_expander ),
         'str':      StandardCall('global', 'to_string'),
         'min':      StandardCall('global', 'min', expander=min_expander),
         'max':      StandardCall('global', 'max', expander=max_expander),
@@ -197,7 +213,9 @@ FUNCTION_API = {
         'modulo':      StandardCall('global', 'modulo', expander = modulo_expander),
         'copy':      StandardCall('global', 'copy', expander = copy_expander),
         'integr':      StandardCall('global', 'integr', expander = integr_expander),
-        'array': StandardCall('global', 'integr', expander = array_expander)
+        'array': StandardCall('global', 'integr', expander = array_expander),
+        "range": StandardCall('global', 'range', expander = range_expander),
+        "list": StandardCall('global', 'list', expander = list_expander)
         
         
     },
@@ -216,7 +234,8 @@ FUNCTION_API = {
         'atan':     StandardCall('math', 'atan'),
         'sqrt':     StandardCall('math', 'sqrt'),
         'ceil':     StandardCall('math', 'ceil'),
-        'exp':      StandardCall('math', 'exp')
+        'exp':      StandardCall('math', 'exp'),
+        'floor':    StandardCall('math', 'floor'),
         
     },
     'datetime':{
@@ -277,7 +296,8 @@ METHOD_API = {
     },
 
     'array': {
-            'append':   StandardMethodCall('array', 'append')
+            'append':   StandardMethodCall('array', 'append'),
+            'allocate': StandardMethodCall('array', 'allocate')
     },
 
     'tuple': {

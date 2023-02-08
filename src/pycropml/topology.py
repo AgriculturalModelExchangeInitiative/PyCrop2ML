@@ -94,7 +94,7 @@ class Topology():
         else:
             self.pkg=pkg
         self.data = Path(self.pkg)/"crop2ml"
-        
+        self.diff_in, self.diff_out = {}, {}
         composite_file = self.data.glob("composition*.xml")[0]
         self.mu =  model_parser(self.pkg)
         self.model, = composition.model_parser(composite_file)
@@ -106,6 +106,8 @@ class Topology():
         self.model.path = Path(self.pkg)
         self.minout()
         self.path_pkg = None
+        self.model.diff_in = self.diff_in
+        self.model.diff_out = self.diff_out
          
     def isPackage(self, name):
         if sys.version_info[0]>=3:
@@ -144,7 +146,11 @@ class Topology():
         return module
 
     def createGraph(self):
-        d= defaultdict(list)        
+        d= defaultdict(list)  
+        if not self.model.internallink:
+            for mod in self.model.model:
+                d[mod.name].append(mod.name)
+            return nx.DiGraph(d, name = self.model.name) 
         for mod in self.model.model:
             for inter in self.model.internallink:    
                 source = inter["source"].split(".")[0]
@@ -164,7 +170,12 @@ class Topology():
         return edge_inout
     
     def topologicalSort(self):
+        if not self.model.internallink:
+            print(self.model.model[0].name)
+            self.model.ord = [self.model.model[0].name]
+            return 
         ordV = list(nx.topological_sort(self.createGraph()))
+        self.model.ord = ordV
         return ordV
 
     def info_minout(self):
@@ -222,6 +233,11 @@ class Topology():
         return inout
 
     def algorithm(self):
+        if not self.topologicalSort():
+            code = ""
+            for mod in self.model.model:
+                code += "%s = model_%s( %s)\n"%(', '.join(self.minout()[mod.name][1]),mod.name.strip().replace(' ','_').lower(),','.join(self.minout()[mod.name][0]))
+            return code
         code=""
         W= self.topologicalSort()
         edge = self.create_edgeInOut()
@@ -242,10 +258,11 @@ class Topology():
         filename = "%s.xml"%(self.model.name)
         nx.write_graphml_xml(G,filename)
     
-    def write_png(self):
+    def write_png(self, dir_images):
         a=to_pydot(self.createGraph())
-        print('%s/%s.png' % (self.model.path,self.model.name))
-        a.write_png('%s/doc/images/%s.png' % (self.model.path,self.model.name))
+        img = Path(os.path.join(dir_images, "%s.png"%self.model.name))
+        print(img)
+        a.write_png(img)
     
     def writeSVG(self):
         a=to_pydot(self.createGraph())
@@ -261,18 +278,20 @@ class Topology():
         d=a.create_svg()
         display(SVG(d))
      
-    def algo2cyml(self):
+    def algo2cyml(self, dir_images=None):
+        if dir_images: self.write_png(dir_images)
         code='from datetime import datetime\nfrom math import *\n'
         tab=' '*4
-        #print(self.meta_inp(self.name))
         for mod in self.model.model:
-            code+= 'from %s.%s import model_%s\n'%(self.name,signature(mod).capitalize(), signature(mod)) if mod.package_name is None else 'from %s.%s import model_%s\n'%(self.name,signature(mod), signature(mod))
+            code+= 'from %s.%s import model_%s\n'%(self.name.replace("-", "_"),signature(mod), signature(mod)) if mod.package_name is None else 'from %s.%s import model_%s\n'%(self.name.replace("-", "_"),signature(mod), signature(mod))
         name =signature(self.model)
         signature_mod= "def model_" +  name + "(%s):"%(",\n      ".join(map(my_input,self.meta_inp(self.name))))
         code += signature_mod+"\n"
         code += self.decl(defa=False)
+        code += self.inps_assignment()
         lines = [tab+l for l in self.algorithm().split('\n') if l.split()]
         code += '\n'.join(lines)
+        code += self.outs_assignment()
         code += "\n" + tab + "return " + ", ".join([out.name for out in self.model.outputs])
         out_states=[out for out in self.model.outputs if out.variablecategory=="state"]
         if self.model.initialization:
@@ -285,7 +304,7 @@ class Topology():
                 code += self.generate_function_signature(self.model) +'\n'
                 code += self.val_init(self.model)
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in self.model.outputs]) + '\n'                
+                code += '\n'+tab + 'return  ' + ', '.join( self.listab) + '\n'                
         return code
 
     def generate_function_signature(self,model):
@@ -316,13 +335,14 @@ class Topology():
     def val_init(self, model):
         inputs = model.inputs
         outputs = model.outputs
+        statenames = [st.name for st in model.states]
         #inout = inputs + outputs
         tab=""
-        listab=[]
-        for inp in outputs:
-            if inp.name not in listab:
+        self.listab=[]
+        for inp in inputs:
+            if inp.name not in self.listab and inp.name in statenames:
                 name = inp.name
-                listab.append(name)
+                self.listab.append(name)
                 if inp.datatype=="INT":
                     tab +="    cdef int %s = 0\n"%(name)
                 if inp.datatype=="DOUBLE":
@@ -367,13 +387,16 @@ class Topology():
         pkg, mc = self.retrive(pkgname)        
         list_var=[]
         mod_inputs=[]
-        for inter in mc.inputlink: 
+        for inter in mc.inputlink:
             var = inter["source"]
             mod = inter["target"].split(".")[0]
-            if var not in list_var:
-                if self.check_compo(mc, mod)!=True:
-                    inp = self.info_inputs_mu(pkg,mod,var)
-                    list_var.append(var)
+            var_mod = inter["target"].split(".")[1]
+            if var_mod!= var: self.diff_in.update({var_mod:var})
+            if var_mod not in list_var:
+                if not self.check_compo(mc, mod):
+                    inp = self.info_inputs_mu(pkg,mod,var_mod)
+                    list_var.append(var_mod)
+                    inp.name = var
                     mod_inputs.append(inp)
                 else:
                     name=self.pkg_m(mc, mod)
@@ -381,12 +404,13 @@ class Topology():
                     if mc.model[pos].file.split(".")[0]=="unit":
                         mc_path = self.retrive(name)[1].path
                         inps = [m.inputs for m in model_parser(mc_path) if m.name == mod][0]
-                        inp = [k for k in inps if k.name == var][0]
+                        inp = [k for k in inps if k.name == var_mod][0]
                     else:
-                        inp = self.get_mu_inp(name, var)
+                        inp = self.get_mu_inp(name, var_mod)
+                    inp.name = var
                     mod_inputs.append(inp)
-                    list_var.append(var) 
-        self.path_pkg = pkg                         
+                    list_var.append(var_mod) 
+        self.path_pkg = pkg                      
         return mod_inputs
 
     def meta_ext(self, pkgname):
@@ -431,19 +455,22 @@ class Topology():
         for inter in mc.outputlink:    
             var = inter["target"]
             mod = inter["source"].split(".")[0]
-            
-            if var not in list_var:
+            var_mod = inter["source"].split(".")[1]
+            if var_mod!= var: self.diff_out.update({var_mod:var})
+            if var_mod not in list_var:
                 if self.check_compo(mc, mod)!=True:
-                    out = self.info_outputs_mu(pkg,mod,var)
-                    list_var.append(var)
+                    out = self.info_outputs_mu(pkg,mod,var_mod)
+                    out.name = var
+                    list_var.append(var_mod)
                     mod_outputs.append(out)
                 else:
                     #pa, mc = self.retrive(self.pkg_m(mc, mod))
                     name=self.pkg_m(mc, mod)
                     #out = self.get_mu_out(pa, mod, var)
                     out = self.get_mu_out(name, var)
+                    out.name = var
                     mod_outputs.append(out)
-                    list_var.append(var)                           
+                    list_var.append(var_mod)                           
         return mod_outputs
 
 
@@ -541,17 +568,36 @@ class Topology():
         tab = ' '*4
         for k, v in info_var.items():
             for j in v[0]:
-                #print(j)
                 if j.name not in inp:
                     declaration += tab+"cdef "+my_input(j, defa=False)+"\n"
                     inp.append(j.name)
             for w in v[1]:
                 if w.name not in inp:
-                    #print(w, w.name)
                     declaration += tab+"cdef "+my_input(w, defa)+"\n"
                     inp.append(w.name)
      
         return declaration
+    
+    def inps_assignment(self):
+        code = ""
+        tab = ' '*4
+        for inter in self.model.inputlink:
+            var = inter["source"]
+            var_mod = inter["target"].split(".")[1]
+            if var != var_mod:
+                code += tab + "%s = %s \n"%(var_mod, var)
+        return code
+        
+    
+    def outs_assignment(self):
+        tab = ' '*4
+        code = ""
+        for inter in self.model.outputlink:    
+            var = inter["target"]
+            var_mod = inter["source"].split(".")[1]
+            if var != var_mod:
+                code += tab + "%s = %s \n"%(var_mod, var)
+        return code
                      
     def compotranslate(self, language):
         d= self.algo2cyml()

@@ -9,6 +9,7 @@ from path import Path
 import numpy 
 from datetime import datetime
 import os.path
+from pycropml.modelunit import ModelUnit
 import six
 import shutil
 from . import error
@@ -43,7 +44,6 @@ class Model2Package(object):
             self.pkg_name = "CropModel"
         else: self.pkg_name = pkg_name
         self.cwd = Path(self.dir)
-        print(self.cwd)
         self.rep = os.path.abspath(os.path.dirname(self.cwd))
 
     def run(self):
@@ -106,11 +106,12 @@ class Model2Package(object):
                     with open(filefunc.encode('utf-8'), 'r') as f:
                         source = f.read()
                         self.code += source 
-        if model_unit.initialization is not None: self.code += self.initialization(model_unit)      
+                        self.code += "\n\n\n"
+        if model_unit.initialization is not None and len(model_unit.initialization)!=0 : 
+            self.code += self.initialization(model_unit)      
         return self.code
 
     def generate_algorithm(self, model_unit):
-        print(model_unit.name)
         outputs = model_unit.outputs
         inputs = model_unit.inputs
         tab = ' '*4
@@ -123,7 +124,7 @@ class Model2Package(object):
             list_inputs.append(inp.name)
         for out in outputs:
             if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+my_input(out)+"\n"
+                output_declaration += tab+"cdef "+my_input(out, True)+"\n"
 
         for algorithm in model_unit.algorithms:                                  
             if (algorithm.language=="Cyml") or (algorithm.language=="cyml"):
@@ -135,7 +136,7 @@ class Model2Package(object):
             lines = [tab+l for l in development.split('\n') if l.split()]
             code = output_declaration
             code += '\n'.join(lines)
-            code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'
+            code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n\n\n'
             self.code = code
         else:
             raise error.Error("algorithm is not defined in model unit")
@@ -145,18 +146,25 @@ class Model2Package(object):
         outputs = model_unit.outputs
         inputs = model_unit.inputs
         tab = ' '*4
-        list_inputs=[]        
+        list_inputs=[]   
+        outs = []     
         
         """ we  declare all outputs which are not in inputs"""
         output_declaration=""
+        other = ""
         z=[]
         for inp in inputs:
-            if "parametercategory" not in dir(inp):
+            if "variablecategory" in dir(inp) and inp.variablecategory=="state":
                 list_inputs.append(inp.name)
-                output_declaration += tab+"cdef "+my_input(inp, defa=False)+"\n"
-        for out in outputs:
-            if out.name not in list_inputs:
-                output_declaration += tab+"cdef "+my_input(out, defa = False)+"\n"
+                """if inp.datatype in ("DOUBLE", "FLOAT"):
+                    inp.default = "0.0"
+                if inp.datatype == "INT":
+                    inp.default = "0" """
+                output_declaration += tab+"cdef "+my_input(inp, defa=True)+"\n"
+                outs.append(inp)
+                if not inp.default:
+                    other += tab + inp.name + " = " + default_value(inp)+"\n"
+        
         code =""
         if model_unit.initialization:
             file_init = model_unit.initialization[0].filename
@@ -164,15 +172,19 @@ class Model2Package(object):
             par = []
             for inp in inputs:
                 if "parametercategory" in dir(inp):
-                    par.append(inp)        
+                    par.append(inp)  
+                elif inp.variablecategory=="exogenous":
+                    par.append(inp)
+                        
             with open(path_init, 'r') as f:
                 code_init = f.read() 
             if code_init is not None :         
                 lines = [tab+l for l in code_init.split('\n') if l.split()]
                 code += self.generate_function_signature("init_%s"%signature(model_unit),par) +'\n'
                 code += output_declaration
+                code += other
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outputs]) + '\n'            
+                code += '\n'+tab + 'return  ' + ', '.join([o.name  for o in outs]) + '\n'            
         return code
 
             
@@ -195,7 +207,7 @@ class Model2Package(object):
         code = 'def %s('%(func_name,)
         code_size = len(code)
         #_input_names = [inp.name.lower() for inp in inputs]
-        ins = [ my_input(inp) for inp in inputs]
+        ins = [ my_input(inp, False) for inp in inputs]
         separator = ',\n'+ code_size*' '
         code += separator.join(ins)
         code+= '):'
@@ -236,6 +248,7 @@ class Model2Package(object):
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
+                    print(outs.keys())
 
                     code = '\n'
                     test_codes.append(code)
@@ -253,58 +266,59 @@ class Model2Package(object):
                         test_codes.append(code)
                     code = "     )"
                     test_codes.append(code)
-
+                    outnames = list(outs.keys())
                     for j, k in enumerate(m.outputs):
-                        if  k.datatype.strip() in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
-                        
-                            code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                        if k.name in outnames:
+                            if  k.datatype.strip() in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY") :
                             
-                            test_codes.append(code)
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                                
+                                test_codes.append(code)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                            
+                                test_codes.append(code)
+                                code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                            
+                                test_codes.append(code)
+                                                    
+                            if k.datatype.strip() in ("STRING", "BOOL", "INT", "DATE"):
+                                code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                                test_codes.append(code)
                         
-                            test_codes.append(code)
-                            code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
                         
-                            test_codes.append(code)
-                                                   
-                        if k.datatype.strip() in ("STRING", "BOOL", "INT", "DATE"):
-                            code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
-                            test_codes.append(code)
-                       
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                       
-                            code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
-                       
-                           
-                        if k.datatype.strip() in ("DOUBLELIST", "DOUBLEARRAY"):
-                            code = tab + "%s_estimated = np.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
-                            test_codes.append(code)
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                       
-                            code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
-                           
-                           
-                        if k.datatype.strip() in ("INTLIST", "INTARRAY"):
-                            code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
-                            test_codes.append(code)
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                            code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
+                                code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
+                        
+                            
+                            if k.datatype.strip() in ("DOUBLELIST", "DOUBLEARRAY"):
+                                code = tab + "%s_estimated = np.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
+                                test_codes.append(code)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
+                        
+                                code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
+                            
+                            
+                            if k.datatype.strip() in ("INTLIST", "INTARRAY"):
+                                code = tab + "%s_estimated = params[%s]"%(k.name,j) if len(m.outputs)>1 else tab + "%s_estimated = params"%(k.name)
+                                test_codes.append(code)
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
+                                code = tab+ "assert np.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
 
-                        if k.datatype.strip() == "DOUBLE":
-                            code = tab + "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
-                            test_codes.append(code)
-                           
-                            code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
-                            test_codes.append(code)
-                           
-                            code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
-                            test_codes.append(code)
+                            if k.datatype.strip() == "DOUBLE":
+                                code = tab + "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else tab + "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
+                                test_codes.append(code)
+                            
+                                code = tab + "%s_computed = %s"%(k.name,outs[k.name][0])
+                                test_codes.append(code)
+                            
+                                code = tab+ "assert (%s_estimated == %s_computed)"%(k.name,k.name)
+                                test_codes.append(code)
 
                     code = '\n'.join(test_codes)
 
@@ -334,7 +348,15 @@ class Model2Package(object):
         return files
 
 
-def signature(model):
+def signature(model:ModelUnit):
+    """_summary_
+
+    Args:
+        model (ModelUnit): A Python object of a Crop2ML model Unit
+
+    Returns:
+        str: name
+    """
     name = model.name
     name = name.strip()
     name = name.replace(' ', '_').lower()
@@ -342,7 +364,7 @@ def signature(model):
     return name
 
 
-def generate_doc(model):
+def generate_doc(model:ModelUnit):
     desc = model.description
         
     _doc = """
@@ -350,8 +372,9 @@ def generate_doc(model):
     Author: %s
     Reference: %s
     Institution: %s
-    Abstract: %s
-""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+    ExtendedDescription: %s
+    ShortDescription: %s
+""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
 
     code = '\n'
     code += _doc
@@ -393,7 +416,7 @@ def transf(type_, elem):
     else: return elem
 
 
-def my_input(_input, defa=True):
+def my_input(_input, defa=False):
     name = _input.name
     _type = _input.datatype
         
@@ -412,7 +435,7 @@ def my_input(_input, defa=True):
                 return "str %s='%s'"%(name, default)
             elif DATATYPE[_type] == "datetime":                   
                 return "datetime %s=%s"%(name, transfDate(_type,default))                               
-            elif _type in DATATYPE:                  
+            elif _type in DATATYPE:                
                 default = float(default) if DATATYPE[_type]=="float" else int(default)                                    
                 return '%s %s=%s'%(DATATYPE[_type], name, default)
         else:
@@ -428,7 +451,18 @@ def my_input(_input, defa=True):
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return ("%s %s[%s]"%(DATATYPE[_type], name, length))
             else:
-                return ("%s %s"%(DATATYPE2[_type], name))            
+                return ("%s %s"%(DATATYPE2[_type], name))     
+
+def default_value(inp):
+    type_ = inp.datatype
+    if type_.endswith("LIST"): return "[]"
+    elif type_ == "INT": return "0"
+    elif type_ =="DOUBLE": return "0.0"
+    elif type_ == "DATE": return "None"
+    elif type_.endswith("ARRAY") and not inp.len: return "None"
+    elif type_.endswith("ARRAY")  and inp.len: 
+        if type_=="INTARRAY" : return f"array('i', [0]*{inp.len})"
+        if type_=="DOUBLEARRAY" : return f"array('f', [0.0]*{inp.len})"    
 
 DATATYPE2 = {}
 DATATYPE2['INT'] = "int"

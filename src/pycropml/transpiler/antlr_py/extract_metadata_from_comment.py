@@ -8,11 +8,14 @@ from pycropml.composition import ModelComposition
 from pycropml.modelunit import ModelUnit
 from pycropml.description import Description
 from pycropml.inout import Input, Output
+import os
 # Return a file's comments.
 def ExtractComments(filename, c_st_single, c_st_multi, c_end_multi):
     # If a language has no block comment style, be sure that the default c_st_multi and c_end_multi will never be met.
-    with open(filename, 'r',  encoding='utf-8') as file:
-        all_text = file.read()
+    if os.path.isfile(filename):
+        with open(filename, 'r',  encoding='utf-8') as file:
+            all_text = file.read()
+    else: all_text = filename
     comments = "";
     while (len(all_text) > 0):
         single_line_pos = all_text.find(c_st_single)

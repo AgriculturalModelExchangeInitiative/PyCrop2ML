@@ -211,6 +211,13 @@ def add_expander(type, message, args):
       'args': [args[1]],
       'pseudo_type': ['list', args[1]["pseudo_type"]]}}
 
+def str_index_expander(type, message, args):
+        return {'type': 'standard_method_call',
+      'receiver': args[0][1],
+      'message': 'index',
+      'args': [args[0][0]],
+      'pseudo_type': 'int'}
+
 SYSTEM_API = {
 
         'list_sub':
@@ -226,12 +233,17 @@ FUNCTION_API = {
         'str':      StandardCall('global', 'to_string'),
         'min':      StandardCall('global', 'min', expander=min_expander),
         'max':      StandardCall('global', 'max', expander=max_expander),
+        'amax1':      StandardCall('global', 'max', expander=max_expander),
+        'amin1':      StandardCall('global', 'max', expander=min_expander),
         'abs':      StandardCall('global', 'abs', expander = abs_expander),
         'size':      StandardMethodCall('list', 'len', expander=len_expander),
         'int':      StandardMethodCall('float', 'int', expander=int_expander),
+        'nint':      StandardMethodCall('float', 'int', expander=int_expander),
+        'index':      StandardMethodCall('str', 'index', expander=str_index_expander),
         'float':    StandardMethodCall('int', 'float', expander=float_expander),
         'pow':      StandardCall('global', 'pow', expander = pow_expander), 
-        'Log':{
+        'alog': StandardCall('math', 'ln'),
+        'log':{
                 1:      StandardCall('math', 'ln'),
                 2:      StandardCall('math', 'log')
             },
@@ -244,7 +256,7 @@ FUNCTION_API = {
         'sqrt':     StandardCall('math', 'sqrt'),
         'ceiling':  StandardCall('math', 'ceil'),
         'exp':      StandardCall('math', 'exp'),
-        'Round':      StandardCall('System', 'round'),
+        'round':      StandardCall('System', 'round'),
     
 }
 

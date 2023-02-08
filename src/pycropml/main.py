@@ -37,9 +37,9 @@ Example
         java for java
         simplace for simplace
         sirius for sirius
-        openAlea
+        openalea for OpenAlea
         cpp for C++
-        r
+        r for r
 
 """
 #TODO
@@ -87,7 +87,10 @@ Example
     elif opts.component:
         sourcef = component = opts.component
     else:
-        sourcef = args[0]
+        if len(args)==0: 
+            parser.print_usage()
+            return
+        else: sourcef = args[0]
 
     sourcef = Path(sourcef)
     if not sourcef.exists():

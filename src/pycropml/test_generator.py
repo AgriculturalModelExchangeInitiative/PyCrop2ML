@@ -3,7 +3,9 @@ from pycropml import render_java
 from pycropml import render_csharp
 from pycropml import render_cpp
 from pycropml import render_r
-from pycropml.render_cyml import transf
+from pycropml.render_cyml import transf, signature
+from pycropml.modelunit import ModelUnit
+from pycropml.nameconvention import signature1
 import six
 
 
@@ -19,7 +21,10 @@ def splitunit(unit):
         
     
 
-def generate_test_py(model,dir=None, package=None):
+def generate_test_py(model:ModelUnit,dir=None, package=None):
+    from path import Path
+    import os
+    
     tab = ' '*4
     m = model
     #name = m.description.Title
@@ -27,8 +32,30 @@ def generate_test_py(model,dir=None, package=None):
     name.strip()
     name = name.replace(' ', '_').lower()
     model_name = name
-    psets = m.parametersets
-    code_test = [""]
+    psets = m.parametersets    
+    list_var=[]
+    init_var_in = []
+    init_var_out = []
+    for inp in m.inputs:
+        list_var.append(inp.name)
+        if hasattr(inp, "parametercategory"):
+            init_var_in.append(inp.name)  
+        elif inp.variablecategory=="exogenous":
+            init_var_in.append(inp.name)
+        elif inp.variablecategory=="state":
+            init_var_out.append(inp.name)
+    
+    if package is not None:
+        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package.replace("-", "_"))))
+    else:
+        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py")))
+    
+    import_test = f'import numpy\nfrom datetime import datetime\nfrom array import array\n'
+    import_test += f'import sys\n'
+    import_test += f'sys.path.append("{rel_dir_src}")\n'
+    import_test += f'from {signature1(model)} import model_{name}\n'
+    if m.initialization: import_test += f'from {name.lower()} import init_{name}\n'
+    code_test = [import_test]
     for v_tests in m.testsets:
 
         #test_name = v_tests.name  # name of tests
@@ -45,6 +72,7 @@ def generate_test_py(model,dir=None, package=None):
                 params.update(psets[test_paramsets].params)
             for each_run in test_runs:
                 test_codes = []
+                test_codes2 = []
 
                 # make a function that transforms a title into a function name
                 tname = list(each_run.keys())[0].replace(' ', '_')
@@ -53,65 +81,104 @@ def generate_test_py(model,dir=None, package=None):
                 (run, inouts) = list(each_run.items())[0]
                 ins = inouts['inputs']
                 outs = inouts['outputs']
-
-                code = "params= model_%s(" % model_name
-                test_codes.append(code)
-
+                name_categ = {}
                 run_param = params.copy()
                 run_param.update(ins)
+
+                for i, j in enumerate(m.inputs):
+                    if j.name not in list(run_param.keys()):
+                        run_param[j.name]=j.default 
+                    name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory
+                    
+                
                 for k, v in six.iteritems(run_param):
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
-                    code = tab + "%s = %s," % (k, transf(type_[0], v)) 
+                    code = "%s = %s" % (k, transf(type_[0], v)) 
+                    if m.initialization:
+                        if v and name_categ[k] != "state" and m.initialization :
+                            test_codes.append(code) 
+                    else:
+                        test_codes.append(code)
+
+                for k, v in six.iteritems(ins):
+                    type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
+                    code = "%s = %s" % (k, transf(type_[0], v)) 
+                    if v and name_categ[k] == "state" :
+                        test_codes2.append(code)                   
+
+                
+                if m.initialization: 
+                    code = ', '.join(init_var_out) + " = " + f"init_{signature1(m)}({','.join(init_var_in)})" 
                     test_codes.append(code)
-                code = "     )"
+                    test_codes.extend(test_codes2) 
+                code = "params= model_{0}({1})\n".format(model_name, ', '.join(list_var))
                 test_codes.append(code)
-
+                outnames = list(outs.keys())
                 for j, k in enumerate(m.outputs):
-                    if k.datatype in ("STRINGLIST", "DATELIST", "STRINGARRAY", "DATEARRAY"):
-                        code = "%s_estimated = " % k.name
-                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
-                        test_codes.append(code)
-                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
-                        test_codes.append(code)
-                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
-                        test_codes.append(code)
+                    if k.name in outnames:
+                        if k.datatype in ("STRINGLIST","STRINGARRAY"):
+                            code = "%s_estimated = " % k.name
+                            code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                            test_codes.append(code)
+                            code = "%s_computed = %s" % (k.name, outs[k.name][0])
+                            test_codes.append(code)
+                            code = "assert numpy.all(%s_computed == %s_estimated)"%(k.name, k.name)
+                            test_codes.append(code)
 
-                    if k.datatype in ("STRING", "BOOL", "INT", "DATE"):
-                        code = "%s_estimated =" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
-                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
-                        test_codes.append(code)
-                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
-                        test_codes.append(code)
-                        code = "assert %s_computed == %s_estimated"%(k.name, k.name)
-                        test_codes.append(code)
+                        if k.datatype in ("DATELIST","DATEARRAY"):
+                            code = "%s_estimated = " % k.name
+                            code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                            test_codes.append(code)
+                            code = "%s_computed = %s" % (k.name, transf("DATELIST",outs[k.name][0]))
+                            test_codes.append(code)
+                            code = "assert numpy.all(%s_computed == %s_estimated)"%(k.name, k.name)
+                            test_codes.append(code)
+                        
+                        if k.datatype == "DATE":
+                            code = "%s_estimated =" % (k.datatype.lower().capitalize())
+                            code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                            test_codes.append(code)
+                            code = "%s_computed = %s" % (k.name, transf("DATE",outs[k.name][0]))
+                            test_codes.append(code)
+                            code = "assert %s_computed == %s_estimated"%(k.name, k.name)
+                            test_codes.append(code)                        
 
-                    if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):              
-                        code = "%s_estimated = numpy.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = np.around(params, %s)"%(k.name,outs[k.name][1])
-                        test_codes.append(code)
-                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
-                        test_codes.append(code)
+                        if k.datatype in ("STRING", "BOOL", "INT"):
+                            code = "%s_estimated =" % (k.name if k.datatype !="BOOLEAN" else k.datatype.lower().capitalize())
+                            code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                            test_codes.append(code)
+                            code = "%s_computed = %s" % (k.name, outs[k.name][0])
+                            test_codes.append(code)
+                            code = "assert %s_computed == %s_estimated"%(k.name, k.name)
+                            test_codes.append(code)
 
-                        code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                        test_codes.append(code)
+                        if k.datatype in ("DOUBLELIST", "DOUBLEARRAY"):              
+                            code = "%s_estimated = numpy.around(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = numpy.around(params, %s)"%(k.name,outs[k.name][1])
+                            test_codes.append(code)
+                            code = "%s_computed = %s"%(k.name,outs[k.name][0]) if k.datatype=="DOUBLELIST" else "%s_computed = numpy.around(array('f', %s),%s)"%(k.name,outs[k.name][0], outs[k.name][1])
+                            test_codes.append(code)
 
-                    if k.datatype in ("INTLIST", "INTARRAY"):
-                        code = "%s_estimated =" % k.name
-                        code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
-                        test_codes.append(code)
-                        code = "%s_computed = %s" % (k.name, outs[k.name][0])
-                        test_codes.append(code)
-                        code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
-                        test_codes.append(code)
+                            code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                            test_codes.append(code)
 
-                    if k.datatype == "DOUBLE":
-                        code = "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
-                        test_codes.append(code)
+                        if k.datatype in ("INTLIST", "INTARRAY"):
+                            code = "%s_estimated =" % k.name
+                            code += "params[%s]" % (j) if len(m.outputs) > 1 else "params"
+                            test_codes.append(code)
+                            code = "%s_computed = %s" % (k.name, outs[k.name][0])
+                            test_codes.append(code)
+                            code = "assert numpy.all(%s_estimated == %s_computed)"%(k.name,k.name)
+                            test_codes.append(code)
 
-                        code = "%s_computed = %s"%(k.name,outs[k.name][0])
-                        test_codes.append(code)
+                        if k.datatype == "DOUBLE":
+                            code = "%s_estimated = round(params[%s], %s)"%(k.name,j,outs[k.name][1]) if len(m.outputs)>1 else "%s_estimated = round(params, %s)"%(k.name,outs[k.name][1])
+                            test_codes.append(code)
 
-                        code = "assert (%s_estimated == %s_computed)"%(k.name,k.name)
-                        test_codes.append(code)
+                            code = "%s_computed = %s"%(k.name,outs[k.name][0])
+                            test_codes.append(code)
+
+                            code = "assert (%s_estimated == %s_computed)"%(k.name,k.name)
+                            test_codes.append(code)
                 code = '\n'.join(test_codes)
                 code_test.append(code)
     return code_test
@@ -134,7 +201,7 @@ def generate_test_cpp(model, directory=None, package=None):
             render.generate_test_run(model)]
 
 def generate_test_r(model,dir, package=None):
-    return [render_r.Model2Package(model, dir).generate_test(model)]
+    return render_r.Model2Package(model, dir).generate_test(model, package)
 
 def generate_test_simplace(model,dir=None, package=None):
     pass

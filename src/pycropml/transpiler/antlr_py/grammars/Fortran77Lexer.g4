@@ -637,7 +637,7 @@ EOL
    : [\r\n] +
    ;
 LINECONT
-   : ((EOL '     $') | (EOL '     +')) -> skip
+   : ((EOL '     $') | (EOL '     +')) -> skip 
    ;
    
 WS

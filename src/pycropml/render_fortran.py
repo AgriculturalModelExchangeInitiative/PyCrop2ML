@@ -53,6 +53,7 @@ class Model2Package(object):
         _type = _input.datatype
         if _type=="DOUBLEARRAY" or _type=="INTARRAY" or _type =="STRINGARRAY": 
             size = _input.len
+            if not size: return ("%s(:) :: %s \n"%(self.DATATYPE[_type], name))
             return ("%s(%s) :: %s \n"%(self.DATATYPE[_type],size, name)) 
         else:
             return ("%s:: %s\n"%(self.DATATYPE[_type], name))            
@@ -65,6 +66,18 @@ class Model2Package(object):
         psets = m.parametersets
         list_var=[]
         list_inouts=[]
+        init_var_in = []
+        
+        # arguments of initialization function
+        for inp in m.inputs:
+            if "parametercategory" in dir(inp):
+                init_var_in.append(inp.name)  
+            elif inp.variablecategory=="exogenous":
+                init_var_in.append(inp.name)
+        for inp in m.inputs:
+             if "variablecategory" in dir(inp) and inp.variablecategory=="state":
+                init_var_in.append(inp.name)
+                
         for inp in m.inputs:
             list_var.append(inp.name)
             list_inouts.append(inp)
@@ -72,6 +85,7 @@ class Model2Package(object):
             if out.name not in list_var:
                 list_var.append(out.name)
                 list_inouts.append(out)
+                
         self.codetest = "PROGRAM test\n"
         self.codetest += tab+ "USE" + " %smod\n"%model_unit.name.capitalize()
         test_codes = []
@@ -94,27 +108,52 @@ class Model2Package(object):
                     (run, inouts) = list(each_run.items())[0]
                     ins = inouts['inputs']
                     outs = inouts['outputs']
+                    name_categ = {}
                     #code = "PROGRAM test_%s_%s \n"%(tname,m.name)
                     #code += tab+ "USE" + " %smod"%model_unit.name.capitalize()                    
                     #test_codes.append(code)
                     #test_codes.append('\n'.join(decl_ins))
-                    code = tab +'print *, "--------test_%s_%s-------" \n'%(tname,m.name)                                         
+                    code_ = tab +'print *, "--------test_%s_%s-------" \n'%(tname,m.name)  
+                    test_codes.append(code_)                                       
                     run_param = params.copy()
                     run_param.update(ins)
-                    for testinp in m.inputs:
-                        if testinp.name not in list(run_param.keys()):
-                            run_param[testinp.name]=testinp.default                                      
+                    
+                    for i, j in enumerate(m.inputs):
+                        if j.name not in list(run_param.keys()):
+                            run_param[j.name]=j.default 
+                            #if model_name=="canopytemperature": print("    ", run_param)                                     
+                        name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory
+                    
                     for k, v in six.iteritems(run_param):
                         typ = [inp.datatype for inp in list_inouts if inp.name == k][0]
-                        if typ == "STRING" or typ == "DATE": code += '    %s = "%s"\n'%(k,v.replace('"', ''))
-                        elif typ != "BOOLEAN" and typ != "STRINGLIST" and typ!= "DATELIST": code += "    %s = %s\n"%(k,v)
-                        elif typ == "BOOLEAN": code +="    %s = .%s.\n"%(k, v.capitalize())
+                        
+                        if typ == "STRING" or typ == "DATE": code = '    %s = "%s"\n'%(k,v.replace('"', ''))
+                        elif typ != "BOOLEAN" and typ != "STRINGLIST" and typ!= "DATELIST": 
+                            code = "    %s = %s\n"%(k,v)
+                        elif typ == "BOOLEAN": code ="    %s = .%s.\n"%(k, v.capitalize())
                         else:
                             value = ""
                             for val in eval(v):
                                 value += '    CALL Add(%s, "%s")\n'%(k,val)
-                            code += value
-                    test_codes.append(code)                        
+                            code = value
+                        if m.initialization:
+                            if v and name_categ[k] != "state" and m.initialization :
+                                test_codes.append(code) 
+                        else:
+                            test_codes.append(code)
+
+                    test_codes2 = []
+                    for k, v in six.iteritems(ins):
+                        type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
+                        code_ = "%s" % transf(type_, k, v)
+                        if v and name_categ[k] == "state" :
+                            test_codes2.append(code_)
+                        
+                    if m.initialization: 
+                        code="    call init_{0}({1})\n".format(model_name, ', '.join(init_var_in)) 
+                        test_codes.append(code)
+                        test_codes.extend(test_codes2)
+                                           
                     code="    call model_{0}({1})\n".format(model_name, ', '.join(list_var))
                     for k, v in six.iteritems(outs):
                         type_o = [out.datatype for out in m.outputs if out.name==k][0]     
@@ -160,10 +199,23 @@ def generate_doc(model):
     Author: %s
     Reference: %s
     Institution: %s
-    Abstract: %s
-""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.Abstract)
+    ExtendedDescription: %s
+    ShortDescription: %s
+""" %(desc.Title, desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
     code = '\n'
     code += _doc
     return code
 
+
+def transf(typ, k, v):
+    if typ == "STRING" or typ == "DATE": code = '    %s = "%s"\n'%(k,v.replace('"', ''))
+    elif typ != "BOOLEAN" and typ != "STRINGLIST" and typ!= "DATELIST": 
+        code = "    %s = %s\n"%(k,v)
+    elif typ == "BOOLEAN": code +="    %s = .%s.\n"%(k, v.capitalize())
+    else:
+        value = ""
+        for val in eval(v):
+            value += '    CALL Add(%s, "%s")\n'%(k,val)
+        code = value
+    return code
 

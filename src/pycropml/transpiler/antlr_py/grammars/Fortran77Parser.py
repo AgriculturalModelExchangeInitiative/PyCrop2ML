@@ -1,4 +1,4 @@
-# Generated from gram\fortran\Fortran77Parser.g4 by ANTLR 4.8
+# Generated from Fortran77Parser.g4 by ANTLR 4.8
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -1386,6 +1386,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCommentStatement" ):
                 listener.exitCommentStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCommentStatement" ):
+                return visitor.visitCommentStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -1454,6 +1460,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitProgram" ):
                 listener.exitProgram(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitProgram" ):
+                return visitor.visitProgram(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -1551,6 +1563,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitExecutableUnit" ):
                 listener.exitExecutableUnit(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitExecutableUnit" ):
+                return visitor.visitExecutableUnit(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -1621,6 +1639,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitMainProgram" ):
                 listener.exitMainProgram(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitMainProgram" ):
+                return visitor.visitMainProgram(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -1675,6 +1699,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitFunctionSubprogram" ):
                 listener.exitFunctionSubprogram(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFunctionSubprogram" ):
+                return visitor.visitFunctionSubprogram(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -1722,6 +1752,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitSubroutineSubprogram" ):
                 listener.exitSubroutineSubprogram(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubroutineSubprogram" ):
+                return visitor.visitSubroutineSubprogram(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -1768,6 +1804,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitBlockdataSubprogram" ):
                 listener.exitBlockdataSubprogram(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBlockdataSubprogram" ):
+                return visitor.visitBlockdataSubprogram(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -1823,6 +1865,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitOtherSpecificationStatement" ):
                 listener.exitOtherSpecificationStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitOtherSpecificationStatement" ):
+                return visitor.visitOtherSpecificationStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -1956,6 +2004,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitExecutableStatement" ):
                 listener.exitExecutableStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitExecutableStatement" ):
+                return visitor.visitExecutableStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2078,6 +2132,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitProgramStatement" ):
                 listener.exitProgramStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitProgramStatement" ):
+                return visitor.visitProgramStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2134,6 +2194,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitEntryStatement" ):
                 listener.exitEntryStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEntryStatement" ):
+                return visitor.visitEntryStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -2210,6 +2276,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitFunctionStatement" ):
                 listener.exitFunctionStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFunctionStatement" ):
+                return visitor.visitFunctionStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2284,6 +2356,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitBlockdataStatement" ):
                 listener.exitBlockdataStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBlockdataStatement" ):
+                return visitor.visitBlockdataStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2341,6 +2419,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitSubroutineStatement" ):
                 listener.exitSubroutineStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubroutineStatement" ):
+                return visitor.visitSubroutineStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -2420,6 +2504,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitNamelist" ):
                 listener.exitNamelist(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitNamelist" ):
+                return visitor.visitNamelist(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -2517,6 +2607,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitStatement" ):
                 listener.exitStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitStatement" ):
+                return visitor.visitStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -2642,6 +2738,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitSubprogramBody" ):
                 listener.exitSubprogramBody(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubprogramBody" ):
+                return visitor.visitSubprogramBody(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2724,6 +2826,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitWholeStatement" ):
                 listener.exitWholeStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitWholeStatement" ):
+                return visitor.visitWholeStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2778,6 +2886,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEndStatement" ):
                 listener.exitEndStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEndStatement" ):
+                return visitor.visitEndStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -2830,6 +2944,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDimensionStatement" ):
                 listener.exitDimensionStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDimensionStatement" ):
+                return visitor.visitDimensionStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -2885,6 +3005,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitArrayDeclarator" ):
                 listener.exitArrayDeclarator(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayDeclarator" ):
+                return visitor.visitArrayDeclarator(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -2947,6 +3073,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitArrayDeclarators" ):
                 listener.exitArrayDeclarators(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayDeclarators" ):
+                return visitor.visitArrayDeclarators(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -3011,6 +3143,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitArrayDeclaratorExtents" ):
                 listener.exitArrayDeclaratorExtents(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayDeclaratorExtents" ):
+                return visitor.visitArrayDeclaratorExtents(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3073,6 +3211,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitArrayDeclaratorExtent" ):
                 listener.exitArrayDeclaratorExtent(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayDeclaratorExtent" ):
+                return visitor.visitArrayDeclaratorExtent(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -3163,6 +3307,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEquivalenceStatement" ):
                 listener.exitEquivalenceStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEquivalenceStatement" ):
+                return visitor.visitEquivalenceStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3234,6 +3384,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEquivEntityGroup" ):
                 listener.exitEquivEntityGroup(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEquivEntityGroup" ):
+                return visitor.visitEquivEntityGroup(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3292,6 +3448,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEquivEntity" ):
                 listener.exitEquivEntity(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEquivEntity" ):
+                return visitor.visitEquivEntity(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3348,6 +3510,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitCommonStatement" ):
                 listener.exitCommonStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCommonStatement" ):
+                return visitor.visitCommonStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -3422,6 +3590,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCommonName" ):
                 listener.exitCommonName(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCommonName" ):
+                return visitor.visitCommonName(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3481,6 +3655,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitCommonItem" ):
                 listener.exitCommonItem(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCommonItem" ):
+                return visitor.visitCommonItem(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -3545,6 +3725,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCommonItems" ):
                 listener.exitCommonItems(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCommonItems" ):
+                return visitor.visitCommonItems(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3603,6 +3789,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCommonBlock" ):
                 listener.exitCommonBlock(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCommonBlock" ):
+                return visitor.visitCommonBlock(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3657,6 +3849,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitTypeStatement" ):
                 listener.exitTypeStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypeStatement" ):
+                return visitor.visitTypeStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -3725,6 +3923,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitTypeStatementNameList" ):
                 listener.exitTypeStatementNameList(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypeStatementNameList" ):
+                return visitor.visitTypeStatementNameList(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3781,6 +3985,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitTypeStatementName" ):
                 listener.exitTypeStatementName(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypeStatementName" ):
+                return visitor.visitTypeStatementName(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -3845,6 +4055,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitTypeStatementNameCharList" ):
                 listener.exitTypeStatementNameCharList(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypeStatementNameCharList" ):
+                return visitor.visitTypeStatementNameCharList(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3903,6 +4119,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitTypeStatementNameChar" ):
                 listener.exitTypeStatementNameChar(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypeStatementNameChar" ):
+                return visitor.visitTypeStatementNameChar(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -3955,6 +4177,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitTypeStatementLenSpec" ):
                 listener.exitTypeStatementLenSpec(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypeStatementLenSpec" ):
+                return visitor.visitTypeStatementLenSpec(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4021,6 +4249,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitTypename_" ):
                 listener.exitTypename_(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypename_" ):
+                return visitor.visitTypename_(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4125,6 +4359,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitType_" ):
                 listener.exitType_(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitType_" ):
+                return visitor.visitType_(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4181,6 +4421,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitTypenameLen" ):
                 listener.exitTypenameLen(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTypenameLen" ):
+                return visitor.visitTypenameLen(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4235,6 +4481,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitPointerStatement" ):
                 listener.exitPointerStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitPointerStatement" ):
+                return visitor.visitPointerStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4303,6 +4555,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitPointerDecl" ):
                 listener.exitPointerDecl(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitPointerDecl" ):
+                return visitor.visitPointerDecl(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4358,6 +4616,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitImplicitStatement" ):
                 listener.exitImplicitStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitStatement" ):
+                return visitor.visitImplicitStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4424,6 +4688,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitImplicitSpec" ):
                 listener.exitImplicitSpec(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitSpec" ):
+                return visitor.visitImplicitSpec(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4480,6 +4750,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitImplicitSpecs" ):
                 listener.exitImplicitSpecs(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitSpecs" ):
+                return visitor.visitImplicitSpecs(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4533,6 +4809,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitImplicitNone" ):
                 listener.exitImplicitNone(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitNone" ):
+                return visitor.visitImplicitNone(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4572,6 +4854,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitImplicitLetter" ):
                 listener.exitImplicitLetter(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitLetter" ):
+                return visitor.visitImplicitLetter(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4619,6 +4907,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitImplicitRange" ):
                 listener.exitImplicitRange(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitRange" ):
+                return visitor.visitImplicitRange(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4680,6 +4974,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitImplicitLetters" ):
                 listener.exitImplicitLetters(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitImplicitLetters" ):
+                return visitor.visitImplicitLetters(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4755,6 +5055,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitLenSpecification" ):
                 listener.exitLenSpecification(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLenSpecification" ):
+                return visitor.visitLenSpecification(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4834,6 +5140,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCharacterWithLen" ):
                 listener.exitCharacterWithLen(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCharacterWithLen" ):
+                return visitor.visitCharacterWithLen(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4887,6 +5199,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCwlLen" ):
                 listener.exitCwlLen(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCwlLen" ):
+                return visitor.visitCwlLen(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -4938,6 +5256,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitParameterStatement" ):
                 listener.exitParameterStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitParameterStatement" ):
+                return visitor.visitParameterStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -4994,6 +5318,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitParamlist" ):
                 listener.exitParamlist(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitParamlist" ):
+                return visitor.visitParamlist(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5055,6 +5385,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitParamassign" ):
                 listener.exitParamassign(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitParamassign" ):
+                return visitor.visitParamassign(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5103,6 +5439,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitExternalStatement" ):
                 listener.exitExternalStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitExternalStatement" ):
+                return visitor.visitExternalStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5148,6 +5490,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitIntrinsicStatement" ):
                 listener.exitIntrinsicStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIntrinsicStatement" ):
+                return visitor.visitIntrinsicStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5203,6 +5551,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitSaveStatement" ):
                 listener.exitSaveStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSaveStatement" ):
+                return visitor.visitSaveStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5270,6 +5624,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitSaveEntity" ):
                 listener.exitSaveEntity(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSaveEntity" ):
+                return visitor.visitSaveEntity(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5340,6 +5700,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDataStatement" ):
                 listener.exitDataStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataStatement" ):
+                return visitor.visitDataStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5406,6 +5772,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDataStatementItem" ):
                 listener.exitDataStatementItem(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataStatementItem" ):
+                return visitor.visitDataStatementItem(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5471,6 +5843,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDataStatementMultiple" ):
                 listener.exitDataStatementMultiple(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataStatementMultiple" ):
+                return visitor.visitDataStatementMultiple(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5545,6 +5923,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDataStatementEntity" ):
                 listener.exitDataStatementEntity(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataStatementEntity" ):
+                return visitor.visitDataStatementEntity(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5599,6 +5983,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDse1" ):
                 listener.exitDse1(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDse1" ):
+                return visitor.visitDse1(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5667,6 +6057,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDse2" ):
                 listener.exitDse2(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDse2" ):
+                return visitor.visitDse2(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5737,6 +6133,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDataImpliedDo" ):
                 listener.exitDataImpliedDo(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataImpliedDo" ):
+                return visitor.visitDataImpliedDo(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5800,6 +6202,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDataImpliedDoRange" ):
                 listener.exitDataImpliedDoRange(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataImpliedDoRange" ):
+                return visitor.visitDataImpliedDoRange(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5868,6 +6276,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDataImpliedDoList" ):
                 listener.exitDataImpliedDoList(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataImpliedDoList" ):
+                return visitor.visitDataImpliedDoList(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -5927,6 +6341,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDataImpliedDoListWhat" ):
                 listener.exitDataImpliedDoListWhat(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDataImpliedDoListWhat" ):
+                return visitor.visitDataImpliedDoListWhat(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -5999,6 +6419,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitGotoStatement" ):
                 listener.exitGotoStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitGotoStatement" ):
+                return visitor.visitGotoStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6066,6 +6492,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitUnconditionalGoto" ):
                 listener.exitUnconditionalGoto(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitUnconditionalGoto" ):
+                return visitor.visitUnconditionalGoto(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6119,6 +6551,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitComputedGoto" ):
                 listener.exitComputedGoto(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitComputedGoto" ):
+                return visitor.visitComputedGoto(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -6175,6 +6613,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLblRef" ):
                 listener.exitLblRef(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLblRef" ):
+                return visitor.visitLblRef(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6224,6 +6668,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitLabelList" ):
                 listener.exitLabelList(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLabelList" ):
+                return visitor.visitLabelList(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -6290,6 +6740,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitAssignedGoto" ):
                 listener.exitAssignedGoto(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAssignedGoto" ):
+                return visitor.visitAssignedGoto(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -6374,6 +6830,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIfStatement" ):
                 listener.exitIfStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIfStatement" ):
+                return visitor.visitIfStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6449,6 +6911,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitArithmeticIfStatement" ):
                 listener.exitArithmeticIfStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArithmeticIfStatement" ):
+                return visitor.visitArithmeticIfStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6497,6 +6965,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitLogicalIfStatement" ):
                 listener.exitLogicalIfStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLogicalIfStatement" ):
+                return visitor.visitLogicalIfStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -6553,6 +7027,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitBlockIfStatement" ):
                 listener.exitBlockIfStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBlockIfStatement" ):
+                return visitor.visitBlockIfStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -6632,6 +7112,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitFirstIfBlock" ):
                 listener.exitFirstIfBlock(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFirstIfBlock" ):
+                return visitor.visitFirstIfBlock(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -6743,6 +7229,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitElseIfStatement" ):
                 listener.exitElseIfStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitElseIfStatement" ):
+                return visitor.visitElseIfStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6843,6 +7335,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitElseStatement" ):
                 listener.exitElseStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitElseStatement" ):
+                return visitor.visitElseStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6930,6 +7428,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEndIfStatement" ):
                 listener.exitEndIfStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEndIfStatement" ):
+                return visitor.visitEndIfStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -6991,6 +7495,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDoStatement" ):
                 listener.exitDoStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDoStatement" ):
+                return visitor.visitDoStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7062,6 +7572,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDoVarArgs" ):
                 listener.exitDoVarArgs(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDoVarArgs" ):
+                return visitor.visitDoVarArgs(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7144,6 +7660,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDoWithLabel" ):
                 listener.exitDoWithLabel(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDoWithLabel" ):
+                return visitor.visitDoWithLabel(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7219,6 +7741,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitDoBody" ):
                 listener.exitDoBody(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDoBody" ):
+                return visitor.visitDoBody(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7285,6 +7813,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitDoWithEndDo" ):
                 listener.exitDoWithEndDo(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitDoWithEndDo" ):
+                return visitor.visitDoWithEndDo(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7353,6 +7887,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEnddoStatement" ):
                 listener.exitEnddoStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEnddoStatement" ):
+                return visitor.visitEnddoStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7414,6 +7954,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitContinueStatement" ):
                 listener.exitContinueStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitContinueStatement" ):
+                return visitor.visitContinueStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7470,6 +8016,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitStopStatement" ):
                 listener.exitStopStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitStopStatement" ):
+                return visitor.visitStopStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7530,6 +8082,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitPauseStatement" ):
                 listener.exitPauseStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitPauseStatement" ):
+                return visitor.visitPauseStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7601,6 +8159,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitWriteStatement" ):
                 listener.exitWriteStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitWriteStatement" ):
+                return visitor.visitWriteStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7692,6 +8256,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitReadStatement" ):
                 listener.exitReadStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitReadStatement" ):
+                return visitor.visitReadStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7773,6 +8343,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitPrintStatement" ):
                 listener.exitPrintStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitPrintStatement" ):
+                return visitor.visitPrintStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7845,6 +8421,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitAssignmentStatement" ):
                 listener.exitAssignmentStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAssignmentStatement" ):
+                return visitor.visitAssignmentStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -7898,6 +8480,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlInfoList" ):
                 listener.exitControlInfoList(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlInfoList" ):
+                return visitor.visitControlInfoList(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -7962,6 +8550,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlErrSpec" ):
                 listener.exitControlErrSpec(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlErrSpec" ):
+                return visitor.visitControlErrSpec(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8068,6 +8662,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlInfoListItem" ):
                 listener.exitControlInfoListItem(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlInfoListItem" ):
+                return visitor.visitControlInfoListItem(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8204,6 +8804,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIoList" ):
                 listener.exitIoList(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIoList" ):
+                return visitor.visitIoList(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -8302,6 +8908,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIoListItem" ):
                 listener.exitIoListItem(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIoListItem" ):
+                return visitor.visitIoListItem(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -8391,6 +9003,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIoImpliedDoList" ):
                 listener.exitIoImpliedDoList(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIoImpliedDoList" ):
+                return visitor.visitIoImpliedDoList(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -8476,6 +9094,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitOpenStatement" ):
                 listener.exitOpenStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitOpenStatement" ):
+                return visitor.visitOpenStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8591,6 +9215,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitOpenControl" ):
                 listener.exitOpenControl(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitOpenControl" ):
+                return visitor.visitOpenControl(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8729,6 +9359,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlFmt" ):
                 listener.exitControlFmt(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlFmt" ):
+                return visitor.visitControlFmt(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -8768,6 +9404,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlUnit" ):
                 listener.exitControlUnit(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlUnit" ):
+                return visitor.visitControlUnit(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8809,6 +9451,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlRec" ):
                 listener.exitControlRec(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlRec" ):
+                return visitor.visitControlRec(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -8848,6 +9496,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlEnd" ):
                 listener.exitControlEnd(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlEnd" ):
+                return visitor.visitControlEnd(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8889,6 +9543,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlErr" ):
                 listener.exitControlErr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlErr" ):
+                return visitor.visitControlErr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -8928,6 +9588,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlIostat" ):
                 listener.exitControlIostat(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlIostat" ):
+                return visitor.visitControlIostat(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -8969,6 +9635,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlFile" ):
                 listener.exitControlFile(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlFile" ):
+                return visitor.visitControlFile(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9008,6 +9680,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlStatus" ):
                 listener.exitControlStatus(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlStatus" ):
+                return visitor.visitControlStatus(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9049,6 +9727,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlAccess" ):
                 listener.exitControlAccess(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlAccess" ):
+                return visitor.visitControlAccess(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9088,6 +9772,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlPosition" ):
                 listener.exitControlPosition(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlPosition" ):
+                return visitor.visitControlPosition(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9129,6 +9819,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlForm" ):
                 listener.exitControlForm(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlForm" ):
+                return visitor.visitControlForm(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9168,6 +9864,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlRecl" ):
                 listener.exitControlRecl(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlRecl" ):
+                return visitor.visitControlRecl(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9209,6 +9911,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlBlank" ):
                 listener.exitControlBlank(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlBlank" ):
+                return visitor.visitControlBlank(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9248,6 +9956,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlExist" ):
                 listener.exitControlExist(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlExist" ):
+                return visitor.visitControlExist(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9289,6 +10003,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlOpened" ):
                 listener.exitControlOpened(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlOpened" ):
+                return visitor.visitControlOpened(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9328,6 +10048,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlNumber" ):
                 listener.exitControlNumber(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlNumber" ):
+                return visitor.visitControlNumber(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9369,6 +10095,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlNamed" ):
                 listener.exitControlNamed(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlNamed" ):
+                return visitor.visitControlNamed(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9408,6 +10140,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlName" ):
                 listener.exitControlName(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlName" ):
+                return visitor.visitControlName(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9449,6 +10187,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlSequential" ):
                 listener.exitControlSequential(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlSequential" ):
+                return visitor.visitControlSequential(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9488,6 +10232,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlDirect" ):
                 listener.exitControlDirect(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlDirect" ):
+                return visitor.visitControlDirect(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9529,6 +10279,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlFormatted" ):
                 listener.exitControlFormatted(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlFormatted" ):
+                return visitor.visitControlFormatted(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9569,6 +10325,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitControlUnformatted" ):
                 listener.exitControlUnformatted(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlUnformatted" ):
+                return visitor.visitControlUnformatted(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -9608,6 +10370,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitControlNextrec" ):
                 listener.exitControlNextrec(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitControlNextrec" ):
+                return visitor.visitControlNextrec(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9667,6 +10435,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitCloseStatement" ):
                 listener.exitCloseStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCloseStatement" ):
+                return visitor.visitCloseStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9754,6 +10528,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitCloseControl" ):
                 listener.exitCloseControl(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCloseControl" ):
+                return visitor.visitCloseControl(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9853,6 +10633,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitInquireStatement" ):
                 listener.exitInquireStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitInquireStatement" ):
+                return visitor.visitInquireStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -9996,6 +10782,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitInquireControl" ):
                 listener.exitInquireControl(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitInquireControl" ):
+                return visitor.visitInquireControl(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -10161,6 +10953,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitBackspaceStatement" ):
                 listener.exitBackspaceStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBackspaceStatement" ):
+                return visitor.visitBackspaceStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -10207,6 +11005,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEndfileStatement" ):
                 listener.exitEndfileStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEndfileStatement" ):
+                return visitor.visitEndfileStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -10252,6 +11056,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitRewindStatement" ):
                 listener.exitRewindStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitRewindStatement" ):
+                return visitor.visitRewindStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -10317,6 +11127,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitBerFinish" ):
                 listener.exitBerFinish(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBerFinish" ):
+                return visitor.visitBerFinish(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -10410,6 +11226,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitBerFinishItem" ):
                 listener.exitBerFinishItem(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitBerFinishItem" ):
+                return visitor.visitBerFinishItem(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -10485,6 +11307,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitUnitIdentifier" ):
                 listener.exitUnitIdentifier(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitUnitIdentifier" ):
+                return visitor.visitUnitIdentifier(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -10547,6 +11375,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitFormatIdentifier" ):
                 listener.exitFormatIdentifier(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFormatIdentifier" ):
+                return visitor.visitFormatIdentifier(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -10622,6 +11456,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitFormatStatement" ):
                 listener.exitFormatStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFormatStatement" ):
+                return visitor.visitFormatStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -10684,6 +11524,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitFmtSpec" ):
                 listener.exitFmtSpec(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFmtSpec" ):
+                return visitor.visitFmtSpec(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -10804,6 +11650,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitFormatsep" ):
                 listener.exitFormatsep(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFormatsep" ):
+                return visitor.visitFormatsep(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -10865,6 +11717,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitFormatedit" ):
                 listener.exitFormatedit(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFormatedit" ):
+                return visitor.visitFormatedit(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -10980,6 +11838,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitEditElement" ):
                 listener.exitEditElement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitEditElement" ):
+                return visitor.visitEditElement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11054,6 +11918,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitStatementFunctionStatement" ):
                 listener.exitStatementFunctionStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitStatementFunctionStatement" ):
+                return visitor.visitStatementFunctionStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11110,6 +11980,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitSfArgs" ):
                 listener.exitSfArgs(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSfArgs" ):
+                return visitor.visitSfArgs(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11159,6 +12035,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitCallStatement" ):
                 listener.exitCallStatement(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCallStatement" ):
+                return visitor.visitCallStatement(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -11211,6 +12093,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitSubroutineCall" ):
                 listener.exitSubroutineCall(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubroutineCall" ):
+                return visitor.visitSubroutineCall(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -11281,6 +12169,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCallArgumentList" ):
                 listener.exitCallArgumentList(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCallArgumentList" ):
+                return visitor.visitCallArgumentList(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11342,6 +12236,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitCallArgument" ):
                 listener.exitCallArgument(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCallArgument" ):
+                return visitor.visitCallArgument(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11401,6 +12301,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitReturnStatement" ):
                 listener.exitReturnStatement(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitReturnStatement" ):
+                return visitor.visitReturnStatement(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11456,6 +12362,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitExpression" ):
                 listener.exitExpression(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitExpression" ):
+                return visitor.visitExpression(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -11518,6 +12430,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitNcExpr" ):
                 listener.exitNcExpr(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitNcExpr" ):
+                return visitor.visitNcExpr(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -11588,6 +12506,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLexpr0" ):
                 listener.exitLexpr0(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLexpr0" ):
+                return visitor.visitLexpr0(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11656,6 +12580,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLexpr1" ):
                 listener.exitLexpr1(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLexpr1" ):
+                return visitor.visitLexpr1(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11719,6 +12649,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLexpr2" ):
                 listener.exitLexpr2(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLexpr2" ):
+                return visitor.visitLexpr2(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11779,6 +12715,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitLexpr3" ):
                 listener.exitLexpr3(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLexpr3" ):
+                return visitor.visitLexpr3(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -11857,6 +12799,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLexpr4" ):
                 listener.exitLexpr4(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLexpr4" ):
+                return visitor.visitLexpr4(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -11928,6 +12876,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitAexpr0" ):
                 listener.exitAexpr0(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAexpr0" ):
+                return visitor.visitAexpr0(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -12004,6 +12958,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitAexpr1" ):
                 listener.exitAexpr1(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAexpr1" ):
+                return visitor.visitAexpr1(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12076,6 +13036,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitAexpr2" ):
                 listener.exitAexpr2(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAexpr2" ):
+                return visitor.visitAexpr2(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12141,6 +13107,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitAexpr3" ):
                 listener.exitAexpr3(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAexpr3" ):
+                return visitor.visitAexpr3(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -12219,6 +13191,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitAexpr4" ):
                 listener.exitAexpr4(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitAexpr4" ):
+                return visitor.visitAexpr4(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -12317,6 +13295,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIexpr" ):
                 listener.exitIexpr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIexpr" ):
+                return visitor.visitIexpr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12392,6 +13376,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIexprCode" ):
                 listener.exitIexprCode(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIexprCode" ):
+                return visitor.visitIexprCode(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12466,6 +13456,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIexpr1" ):
                 listener.exitIexpr1(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIexpr1" ):
+                return visitor.visitIexpr1(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12538,6 +13534,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIexpr2" ):
                 listener.exitIexpr2(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIexpr2" ):
+                return visitor.visitIexpr2(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12601,6 +13603,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitIexpr3" ):
                 listener.exitIexpr3(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIexpr3" ):
+                return visitor.visitIexpr3(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -12667,6 +13675,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIexpr4" ):
                 listener.exitIexpr4(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIexpr4" ):
+                return visitor.visitIexpr4(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12730,6 +13744,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitConstantExpr" ):
                 listener.exitConstantExpr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitConstantExpr" ):
+                return visitor.visitConstantExpr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12770,6 +13790,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitArithmeticExpression" ):
                 listener.exitArithmeticExpression(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArithmeticExpression" ):
+                return visitor.visitArithmeticExpression(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -12812,6 +13838,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIntegerExpr" ):
                 listener.exitIntegerExpr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIntegerExpr" ):
+                return visitor.visitIntegerExpr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12852,6 +13884,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitIntRealDpExpr" ):
                 listener.exitIntRealDpExpr(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIntRealDpExpr" ):
+                return visitor.visitIntRealDpExpr(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -12894,6 +13932,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitArithmeticConstExpr" ):
                 listener.exitArithmeticConstExpr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArithmeticConstExpr" ):
+                return visitor.visitArithmeticConstExpr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12935,6 +13979,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIntConstantExpr" ):
                 listener.exitIntConstantExpr(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIntConstantExpr" ):
+                return visitor.visitIntConstantExpr(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -12975,6 +14025,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitCharacterExpression" ):
                 listener.exitCharacterExpression(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitCharacterExpression" ):
+                return visitor.visitCharacterExpression(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13019,6 +14075,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitConcatOp" ):
                 listener.exitConcatOp(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitConcatOp" ):
+                return visitor.visitConcatOp(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13062,6 +14124,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLogicalExpression" ):
                 listener.exitLogicalExpression(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLogicalExpression" ):
+                return visitor.visitLogicalExpression(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13102,6 +14170,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitLogicalConstExpr" ):
                 listener.exitLogicalConstExpr(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLogicalConstExpr" ):
+                return visitor.visitLogicalConstExpr(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13161,6 +14235,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitArrayElementName" ):
                 listener.exitArrayElementName(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayElementName" ):
+                return visitor.visitArrayElementName(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13237,6 +14317,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitSubscripts" ):
                 listener.exitSubscripts(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubscripts" ):
+                return visitor.visitSubscripts(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13311,6 +14397,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitVarRef" ):
                 listener.exitVarRef(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitVarRef" ):
+                return visitor.visitVarRef(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13381,6 +14473,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitVarRefCode" ):
                 listener.exitVarRefCode(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitVarRefCode" ):
+                return visitor.visitVarRefCode(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13450,6 +14548,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitSubstringApp" ):
                 listener.exitSubstringApp(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubstringApp" ):
+                return visitor.visitSubstringApp(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13511,6 +14615,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitVariableName" ):
                 listener.exitVariableName(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitVariableName" ):
+                return visitor.visitVariableName(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13550,6 +14660,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitArrayName" ):
                 listener.exitArrayName(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitArrayName" ):
+                return visitor.visitArrayName(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13591,6 +14707,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitSubroutineName" ):
                 listener.exitSubroutineName(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitSubroutineName" ):
+                return visitor.visitSubroutineName(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13630,6 +14752,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitFunctionName" ):
                 listener.exitFunctionName(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitFunctionName" ):
+                return visitor.visitFunctionName(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13687,6 +14815,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitConstant" ):
                 listener.exitConstant(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitConstant" ):
+                return visitor.visitConstant(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13771,6 +14905,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitUnsignedArithmeticConstant" ):
                 listener.exitUnsignedArithmeticConstant(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitUnsignedArithmeticConstant" ):
+                return visitor.visitUnsignedArithmeticConstant(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
@@ -13861,6 +15001,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitComplexConstant" ):
                 listener.exitComplexConstant(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitComplexConstant" ):
+                return visitor.visitComplexConstant(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13949,6 +15095,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitLogicalConstant" ):
                 listener.exitLogicalConstant(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitLogicalConstant" ):
+                return visitor.visitLogicalConstant(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -13998,6 +15150,12 @@ class Fortran77Parser ( Parser ):
             if hasattr( listener, "exitIdentifier" ):
                 listener.exitIdentifier(self)
 
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitIdentifier" ):
+                return visitor.visitIdentifier(self)
+            else:
+                return visitor.visitChildren(self)
+
 
 
 
@@ -14043,6 +15201,12 @@ class Fortran77Parser ( Parser ):
         def exitRule(self, listener:ParseTreeListener):
             if hasattr( listener, "exitTo" ):
                 listener.exitTo(self)
+
+        def accept(self, visitor:ParseTreeVisitor):
+            if hasattr( visitor, "visitTo" ):
+                return visitor.visitTo(self)
+            else:
+                return visitor.visitChildren(self)
 
 
 
