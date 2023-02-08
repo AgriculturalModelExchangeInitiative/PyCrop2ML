@@ -87,7 +87,10 @@ Example
     elif opts.component:
         sourcef = component = opts.component
     else:
-        sourcef = args[0]
+        if len(args)==0: 
+            parser.print_usage()
+            return
+        else: sourcef = args[0]
 
     sourcef = Path(sourcef)
     if not sourcef.exists():

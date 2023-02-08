@@ -96,6 +96,7 @@ class BiomaExtraction(MetaExtraction):
         """
         self.getTypeNode(tree, "propertyDef")
         prop =  {m.name :m.get[0].value.name for m in self.getTree if "name" in dir(m.get[0].value)}
+        print(prop)
         
         self.getTypeNode(dclass, "propertyDef")
         prop2 =  {m.get[0].value.member:m.name for m in self.getTree if "name" in dir(m.get[0].value)}
@@ -206,6 +207,7 @@ class BiomaExtraction(MetaExtraction):
                                     vi[att] = b.value.value
                                 if b.value.type == "unary_op": vi[att] = "%s%s"%(b.value.operator, b.value.value.value)
                             if att == "ValueType" and b.target.member == "ValueType" :
+                                print(v, category)
                                 vi[att] = mapType[b.value.args[0].value.decode('utf-8')]
                         vi["category"] = category
                         if isinstance(prop3[k], list): vi["len"] = prop3[k][0]
@@ -237,6 +239,7 @@ class BiomaExtraction(MetaExtraction):
     
     def getAlgo(self, tree):
         meth = self.getmethod(tree, "CalculateModel")
+        if not meth: meth = self.getmethod(tree, "Estimate")
         return meth
     
     def getInit(self, tree):
@@ -486,7 +489,8 @@ mapType = {"Integer":"INT",
            "ListString":"STRINGLIST",
            "ListDate":"DATELIST",
            "Boolean": "BOOLEAN",
-           "ArrayDouble":"DOUBLEARRAY"}
+           "ArrayDouble":"DOUBLEARRAY",
+           "ArrayInt":"INTARRAY"}
 
 
 

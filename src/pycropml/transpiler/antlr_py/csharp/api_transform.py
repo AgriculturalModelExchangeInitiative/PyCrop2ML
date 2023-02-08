@@ -301,7 +301,7 @@ METHOD_API = {
 
     'array': {
             'append':   StandardMethodCall('array', 'append'),
-            'Count':    StandardMethodCall('array', 'len', expander=len_expander),
+            'Length':    StandardMethodCall('array', 'len', expander=len_expander),
     },
 
     'tuple': {
@@ -312,6 +312,9 @@ PROPERTY_API = {
     
     "List":{
         "Count": StandardMethodCall("List", "len", expander=len_expander)
+    },
+    "array":{
+        "Length": StandardMethodCall("array", "len", expander=len_expander)
     }
     
 }

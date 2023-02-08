@@ -8,11 +8,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
 import pycropml.test_generator
-from pycropml import render_fortran
 import os
-from pycropml.composition import model_parser
-from . import render_python as rp
-from importlib import reload
 import sys
 
 # The package used to generate Notebook
