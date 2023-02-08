@@ -8,11 +8,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
 import pycropml.test_generator
-from pycropml import render_fortran
 import os
-from pycropml.composition import model_parser
-from . import render_python as rp
-from importlib import reload
 import sys
 
 # The package used to generate Notebook
@@ -90,6 +86,6 @@ class Model2Nb(object):
         fname = Path(os.path.join(self.dir, "%s.ipynb" % self.name))
         if sys.version_info[0] >= 3:
             with open(file=fname, mode="w", encoding='utf-8') as f:
-                nbf.write(self.nb, f)
+                nbf.write(self.nb, f) 
 
 
