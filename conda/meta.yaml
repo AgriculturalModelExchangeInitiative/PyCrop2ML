@@ -37,8 +37,11 @@ requirements:
 
 
 test:
+  imports: 
+    - pycropml
   commands:
-    - cyml -h
+    - cyml  # [unix]
+    - cyml.exe # [win]
 
 
 about:
