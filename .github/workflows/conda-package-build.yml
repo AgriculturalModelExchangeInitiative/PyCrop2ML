@@ -14,29 +14,26 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        os: [ macosx-latest]
+        os: [ ubuntu-latest, windows-latest]
         python-minor-version: [7]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
         exclude:
           - isMaster: false
             os: ubuntu-latest
-            python-minor-version: 9
-          - isMaster: false
-            os: ubuntu-latest
             python-minor-version: 8
           - isMaster: false
             os: ubuntu-latest
-            python-minor-version: 7            
-          - isMaster: false
-            os: macos-latest
-            python-minor-version: 8
-          - isMaster: false
-            os: macos-latest
             python-minor-version: 9
           - isMaster: false
-            os: windows-latest
+            os: macos-latest
             python-minor-version: 7
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 8
+          - isMaster: false
+            os: macos-latest
+            python-minor-version: 9
           - isMaster: false
             os: windows-latest
             python-minor-version: 8
