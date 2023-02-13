@@ -30,17 +30,17 @@ requirements:
     - nbformat
     - ipython
     - nbsphinx
-    - graphviz
-    - pydot
+    #- graphviz
+    #- pydot
     - xmlformatter
-    - openalea.core
+    #- openalea.core
 
 
 test:
   imports: 
     - pycropml
-  commands:
-    - cyml -h # [unix]
+  #commands:
+    #- cyml -h # [unix]
 
 
 about:
