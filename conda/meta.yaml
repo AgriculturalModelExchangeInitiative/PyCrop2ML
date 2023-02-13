@@ -31,9 +31,9 @@ requirements:
     - nbformat
     - ipython
     - nbsphinx
-    #- graphviz
-    #- pydot
-    #- openalea.core
+    - graphviz
+    - pydot
+    - openalea.core
 
 
 test:
