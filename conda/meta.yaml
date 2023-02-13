@@ -37,9 +37,8 @@ requirements:
 
 
 test:
-  commands:
-    - cyml -h   # [unix]
-
+  imports:
+    - pycropml
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
