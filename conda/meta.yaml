@@ -19,9 +19,10 @@ requirements:
     - setuptools
   run:
     - python {{PY_VER}}
+    - antlr4-python3-runtime ==4.8
     - cython
     - path
-    - {{ pin_compatible('numpy',    max_pin='x.x') }}
+    - numpy
     - pyyaml
     - six
     - networkx
@@ -33,7 +34,6 @@ requirements:
     - pydot
     - xmlformatter
     - openalea.core
-    - antlr4-python3-runtime ==4.8
 
 
 test:
