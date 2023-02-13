@@ -28,9 +28,9 @@ requirements:
     - six
     - networkx
     - unyt
-    #- nbformat
-    #- ipython
-    #- nbsphinx
+    - nbformat
+    - ipython
+    - nbsphinx
     #- graphviz
     #- pydot
     #- openalea.core
