@@ -40,8 +40,8 @@ test:
   imports: 
     - pycropml
   commands:
-    - cyml # [unix]
-    - cyml.exe # [win]
+    - cyml -h # [unix]
+    - cyml.exe -h # [win]
 
 
 about:
