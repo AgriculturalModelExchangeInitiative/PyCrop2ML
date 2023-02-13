@@ -19,8 +19,9 @@ requirements:
     - setuptools
   run:
     - python {{PY_VER}}
-    - antlr4-python3-runtime  ==4.8
-    #- cython
+    - antlr4-python3-runtime  <4.9
+    - cython
+    - xmlformatter
     #- path
     #- numpy
     #- pyyaml
@@ -32,15 +33,12 @@ requirements:
     #- nbsphinx
     #- graphviz
     #- pydot
-    - xmlformatter
     #- openalea.core
 
 
 test:
   imports: 
     - pycropml
-  #commands:
-    #- cyml -h # [unix]
 
 
 about:
