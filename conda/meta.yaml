@@ -30,9 +30,9 @@ requirements:
     - ipython
     - nbsphinx
     #- graphviz
-    #- pydot
+    - pydot
     - xmlformatter
-    #- openalea.core
+    - openalea.core
     - antlr4-python3-runtime ==4.8
 
 
