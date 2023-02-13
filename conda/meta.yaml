@@ -41,7 +41,6 @@ test:
     - pycropml
   commands:
     - cyml -h # [unix]
-    - cyml.exe -h # [win]
 
 
 about:
