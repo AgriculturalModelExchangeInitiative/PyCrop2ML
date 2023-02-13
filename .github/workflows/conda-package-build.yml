@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        os: [ ubuntu-latest, windows-latest]
+        os: [ ubuntu-latest, windows-latest, macos-latest]
         python-minor-version: [7]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
@@ -25,9 +25,6 @@ jobs:
           - isMaster: false
             os: ubuntu-latest
             python-minor-version: 9
-          - isMaster: false
-            os: macos-latest
-            python-minor-version: 7
           - isMaster: false
             os: macos-latest
             python-minor-version: 8
@@ -55,9 +52,9 @@ jobs:
       uses: openalea/action-build-publish-anaconda@v0.1.4
       with:
         conda: conda
-        mamba: false
+        mamba: true
+        numpy: '21.6'
         python: ${{ matrix.python-minor-version }}
-        numpy: '20.0'
         channels: amei, openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
         publish: ${{ steps.publish.outputs.value }}

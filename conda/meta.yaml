@@ -8,7 +8,6 @@ source:
   path: ..
 
 build:
-  noarch: python
   preserve_egg_dir: True
   number: 0
   script: {{PYTHON}} setup.py install 
@@ -19,8 +18,10 @@ requirements:
     - setuptools
   run:
     - python {{PY_VER}}
+    - antlr4-python3-runtime  ==4.8
     - cython
-    - path.py
+    - xmlformatter
+    - path
     - numpy
     - pyyaml
     - six
@@ -31,15 +32,12 @@ requirements:
     - nbsphinx
     - graphviz
     - pydot
-    - xmlformatter
     - openalea.core
-    - antlr4-python3-runtime ==4.8
 
 
 test:
-  commands:
-    - cyml -h
-
+  imports:
+    - pycropml
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
