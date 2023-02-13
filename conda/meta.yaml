@@ -19,15 +19,15 @@ requirements:
     - setuptools
   run:
     - python {{PY_VER}}
-    - antlr4-python3-runtime  <4.9
+    - antlr4-python3-runtime  ==4.8
     - cython
     - xmlformatter
-    #- path
-    #- numpy
-    #- pyyaml
-    #- six
-    #- networkx
-    #- unyt
+    - path
+    - numpy
+    - pyyaml
+    - six
+    - networkx
+    - unyt
     #- nbformat
     #- ipython
     #- nbsphinx
@@ -37,8 +37,8 @@ requirements:
 
 
 test:
-  imports: 
-    - pycropml
+  commands:
+    - cyml -h   # [unix]
 
 
 about:
