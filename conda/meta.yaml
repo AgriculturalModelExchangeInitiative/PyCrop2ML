@@ -21,18 +21,18 @@ requirements:
     - python {{PY_VER}}
     - cython
     - path.py
-    - numpy
+    - {{ pin_compatible('numpy',    max_pin='x.x') }}
     - pyyaml
     - six
-    - networkx
-    - unyt
-    - nbformat
-    - ipython
+    #- networkx
+    #- unyt
+    #- nbformat
+    #- ipython
     - nbsphinx
-    - graphviz
-    - pydot
+    #- graphviz
+    #- pydot
     - xmlformatter
-    - openalea.core
+    #- openalea.core
     - antlr4-python3-runtime ==4.8
 
 
