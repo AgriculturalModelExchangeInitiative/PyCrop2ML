@@ -9,6 +9,12 @@ Pycrop2ml
     :alt: CodeQL Status
     :target: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/actions/workflows/codeql-analysis.yml
 
+.. image:: https://anaconda.org/amei/pycropml/badges/platforms.svg   
+    :target: https://anaconda.org/amei/pycropml
+
+.. image:: https://anaconda.org/amei/pycropml/badges/version.svg
+    :target: https://anaconda.org/amei/pycropml
+
 .. {# pkglts, doc
 
 .. #}
@@ -20,26 +26,11 @@ For more information, refer to `the documentation`__.
 .. __: http://pycrop2ml.readthedocs.io/en/latest/
 
 
-Dependencies
-============
-- openalea.core and openalea.deploy
-
-   conda install -c conda-forge -c openalea3 openalea.core openalea.deploy
 
 Installation
 ============
 
+Using conda
+~~~~~~~~~~~
 
-Using pip
-~~~~~~~~~
-
-
-   git clone https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML.git
-   
-   cd PyCropML
-   
-   pip install - r requirements.txt
-   
-   pip install .
-   
-   pip install antlr4-python3-runtime==4.8
+    conda install -c amei -c openalea3 -c conda-forge pycropml
