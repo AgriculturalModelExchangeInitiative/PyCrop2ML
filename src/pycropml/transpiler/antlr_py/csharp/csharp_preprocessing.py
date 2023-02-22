@@ -392,21 +392,30 @@ class Declarations(Middleware):
                 if decl.name not in self.declnames:
                     self.declnames.append(decl.name)
                     self.declarations.append(Node(type="declaration", decl=[newdecl], comments=tree.comments))
-            else: 
+            else:
+                 
                 if decl.type=="array" and "init" in dir(decl.value):
+                    print(decl.name, "bababe")
                     if decl.value.init.value is None:
-                        r = Node(name = decl.name, type="array", dim=1, elts=decl.value.size, pseudo_type=decl.pseudo_type)
+                        r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
                         self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
                         self.declnames.append(decl.name)
                     else:
-                        r = Node(name = decl.name, type="array", dim=1, elts=decl.value.size, pseudo_type=decl.pseudo_type)
+                        r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
                         self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
                         self.declnames.append(decl.name)
                         tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = Node(type="array", init= decl.value.init), comments = tree.comments)
                         res.append(self.transform_default(tree))
+                elif decl.type=="array" and "elts" in dir(decl.value):
+                    print(decl.y)
+                    r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
+                    self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
+                    self.declnames.append(decl.name)
                 else:
+                    print(decl.name, "bababe2")
                     if decl.value.type=="List" and "args" in dir(decl.value) and len(decl.value.args)==1 and decl.value.args[0].name==decl.name: return
                     if isinstance(decl.pseudo_type, Node):
+                        print(decl.name, "bababe21")
                         r = decl.value.pseudo_type
                         decl.type = r[0] if  isinstance(r, list)   else r
                         decl.pseudo_type = r
@@ -432,9 +441,10 @@ class Declarations(Middleware):
 
 class Local(Middleware):
     
-    def __init__(self, declnames):
+    def __init__(self, declnames=[], params={}):
         self.declnames = declnames
         self.not_declared=[]
+        self.params = params
         Middleware.__init__(self)
               
     def process(self, tree):
@@ -443,6 +453,9 @@ class Local(Middleware):
     def action_local(self, tree):
         if tree.name not in self.declnames:
             self.not_declared.append(str(tree.name))
+        if tree.name in  self.params:
+            pseudo_type = type_[self.params[tree.name]["ValueType"]]
+            tree.pseudo_type = pseudo_type
         return tree
 
 class TransformLocal(Middleware):

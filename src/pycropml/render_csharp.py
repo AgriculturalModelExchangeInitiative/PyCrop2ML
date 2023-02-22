@@ -11,7 +11,6 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 from path import Path
-import numpy
 import six
 from pycropml.composition import model_parser
 

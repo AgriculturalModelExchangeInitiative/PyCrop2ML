@@ -245,7 +245,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(extra=1)
         self.newline(node)
         self.funcname = node.name
-        if self.model and  self.funcname.split("model_")[1]==signature(self.model):
+        if self.model and self.funcname.startswith("model_") and self.funcname.split("model_")[1]==signature(self.model):
             self.write("#%%CyML Model Begin%%")
             self.newline(node)
         if  self.funcname.startswith("init_"):
@@ -270,7 +270,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.write(',\n         ')
         self.write('):')
         self.newline(node)
-        if self.model and node.name.split("model_")[1]==signature(self.model):
+        if self.model and node.name.startswith("model_") and node.name.split("model_")[1]==signature(self.model):
             self.write('    """\n')
             self.write(self.doc.header)
             self.newline(node)
@@ -283,7 +283,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.write('    """\n')
             self.newline(node)
         self.body(node.block)
-        if self.model and self.funcname.split("model_")[1]==signature(self.model):
+        if self.model and self.funcname.startswith("model_") and self.funcname.split("model_")[1]==signature(self.model):
             self.newline(node)
             self.write("#%%CyML Model End%%")
             self.newline(node)

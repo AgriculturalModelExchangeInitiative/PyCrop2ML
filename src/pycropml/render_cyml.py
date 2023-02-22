@@ -6,7 +6,6 @@ Problems:
 from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
-import numpy 
 from datetime import datetime
 import os.path
 from pycropml.modelunit import ModelUnit
@@ -91,7 +90,10 @@ class Model2Package(object):
         types = [inp.datatype for inp in model_unit.inputs] +[out.datatype for out in model_unit.outputs]  
         self.code= "import numpy \n" + "from math import *\n"
         if "DATE" in types or "DATELIST" in types: self.code += "from datetime import datetime\n\n" 
-   
+        
+        if model_unit.initialization is not None and len(model_unit.initialization)!=0 : 
+            self.code += self.initialization(model_unit) 
+            
         self.code += self.generate_function_signature(func_name, model_unit.inputs)
         self.code += self.generate_function_doc(model_unit)
         if  sys.version_info[0]>=3:
@@ -107,8 +109,7 @@ class Model2Package(object):
                         source = f.read()
                         self.code += source 
                         self.code += "\n\n\n"
-        if model_unit.initialization is not None and len(model_unit.initialization)!=0 : 
-            self.code += self.initialization(model_unit)      
+     
         return self.code
 
     def generate_algorithm(self, model_unit):
