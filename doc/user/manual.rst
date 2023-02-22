@@ -16,7 +16,7 @@ Installation
 
 ::
 
-    conda install -c openalea pycropml
+    conda install -c amei -c conda-forge pycropml
 
 or
 
