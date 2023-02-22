@@ -177,7 +177,7 @@ def inst_dclass(meth):
 
 
 
-def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_category={}):
+def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_category={}, pa={}):
     """Transform specific nodes based on class of subnodes of node. It also allows to extract some usefull information. At finish
     the  modified node contains only the constructs of CyML and converted in CyML after applying translate_simple function.
 
@@ -194,9 +194,12 @@ def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_cat
     
     rr1 = Member_access(total_tree, varinfo)
     vv1 = rr1.process(algo)
+    
+    rr1_ = Local(params=pa)
+    vv1_ = rr1_.process(vv1)
 
     ri2 = Index()
-    vi2= ri2.process(vv1)
+    vi2= ri2.process(vv1_)
 
     rr2 = Binary_op()
     vv2= rr2.process(vi2)
@@ -254,9 +257,8 @@ def run_bioma(component, output):
     varinfo = {}
     dclass = []
     domclass = []
-    compo = ""
+    compo = {}
     for  k, v in files.items():
-        print(v)
         with open(v, 'r') as f:
             code = f.read()
         if code : # and k=="WheatLAIState.cs":
@@ -265,7 +267,6 @@ def run_bioma(component, output):
             zz = map(lambda x: x.lstrip(), splitcode)
             codelist = [n  for n in zz if not n.startswith("#") ]
             code = "\n".join(codelist)
-            print(k)
             dictasgt = to_dictASG(code,"cs")
             strAsg = to_CASG(dictasgt)
             res[k] = strAsg
@@ -276,7 +277,7 @@ def run_bioma(component, output):
             n = m.getmethod( g, "Estimate")
             if g and g[0].base and  m.getmethod( g[0], "Estimate"):
                 if m.getmethod( g[0],"EstimateOfAssociatedClasses"):
-                    compo = strAsg
+                    compo[k] = strAsg
                 else: 
                     stra[k] = strAsg
                     straNames.append(g[0].name)
@@ -290,6 +291,7 @@ def run_bioma(component, output):
     total_tree = list(res.values())
     vinfo = list(varinfo.values())
     strats = list(stra.values())
+    compos = list(compo.values())
     models = []
     func_names = []
     kk = BiomaExtraction()
@@ -311,7 +313,6 @@ def run_bioma(component, output):
         strat_var = z.getStrategyVar(st)
         pa = strat_var[0]
         dict_pa = {f["Name"].decode("utf-8"):f for f in pa}
-        
         all_var_pa = {**dict_pa, **all_var}   # all the variable from all varinfo files and parameters of the specific strategy.
         params_not_declared = {}
         params_not_declared_ = {}
@@ -337,7 +338,6 @@ def run_bioma(component, output):
                     if ex.name not in func_names:  # to avoid duplicating dependent functions in different auxiliary functions
                         func = z.externFunction(total_tree, ex, False, ex.name)  
                         extfunc = [p for p in func if p]
-                        print(ex.name, [i.name for i in extfunc])
                         if extfunc and isinstance(extfunc[0], list):
                             extfunc = list(itertools.chain(*extfunc)) 
                         for rr in extfunc:
@@ -413,7 +413,6 @@ def run_bioma(component, output):
                             res_inout[name]["outputs"] = return_.value                    
                         r.append(p_cust)
                         func_names.append(p_cust.name)
-                        print(p_cust.name,[pp.name for pp in p_cust.params], p_cust.type)
 
                 cd = cs_cyml.Cs_Cyml_ast(r)
                 h = cd.transform()
@@ -423,17 +422,16 @@ def run_bioma(component, output):
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                     
-
-        
-        print("check member access")
-        rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category)
+        rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category, dict_pa)
         env = {m.name:m.pseudo_type for j in rr.declarations for m in j.decl}
         zz = CheckingInOut( {},isAlgo = True)
         r_ch = zz.process(vv)
         z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs)))
+        print(z.model.name) 
+        #print(z.model.outputs)
         z.model.function = [n.name for n in funcs if f]
         if init_:
-            rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category)
+            rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category, dict_pa)
             dict_init = {}
             name_i = "init."+ z.model.name
             dict_init["name"] = "init"
@@ -448,7 +446,7 @@ def run_bioma(component, output):
                 tg_file.write(initcode.encode('utf-8'))   
                
         models.append(z.model)
-        print(z.model.name)     
+            
         cd = cs_cyml.Cs_Cyml_ast(rr.declarations + vv,  var =var)
         h = cd.transform()
         nd = transform_to_syntax_tree(h)
@@ -467,16 +465,17 @@ def run_bioma(component, output):
             r += xml_.unicode(indent=4)#.encode('utf-8')
             xml_file.write(r.encode())
            
-    z.modelcomposition(models,compo)
-    xml_ = Pl2Crop2ml(z.mc, "Crop2ML."+pkg).run_compo()
-    name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
-    filename = Path(os.path.join(crop2ml_rep, "composition.%s.xml"%(name)))
-    with open(filename, "wb") as xml_file:
-        #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
-        r = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
-        r += xml_.unicode(indent=4)#.encode('utf-8')
-        xml_file.write(r.encode())
+    for compo in compos:
+        z.modelcomposition(models,compo)
+        xml_ = Pl2Crop2ml(z.mc, "Crop2ML."+pkg).run_compo()
+        name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
+        filename = Path(os.path.join(crop2ml_rep, "composition.%s.xml"%(name)))
+        with open(filename, "wb") as xml_file:
+            #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
+            r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
+            r += xml_.unicode(indent=4)#.encode('utf-8')
+            xml_file.write(r.encode())
         
         
         

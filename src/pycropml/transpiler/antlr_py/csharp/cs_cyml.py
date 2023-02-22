@@ -194,12 +194,18 @@ class Cs_Cyml_ast():
                    "name": str(node.name),
                    "pseudo_type": self.translate_decl(node.pseudo_type),
                    "dim":0} 
-            res = {"type":"array",
+            if "name" in dir(node):
+                res = {"type":"array",
                    "name": str(node.name),
                    "pseudo_type": self.translate_decl(node.pseudo_type),
                    "elts": self.visit(node.elts),                            # elts: size if one dimension one value
                    "dim":0} 
-            self.type_env[res["name"]] = res["pseudo_type"]
+                self.type_env[res["name"]] = res["pseudo_type"]
+            else:   
+                res = {"type":"array",
+                   "pseudo_type": self.translate_decl(node.pseudo_type),
+                   "elts": self.visit(node.elts),                            # elts: size if one dimension one value
+                   "dim":0} 
         else: 
             z = self.visit(node.init.value) 
             res = {'type': 'array',
@@ -354,7 +360,6 @@ class Cs_Cyml_ast():
                 "pseudo_type": self.translate_decl(node.pseudo_type)}
     
     def visit_for_range_statement(self, node):
-        print(node.end.y)
         z =  {'type': 'for_range_statement',
          'start': self.visit(node.start),
          'end': self.visit(node.end),

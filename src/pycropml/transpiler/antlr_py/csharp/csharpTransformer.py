@@ -1086,7 +1086,9 @@ class AstTransformer():
             dim = len(dimLen)
             size = dimLen
             z["init"] = {"type":"initArray", "value": self.visit(array_initializer) if array_initializer else None}
-            return {"type":z["type"], "dim": dim, "size":size, "init":z["init"], "pseudo_type":z["pseudo_type"]}
+            #return {"type":"array"}
+            if array_initializer: return {"type":"array", "dim": dim, "elts":size, "init":z["init"], "pseudo_type":["array",z["pseudo_type"]]}
+            else: return {"type":"array", "dim": dim, "elts":size, "pseudo_type":["array",z["pseudo_type"]]}
         elif rank_specifier:
             dim = len(rank_specifier)
             if array_initializer :

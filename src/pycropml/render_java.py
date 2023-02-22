@@ -9,7 +9,6 @@ Problems:
 from __future__ import print_function
 from __future__ import absolute_import
 from path import Path
-import numpy
 import six
 import os
 from pycropml.composition import model_parser

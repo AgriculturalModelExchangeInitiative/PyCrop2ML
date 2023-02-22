@@ -23,8 +23,8 @@ param_datatype ={"STRING":"String",
                 "DOUBLELIST": "ListDouble",
                 "INTLIST": "ListInteger",
                 "BOOLEANLIST": "ListBoolean",
-                "DOUBLEARRAY":"DOUBLEARRAY",
-                "INTARRAY":"INTARRAY"}
+                "DOUBLEARRAY":"ArrayDouble",
+                "INTARRAY":"ArrayInteger"}
 
 def getdefault(x, typ):
     df = "-1D"

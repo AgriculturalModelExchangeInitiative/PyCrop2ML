@@ -96,7 +96,6 @@ class BiomaExtraction(MetaExtraction):
         """
         self.getTypeNode(tree, "propertyDef")
         prop =  {m.name :m.get[0].value.name for m in self.getTree if "name" in dir(m.get[0].value)}
-        print(prop)
         
         self.getTypeNode(dclass, "propertyDef")
         prop2 =  {m.get[0].value.member:m.name for m in self.getTree if "name" in dir(m.get[0].value)}
@@ -105,13 +104,13 @@ class BiomaExtraction(MetaExtraction):
         prop3 = {}
         for m in self.getTree:
             if m.name in prop2:
-                if "init" in dir(m) and "size" in dir(m.init):
-                    if isinstance( m.init.size[0], Node) and  m.init.size[0].type == "custom_call" and m.init.size[0].namespace.name=="Enum":
-                        args = m.init.size[0].args[0].class_type[0]
+                if "init" in dir(m) and "elts" in dir(m.init):
+                    if isinstance( m.init.elts[0], Node) and  m.init.elts[0].type == "custom_call" and m.init.elts[0].namespace.name=="Enum":
+                        args = m.init.elts[0].args[0].class_type[0]
                         self.getTypeNode(dclass, "enum")
                         node = self.getAttNode(self.getTree, **{"name":args})
                         prop3[prop2[m.name]] = str(len(node[0].block))
-                    else: prop3[prop2[m.name]] = [m.init.size[0].value if "value" in dir(m.init.size[0]) else m.init.size[0].name , m.pseudo_type]
+                    else: prop3[prop2[m.name]] = [m.init.elts[0].value if "value" in dir(m.init.elts[0]) else m.init.elts[0].name , m.pseudo_type]
                 else: prop3[prop2[m.name]] = [ m.pseudo_type]
        
         self.getTypeNode(tree, "methodDef")
@@ -172,13 +171,13 @@ class BiomaExtraction(MetaExtraction):
         prop3 = {}
         for m in self.getTree:
             if m.name in prop2:
-                if "init" in dir(m) and "size" in dir(m.init):
-                    if isinstance( m.init.size[0], Node) and  m.init.size[0].type == "custom_call" and m.init.size[0].namespace.name=="Enum":
-                        args = m.init.size[0].args[0].class_type[0]
+                if "init" in dir(m) and "elts" in dir(m.init):
+                    if isinstance( m.init.elts[0], Node) and  m.init.elts[0].type == "custom_call" and m.init.elts[0].namespace.name=="Enum":
+                        args = m.init.elts[0].args[0].class_type[0]
                         self.getTypeNode(dclass, "enum")
                         node = self.getAttNode(self.getTree, **{"name":args})
                         prop3[prop2[m.name]] = str(len(node[0].block))
-                    else: prop3[prop2[m.name]] = [m.init.size[0].value if "value" in dir(m.init.size[0]) else m.init.size[0].name , m.pseudo_type]
+                    else: prop3[prop2[m.name]] = [m.init.elts[0].value if "value" in dir(m.init.elts[0]) else m.init.elts[0].name , m.pseudo_type]
                 else: prop3[prop2[m.name]] = [ m.pseudo_type]
         
         listatt = ["DefaultValue","Description","MaxValue","Name", "MinValue", "Units", "URL", "ValueType"]            
@@ -207,7 +206,6 @@ class BiomaExtraction(MetaExtraction):
                                     vi[att] = b.value.value
                                 if b.value.type == "unary_op": vi[att] = "%s%s"%(b.value.operator, b.value.value.value)
                             if att == "ValueType" and b.target.member == "ValueType" :
-                                print(v, category)
                                 vi[att] = mapType[b.value.args[0].value.decode('utf-8')]
                         vi["category"] = category
                         if isinstance(prop3[k], list): vi["len"] = prop3[k][0]
