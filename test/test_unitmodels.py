@@ -34,6 +34,7 @@ def test_pkg2py_nrj():
     m2p = render_cyml.Model2Package(models, dir='.', pkg_name="EnergyBalance")
     m2p.run()
     transpile_package(pkg_nrj,"py")
+    transpile_package(pkg_nrj,"openalea")
 
 def test_pkg2py_phen():
     models = pparse.model_parser(pkg_pheno)
@@ -41,6 +42,7 @@ def test_pkg2py_phen():
     m2p = render_cyml.Model2Package(models, dir='.', pkg_name="Phenology")
     m2p.run()
     transpile_package( pkg_pheno,"py")
+    
 
 test_nrj()
 test_pheno()
