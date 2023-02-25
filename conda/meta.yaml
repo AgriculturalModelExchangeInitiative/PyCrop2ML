@@ -34,11 +34,12 @@ requirements:
     - graphviz
     - pydot
     - openalea.core
+    - pytest
 
 
-#test:
-#  imports:
-#    - pycropml
+test:
+  imports:
+    - pycropml
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
