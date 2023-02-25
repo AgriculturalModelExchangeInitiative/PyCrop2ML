@@ -1,6 +1,0 @@
-# {# pkglts, pysetup
-mock  # pip install mock
-nose  # pip install nose
-sphinx  # pip install sphinx
-
-# #}
