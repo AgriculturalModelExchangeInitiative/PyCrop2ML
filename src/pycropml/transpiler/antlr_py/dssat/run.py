@@ -288,10 +288,12 @@ def run_dssat(component, package):
             out_info = []
             
             metainfo2 = copy.deepcopy(metainfo)
+            mm = []
             for inp in model_inputs:
                 res = {}
-                if inp.name in metainfo.keys():
+                if inp.name in metainfo.keys() and inp.name not in mm:
                     res["name"] = inp.name
+                    mm.append(inp.name)
                     var = metainfo[inp.name]
                     if var["type"] == "parameter":
                         var["parametercategory"] = var["category"]

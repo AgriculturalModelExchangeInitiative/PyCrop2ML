@@ -1125,8 +1125,6 @@ class AstTransformer():
             else:
                 spec = self.visit(arraySpec)
                 z = {"name":str(objectName), "dim": len(spec), "elts":spec}
-                print("boo",self.type_env['arrays'])
-                print(location, z)
                 self.type_env['arrays'].update({str(objectName): spec})
                 return z
         elif expression:
