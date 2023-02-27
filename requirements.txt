@@ -10,19 +10,19 @@
 
 
 # test
-pytest
-pytest-mock
+#pytest
+#pytest-mock
 
 
 # compile doc
-sphinx
+#sphinx
 
 
 # other dvlpt tools
 
 
 # #}
-path.py
+path
 six
 nbformat
 numpy

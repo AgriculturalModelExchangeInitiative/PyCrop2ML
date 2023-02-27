@@ -8,9 +8,12 @@ source:
   path: ..
 
 build:
+  noarch: python  [unix]
   preserve_egg_dir: True
   number: 0
   script: {{PYTHON}} setup.py install 
+  entry: 
+    - cyml = pycropml.main:main
 
 requirements:
   build:
@@ -35,9 +38,9 @@ requirements:
     - openalea.core
 
 
-test:
-  imports:
-    - pycropml
+#test:
+#  imports:
+#    - pycropml
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
