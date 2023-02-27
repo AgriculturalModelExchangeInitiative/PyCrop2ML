@@ -34,3 +34,16 @@ Using conda
 ~~~~~~~~~~~
 
     conda install -c amei -c openalea3 -c conda-forge pycropml
+    
+Usage
+=====
+
+From Platforms to Crop2ML
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    cyml -c "name_of_the_component_repository" "absolute_path_of_the_output" "source_language_or_platform"
+
+From Crop2ML to Platforms
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    cyml -c "name_of_the_Crop2ML_package" "target_language_or_platform_"
