@@ -12,6 +12,8 @@ build:
   preserve_egg_dir: True
   number: 0
   script: {{PYTHON}} setup.py install 
+  entry: 
+    - cyml = pycropml.main:main
 
 requirements:
   build:
