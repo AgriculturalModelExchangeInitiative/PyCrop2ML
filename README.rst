@@ -46,4 +46,4 @@ From Platforms to Crop2ML
 From Crop2ML to Platforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    cyml -c "name_of_the_Crop2ML_package" "target_language_or_platform_"
+    cyml -p "name_of_the_Crop2ML_package" "target_language_or_platform_"
