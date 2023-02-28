@@ -118,8 +118,8 @@ def run_stics(component, package):
     files = repowalk.walk(component, 'f90')
 
     # Merge files in a temporary file
-    for f in files:
-        fil = open(os.path.join(component, f), "r")
+    for name, f in files.items():
+        fil = open(f, "r")
         fp.write(fil.read())
         fp.write("\n")
         fil.close()
