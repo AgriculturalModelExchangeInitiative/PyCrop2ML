@@ -25,7 +25,7 @@ requirements:
     - cython
     - xmlformatter
     - path
-    - numpy
+    - numpy ==1.16.6
     - pyyaml
     - six
     - networkx
