@@ -165,18 +165,25 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
     
     def visit_float(self, node):
         self.write(node.value)
-        self.write("d")
+        if "." in node.value:
+            self.write("0d")
 
     def visit_array(self, node):
+        print("ppap",node.y)
         if hasattr(node, "elts"):
             self.write("new %s[ "%self.types[node.pseudo_type[1]]) 
             self.visit(node.elts)
             self.write("]")
             
         elif isinstance(node.elements, Node):
-            self.write("new %s["%self.types[node.pseudo_type[1]]) 
-            self.visit(node.elements.left.elements[0])
-            self.write("]")
+            if "op" in dir(node.elements):
+                self.write("new %s["%self.types[node.pseudo_type[1]]) 
+                self.visit(node.elements.right)
+                self.write("]")
+            else:
+                self.write("new %s["%self.types[node.pseudo_type[1]]) 
+                self.visit(node.elements.left.elements[0])
+                self.write("]")
         else:
             self.write("new %s[] "%self.types[node.pseudo_type[1]])        
             self.write(u'{')
