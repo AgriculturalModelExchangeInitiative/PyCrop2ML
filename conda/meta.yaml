@@ -10,7 +10,7 @@ source:
 build:
   noarch: python  [unix]
   preserve_egg_dir: True
-  number: 0
+  number: 1
   script: {{PYTHON}} setup.py install 
   entry: 
     - cyml = pycropml.main:main
