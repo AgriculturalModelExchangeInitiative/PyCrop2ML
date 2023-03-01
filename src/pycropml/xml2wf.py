@@ -15,7 +15,7 @@ from pycropml.render_python import generate_doc
 from pycropml.pparse import model_parser
 
 
-class XmlToWf(object):
+class XmlToWf:
 
 
     def __init__(self, xmlwf,dir_, pkg_name):
@@ -32,29 +32,36 @@ class XmlToWf(object):
         self.inputs = []
         self.outputs = []
     
-    def run(self):
+    def run(self, pkg=None):
         self.doc = generate_doc(self.xmlwf)
-        self.pkg = self.retrievePackage(self.pkg_name)
+        if pkg is None:
+            self.pkg = self.retrievePackage(self.pkg_name)
+        else:
+            self.pkg = pkg
         self.compositeNodeInputs()
         self.compositeNodeOutputs()
         self.wf = CompositeNode(self.inputs_wf, self.outputs_wf)
         self.createNodes()
         # BUG: replace doc with description
-        wf_factory = CompositeNodeFactory(self.xmlwf.name+"_wf", description=self.doc)
+        wf_factory = CompositeNodeFactory(self.xmlwf.name, description=self.doc)
         self.connectOutputs()
         self.connectInputs()
         self.connectInternal()
+        self.layout()
+
         self.wf.to_factory(wf_factory)
+        
         if wf_factory.name in self.pkg:
             del self.pkg[wf_factory.name]
         self.pkg.add_factory(wf_factory)
-
-        self.pkg.write()
+        
 
     def retrievePackage(self, name):
          pm = PackageManager()
          pm.init(self.dir, False)
-         pkg = pm[name]
+         print(pm.keys())
+         surname = name.split('.')[-1]
+         pkg = pm[name] if name in pm else pm[surname]  
          return pkg
 
     def compoPack(self, name):
@@ -161,6 +168,7 @@ class XmlToWf(object):
         self.nodes = {}
         for m in self.xmlwf.model:
             if m.name in self.pkg:
+                print('Node: ', m.name)
                 nf = self.pkg[m.name].instantiate()
                 nid =  self.wf.add_node(nf)
                 self.nodes[m.name] = nid
@@ -209,7 +217,7 @@ class XmlToWf(object):
             if name_tgt in self.nodes and name_src in self.nodes:
                 ns, nt = self.nodes[name_src], self.nodes[name_tgt]
                 try:
-                    pout, pin =self. wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
+                    pout, pin =self.wf.node(ns).map_index_out[port_out],  self.wf.node(nt).map_index_in[port_in]
                 except KeyError:
                     if port_out not in self.wf.node(ns).map_index_out:
                         print('Error : ', src)
@@ -218,8 +226,90 @@ class XmlToWf(object):
                     continue
                 self.wf.connect(ns, pout, nt, pin)
 
+    def layout(self):
+        """ Compute automatic layout of nodes"""
+        sg = self.wf
+        # 1. defaults
+        size = 500
+        n_in, n_out = 0, 1
+        d_in = sg.node(n_in).internal_data
+        d_in['posx'] = size/2
+        d_in['posy'] = 0
+
+        d_out = sg.node(n_out).internal_data
+        d_out['posx'] = size/2
+        d_out['posy'] = size
+
+        # compute max_lentgh_path
+        all_paths = [[0]]
+        height, width = max_path_height_and_width(sg, all_paths, 1)
+
+        height -=1
+        width -= 1
+
+        dy = size / max(height,1)
+        dx = size / max(width,1)
+
+        x, y = 0, 0
+        compute_layout(sg, n_in, x, dx, y, dy)
+
+        #elt_data = wf_factory.elt_data
+        #ad_hoc = wf_factory.
+        for vid in sg.vertices():
+            
+            x = sg.node(vid).internal_data['posx']
+            y = sg.node(vid).internal_data['posy']
+            sg.node(vid).get_ad_hoc_dict().set_metadata('position', [x,y])
+        
+
 def findname(val, dictionary):
     for k, v in dictionary.items():  
         if v == val:
             return k   
     return None
+
+def max_path_height_and_width(sg, paths, stop=1):
+    """ Compute the max length of all paths from in to out node.
+    """
+    res = []
+    done = False
+    max_height = 0
+    max_width = 0
+    while not done:
+        res = []
+        for p in paths:
+            vid = p[-1]
+            if vid == stop:
+                max_height = max(len(p), max_height)
+                max_width += 1
+            else:
+                l = list(sg.out_neighbors(vid))
+                for v in l:
+                    res.append(p+[v])
+        if not res:
+            done = True
+        else:
+            paths = res
+                
+
+    return max_height, max_width
+
+def compute_layout(sg, vid, x, dx, y, dy):
+    
+    l = list(sg.out_neighbors(vid))
+    n = len(l)
+
+    new_y = y+dy
+    x0 = x - int((n-1) * dx / 2)
+    for v in l:
+        if v == 1:
+            continue
+        data = sg.node(v).internal_data
+
+        ny = data['posy'] = new_y        
+        nx = data['posx'] = x0
+
+        x0 += dx
+        
+        compute_layout(sg, v, nx, dx, ny, dy)
+

@@ -77,24 +77,31 @@ class OpenaleaCompo(PythonCompo):
         # TODO
         metainfo = {'version': '0.0.1',
                     'license': 'CECILL-C',
-                    'authors': 'OpenAlea Consortium',
-                    'institutes': 'INRA/CIRAD',
+                    'authors': 'AMEI Consortium',
+                    'institutes': '',
                     'description': 'CropML Model library.',
-                    'url': 'http://pycropml.rtfd.org',
+                    'url': 'http://crop2ml.org',
                     'icon': ''}
-        name = mc.name
+        metainfo['alias']= [mc.name]
+        #name = mc.name
+        name = ('amei.'+mc.id).lower()
         wra_path = mc.path.split(os.path.sep)[-1]
         path = Path(os.path.join(mc.path,"src","openalea", wra_path))
         _package = package.UserPackage(name, metainfo, path)
         for model in mc.model:
             if not model.package_name or model.package_name=="unit":		
                 _factory = self.generate_factory(model)
+                print(_factory.name)
                 _package.add_factory(_factory)
             else:
                 pass
         print(_package, _package.name)
         _package.write() 
-        XmlToWf(mc, path, name).run()
+        writer = XmlToWf(mc, path, name)
+        writer.run()
+        writer.pkg.name = name
+        writer.pkg.write() 
+
 
 
     
