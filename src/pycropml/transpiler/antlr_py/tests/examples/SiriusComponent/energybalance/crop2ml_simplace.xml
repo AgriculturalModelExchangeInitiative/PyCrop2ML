@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">
+<ModelComposition name="SoilTemperature" id="Simplace.SoilTemperature" version="001" timestep="1">
+    <Description>
+        <Title>SoilTemperature model</Title>
+        <Authors>Gunther Krauss</Authors>
+        <Institution>INRES Pflanzenbau, Uni Bonn</Institution>
+        <ExtendedDescription>as given in the documentation</ExtendedDescription>
+    </Description>
+    <Composition>
+        <Model name="SnowCoverCalculator" id="SoilTemperature.SnowCoverCalculator" filename="unit.SnowCoverCalculator.xml"/>
+        <Model name="STMPsimCalculator" id="SoilTemperature.STMPsimCalculator" filename="unit.STMPsimCalculator.xml"/>
+        <Links>
+            <InputLink target="SnowCoverCalculator.cCarbonContent" source="cCarbonContent"/>
+            <InputLink target="SnowCoverCalculator.iTempMax" source="iAirTemperatureMax"/>
+            <InputLink target="SnowCoverCalculator.iSoilTempArray" source="SoilTempArray"/>
+
+            <InputLink target="STMPsimCalculator.cSoilLayerDepth" source="cSoilLayerDepth"/>
+            <InputLink target="SnowCoverCalculator.AgeOfSnow" source="AgeOfSnow"/>
+            <InputLink target="STMPsimCalculator.pSoilLayerDepth" source="pSoilLayerDepth"/>
+            <InternalLink target="STMPsimCalculator.iSoilSurfaceTemperature" source="SnowCoverCalculator.SoilSurfaceTemperature"/>
+            <OutputLink target="SoilSurfaceTemperature" source="SnowCoverCalculator.SoilSurfaceTemperature"/>
+
+            <OutputLink target="SoilTempArray" source="STMPsimCalculator.SoilTempArray"/>
+            <OutputLink target="AgeOfSnow" source="SnowCoverCalculator.AgeOfSnow"/>
+        </Links>
+    </Composition>
+</ModelComposition>

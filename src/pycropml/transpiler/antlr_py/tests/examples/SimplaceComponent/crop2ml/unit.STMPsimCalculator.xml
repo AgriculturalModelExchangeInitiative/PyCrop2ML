@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Simplace.SoilTemp.STMPsimCalculator" name="STMPsimCalculator" timestep="1" version="001">
+    <Description>
+        <Title>STMPsimCalculator model</Title>
+        <Authors>Gunther Krauss</Authors>
+        <Institution>INRES Pflanzenbau, Uni Bonn</Institution>
+        <URI>http://www.simplace.net/doc/simplace_modules/</URI>
+        <Reference>(&apos;http://www.simplace.net/doc/simplace_modules/&apos;,)</Reference>
+        <ExtendedDescription>as given in the documentation</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="cSoilLayerDepth" description="Depth of soil layer" inputtype="parameter" parametercategory="constant" datatype="DOUBLEARRAY" len="" max="20.0" min="0.03" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/metre"/>
+        <Input name="cFirstDayMeanTemp" description="Mean temperature on first day" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="50.0" min="-40.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="cAVT" description="Constant Temperature of deepest soil layer" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="20.0" min="-10.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="cABD" description="Mean bulk density" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="4.0" min="1.0" default="2.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/tonne_per_cubic_metre"/>
+        <Input name="cDampingDepth" description="Initial value for damping depth of soil" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="20.0" min="1.5" default="6.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/metre"/>
+        <Input name="iSoilWaterContent" description="Content of water in Soil" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="20.0" min="1.5" default="5.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/millimetre"/>
+        <Input name="iSoilSurfaceTemperature" description="Temperature at soil surface" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="20.0" min="1.5" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="SoilTempArray" description="Array of temperature " inputtype="variable" variablecategory="state" datatype="DOUBLEARRAY" len="" max="40" min="-20" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="pSoilLayerDepth" description="Depth of soil layer plus additional depth" inputtype="variable" variablecategory="state" datatype="DOUBLEARRAY" len="" max="20.0" min="0.03" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/metre"/></Inputs>
+    <Outputs>
+        <Output name="SoilTempArray" description="Array of temperature " datatype="DOUBLEARRAY" variablecategory="state" len="" max="40" min="-20" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/></Outputs>
+    <Initialization name="init" language="cyml" filename="algo/pyx/init.STMPsimCalculator.pyx"/>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/STMPsimCalculator.pyx"/>
+    <Parametersets>
+        <Parameterset name="pset1" description="first parametersets">
+            <Param name="cSoilLayerDepth">[0.1, 0.5, 1.5]</Param>
+            <Param name="cFirstDayMeanTemp">15.0</Param>
+            <Param name="cAVT">9.0</Param>
+            <Param name="cABD">1.4</Param>
+            <Param name="cDampingDepth">6.0</Param></Parameterset></Parametersets>
+    <Testsets>
+        <Testset name="testset1" parameterset="pset1" description="first testset">
+            <Test name="test1">
+                <InputValue name="iSoilWaterContent">0.3</InputValue>
+                <InputValue name="iSoilSurfaceTemperature">6.0</InputValue>
+                <OutputValue name="SoilTempArray" precision="5">[13.624360856350041, 13.399968504634286, 12.599999999999845, 12.2, 11.4, 10.6, 9.799999999999999, 9.0]</OutputValue></Test></Testset></Testsets></ModelUnit>

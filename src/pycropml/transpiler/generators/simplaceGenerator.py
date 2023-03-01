@@ -289,14 +289,28 @@ class SimplaceGenerator(JavaGenerator):
                             self.write(" t_")
                             self.write(arg.name)
                             if arg.type=="list": self.write(" = Arrays.asList(%s.getValue());" % arg.name)
-                            else: self.write(" = %s.getValue();" % arg.name)
+                            else:
+                                if arg.type == "array" and "elts" in dir(arg) and len(arg.elts)>0 :
+                                    self.write(" = new ")
+                                    self.visit_decl(arg.pseudo_type[1])
+                                    self.write("[")
+                                    self.visit(arg.elts[0])
+                                    self.write("];")
+                                else:
+                                    self.write(" = %s.getValue();" % arg.name)
                     elif arg.feat!="INOUT":
                             self.newline(1)
                             self.visit_decl(arg.pseudo_type)
                             self.write(" t_")
                             self.write(arg.name)
                             if node.name.startswith("init"):
-                                self.write(f" = {arg.name}.getDefault()")
+                                if arg.type == "array" and "elts" in dir(arg):
+                                    self.write(" = new ")
+                                    self.visit_decl(arg.pseudo_type[1])
+                                    self.write("[")
+                                    self.visit(arg.elts[0]) if len(arg.elts)>0 else self.write(" = %s.getValue();" % arg.name)
+                                    self.write("]")
+                                else: self.write(f" = {arg.name}.getDefault()")
                             self.write(";")
         self.indentation -= 1
         self.body(node.block)
