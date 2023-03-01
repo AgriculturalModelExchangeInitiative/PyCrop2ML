@@ -331,6 +331,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 if n.type=="list":                
                     self.visit_list(n) if "elements" in dir(n) else self.write("[]")
                 else: self.visit_tuple(n)
+                self.newline(node)
             elif 'args' in dir(n) and n.type=='datetime':
                 self.newline(node)
                 self.write("%s:%s"%(n.name, n.pseudo_type))
@@ -357,11 +358,12 @@ class PythonGenerator(CodeGenerator, PythonRules):
                     self.write(")")   
                 else:
                     self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))           
+                self.newline(node)
             elif n.type in ("list"):
                 self.newline(node)
                 self.write("%s:%s[%s]"%(n.name, n.pseudo_type[0].capitalize(),  n.pseudo_type[1]))
-                self.write(" = []")                  
-
+                self.write(" = []") 
+                self.newline(node)
 
     def visit_array(self,node): 
         if hasattr(node, "elts"):
@@ -370,6 +372,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.write("array('%s', [None]*"%newtype)
             self.visit(node.elts)            #one dimension array
             self.write(")")
+            
             
         elif isinstance(node.elements, Node):
             if node.elements.type == "standard_call" and node.elements.function=="range":
