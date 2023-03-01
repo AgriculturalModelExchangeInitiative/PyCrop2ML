@@ -707,7 +707,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if "elts" not in dir(node) or not node.elts or len(node.elts)==0: self.write(":")
         else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )")  
-        if ("elts" not in dir(node) or not node.elts or len(node.elts)==0): # and node.name not in self.parameters :
+        if ("feat" not in dir(node)) and (("elts" not in dir(node) or not node.elts or len(node.elts)==0)): # and node.name not in self.parameters :
+            print(node.y)
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):

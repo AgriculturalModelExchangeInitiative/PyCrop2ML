@@ -99,7 +99,6 @@ class BiomaExtraction(MetaExtraction):
         
         self.getTypeNode(dclass, "propertyDef")
         prop2 =  {m.get[0].value.member:m.name for m in self.getTree if "name" in dir(m.get[0].value)}
-
         self.getTypeNode(dclass, "fielddecl")
         prop3 = {}
         for m in self.getTree:
@@ -111,7 +110,8 @@ class BiomaExtraction(MetaExtraction):
                         node = self.getAttNode(self.getTree, **{"name":args})
                         prop3[prop2[m.name]] = str(len(node[0].block))
                     else: prop3[prop2[m.name]] = [m.init.elts[0].value if "value" in dir(m.init.elts[0]) else m.init.elts[0].name , m.pseudo_type]
-                else: prop3[prop2[m.name]] = [ m.pseudo_type]
+                else: 
+                    prop3[prop2[m.name]] = None
        
         self.getTypeNode(tree, "methodDef")
         methNode = self.getTree
@@ -178,7 +178,8 @@ class BiomaExtraction(MetaExtraction):
                         node = self.getAttNode(self.getTree, **{"name":args})
                         prop3[prop2[m.name]] = str(len(node[0].block))
                     else: prop3[prop2[m.name]] = [m.init.elts[0].value if "value" in dir(m.init.elts[0]) else m.init.elts[0].name , m.pseudo_type]
-                else: prop3[prop2[m.name]] = [ m.pseudo_type]
+                else: 
+                    prop3[prop2[m.name]] = None
         
         listatt = ["DefaultValue","Description","MaxValue","Name", "MinValue", "Units", "URL", "ValueType"]            
         prop ={}
@@ -208,7 +209,8 @@ class BiomaExtraction(MetaExtraction):
                             if att == "ValueType" and b.target.member == "ValueType" :
                                 vi[att] = mapType[b.value.args[0].value.decode('utf-8')]
                         vi["category"] = category
-                        if isinstance(prop3[k], list): vi["len"] = prop3[k][0]
+                        if isinstance(prop3[k], list): 
+                            vi["len"] = prop3[k][0]
                         var[k] = vi
         return var
     

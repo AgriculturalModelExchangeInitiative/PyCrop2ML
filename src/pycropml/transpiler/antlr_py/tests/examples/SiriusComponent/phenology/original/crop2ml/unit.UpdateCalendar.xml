@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.UpdateCalendar" name="UpdateCalendar" timestep="1" version="001">
+    <Description>
+        <Title>UpdateCalendar model</Title>
+        <Authors>Pierre Martre</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>Lists containing for each stage the date it occurs as well as a copy of all types of cumulated thermal times </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="Â°C d"/>
+        <Input name="calendarMoments" description="List containing appearance of each stage" inputtype="variable" variablecategory="state" datatype="STRINGLIST" max="" min="" default="" unit=""/>
+        <Input name="cumulTT" description="cumul thermal times at currentdate" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="-200" default="112.330110409888" unit="Â°C d"/>
+        <Input name="calendarDates" description="List containing  the dates of the wheat developmental phases" inputtype="variable" variablecategory="state" datatype="DATELIST" max="" min="" default="" unit=""/>
+        <Input name="phase" description=" the name of the phase" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="7" min="0" default="1" unit=""/>
+        <Input name="currentdate" description="current date " inputtype="variable" variablecategory="auxiliary" datatype="DATE" max="" min="" default="" unit=""/></Inputs>
+    <Outputs>
+        <Output name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" datatype="DOUBLELIST" variablecategory="state" max="" min="" unit="Â°C d"/>
+        <Output name="calendarMoments" description="List containing appearance of each stage" datatype="STRINGLIST" variablecategory="state" max="" min="" unit=""/>
+        <Output name="calendarDates" description="List containing  the dates of the wheat developmental phases" datatype="DATELIST" variablecategory="state" max="" min="" unit=""/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/UpdateCalendar.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

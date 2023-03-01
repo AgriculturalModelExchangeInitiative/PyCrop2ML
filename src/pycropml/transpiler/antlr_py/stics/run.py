@@ -251,11 +251,11 @@ def run_stics(component, package):
 
 
     res_compo = extraction(code, composition_tags[0],composition_tags[1],ignore_tags[0],ignore_tags[1])
+    #print("ooo", res_compo[0])
     if res_compo:
         compo_dictasg = to_dictASG(res_compo[0] , language)
         compo_asg = to_CASG(compo_dictasg)
-        mc = extr.modelcomposition(res_compo[0], models, compo_asg)
-        print(mc.inputlink)  
+        mc = extr.modelcomposition(res_compo[0], models, compo_asg) 
         generate_compositefile(package, mc, package_name)   
     
     else:

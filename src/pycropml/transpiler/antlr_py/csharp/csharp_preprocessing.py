@@ -407,15 +407,12 @@ class Declarations(Middleware):
                         tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = Node(type="array", init= decl.value.init), comments = tree.comments)
                         res.append(self.transform_default(tree))
                 elif decl.type=="array" and "elts" in dir(decl.value):
-                    print(decl.y)
                     r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
                     self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
                     self.declnames.append(decl.name)
                 else:
-                    print(decl.name, "bababe2")
                     if decl.value.type=="List" and "args" in dir(decl.value) and len(decl.value.args)==1 and decl.value.args[0].name==decl.name: return
                     if isinstance(decl.pseudo_type, Node):
-                        print(decl.name, "bababe21")
                         r = decl.value.pseudo_type
                         decl.type = r[0] if  isinstance(r, list)   else r
                         decl.pseudo_type = r

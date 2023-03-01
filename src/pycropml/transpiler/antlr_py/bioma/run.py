@@ -296,7 +296,6 @@ def run_bioma(component, output):
     func_names = []
     kk = BiomaExtraction()
     all_var = kk.getAllVar(vinfo, dclass)
-    #print("all_varrrrrrrrrr", all_var)
     for k, st in enumerate(strats):
         print(k, st)
         #st_ = deepcopy(st)

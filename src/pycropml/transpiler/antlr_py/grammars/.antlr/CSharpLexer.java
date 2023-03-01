@@ -1,4 +1,4 @@
-// Generated from c:\Users\midingoy\Documents\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\CSharpLexer.g4 by ANTLR 4.9.2
+// Generated from d:\Docs\pycropml_pheno\src\pycropml\transpiler\antlr_py\grammars\CSharpLexer.g4 by ANTLR 4.9.2
 import java.util.Stack;
 import org.antlr.v4.runtime.Lexer;
 import org.antlr.v4.runtime.CharStream;
