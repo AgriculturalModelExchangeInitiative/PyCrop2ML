@@ -249,7 +249,7 @@ class RGenerator(CodeGenerator, RRules):
                 self.write(',\n         ')
         self.write('){')
         self.newline(node)
-        if self.model and node.name.split("model_")[1]==signature(self.model):
+        if self.model and  node.name.startswith("model_") and node.name.split("model_")[1]==signature(self.model):
             self.write(self.doc.header)
             self.newline(node)
             self.write(self.doc.desc)
