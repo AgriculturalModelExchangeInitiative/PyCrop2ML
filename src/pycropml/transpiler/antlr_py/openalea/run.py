@@ -147,15 +147,3 @@ def run_openalea(components, package):
     #op_extr = OpenaleaExtraction() 
     mc = op_extr.modelcomposition(wf, mu_names)  
     generate_compositefile(package, mc, package_name)
-
-                    
-            
-                        
-                
-
-            
-                
-
-        
-
-        

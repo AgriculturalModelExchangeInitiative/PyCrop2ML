@@ -100,28 +100,3 @@ class OpenaleaExtraction(MetaExtraction):
         self.pm = None
         return mc
         
-        
-
-        
-        
- 
-        
-            
-        
-                    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
