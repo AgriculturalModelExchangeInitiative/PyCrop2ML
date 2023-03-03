@@ -35,11 +35,10 @@ Example
         cs for csharp
         f90 for fortran
         java for java
-        simplace for simplace
-        sirius for sirius
-        openalea for OpenAlea
         cpp for C++
         r for r
+    * target platforms :
+        apsim, bioma, dssat, openalea, record, simplace, stics
 
 """
 #TODO
