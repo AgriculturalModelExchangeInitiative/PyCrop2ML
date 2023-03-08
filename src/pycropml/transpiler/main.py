@@ -1,3 +1,5 @@
+import sys
+
 import pycropml.transpiler.generators
 import pycropml.transpiler.generators.csharpGenerator
 import pycropml.transpiler.generators.cppGenerator
@@ -10,21 +12,28 @@ import pycropml.transpiler.generators.recordGenerator
 import pycropml.transpiler.generators.dssatGenerator
 import pycropml.transpiler.generators.sticsGenerator
 import pycropml.transpiler.generators.biomaGenerator
-import pycropml.transpiler.generators.siriusGenerator
-import pycropml.transpiler.generators.sirius2Generator
+# Sirius is managed by BioMa
+#import pycropml.transpiler.generators.siriusGenerator
+#import pycropml.transpiler.generators.sirius2Generator
 import pycropml.transpiler.generators.checkGenerator
 import pycropml.transpiler.generators.rGenerator
-
-import sys
 import pycropml.transpiler.generators.openaleaGenerator
+
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 import os
 from path import Path
 
 
-languages = ['r','cs','cpp','py', 'f90', 'java', 'simplace', 'sirius','sirius2', "openalea", "check","apsim","record","dssat","stics","bioma"]
-NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java',"simplace":'simplace','sirius':'sirius',"sirius2":"sirius2", "openalea":"openalea", "check":"check","apsim":"apsim","record":"record","dssat":"dssat","stics":"stics","bioma":"bioma"}
+languages = [
+    'r','cs','cpp','py','f90','java','simplace', #'sirius','sirius2', 
+    'openalea', 'check','apsim','record','dssat','stics','bioma']
+NAMES = {
+    'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java',
+    'simplace':'simplace',#'sirius':'sirius',"sirius2":"sirius2", 
+    'openalea':'openalea', 'check':'check','apsim':'apsim', 
+    "record":"record", "dssat":"dssat", "stics":"stics", "bioma":"bioma"
+    }
 
 GENERATORS = {
     format: getattr(
