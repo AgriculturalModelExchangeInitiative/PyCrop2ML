@@ -15,6 +15,7 @@ class SimplaceGenerator(JavaGenerator):
         self.name = name
         JavaGenerator.__init__(self, tree, model, self.name)
         self.parameters_ = deepcopy(self.model.parameters)
+        self.par_ = [p.name for p in self.parameters_ ]
         self.inputs_ = [inp for inp in self.model.inputs if ("variablecategory" in dir(inp) and inp.variablecategory=="auxiliary" )]
         self.outputs_ = [out for out in self.model.outputs if ("variablecategory" in dir(out) and out.variablecategory=="auxiliary" )]
         self.inputs = [inp.name for inp in self.model.inputs]
@@ -290,7 +291,7 @@ class SimplaceGenerator(JavaGenerator):
                             self.write(arg.name)
                             if arg.type=="list": self.write(" = Arrays.asList(%s.getValue());" % arg.name)
                             else:
-                                if arg.type == "array" and "elts" in dir(arg) and len(arg.elts)>0 :
+                                if arg.type == "array" and "elts" in dir(arg) and len(arg.elts)>0 and arg.name not in self.par_ :
                                     self.write(" = new ")
                                     self.visit_decl(arg.pseudo_type[1])
                                     self.write("[")
