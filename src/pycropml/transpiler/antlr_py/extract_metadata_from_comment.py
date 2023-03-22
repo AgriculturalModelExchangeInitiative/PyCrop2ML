@@ -47,8 +47,8 @@ import re
 def extract(comment):
     keywords = ["name", "version", "timestep" ]
     patterns = [r'(\b(?i)Name:\s*(?P<name>\w+))',
-                r'(-Version:\s*(?P<version>\d+\.*\d+))',
-                r'(-Time step:\s*(?P<timestep>\d+\.*\d*))'] 
+                r'(-\s*Version:\s*(?P<version>\d+\.*\d+))',
+                r'(-\s*Time step:\s*(?P<timestep>\d+\.*\d*))'] 
     
     # header of modelUnit name, version, timestep
     head = {}
