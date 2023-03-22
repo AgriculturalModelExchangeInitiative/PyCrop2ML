@@ -323,7 +323,7 @@ class AstTransformer():
             return {k: self.visit(v) for k, v in node.items()}
         else:
             return node
-    
+    #visit_node = visit
     def visit_root(self, node,single_input, file_input, eval_input,comments, location):
         if single_input: return self.visit(single_input)
         if file_input: return self.visit(file_input)
@@ -507,11 +507,13 @@ class AstTransformer():
             }
             return result
         elif NOT:
+            r = self.visit(logical_test)
+            node = r[0]
             return {
                 'type': 'unary_op',
                         'operator': 'not',
-                        'value': self.visit_node(logical_test),
-                        'pseudo_type': self.visit_node(logical_test)['pseudo_type']
+                        'value': node,
+                        'pseudo_type': node['pseudo_type']
             }
             
     
@@ -718,11 +720,14 @@ class AstTransformer():
                             'function': 'pow'
                 }
                 elif NOT_OP:
+                    value =  self.visit(expr)
+                    print (value)
+                    pseudo_type_  = value['pseudo_type']
                     return {
                     'type': 'unary_op',
                             'operator': 'not',
-                            'value': self.visit_node(expr),
-                            'pseudo_type': self.visit_node(expr)['pseudo_type']
+                            'value': value,
+                            'pseudo_type': pseudo_type
                 }
                 elif MOD:
                     r = self.visit(expr)
@@ -1013,7 +1018,7 @@ class AstTransformer():
             return {
                 'type': 'custom_call',
                 'namespace': namespace,
-                'args': self.visit_node(args),
+                'args': self.visit(args),
                 'pseudo_type': "unknown",
                 'function': function
             }

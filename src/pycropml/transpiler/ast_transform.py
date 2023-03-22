@@ -45,7 +45,7 @@ def deepestRightLeaf(root):
 
 
 
-class AstTransformer():
+class AstTransformer:
     def __init__(self, tree, code, model=None):
         self.tree = tree
         self.lines = [''] + code.split('\n')  # to access line of instruction
