@@ -7,6 +7,7 @@ from pycropml.transpiler.helpers import *
 from pycropml.transpiler.antlr_py import parse
 import ast
 from ast import AST, expr
+
 def reduceT(function, iterable, initializer=None):
     iterable_new = [j for i, j in enumerate(iterable) if i%2!=1]
     op = [j for i, j in enumerate(iterable) if i%2==1]
