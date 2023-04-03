@@ -197,7 +197,7 @@ def transpile_component(component, package, language):
                 'run_%s' % NAMES[format])
         for format in cymltx_languages
 }
-
+    print('translator :', translator)
     translator[language](component, package)
 
     return 0
