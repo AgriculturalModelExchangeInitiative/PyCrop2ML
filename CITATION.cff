@@ -1,0 +1,109 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  PyCrop2ML : Python library to exchange and reuse crop
+  model compponents between languages and platforms 
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Cyrille Ahmed
+    family-names: Midingoyi
+    affiliation: CIRAD
+    email: cyrille_ahmed.midingoyi@cirad.fr
+  - given-names: Christophe
+    family-names: Pradal
+    email: christophe.pradal@cirad.fr
+    affiliation: CIRAD
+    orcid: 'https://orcid.org/0000-0002-2555-761X'
+  - given-names: 'Andreas '
+    family-names: Enders
+    affiliation: >-
+      Institute of Crop Science and Resource Conservation
+      (INRES), University of Bonn, Bonn, Germany,
+  - given-names: Davide
+    family-names: Fumagalli
+  - given-names: Patrice
+    family-names: Lecharpentier
+    affiliation: INRAE
+  - given-names: 'Hélène '
+    family-names: Raynal
+    affiliation: INRAE
+  - given-names: 'Marcello '
+    family-names: Donatelli
+    affiliation: CREAA
+  - given-names: Ioannis N.
+    family-names: Athanasiadis
+    affiliation: 'Wageningen University, Wageningen, The Netherlands'
+  - given-names: 'Cheryl '
+    family-names: Porter
+    affiliation: >-
+      Agricultural & Biological Engineering, University of
+      Florida, Gainesville, USA
+  - given-names: 'Gerrit '
+    family-names: Hoogenboom
+    affiliation: >-
+      Agricultural & Biological Engineering, University of
+      Florida, Gainesville, USA
+  - given-names: 'Dean '
+    family-names: Holzworth
+    affiliation: 'CSIRO Agriculture and Food, Toowoomba, Australia'
+  - given-names: Pierre
+    family-names: Martre
+    affiliation: INRAE
+    email: pierre.martre@inrae.fr
+repository-code: >-
+  https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
+url: 'https://crop2ml.org'
+abstract: >-
+  The increasing impact of climate change and variability on
+  food security and agriculture, and the need for
+  agroecological transition require improving the
+  performance of crop simulation models and to model new
+  biophysical processes to tackle new challenges. Recently,
+  the Agricultural Models Exchange Initiative (AMEI)
+  proposed Crop2ML, an open-source modeling framework for
+  exchanging and reusing crop model components between
+  modeling platforms. This framework provides a unified
+  description of model components at a high level of
+  abstraction based on shared concepts, lifting constraints
+  of modeling platforms through an automatic system that
+  transforms high-level models into platform-compliant
+  components. This paper presents an approach based on
+  reverse engineering to automatically extract and transform
+  meta-information and algorithms of existing crop model
+  processes into a platform-independent model component. A
+  search algorithm using Crop2ML concepts, and a many-to-one
+  transformation system was adopted as the main reverse
+  engineering techniques to produce high-level models. The
+  system consists in parsing the codebase of model
+  components from different high-level languages (Python, R,
+  Java, C++, C#, and Fortran) using the ANother Tool for
+  Language Recognition (ANTLR) parser generator and
+  processing the generated syntax trees to produce the
+  various model implementations. It is implemented and
+  evaluated on three crop model components: an energy
+  balance model provided by BioMA platform and two soil
+  temperature models provided by SIMPLACE and DSSAT
+  platforms. We demonstrated the extensibility of our
+  approach with the STICS, OpenAlea, and SiriusQuality
+  modeling platforms. CyMLTx is a significant contribution
+  towards the interoperability of crop modeling platforms
+  and the reuse of crop model components beyond programming
+  languages. It will thus contribute to foster model
+  intercomparison and improvement activities. 
+keywords:
+  - Crop2ML
+  - AMEI
+  - Crop Model
+  - DSSAT
+  - SimPlace
+  - STICS
+  - APSIM
+  - OpenAlea
+  - BioMA
+  - RECORD
+license: CECILL-C
