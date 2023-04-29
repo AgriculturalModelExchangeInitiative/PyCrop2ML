@@ -400,21 +400,29 @@ class AstTransformer():
 
     def _translate_type(self, type_):
         r = []
-        r.append(maptype_[type_["sequence"]])
-        
-        if isinstance(type_["index"], dict):
-            tt = self._translate_type(type_["index"] )
-            r.append(tt)
-        else:
-            if isinstance(type_["index"], str):
-                r.append(type_["index"])
-            else:           
-                for t in type_["index"]:
-                    if isinstance(t, dict) and t["type"] == "index":
-                        tt = self._translate_type(t )
-                        r.append(tt)
-                    else:
-                        r.append(t)
+        print(type_)
+        if "sequence" in type_: r.append(maptype_[type_["sequence"]])
+        if "value" in type_: 
+            if '[' in type_["value"].decode('utf-8'):
+                ty1 = type_["value"].decode('utf-8').split("[")[0].replace("'", "").lower()
+                ty2 = type_["value"].decode('utf-8').split("[")[1].split("]")[0].replace("'", "").lower()
+                r.append(ty1)
+                r.append(ty2)
+            else: return type_["value"].decode('utf-8')
+        if "index" in type_:
+            if isinstance(type_["index"], dict):
+                tt = self._translate_type(type_["index"] )
+                r.append(tt)
+            else:
+                if isinstance(type_["index"], str):
+                    r.append(type_["index"])
+                else:           
+                    for t in type_["index"]:
+                        if isinstance(t, dict) and t["type"] == "index":
+                            tt = self._translate_type(t )
+                            r.append(tt)
+                        else:
+                            r.append(t)
         return r
 
     def visit_terminal(self, node, value, comments, location):
@@ -506,11 +514,13 @@ class AstTransformer():
             }
             return result
         elif NOT:
+            r = self.visit(logical_test)
+            node = r[0]
             return {
                 'type': 'unary_op',
                         'operator': 'not',
-                        'value': self.visit_node(logical_test),
-                        'pseudo_type': self.visit_node(logical_test)['pseudo_type']
+                        'value': node,
+                        'pseudo_type': node['pseudo_type']
             }
             
     
@@ -717,11 +727,13 @@ class AstTransformer():
                             'function': 'pow'
                 }
                 elif NOT_OP:
+                    value =  self.visit(expr)
+                    pseudo_type_  = value['pseudo_type']
                     return {
                     'type': 'unary_op',
                             'operator': 'not',
-                            'value': self.visit_node(expr),
-                            'pseudo_type': self.visit_node(expr)['pseudo_type']
+                            'value': value,
+                            'pseudo_type': pseudo_type_
                 }
                 elif MOD:
                     r = self.visit(expr)
@@ -1041,6 +1053,7 @@ class AstTransformer():
                     prepare_table(TYPED_API[namespace], ORIGINAL_METHODS.get(namespace)).strip()))
 
             elif not isinstance(api, dict):
+                print(args)
                 z = api.expand(args)
                 if attrib == 1:
                     z["attrib"] = 1
@@ -1398,4 +1411,4 @@ class AstTransformer():
                 
             
 
-maptype_ = {"Dict":"dict", "List":"list"}
+maptype_ = {"Dict":"dict", "List":"list", "Array":"array"}

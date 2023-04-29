@@ -25,7 +25,8 @@ def builtin_type_check(namespace, function, receiver, args):
         fs = TYPED_API['_%s' % namespace]
     # print(namespace, function, receiver, args, TYPED_API[namespace])
     # input(0)
-    if function not in fs:        
+    if function not in fs: 
+        print(fs)       
         raise  PseudoCythonTypeCheckError('wrong usage of %s' % str(function))
     x = fs[function]
     a = namespace + '#' + function if receiver else namespace + ':' + function
@@ -206,7 +207,7 @@ TYPED_API = {
         'cos':          ['double', 'double'],
         'acos':          ['double', 'double'],
         'log':          ['double', 'double'],
-        'ln': ["Number", "double"],
+        'ln':           ["Number", "double"],
         'sqrt':         ['Number', 'double'],
         'ceil':      ['double', 'int'],
         'exp':          ['double','double'],
@@ -215,7 +216,7 @@ TYPED_API = {
         'Min':          ['Number','Number'],
         'Round':          ['double','double'],
         'floor':        ["double", "int"],
-        'abs': ["Number", "Number"]
+        'pow': ["Number", "Number", "int"]
     },
 
     'operators': {

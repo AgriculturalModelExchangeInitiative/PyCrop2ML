@@ -14,6 +14,7 @@ from pycropml.transpiler.antlr_py.simplace.run import run_simplace
 from pycropml.transpiler.antlr_py.bioma.run import run_bioma
 from pycropml.transpiler.antlr_py.openalea.run import run_openalea
 from pycropml.transpiler.antlr_py.fortran.run import run_fortran
+from pycropml.transpiler.antlr_py.python.run import run_python
 from pycropml import render_cyml, nameconvention
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
@@ -32,7 +33,7 @@ import pycropml.transpiler.antlr_py
 NAMES = {'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java', 'simplace':'simplace', 'sirius':'sirius', "openalea":"openalea","apsim":"apsim", "record":"record", "dssat":"dssat","bioma":"bioma", "stics":"stics", "sirius2":"sirius2"}
 ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'simplace':'java', 'sirius':'cs','bioma':'cs', "openalea":"py", "apsim":"cs", "record":"cpp", "dssat":"f90", "stics":"f90", "sirius2":'cs'}
 
-cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics"]
+cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py"]
 langs = ["cs", "cpp", "java", "f90", "r", "py"]
 
 domain_class = ["cs", "java", 'sirius','cpp', "bioma", "sirius2"]

@@ -28,7 +28,6 @@ class FortranExtraction(MetaExtraction):
     
     def getProcess(self, tree):
         self.getTypeNode(tree, "function_definition") 
-        print([m.name for m in self.getTree])
         res = []
         for n in self.getTree:
             if n.comments:
@@ -94,6 +93,7 @@ class FortranExtraction(MetaExtraction):
     def externFunction(self, algo): 
         self.getTypeNode(algo, "call_stmt")
         custom_call = self.getTree
+        
         methNames = set({c.name for c in custom_call}) if custom_call else set()
         return methNames
 
