@@ -736,6 +736,7 @@ class BaseAstVisitor(ParseTreeVisitor):
 def get_field(ctx: ParserRuleContext, field: str):
     """Helper to get the value of a field"""
     # field can be a string or a node attribute
+    #print("iiiii", field)
     if isinstance(field, str):
         field = getattr(ctx, field, None)
     # when not alias needs to be called
@@ -768,6 +769,8 @@ def get_field_references(
     field_dict = {}
     for field_name in field_names:
         field = get_field(ctx, field_name)
+        #print("ioooooooo", type(field))
+        #print(ctx.children)
         if (
             not simplify
             or field is not None

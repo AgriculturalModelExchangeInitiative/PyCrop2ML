@@ -425,6 +425,7 @@ def run_bioma(component, output):
         env = {m.name:m.pseudo_type for j in rr.declarations for m in j.decl}
         zz = CheckingInOut( {},isAlgo = True)
         r_ch = zz.process(vv)
+        print(zz.inputs, zz.outputs)
         z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs)))
         print(z.model.name) 
         #print(z.model.outputs)

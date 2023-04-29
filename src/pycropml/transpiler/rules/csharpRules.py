@@ -41,8 +41,8 @@ def linq(name, z=True, swap=False):
         else:
             return cs
     return x
-def translateCopy(node):
-    types = {
+
+types_ = {
         "int": "int",
         "float": "double",
         "bool": "bool",
@@ -54,7 +54,10 @@ def translateCopy(node):
         "datetime":"DateTime",
         "DateTime":"DateTime"
     }
-    return Node(type="call", function = "new List<%s>"%(types[node.pseudo_type[1]]), args=[Node("local", name=node.args.name)])
+    
+def translateCopy(node):
+
+    return Node(type="call", function = "new List<%s>"%(types_[node.pseudo_type[1]]), args=[Node("local", name=node.args.name)])
 
 class CsharpRules(GeneralRule):
     def __init__(self):
@@ -163,7 +166,8 @@ class CsharpRules(GeneralRule):
             'contains?': '.Contains',
             'not contains?': translateNotContains,
             'index': '.IndexOf',
-            'map':lambda node:linq('Select')(node.receiver, node.message, node.args)
+            'map':lambda node:linq('Select')(node.receiver, node.message, node.args),
+            "allocate": lambda node: Node(type="assignment",target=node.receiver, value=(Node(type="call", function = "new List<%s>"%(types_[node.pseudo_type[1]]), args=node.args)))
         },
         'dict': {
             'len': translateLenDict,

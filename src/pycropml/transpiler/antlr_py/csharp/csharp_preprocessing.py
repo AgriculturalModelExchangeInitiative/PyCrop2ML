@@ -49,6 +49,19 @@ def inst_dclass(meth):
 
 class CheckingInOut(Middleware):
     
+    """_summary_
+    This code defines a middleware class called "CheckingInOut" 
+    that checks the inputs and outputs of a given code block. 
+    It does this by keeping track of the current scope and environment, 
+    and adding any new variables to the environment. 
+    It also keeps track of the inputs and outputs of the code block 
+    by checking if a variable is already in the current scope or not. 
+    The middleware class has methods for different types of statements 
+    and expressions, such as assignment, if statements, for loops, and function calls. 
+    The purpose of this middleware is to ensure that the inputs and outputs 
+    of a code block are well-defined and can be used by other parts of a program.
+    """
+    
     def __init__(self, env_init=None, isAlgo=False):
         if env_init is None:
             self.env_init = {}
@@ -80,8 +93,9 @@ class CheckingInOut(Middleware):
         if tree.target.type == "local":
             t_name = tree.target.name
             type_ = tree.target.pseudo_type
-            if t_name not in self.current_scope and not self.isAlgo:
+            if t_name not in self.current_scope and not self.isAlgo: # self.env[-1]
                 self.inputs.append(t_name) 
+            
             self.env[-1][t_name] = type_
             self.outputs.append(t_name)
             
@@ -123,33 +137,48 @@ class CheckingInOut(Middleware):
         for d in tree.decl:
             if "value" in dir(d):
                 self.transform_default(d.value)
+            self.env[-1][d.name] = d.type
+            self.current_scope = self.current()
         return tree
             
     
     def action_local(self, tree):
-        if tree.name not in self.current_scope:
+        
+        if tree.name not in self.current_scope:# and tree.name  not in self.outputs:
             self.inputs.append(tree.name)
+            self.env[-1][tree.name] = tree.type 
+            self.current_scope = self.current()      
         return tree
     
     def action_if_statement(self, tree):
         self.env.append({})
         self.transform(tree.test)
         self.transform(tree.block)
+        m1 = self.env[-1]
+        print("pppppp", m1)
         self.env.pop()
         self.current_scope = self.current()
         
         if tree.otherwise:
             self.env.append({})
             self.transform(tree.otherwise)
+            m2 = self.env[-1]
+            print("nnnnnnnn", m2)
             self.env.pop()
+            common_keys = m1.keys( ) & m2.keys()
+            common_dict = {k:m1[k] for k in common_keys}
+            self.env[-1].update(common_dict)
             self.current_scope = self.current()  
+        print("iiiii", self.inputs)
+        print("ifff", self.current_scope)   
         return tree
     
-    def action_elseif_statement(self, tree):
-        return self.workflow(tree)
+    #def action_elseif_statement(self, tree):
+        #print("oooooooooooooooo")
+        #return self.workflow(tree)
 
-    def action_else_statement(self, tree):
-        return self.workflow(tree)
+    #def action_else_statement(self, tree):
+        #return self.workflow(tree)
     
     def action_for_statement(self, tree):
         return self.workflow(tree)

@@ -128,7 +128,6 @@ class Pl2Crop2ml(object):
 
         composition = ns.Composition()
         for m in md.model:
-            print("uuu", m)
             composition.append(ns.Model(name=m, id=self.pkgname+'.'+m, filename='unit.'+m+'.xml'))
 
         links = ns.Links()

@@ -46,7 +46,6 @@ def translateMAX(node):
     return node
 
 def translateList(node):
-    print(node.y)
     if node.args.type == "standard_call":
         pass
     return
@@ -160,7 +159,8 @@ class FortranRules(GeneralRule):
                     'pop': translatePop,
                     'contains?': translateContains,
                     'not contains?':translateNotContains,
-                    'index': translateIndex
+                    'index': translateIndex,
+                    'allocate': lambda node: Node("call", function ="allocate", args =Node("call", function=node.receiver.name, args = node.args))
                     
                     },
 			'array':{

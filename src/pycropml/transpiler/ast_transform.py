@@ -426,7 +426,7 @@ class AstTransformer():
         else:
             z = {'type': 'local', 'name': id, 'pseudo_type': id_type, "lineno": location}
             if id in self.inp_unit:
-                z['unit'] = self.inp_unit[id]   
+                z['units'] = self.inp_unit[id]   
 
             if z in self._tuple_assigned:
                 if not any(a[0] == '_old_%s' % id for a in self._tuple_used):
@@ -770,6 +770,7 @@ class AstTransformer():
                     self._definition_index["functions"][message] = self.visit_node(x[0])
                     q = c[message][-1]
                     if argx != param_types:
+                        print(message, "iooooooooooooo", argx, param_types)
                         raise PseudoCythonTypeCheckError("Types incompatibility at line %s"%location[0])
                     #q = self._type_check(argx+returnx,message, param_types)[-1]
                     self.function_name = v 
@@ -1808,6 +1809,8 @@ class AstTransformer():
     def _compatible_types(self, from_, to, err, silent=False):
         '''if from_[0] == "array":
             from_[0] = "list"'''
+        if isinstance(from_, list) and isinstance(to, list):
+            to[0] = from_[0]    # to manage comparison between float and array
         if from_ == "unknown" or to == "unknown":
             return to
         if isinstance(from_, str) or isinstance(from_, EncodedString):
@@ -1849,6 +1852,7 @@ class AstTransformer():
                 if silent:
                     return False
                 else:
+                    print(to, from_)
                     raise PseudoCythonTypeCheckError(
                         err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
             for f, t in zip(from_[1:-1], to[1:-1]):

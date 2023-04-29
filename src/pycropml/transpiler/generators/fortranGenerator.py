@@ -160,7 +160,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.newline(node)
             self.visit(node.target)
             self.write(' = ')
-            self.visit(node.value)
+            if node.value.type=="binary_op" and isinstance(node.value.left.pseudo_type, list) and not isinstance(node.value.right.pseudo_type, list):
+                self.visit(node.value.left.elements[0])
+            else: self.visit(node.value)
     
     def visit_tuple(self,node):   
         pass
@@ -347,10 +349,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write(" )")
     
     def visit_sliceindex(self, node):
-        self.visit(node.receiver.sequence)
+        self.visit(node.receiver)
         self.write(u"(")
-        self.visit(node.receiver.index)
-        #self.write(" + 1")
         if node.message=="sliceindex_from":
             self.visit(node.args)
             self.write(u":")
@@ -363,6 +363,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.visit(node.args[1])
         if node.message=="slice_":
             self.write(u",:)")
+        self.write(u")")
 
     
     def visit_continuestatnode(self, node):
@@ -708,7 +709,6 @@ class FortranGenerator(CodeGenerator, FortranRules):
         else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )")  
         if ("feat" not in dir(node)) and (("elts" not in dir(node) or not node.elts or len(node.elts)==0)): # and node.name not in self.parameters :
-            print(node.y)
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):
