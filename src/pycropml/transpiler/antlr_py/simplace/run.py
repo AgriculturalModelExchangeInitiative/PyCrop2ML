@@ -36,7 +36,7 @@ def translate(algo, names):
 
     g = MemberAcess()
     s = g.process(v)
-    
+    if not s: s = []
     nodes = f.declarations + s
 
     cd = java_cyml.Java_Cyml_ast(nodes)
@@ -93,7 +93,7 @@ def run_simplace(components, output):
         code = remove(code, "//%%CyML Ignore Begin%%", "//%%CyML Ignore End%%")
         
         com = extractcomments(code, ["//"], ["/*", "*/"])
-        com_meta_info_part = list(extractcomments(code, ["/&&&"], ["/**", "*/"]).values())[0]
+        #com_meta_info_part = list(extractcomments(code, ["/&&&"], ["/**", "*/"]).values())[0]
         dictasgt = to_dictASG(code,"java", com)
         strAsg = to_CASG(dictasgt)
 

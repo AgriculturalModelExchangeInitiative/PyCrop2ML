@@ -132,7 +132,6 @@ def run_stics(component, package):
     d_sorted = fortrancomments(code)
     print("dsorted donce")
     dictasgt = to_dictASG(code,language, comments=d_sorted)
-    print("dictdooopp")
     asgt = to_CASG(dictasgt)
     fp.close() 
     
@@ -145,7 +144,6 @@ def run_stics(component, package):
     extr = FortranExtraction()
     # Find the not required functions or subroutines
     notreq = extr.notRequiredFunc(asgt)
-
     for f in files:
         with open(os.path.join(component,f), 'r') as text:
             mod = text.read()
@@ -155,7 +153,7 @@ def run_stics(component, package):
             totalcomments = fortrancomments(mod)
             modunit_dictasg = to_dictASG(res[0] , language)
             modunit_asg = to_CASG(modunit_dictasg)
-
+            exterfunc = extr.externFunction(modunit_asg[0]) # external functions
             imports = modunit_asg[0].imports
            
             
@@ -170,9 +168,12 @@ def run_stics(component, package):
                 newinputs.append(d.decl[0])
             
             inout = modunit_asg[0].inputs_name + modunit_asg[0].outputs_name + attrname
+            
+            gg = Call_stmt(trees=asgt)
+            hh = gg.process(node_w_attrib)
                 
             ass = Assignment()
-            node2=ass.process(node_w_attrib)     
+            node2=ass.process(hh)     
             l = Local()
             res1 = l.process(node2)
             pp = l.localvar.difference(set(inout)) # remove input output declarations
@@ -226,16 +227,15 @@ def run_stics(component, package):
             r = ExtractComments(mod, "!", '"""', '"""') 
             mdata = extract(r)
             #metainfo = extractMetaInfo(mod, "!")
-            generate_unitfile(package, mdata, package_name)  
-                                
+                               
             out_compute = os.path.join(package,  "crop2ml", "algo", "pyx", mdata.name + ".pyx")
             with open(out_compute, "w") as fi:
                 fi.write(codes_compute + '\n')
             
-            exterfunc = extr.externFunction(modunit_asg[0]) # external functions
             extfunc = exterfunc.difference(notreq) 
          
             for ext in extfunc:
+                mdata.function.append(ext)
                 func = extr.getSubroutine(asgt, ext)
                 extcode = translate_simple(func, total_tree=asgt)
                 exfunc = os.path.join(package, "crop2ml", "algo", "pyx", ext + ".pyx")
@@ -245,9 +245,16 @@ def run_stics(component, package):
             models.append(mdata)
 
             if initv:
-                out_init = os.path.join(package, "crop2ml", "algo", "pyx", "init."+f.split(".")[0] + ".pyx")
+                dict_init = {} 
+                name_i = f.split(".")[0]
+                dict_init["name"] = "init."+mdata.name
+                
+                dict_init["filename"] = f"algo/pyx/init.{f.split('.')[0]}.pyx"
+                mdata.initialization = [dict_init]
+                out_init = os.path.join(package, "crop2ml", dict_init["filename"])
                 with open(out_init, "w") as fi:
                     fi.write(codes_init+'\n')  
+            generate_unitfile(package, mdata, package_name) 
 
 
     res_compo = extraction(code, composition_tags[0],composition_tags[1],ignore_tags[0],ignore_tags[1])
@@ -268,8 +275,7 @@ def run_stics(component, package):
         description["Institution"] = mdata.description.Institution
         description["ShortDescription"] = mdata.description.ShortDescription
         description["ExtendedDescription"] = mdata.description.ExtendedDescription
-        mc = createObjectCompo(description, models)
-        print(mc.internallink)   
+        mc = createObjectCompo(description, models)   
         generate_compositefile(package, mc, package_name)       
                     
 

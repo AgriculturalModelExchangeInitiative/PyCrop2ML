@@ -1373,7 +1373,7 @@ class AstTransformer():
         res["type"] = "for_range_statement"
         res["start"] = init["decl"][0]["value"] if "decl" in init else init[0]["value"]
         expr = self.visit(expression)
-        if expr["op"] in ["<", ">"]:
+        if expr["op"] in ["<", ">", "!="]:
             res["end"] = expr["right"]
         elif expr["op"] in ["<=", ">="]: 
             res["end"]={'type': 'binary_op',

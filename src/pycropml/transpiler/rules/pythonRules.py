@@ -125,7 +125,8 @@ class PythonRules(GeneralRule):
             'contains?': lambda node: Node("simpleCall", op='in', value=node.args, sequence=node.receiver, pseudo_type='Boolean'),
             'not contains?': translateNotContains,
             'index': '.index',
-            'extend': '.extend'
+            'extend': '.extend',
+            'allocate': lambda node: Node("assignment", target = node.receiver, value=Node("call", function = "array", args=[Node("str", value=b'f'),Node("binary_op", op="*", left = Node("list", elements=[Node("int", value="0")]),right=node.args)]))
         },
         'datetime':{
             'datetime':'datetime',

@@ -226,7 +226,8 @@ TYPED_API = {
         'map':        [['Function', '@t', '@y'], ['list', '@y']],
         'filter':     [['Function', '@t', 'bool'], ['list', '@t']],
         'index':      ['@t','int'],
-        'copy':[['list','@t'],['list','@t']]
+        'copy':[['list','@t'],['list','@t']],
+        'allocate': ['int',['list', '@t']]
     },
 
     'dict': {
@@ -307,7 +308,8 @@ ORIGINAL_METHODS = {
         'length':     'len',
         'copy':'copy',
         'map':        'list comprehension / map',
-        'filter':     'list comprehension / filter'
+        'filter':     'list comprehension / filter',
+        'allocate':'allocate(element)'
     },
 
     'dict': {

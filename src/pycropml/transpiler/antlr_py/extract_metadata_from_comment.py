@@ -102,6 +102,7 @@ def attval(pat_name, string):
     lines = att[0][0].split('\n')[1:-1]
     dic = {}
     for line in lines:
+        if not line: continue
         attribute = re.search(pattern_attr_val, line).group("attribute")
         value = re.search(pattern_attr_val, line, re.ASCII).group("value").replace('\r', "")
         dic[attribute] = str(value)

@@ -46,7 +46,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.write("float('nan')")
 
     def visit_local(self, node):
-        if "units" in dir(node):
+        if "unit" in dir(node):
             self.write("%s%s"%(node.name,node.units)) if node.units[0]=='/' else self.write("%s*%s"%(node.name,node.units))
         else: self.write(node.name)
 

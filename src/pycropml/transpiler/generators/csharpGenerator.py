@@ -237,18 +237,32 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
 
     def visit_sliceindex(self, node):
         self.visit(node.receiver)
-        self.write(u"[")
-        if node.message=="sliceindex_from":
-            self.visit(node.args)
-            self.write(u":")
-        if node.message=="sliceindex_to":
-            self.write(u":")
-            self.visit(node.args)
-        if node.message=="sliceindex":
+        if node.receiver.pseudo_type[0]=="list":
+            self.write("GetRange(")
             self.visit(node.args[0])
-            self.write(u":")
-            self.visit(node.args[1])
-        self.write(u"]")
+            self.write(u",")
+            self.visit(node.args[1])  
+            self.write(u")")
+        else: 
+            if node.message == "sliceindex":
+                self.write(".ToList().GetRange(")
+                self.visit(node.args[0])
+                self.write(u",")
+                self.visit(node.args[1])  
+                self.write(u")")
+            """
+            self.write(u"[")
+            if node.message=="sliceindex_from":
+                self.visit(node.args)
+                self.write(u":")
+            if node.message=="sliceindex_to":
+                self.write(u":")
+                self.visit(node.args)
+            if node.message=="sliceindex":
+                self.visit(node.args[0])
+                self.write(u":")
+                self.visit(node.args[1])
+            self.write(u"]")"""
     
     def visit_assignment(self, node):
         self.newline(node)
@@ -267,6 +281,15 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 
             elif node.value.type=="none":
                 pass
+            
+            elif node.value.type=="binary_op"  and isinstance(node.target.pseudo_type, list):
+                self.write("for (var i = 0; i < ")
+                self.visit(node.value.right)
+                self.write("; i++){")
+                self.visit(node.target)
+                self.write(".Add(")
+                self.visit(node.value.left.elements[0])
+                self.write(");}")
                          
             else:
                 self.visit(node.target)

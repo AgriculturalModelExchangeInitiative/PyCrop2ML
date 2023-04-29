@@ -124,6 +124,7 @@ class CymlRules(GeneralRule):
         'list': {
             'len': 'len',
             'append': '.append',
+            'allocate':".allocate",
             'sum': 'sum',
             'pop': '.pop',
             'contains?': lambda node: Node("simpleCall", op='in', value=node.args, sequence=node.receiver, pseudo_type='Boolean'),
