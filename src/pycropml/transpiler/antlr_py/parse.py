@@ -31,9 +31,9 @@ from antlr4.error.ErrorListener import ErrorListener, ConsoleErrorListener
 from operator import methodcaller
 from antlr4 import InputStream
 
-languages = ['cs',"bioma", 'f90', 'dssat', 'java', "xml", "cmake", "py", "openalea"]
-gen = {'cs':"csharp","bioma":"csharp", 'f90':"fortran", 'dssat':"fortran", "java":"java", "xml":"xml", "cmake":"cmake", "py":"python", "openalea":"python"}
-NAMES = {'cs':'CSharp','sirius':'CSharp',"bioma":"CSharp", 'f90':'Fortran90', 'dssat':'Fortran90', "java":"Java8", "xml":"XML", "cmake":"CMake", "py":"Python", "openalea":"Python"}
+languages = ['cs','bioma', 'f90', 'dssat', 'java', 'xml', 'cmake', 'py', 'openalea']
+gen = {'cs':'csharp','bioma':'csharp', 'f90':'fortran', 'dssat':'fortran', 'java':'java', 'xml':'xml', 'cmake':'cmake', 'py':'python', 'openalea':'python'}
+NAMES = {'cs':'CSharp','sirius':'CSharp','bioma':'CSharp', 'f90':'Fortran90', 'dssat':'Fortran90', 'java':'Java8', 'xml':'XML', 'cmake':'CMake', 'py':'Python', 'openalea':'Python'}
 
 def langLexerParser(ant):
     generator = {
