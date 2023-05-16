@@ -976,11 +976,11 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                         length = arg.elts[0].value
                     else:
                         length = arg.elts[0].name
-                    if not length: length = "toCopy._%s.Length"%(arg.name)
+                    if not length: length = "toCopy.%s.Length"%(arg.name)
                     self.write("%s = new %s[%s];"%(arg.name, self.types[arg.pseudo_type[1]], length))
                     self.write(self.copy_constrArray%(length,arg.name,arg.name))
             else:
-                self.write("_%s = toCopy._%s;"%(arg.name, arg.name))
+                self.write("%s = toCopy.%s;"%(arg.name, arg.name))
 
 
     def visit_list_decl(self, node):
@@ -1228,6 +1228,10 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
+            for m in self.model.model:
+                if name.lower() == signature2(m).lower():
+                    name = signature2(m)
+                    break
             self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
             self.newline(node)
         else:
