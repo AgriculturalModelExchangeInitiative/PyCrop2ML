@@ -1053,7 +1053,6 @@ class AstTransformer():
                     prepare_table(TYPED_API[namespace], ORIGINAL_METHODS.get(namespace)).strip()))
 
             elif not isinstance(api, dict):
-                print(args)
                 z = api.expand(args)
                 if attrib == 1:
                     z["attrib"] = 1

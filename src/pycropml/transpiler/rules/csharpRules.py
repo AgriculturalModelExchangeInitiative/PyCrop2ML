@@ -208,7 +208,7 @@ class CsharpRules(GeneralRule):
     '''
     copy_constrArray = '''
             for (int i = 0; i < %s; i++)
-            { _%s[i] = toCopy._%s[i]; }
+            { %s[i] = toCopy.%s[i]; }
     '''
     public_properties_compo = '''
     {

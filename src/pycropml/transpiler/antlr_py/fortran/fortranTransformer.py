@@ -1262,7 +1262,7 @@ class AstTransformer():
                                     'elements': [res["value"]]},
                                     'right': self.type_env['arrays'][res["target"]["name"]],
                                     'pseudo_type': ['list', type_]},
-                                    'pseudo_type': type_}
+                                    'pseudo_type': ["array",type_]}
                 if self.recursive and str(NAME)==self.out:
                         return {"type":"implicit_return",
                                 "value": res["value"],

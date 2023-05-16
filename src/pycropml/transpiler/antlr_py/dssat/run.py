@@ -76,9 +76,9 @@ def translate(node, asgt, imports, inout=[], index=[]):
     r = z.process(h)
     
 
-    return translate_simple(r, total_tree=asgt)
+    return r
 
-def translate_simple(r, total_tree=None):
+def translate_simple(r, total_tree=None, var = []):
     """ Transform the ASG of Fortran code in the Common Model Representation that is transformed into CyML
 
     Args:
@@ -87,7 +87,7 @@ def translate_simple(r, total_tree=None):
     Returns:
         str: The generated CyML code 
     """
-    cd = f90_cyml.F90_Cyml_ast(r, treeG=total_tree)
+    cd = f90_cyml.F90_Cyml_ast(r, treeG=total_tree, var = var)
     hh = cd.transform()
     nd = transform_to_syntax_tree(hh)
     codes = writeCyml(nd)
@@ -209,7 +209,7 @@ def run_dssat(component, package):
                 newinputs.append(d.decl[0])
             
             inout = modunit_asg[0].inputs_name + modunit_asg[0].outputs_name + attrname
-                
+            
             ass = Assignment()
             node2=ass.process(node_w_attrib)     
             l = Local()
@@ -224,7 +224,6 @@ def run_dssat(component, package):
                     for inp in m.decl:
                         if inp.name in input1 and inp.name not in modunit_asg[0].indexnames :
                             inputs1.append(inp)
-
 
             initialization =  extraction(res[0] , init_tags[0],init_tags[1])
             ratecalculation = extraction(res[0] , rates_tags[0],rates_tags[1])
@@ -247,25 +246,16 @@ def run_dssat(component, package):
             algop = False
             ratep = False
             statep = False
+            init_outputs = []
+            v = []
             
-            if initialization:
-                initv = True
-                metainfo_init = {"name": f"init.{modunit_asg[0].name}", "language":"Cyml", "filename":f"algo/pyx/init.{modunit_asg[0].name}.pyx"}
-                initialization = initialization[0]  +endline + endconstruct
-                comments_init = fortrancomments(initialization)
-                initialization_dictasg = to_dictASG(initialization, language,comments_init, env = modunit_asg[0].env)
-                initialization_asg = to_CASG(initialization_dictasg)
-                codes_init = translate(decl+initialization_asg,asgt,imports, inout=inout, index = modunit_asg[0].indexnames)
-            
-
             if algoPart:
                 algop = True
                 algoPart = algoPart[0]  + endline + endconstruct 
                 comments_compute = fortrancomments(algoPart)
                 algoPart_dictasg = to_dictASG(algoPart, language,comments_compute, env = modunit_asg[0].env)
                 algoPart_asg = to_CASG(algoPart_dictasg)
-                codes_compute = translate(decl+algoPart_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
-            
+                r = translate(decl+algoPart_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
             
             if ratecalculation:
                 ratep = True
@@ -273,7 +263,20 @@ def run_dssat(component, package):
                 comments_rate = fortrancomments(ratecalculation)
                 ratecalculation_dictasg = to_dictASG(ratecalculation, language,comments_rate, env = modunit_asg[0].env)
                 ratecalculation_asg = to_CASG(ratecalculation_dictasg)
-                codes_rates = translate(decl+ratecalculation_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
+                g = Call_stmt(trees=asgt)
+                h = g.process(ratecalculation_asg)
+                from pycropml.transpiler.antlr_py.csharp.csharp_preprocessing import CheckingInOut
+                zz = CheckingInOut( {},isAlgo = True)
+                r_ch = zz.process(h)
+                index = list(set(modunit_asg[0].indexnames).intersection(set(zz.inputs) ))
+                r = translate(decl + ratecalculation_asg,asgt,imports,inout=inout, index = index)
+                var = list(set(zz.inputs) - set(index))
+                print(var)
+                x = list(set(var)-set([m.name for m in model_inputs]))
+                
+                for i in x:
+                    v.append(extr2.getDeclaration(asgt, i))
+                codes_rates = translate_simple(r, total_tree=asgt, var = var)         
             
             if statecalculation:
                 statep = True
@@ -281,15 +284,34 @@ def run_dssat(component, package):
                 comments_state = fortrancomments(statecalculation)
                 statecalculation_dictasg = to_dictASG(statecalculation, language,comments_state, env = modunit_asg[0].env)
                 statecalculation_asg = to_CASG(statecalculation_dictasg)
-                codes_states = translate(decl+statecalculation_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
-               
+                r, codes_states = translate(decl+statecalculation_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
+                
+            if initialization:
+                initv = True
+                metainfo_init = {"name": f"init.{modunit_asg[0].name}", "language":"Cyml", "filename":f"algo/pyx/init.{modunit_asg[0].name}.pyx"}
+                initialization = initialization[0]  +endline + endconstruct
+                comments_init = fortrancomments(initialization)
+                initialization_dictasg = to_dictASG(initialization, language,comments_init, env = modunit_asg[0].env)
+                initialization_asg = to_CASG(initialization_dictasg)
+                
+                from pycropml.transpiler.antlr_py.csharp.csharp_preprocessing import CheckingInOut
+                zz = CheckingInOut( {},isAlgo = True)
+                r_ch = zz.process(initialization_asg)
+                index = list(set(modunit_asg[0].indexnames).intersection(set(zz.inputs) ))
+                init_outputs = zz.outputs
+                r = translate(decl + initialization_asg,asgt,imports,inout=inout, index = index)
+                #var = list(set(zz.inputs) - set(index))
+                var = [n.name for n in model_inputs+v]
+                codes_init = translate_simple(r, total_tree=asgt, var=var)  
+                
+                     
             metainfo = extractMetaInfo(mod, "!")
             inp_info = []
             out_info = []
             
             metainfo2 = copy.deepcopy(metainfo)
             mm = []
-            for inp in model_inputs:
+            for inp in model_inputs+v:
                 res = {}
                 if inp.name in metainfo.keys() and inp.name not in mm:
                     res["name"] = inp.name

@@ -289,6 +289,7 @@ using CRA.AgroManagement;
         self.open(node)
         self.write("//Set current values of the outputs to the static VarInfo representing the output properties of the domain classes")	
         for out in self.model.outputs:
+            print(out.name)
             self.newline(node)
             self.write('%s%s.DomainClass.%s%sVarInfo.%s.CurrentValue=%s.%s;'%(self.customer,self.name, self.name, out.variablecategory.capitalize(),out.name,category[out.variablecategory], out.name))
         self.newline(node)

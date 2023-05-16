@@ -61,6 +61,7 @@ def run_python(components, package):
     package_name = m[0] +"." + "".join(m[1:])
     
     mu_names = []
+    models = []
     for  k, v in files.items():
         if v not in [composite]:
             print(v)
@@ -88,11 +89,14 @@ def run_python(components, package):
             
             if py_units:
                 for py_unit in py_units:
+                    
                     # match def ...() # retrieve the name
                     name = re.findall(r'(def\s+.+\()', py_unit)[0].replace("def", "").replace("(", "").strip()
                     # extract algorithm of each py_unit using file_asg, the name of the unit
                     meth = z.getmethod(file_asg, name, True)
-
+                    
+                    
+                    
                     mdata = extract(meth.doc) # create a ModelUnit object (description, inputs and outputs). After we complete with other info
                     #print(mdata.description.ExtendedDescription, "babfsdvhsdbvjsbvbsjvjskdfbv")
 
@@ -150,4 +154,13 @@ def run_python(components, package):
                         break
                     else:
                         generate_unitfile(package, mdata, package_name)  
+                    models.append(mdata)
+
+    with open(composite, "r") as f:
+        code = f.read()
+    res_compo = extraction(code, modeltag_begin,modeltag_end)
+    compo_dictasg = to_dictASG(res_compo[0] , "py")
+    compo_asg = to_CASG(compo_dictasg)
+    mc = op_extr.modelcomposition(res_compo[0], models, compo_asg) 
+    generate_compositefile(package, mc, package_name)
     

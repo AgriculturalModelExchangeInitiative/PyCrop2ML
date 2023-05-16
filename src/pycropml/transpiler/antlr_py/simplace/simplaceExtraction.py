@@ -239,25 +239,26 @@ class SimplaceExtraction(MetaExtraction):
         outputs = []
         for el in list(root):
             for l in list(el):
-                mu_name = l.attrib["id"]
-                mods.append(mu_name)
-                for j in list(l):
-                    attr = j.attrib
-                    if j.tag == "input" and "source" in attr:
-                        id = attr["id"]
-                        var = attr["source"].split(".")[-1]
-                        mod = attr["source"].split(".")[0]
-                        if mod == name or mod not in mods:
-                            self.mc.inputlink.append({"target": mu_name + "." + id, "source":var})
-                            inputs.append(var)
-                        elif mod in mods:
-                            self.mc.internallink.append({"source": mod + "." + var, "target":mu_name + "." + id})
-                    elif j.tag == "output":
-                        id = attr["id"]
-                        var = attr["destination"].split(".")[-1]
-                        mod = attr["destination"].split(".")[0]
-                        self.mc.outputlink.append({"source": mu_name + "." + id, "target":var})
-                        outputs.append(var)
+                if l.tag=="simcomponent":
+                    mu_name = l.attrib["id"]
+                    mods.append(mu_name)
+                    for j in list(l):
+                        attr = j.attrib
+                        if j.tag == "input" and "source" in attr:
+                            id = attr["id"]
+                            var = attr["source"].split(".")[-1]
+                            mod = attr["source"].split(".")[0]
+                            if mod == name or mod not in mods:
+                                self.mc.inputlink.append({"target": mu_name + "." + id, "source":var})
+                                inputs.append(var)
+                            elif mod in mods:
+                                self.mc.internallink.append({"source": mod + "." + var, "target":mu_name + "." + id})
+                        elif j.tag == "output":
+                            id = attr["id"]
+                            var = attr["destination"].split(".")[-1]
+                            mod = attr["destination"].split(".")[0]
+                            self.mc.outputlink.append({"source": mu_name + "." + id, "target":var})
+                            outputs.append(var)
         self.mc.model = mods
         for m in models:
             for n in m.inputs:

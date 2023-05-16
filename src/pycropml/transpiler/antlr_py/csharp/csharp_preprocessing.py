@@ -115,7 +115,7 @@ class CheckingInOut(Middleware):
                 self.env[-1][t_name] = type_
                 
         
-        if tree.op != "=":
+        if "op" in dir(tree) and tree.op != "=":
             if t_name not in self.current_scope:
                 self.inputs.append(t_name)   
         
@@ -155,7 +155,6 @@ class CheckingInOut(Middleware):
         self.transform(tree.test)
         self.transform(tree.block)
         m1 = self.env[-1]
-        print("pppppp", m1)
         self.env.pop()
         self.current_scope = self.current()
         
@@ -163,14 +162,11 @@ class CheckingInOut(Middleware):
             self.env.append({})
             self.transform(tree.otherwise)
             m2 = self.env[-1]
-            print("nnnnnnnn", m2)
             self.env.pop()
             common_keys = m1.keys( ) & m2.keys()
             common_dict = {k:m1[k] for k in common_keys}
             self.env[-1].update(common_dict)
-            self.current_scope = self.current()  
-        print("iiiii", self.inputs)
-        print("ifff", self.current_scope)   
+            self.current_scope = self.current()   
         return tree
     
     #def action_elseif_statement(self, tree):

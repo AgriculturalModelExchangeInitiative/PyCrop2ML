@@ -1,5 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
+from pycropml.nameconvention import signature2
 from pycropml.transpiler.rules.cppRules import CppRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
@@ -224,7 +225,11 @@ class CppGenerator(CodeGenerator,CppRules):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, s1, r, a);"%(name, name))
+            for m in self.model.model:
+                if name == signature2(m):
+                    name = signature2(m)
+                    break
+            self.write("_%s.Calculate_Model(s, s1, r, a);"%(name))
             self.newline(node)
         elif node.value.type =="standard_call" and node.value.function=="copy":
             self.newline(node)
@@ -351,7 +356,7 @@ class CppGenerator(CodeGenerator,CppRules):
         if not isinstance(outputs, list):
             outputs=[outputs]
         outputs_name = [e.name  for e in outputs]
-        
+        print(outputs_name)
         variables = self.params+self.internal if self.internal else self.params
         newNode=[]
         for var in variables:
@@ -394,15 +399,17 @@ class CppGenerator(CodeGenerator,CppRules):
     def visit_function_definition(self, node):      
         self.newline(node)
         self.funcname = node.name
-        self.add_features(node)
+        print(self.funcname)
+        z = self.add_features(node)
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
-            self.templateArr(node.params)
+            #self.templateArr(node.params)
             self.visit_decl(node.return_type) if node.return_type else self.write("void")
             if self.model: self.write(" %s::"%self.model.name)
             self.write(" %s("%node.name)
             for i, pa in enumerate(node.params):
-                if pa.name in self.array_parameter(node.params)[0].values(): continue
-                if pa.feat=="IN" and pa.type in ["list","array"]: self.write("const ")
+                print(pa.name, pa.feat)
+                #if pa.name in self.array_parameter(node.params)[0].values(): continue
+                if pa.feat=="IN"  and pa.type in ["list","array"]: self.write("const ")
                 self.visit_decl(pa.pseudo_type, pa)
                 if i!= (len(node.params)-1):
                     self.write(', ')
@@ -433,7 +440,7 @@ class CppGenerator(CodeGenerator,CppRules):
                 self.write(self.doc.outputs_doc)
                 self.newline(node)
             self.indentation += 1 
-            for arg in self.add_features(node) :
+            for arg in z : #self.add_features(node) :
                 if "feat" in dir(arg):
                     if arg.feat in ("IN","INOUT") :
                         self.newline(node) 
@@ -456,7 +463,9 @@ class CppGenerator(CodeGenerator,CppRules):
                                 if arg.pseudo_type[0] =="list":
                                     self.write(" = vector<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    self.write(" = vector<%s,%s>"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                    x  = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
+                                    if not x: self.write(" = vector<%s>()"%(self.types[arg.pseudo_type[1]]))
+                                    else: self.write(" = vector<%s>(%s)"%(self.types[arg.pseudo_type[1]], x))
                             self.write(";")                   
             self.indentation -= 1 
         self.body(node.block)
@@ -482,7 +491,7 @@ class CppGenerator(CodeGenerator,CppRules):
             if not isinstance(arg.pseudo_type, list):
                 self.write(" _%s) { this->%s = _%s; }"%(arg.name, arg.name, arg.name)) 
             else:
-                self.write(" _%s){"%arg.name)
+                self.write("const & _%s){"%arg.name)
                 self.newline(1)
                 self.indentation +=1
                 self.write("this->%s = _%s;"%(arg.name, arg.name))
@@ -558,9 +567,11 @@ class CppGenerator(CodeGenerator,CppRules):
                 if n.type=="list":
                     self.write("vector<%s> %s;"%(self.types[n.pseudo_type[1]],n.name))
                 elif n.type=="array":
-                    self.write(f"vector<{self.types[n.pseudo_type[1]]}> {n.name}")
-                    self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts[0].name if "name" in dir(n.elts[0]) else n.elts[0].value))
-                    self.write("%s;"%n.name)
+                    if not n.elts:
+                        self.write(f"vector<{self.types[n.pseudo_type[1]]}> {n.name};")
+                    else:
+                        self.write(f"vector<{self.types[n.pseudo_type[1]]}> {n.name}")
+                        self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
             elif 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                 self.write("%s %s"%(self.types[n.type], n.name))
                 self.write(" = ")
@@ -645,18 +656,18 @@ class CppGenerator(CodeGenerator,CppRules):
         self.write(" %s"%pa.name) if (pa and "name" in dir(pa)) else ''        
 
     def visit_array_decl(self, node, pa=None):
-        if pa: 
+        """if pa: 
             v =self.array_parameter([pa])[0]
             if pa.name in v: size = v[pa.name]
             else: size = pa.elts[0].value
         if not isinstance(node[1], list):
             if pa: 
-                self.write("%s, %s"%(self.types[node[1]],size))
+                self.write("%s>(%s)"%(self.types[node[1]],size))
             self.write('%s> '%self.types[node[1]])
-        else:
-            node = node[1]
-            self.visit_decl(node)
-            self.write('> ')
+        else:"""
+        node = node[1]
+        self.visit_decl(node)
+        self.write('> ')
         if pa: self.write(pa.name)
         
         
@@ -934,8 +945,13 @@ class CppTrans(CppGenerator):
             self.write(" get%s();"%arg.name) if not isinstance(arg.pseudo_type, list) else self.write("& get%s();"%arg.name) 
             self.newline(node)
             self.write("void set%s("%arg.name)
-            print(arg.pseudo_type)
-            self.visit_decl(arg.pseudo_type)
+            
+            if not isinstance(arg.pseudo_type, list):
+                self.visit_decl(arg.pseudo_type)
+            else:
+                self.write("const ")
+                self.visit_decl(arg.pseudo_type)
+                self.write("& ")
             self.write(" _%s);"%arg.name) #if not isinstance(arg.pseudo_type, list) else self.write("& _%s);"%arg.name)
 
 
@@ -975,7 +991,7 @@ class CppTrans(CppGenerator):
                     self.write("vector<%s> %s;"%(arg.name, self.types[arg.pseudo_type[1]]))
                     self.write(self.copy_constrList%(arg.name,arg.name,arg.name))
                 if arg.pseudo_type[0] =="array":
-                    self.write("%s = new %s[%s];"%(arg.name, self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                    self.write("%s = vector<%s>(%s);"%(arg.name, self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
                     self.write(self.copy_constrArray%(arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name,arg.name,arg.name))
             else:
                 self.write("_%s = toCopy._%s;"%(arg.name, arg.name))
@@ -1224,6 +1240,10 @@ class CppCompo(CppTrans):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
+            for m in self.modelt.model:
+                if name.lower() == signature2(m).lower():
+                    name = signature2(m)
+                    break
             self.write("_%s.Calculate_Model(s, s1, r, a, ex);"%(name))
             self.newline(node)
         else:
@@ -1284,11 +1304,13 @@ class CppCompo(CppTrans):
     def setter(self,m, node):
         for arg in node:
             self.newline(node)
-            self.write("void %s::set%s("%(m,arg.name))
-            self.visit_decl(arg.pseudo_type)
             if not isinstance(arg.pseudo_type, list):
+                self.write("void %s::set%s("%(m,arg.name))
+                self.visit_decl(arg.pseudo_type)
                 self.write(" _%s)"%arg.name)
             else:
+                self.write("void %s::set%s(const "%(m,arg.name))
+                self.visit_decl(arg.pseudo_type)
                 self.write("& _%s)"%arg.name)
             self.newline(1)
             self.write("{")
