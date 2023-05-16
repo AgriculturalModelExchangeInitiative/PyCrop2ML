@@ -83,8 +83,11 @@ class OpenaleaCompo(PythonCompo):
                     'url': 'http://crop2ml.org',
                     'icon': ''}
         metainfo['alias']= [mc.name]
-        #name = mc.name
-        name = ('amei.'+mc.id).lower()
+        
+        split_name = (mc.id).lower().split('.') # remove the name of the workflow
+        names = split_name[:-1] if len(split_name) >1 else split_name
+        names.insert(0, 'amei')
+        name = '.'.join(names).lower()
         wra_path = mc.path.split(os.path.sep)[-1]
         path = Path(os.path.join(mc.path,"src","openalea", wra_path))
         _package = package.UserPackage(name, metainfo, path)
