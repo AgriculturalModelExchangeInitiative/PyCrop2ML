@@ -85,7 +85,7 @@ class OpenaleaCompo(PythonCompo):
         metainfo['alias']= [mc.name]
         
         split_name = (mc.id).lower().split('.') # remove the name of the workflow
-        names = split_name[:-1] if len(split_name) >1 else split_name
+        names = split_name[:-1] if len(split_name) >2 else split_name
         names.insert(0, 'amei')
         name = '.'.join(names).lower()
         wra_path = mc.path.split(os.path.sep)[-1]

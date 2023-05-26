@@ -13,7 +13,7 @@ import pycropml.transpiler.generators.dssatGenerator
 import pycropml.transpiler.generators.sticsGenerator
 import pycropml.transpiler.generators.biomaGenerator
 # Sirius is managed by BioMa
-#import pycropml.transpiler.generators.siriusGenerator
+import pycropml.transpiler.generators.siriusGenerator
 #import pycropml.transpiler.generators.sirius2Generator
 import pycropml.transpiler.generators.checkGenerator
 import pycropml.transpiler.generators.rGenerator
@@ -26,12 +26,12 @@ from path import Path
 
 
 languages = [
-    'r','cs','cpp','py','f90','java','simplace', #'sirius','sirius2', 
+    'r','cs','cpp','py','f90','java','simplace','sirius', #'sirius','sirius2', 
     'openalea', 'check','apsim','record','dssat','stics','bioma']
 NAMES = {
     'r':'r','cs':'csharp','cpp':'cpp', 'py':'python', 'f90':'fortran', 'java':'java',
     'simplace':'simplace',#'sirius':'sirius',"sirius2":"sirius2", 
-    'openalea':'openalea', 'check':'check','apsim':'apsim', 
+    'openalea':'openalea', 'check':'check','apsim':'apsim','sirius':'sirius', 
     "record":"record", "dssat":"dssat", "stics":"stics", "bioma":"bioma"
     }
 

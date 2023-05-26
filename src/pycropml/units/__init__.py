@@ -24,7 +24,7 @@ from unyt.dimensions import (
     dimensionless,
     temperature,
     current_mks,
-    logarithmic
+    #logarithmic
 )
 
 from numpy import (
