@@ -105,7 +105,7 @@ def transpile_package(package, language):
     # generate cyml functions
     cyml_rep = Path(os.path.join(output, 'pyx')) # cyml model directory in output
 
-    # cretae topology of composite model
+    # create topology of composite model
     T = Topology(namep,package)
     mc_name = T.model.name
 

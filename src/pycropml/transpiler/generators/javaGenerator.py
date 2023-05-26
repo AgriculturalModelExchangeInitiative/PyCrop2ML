@@ -255,7 +255,11 @@ class JavaGenerator(CodeGenerator,JavaRules):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, s1, r, a, ex);"%(name.capitalize(), name))
+            for m in self.model.model:
+                if name == signature2(m):
+                    name = signature2(m)
+                    break
+            self.write("_%s.Calculate_Model(s, s1, r, a, ex);"%(name))
             self.newline(node)
         else:
             self.newline(node)
@@ -485,7 +489,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.write(self.constructor%signature2(self.model)) if not node.name.startswith("init_") else ""
             self.newline(node)      
             self.write("public void ")
-            self.write(" Calculate_%s("%self.model.name.lower()) if not node.name.startswith("init_") else self.write("Init(")
+            self.write(" Calculate_Model(") if not node.name.startswith("init_") else self.write("Init(")
             self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
             self.newline(node)
             self.write('{') 
@@ -1025,27 +1029,33 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.node_param=create(self.modparam)       
     
     def private(self,node):
+        vars = []
         for arg in node:
-            self.newline(node) 
-            self.write ('private ') 
-            self.visit_decl(arg.pseudo_type)
-            self.write(" ")
-            self.write(arg.name) 
-            self.write(";")
+            if arg.name not in vars:
+                self.newline(node) 
+                self.write ('private ') 
+                self.visit_decl(arg.pseudo_type)
+                self.write(" ")
+                self.write(arg.name) 
+                self.write(";")
+                vars.append(arg.name)
 
 
     def getset(self,node):
-        for arg in node:       
-            self.newline(node)
-            self.write("public ")
-            self.gettype(arg)
-            self.write(' get%s()'%arg.name)
-            self.write(self.get_properties %(arg.name))
-            self.newline(extra=1)
-            self.write("public void set%s("%arg.name)
-            self.gettype(arg)
-            self.write(" _%s)"%arg.name)
-            self.write(self.set_properties%(arg.name, arg.name)) 
+        vars = []
+        for arg in node:  
+            if arg.name not in vars:     
+                self.newline(node)
+                self.write("public ")
+                self.gettype(arg)
+                self.write(' get%s()'%arg.name)
+                self.write(self.get_properties %(arg.name))
+                self.newline(extra=1)
+                self.write("public void set%s("%arg.name)
+                self.gettype(arg)
+                self.write(" _%s)"%arg.name)
+                self.write(self.set_properties%(arg.name, arg.name)) 
+                vars.append(arg.name)
 
     def access(self, node):
         self.private(node)
@@ -1219,7 +1229,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.init=False
         JavaGenerator.__init__(self,tree, model, self.name)
         JavaTrans.__init__(self,[model])
-        self.params = [pa for pa in self.model.inputs if "parametercategory" in dir(pa)]
+        self.modelparams = [pa.name for pa in self.model.inputs if "parametercategory" in dir(pa)]
         self.model2Node()
         self.statesName = [st.name for st in self.states]
         self.ratesName = [rt.name for rt in self.rates]
@@ -1257,22 +1267,30 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.write(self.instanceModels())  if not node.name.startswith("init_") else self.write("")     
         self.newline(extra=1)
         if self.node_param and not node.name.startswith("init_"):
-            for arg in self.node_param:                          
-                self.newline(extra=1)
-                self.write("public ")
-                self.gettype(arg)
-                self.write(' get%s()'%arg.name)
-                self.write(self.get_properties_compo%(self.get_mo(arg.name)[0].capitalize(), arg.name))               
-                b="\n        ".join(self.setCompo(arg.name))
-                self.newline(node)
-                self.write("public void set%s("%arg.name)
-                self.gettype(arg)
-                self.write(" %s)"%arg.name)                    
-                self.write(self.set_properties_compo%(b))
+            vars = []
+            for arg in self.node_param:  
+                if arg.name in self.getRealInputs() and arg.name not in vars:                        
+                    self.newline(extra=1)
+                    self.write("public ")
+                    self.gettype(arg)
+                    self.write(' get%s()'%arg.name)
+                    x = self.get_mo(arg.name)
+                    self.write(self.get_properties_compo%(list(x[0].keys())[0], list(x[0].values())[0]))               
+                    #b="\n        ".join(self.setCompo(arg.name))
+                    self.newline(node)
+                    self.write("public void set%s("%arg.name)
+                    self.gettype(arg)
+                    self.write(" _%s){"%arg.name) 
+                    self.newline(1)
+                    self.setCompo(arg.name) 
+                    self.newline(1) 
+                    self.write("}") 
+                    vars.append(arg.name)                
+                    #self.write(self.set_properties_compo%(b))
         self.newline(node)      
         self.write("public void ")
         if not node.name.startswith("init_"):
-            self.write(" Calculate_%s("%self.model.name.lower())
+            self.write(" Calculate_Model(")
         else:
             self.write("Init(")
             self.init=True
@@ -1310,6 +1328,13 @@ class JavaCompo(JavaTrans, JavaGenerator):
                             self.write("ex.set%s(%s);"%(arg.name,arg.name))
             self.write("")
         self.newline(node)
+
+    def getRealInputs(self):
+        inputs=[]
+        for inp in self.models[0].inputlink:
+            var = inp["source"]
+            inputs.append(var)
+        return inputs
     
     def visit_declaration(self, node):
         if self.init is True:
@@ -1339,36 +1364,57 @@ class JavaCompo(JavaTrans, JavaGenerator):
        
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
-            self.write("_%s.Calculate_%s(s, s1, r, a, ex);"%(name.capitalize(), name))
+            for m in self.model.model:
+                if name.lower() == signature2(m).lower():
+                    name = signature2(m)
+                    break
+            self.write("_%s.Calculate_Model(s, s1, r, a, ex);"%(name))
             self.newline(node)
         else:    
-            self.newline(node)
-            self.visit(node.target)
-            self.write(' = ')
-            self.visit(node.value) 
-            self.write(";")
+            if node.value.name not in self.modelparams:
+                if node.target.name in self.statesName:
+                    self.write("s.set")
+                elif node.target.name in self.ratesName:
+                    self.write("r.set")
+                elif node.target.name in self.auxiliaryName:
+                    self.write("a.set")
+                elif node.target.name in self.exogenousName:
+                    self.write("ex.set")
+                self.visit(node.target)
+                self.write('(')
+                if node.value.name in self.statesName:
+                    self.write("s.get")
+                elif node.value.name in self.ratesName:
+                    self.write("r.get")
+                elif node.value.name in self.auxiliaryName:
+                    self.write("a.get")
+                elif node.value.name in self.exogenousName:
+                    self.write("ex.get")
+                self.visit(node.value) 
+                self.write("());")
+            else:
+                #x = self.getmo(node.target.name)
+                pass
             self.newline(node)
 
 
     def setCompo(self, p):
         a=[]
         mo = self.get_mo(p)
-        for m in mo:
-            a.append("_%s.set%s(%s);"%(m.capitalize(),p, p))
+        for mi in mo:
+            self.write("_%s.set%s(_%s);"%(list(mi.keys())[0],list(mi.values())[0], p))            
+            self.newline(1) 
         return a
 
  
     def get_mo(self,varname):
         listmo=[]
-        name = self.model.diff_in[varname] if varname in self.model.diff_in else None
         for inp in self.model.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
+            modvar = inp["target"].split(".")[1]
             if var==varname:
-                listmo.append(mod)
-            else:
-                if name and name == var:
-                    listmo.append(mod)  
+                listmo.append({mod:modvar})
         return listmo
     
     def instanceModels(self):
@@ -1382,13 +1428,14 @@ class JavaCompo(JavaTrans, JavaGenerator):
     def copyconstructor(self,node):
         for arg in node:
             self.newline(node)
-            if isinstance(arg.pseudo_type, list):
-                if arg.pseudo_type[0] =="list":
-                    self.write("    this.%s"%self.copy_constrList%(arg.name,arg.name,arg.name))
-                if arg.pseudo_type[0] =="array":
-                    self.write("    %s"%self.copy_constrArray%(arg.elts[0].value if "value" in dir(arg.elts[0]) else f'toCopy.get{arg.name}().length',arg.name,arg.name))
-            else:
-                self.write("    this.%s = toCopy.get%s();"%(arg.name, arg.name)) 
+            if arg.name in self.getRealInputs():
+                if isinstance(arg.pseudo_type, list):
+                    if arg.pseudo_type[0] =="list":
+                        self.write("    this.%s"%self.copy_constrList%(arg.name,arg.name,arg.name))
+                    if arg.pseudo_type[0] =="array":
+                        self.write("    %s"%self.copy_constrArray%(arg.elts[0].value if "value" in dir(arg.elts[0]) else f'toCopy.get{arg.name}().length',arg.name,arg.name))
+                else:
+                    self.write("    this.%s = toCopy.get%s();"%(arg.name, arg.name)) 
 
     def initCompo(self):
         pass

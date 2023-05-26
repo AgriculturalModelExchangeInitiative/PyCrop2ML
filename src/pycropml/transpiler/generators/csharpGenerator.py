@@ -470,16 +470,18 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                             if not node.name.startswith("init_"):
                                 if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.%s"%arg.name)
-                                if arg.name.endswith("_t1") and arg.name in self.states:
+                                elif arg.name.endswith("_t1") and arg.name in self.states:
                                     self.write(" = s1.%s"%arg.name[:-3])
-                                if arg.name in self.rates:
+                                elif arg.name in self.rates:
                                     self.write(" = r.%s"%arg.name)
-                                if arg.name in self.auxiliary:
+                                elif arg.name in self.auxiliary:
                                     self.write(" = a.%s"%arg.name) 
-                                if arg.name in self.exogenous:
+                                elif arg.name in self.exogenous:
                                     self.write(" = ex.%s"%arg.name)
                             else:
-                                if arg.pseudo_type[0] =="list":
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.%s"%arg.name)                                
+                                elif arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
                                     if not arg.elts:
