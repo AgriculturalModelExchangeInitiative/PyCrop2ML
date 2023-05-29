@@ -8,9 +8,9 @@ source:
   path: ..
 
 build:
-  noarch: python  [unix]
+  #noarch: python  [unix]
   preserve_egg_dir: True
-  number: 4
+  number: 0
   script: {{PYTHON}} setup.py install 
   entry: 
     - cyml = pycropml.main:main
