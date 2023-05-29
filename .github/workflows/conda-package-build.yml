@@ -51,7 +51,7 @@ jobs:
     - name: Build and Publish
       uses: openalea/action-build-publish-anaconda@v0.1.4
       with:
-        conda: mamba
+        conda: conda
         mamba: true
         numpy: '21.6'
         python: ${{ matrix.python-minor-version }}
