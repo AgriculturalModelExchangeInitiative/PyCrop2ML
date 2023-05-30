@@ -63,7 +63,7 @@ def run_python(components, package):
     mu_names = []
     models = []
     for  k, v in files.items():
-        if v not in [composite]:
+        if v not in composites:
             print(v)
             with open(v, "r") as f:
                 code = f.read()
@@ -156,11 +156,12 @@ def run_python(components, package):
                         generate_unitfile(package, mdata, package_name)  
                     models.append(mdata)
 
-    with open(composite, "r") as f:
-        code = f.read()
-    res_compo = extraction(code, modeltag_begin,modeltag_end)
-    compo_dictasg = to_dictASG(res_compo[0] , "py")
-    compo_asg = to_CASG(compo_dictasg)
-    mc = op_extr.modelcomposition(res_compo[0], models, compo_asg) 
-    generate_compositefile(package, mc, package_name)
+    for composite in composites:
+        with open(composite, "r") as f:
+            code = f.read()
+        res_compo = extraction(code, modeltag_begin,modeltag_end)
+        compo_dictasg = to_dictASG(res_compo[0] , "py")
+        compo_asg = to_CASG(compo_dictasg)
+        mc = op_extr.modelcomposition(res_compo[0], models, compo_asg) 
+        generate_compositefile(package, mc, package_name)
     
