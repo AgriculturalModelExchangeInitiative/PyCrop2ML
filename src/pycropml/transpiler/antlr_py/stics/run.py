@@ -213,7 +213,7 @@ def run_stics(component, package):
                 comments_init = fortrancomments(initialization)
                 initialization_dictasg = to_dictASG(initialization, language,comments_init, env = modunit_asg[0].env)
                 initialization_asg = to_CASG(initialization_dictasg)
-                codes_init = translate(decl+initialization_asg,asgt,imports, inout=inout, index = modunit_asg[0].indexnames)
+                codes_init = translate(initialization_asg,asgt,imports, inout=inout, index = modunit_asg[0].indexnames)
             
 
             if algoPart:
