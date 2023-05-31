@@ -310,12 +310,11 @@ class F90_Cyml_ast():
         
         if len(args) == 2:
             arg0 = {"type":"binary_op", "op":"-", "left":args[0], "right":{"type":"int", "value":"1", "paseudo_type":"int"}, "pseudo_type":"int"}
-            arg1 = {"type":"binary_op", "op":"+", "left":args[1], "right":{"type":"int", "value":"1", "paseudo_type":"int"}, "pseudo_type":"int"}
 
             return {'type': 'sliceindex',
                     'receiver': self.visit(node.receiver),
                     'message': 'sliceindex',
-                    'args': [arg0, arg1],
+                    'args': [arg0, args[1]],
                     'pseudo_type': rec["pseudo_type"]}
         else:
             return {'type': 'sliceindex',
