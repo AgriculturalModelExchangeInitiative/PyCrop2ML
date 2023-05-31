@@ -77,10 +77,8 @@ class CymlGenerator(CodeGenerator, CymlRules):
         else:
             self.visit(node.target)
             self.write(node.op)
-            if isinstance(node.target.pseudo_type, list) and not isinstance(node.value.pseudo_type, list) and node.value.pseudo_type!="Void" and "elements" in dir(node.value) and "left" in dir(node.value.elements):
+            if isinstance(node.target.pseudo_type, list) and node.value.pseudo_type!="Void" and "elements" in dir(node.value) and "left" in dir(node.value.elements):
                 self.write('[')
-                print("babhhhh1", node.target.y)
-                print("babhhhh", node.value.y)
                 self.visit(node.value.elements.left.elements[0])
                 self.write(']*(')
                 self.visit(self.arrVar[node.target.name])
