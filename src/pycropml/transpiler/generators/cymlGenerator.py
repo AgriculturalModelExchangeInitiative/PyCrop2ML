@@ -19,6 +19,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.name = name
         self.indent_with=' '*4 
         self.imp=True
+        self.arrVar = {}
         if self.model: 
             self.doc=DocGenerator(self.model, " ")
 
@@ -76,8 +77,16 @@ class CymlGenerator(CodeGenerator, CymlRules):
         else:
             self.visit(node.target)
             self.write(node.op)
-            self.visit(node.value)
-            self.newline(node)
+            if isinstance(node.target.pseudo_type, list) and node.value.pseudo_type!="Void" and "elements" in dir(node.value) and "left" in dir(node.value.elements):
+                self.write('[')
+                self.visit(node.value.elements.left.elements[0])
+                self.write(']*(')
+                self.visit(self.arrVar[node.target.name])
+                self.write(')')
+                self.newline(node)
+            else:
+                self.visit(node.value)
+                self.newline(node)
 
     def visit_cond_expr_node(self, node):
         self.visit(node.true_val)
@@ -157,7 +166,10 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.visit(node.expr)
     
     def visit_list(self, node):
-        self.emit_sequence(node.elements, u"[]")
+        if node.elements.type == "binary_op":     
+            self.visit(node.elements.left.elements[0])
+        else:
+            self.emit_sequence(node.elements, u"[]")
 
     def visit_datetime(self, node):
         self.write("datetime")
@@ -168,6 +180,8 @@ class CymlGenerator(CodeGenerator, CymlRules):
         if isinstance(l, list):
             l = l[0]
         z = self.methods[l][node.message]
+        if node.message == "allocate":
+            self.arrVar[node.receiver.name] = node.args
         if callable(z):
             self.visit(z(node))
         
@@ -266,6 +280,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.operator_exit()
 
     def visit_function_definition(self, node):
+        self.arrVar = {}
         self.newline(node)
         if node.comments:
             self.translate_com(node.comments)
@@ -276,7 +291,8 @@ class CymlGenerator(CodeGenerator, CymlRules):
             if isinstance(pa.pseudo_type, str):
                 self.write("%s %s"%(pa.pseudo_type, pa.name))
             elif pa.pseudo_type[0]=="array" and "elts" in dir(pa):
-                self.write("%s %s[%s]"%(pa.pseudo_type[-1], pa.name, pa.elts[0].name if "name" in dir(pa.elts[0]) else pa.elts[0].value))
+                if isinstance(pa.elts[0], str): self.write("%s %s[]"%(pa.pseudo_type[-1], pa.name))
+                else: self.write("%s %s[%s]"%(pa.pseudo_type[-1], pa.name, pa.elts[0].name if "name" in dir(pa.elts[0]) else pa.elts[0].value))
             else:
                 self.write("%s %s"%(pa.pseudo_type[-1]+pa.pseudo_type[0],pa.name))
             if i!= (len(node.params)-1):
@@ -297,6 +313,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
             self.newline(node)
             self.model = None
         self.body(node.block)
+        self.arrVar = {}
         
     def visit_implicit_return(self, node):
         self.newline(node)
@@ -313,7 +330,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.newline(node)
         if node.comments:
             self.translate_com(node.comments)    
-
+        #print(node.y)
         if node.decl[0].type=="list" and ("elements" not in dir(node.decl[0]) or not node.decl[0].elements):
             self.write("cdef %s "%(node.decl[0].pseudo_type[1].lower() + node.decl[0].pseudo_type[0]))
         elif node.decl[0].type == "array"and "elements" not in dir(node.decl[0]):

@@ -11,6 +11,7 @@ import sys
 from pycropml.transpiler.main import Main
 from copy import copy
 from pycropml.render_cyml import my_input, DATATYPE
+import pandas as pd
 
  
 class Package():
@@ -146,18 +147,32 @@ class Topology():
         return module
 
     def createGraph(self):
-        d= defaultdict(list)  
+        d= defaultdict(list) 
+        res = [] 
+        G = nx.DiGraph(name = self.model.name)
         if not self.model.internallink:
             for mod in self.model.model:
                 d[mod.name].append(mod.name)
             return nx.DiGraph(d, name = self.model.name) 
         for mod in self.model.model:
+            t = []
+            v = []
             for inter in self.model.internallink:    
                 source = inter["source"].split(".")[0]
                 target = inter["target"].split(".")[0]
                 if mod.name==source:
-                    d[mod.name].append(target)
-        return nx.DiGraph(d, name = self.model.name)
+                    #d[mod.name].append(target)
+                    t.append(target)
+                    v.append(1)
+            if t:
+                z = pd.DataFrame({"target":t, "value":v})
+                t_ = z["target"].unique()
+                for j in t_:
+                    res.append((mod.name, j, z.loc[z["target"] == j, "value"].sum()))
+        print(res) 
+        #return nx.DiGraph(d, name = self.model.name)
+        G.add_weighted_edges_from(res)
+        return G
     
     def create_edgeInOut(self):
         edge_inout=defaultdict(list)
@@ -259,10 +274,14 @@ class Topology():
         nx.write_graphml_xml(G,filename)
     
     def write_png(self, dir_images):
-        a=to_pydot(self.createGraph())
+        G = self.createGraph()
+        a=to_pydot(G)
         img = Path(os.path.join(dir_images, "%s.png"%self.model.name))
         print(img)
+        df = pd.DataFrame(G.edges(data=True), columns=['Source', 'Target', 'Weight'])
+        df['Weight'] = df['Weight'].map(lambda x: x['weight'])
         a.write_png(img)
+        df.to_csv(os.path.join(dir_images, 'graphe.csv'), index=False)
     
     def writeSVG(self):
         a=to_pydot(self.createGraph())

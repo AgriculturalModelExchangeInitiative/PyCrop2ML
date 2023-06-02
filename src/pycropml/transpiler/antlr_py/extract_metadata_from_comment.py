@@ -46,9 +46,9 @@ pattern_attr_val = r"(\*?\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\w+\s:,ï\[\]
 import re
 def extract(comment):
     keywords = ["name", "version", "timestep" ]
-    patterns = [r'(\b(?i)Name:\s*(?P<name>\w+))',
-                r'(-Version:\s*(?P<version>\d+\.*\d+))',
-                r'(-Time step:\s*(?P<timestep>\d+\.*\d*))'] 
+    patterns = [r'(\s*-?\s*Name:\s*(?P<name>\w+))',
+                r'(\s*-?\s*Version:\s*(?P<version>\d+\.*\d+))',
+                r'(\s*-?\s*Time step:\s*(?P<timestep>\d+\.*\d*))'] 
     
     # header of modelUnit name, version, timestep
     head = {}
@@ -102,6 +102,7 @@ def attval(pat_name, string):
     lines = att[0][0].split('\n')[1:-1]
     dic = {}
     for line in lines:
+        if not line: continue
         attribute = re.search(pattern_attr_val, line).group("attribute")
         value = re.search(pattern_attr_val, line, re.ASCII).group("value").replace('\r', "")
         dic[attribute] = str(value)

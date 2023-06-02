@@ -289,6 +289,7 @@ using CRA.AgroManagement;
         self.open(node)
         self.write("//Set current values of the outputs to the static VarInfo representing the output properties of the domain classes")	
         for out in self.model.outputs:
+            print(out.name)
             self.newline(node)
             self.write('%s%s.DomainClass.%s%sVarInfo.%s.CurrentValue=%s.%s;'%(self.customer,self.name, self.name, out.variablecategory.capitalize(),out.name,category[out.variablecategory], out.name))
         self.newline(node)
@@ -599,7 +600,9 @@ using CRA.ModelLayer.ParametersManagement;
             elif arg.pseudo_type=="DateTime":
                 self.write(" = new DateTime()")
             elif arg.pseudo_type[0] =="array":
-                self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                x = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
+                if not x: self.write(" = default(%s[])"%(self.types[arg.pseudo_type[1]]))
+                else: self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], x))
             elif arg.pseudo_type == "str":
                 self.write(" = null")
             else: self.write(" = default(%s)"%(self.types[arg.pseudo_type]))

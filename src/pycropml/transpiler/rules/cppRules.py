@@ -5,10 +5,12 @@ from pycropml.transpiler.pseudo_tree import Node
 
 def translateLenList(node): return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 def translateLenStr(node): return Node("method_call", receiver=node.receiver, message=".length()", args=[], pseudo_type=node.pseudo_type)
+def translateLog(node): return Node("call", function="log10", args=[node.args[0]], pseudo_type=node.pseudo_type)
+
 def translateSum(node): return Node("call", function="accumulate", args=[Node("local",name="%s.begin()"%node.receiver.name), Node("local",name="%s.end()"%node.receiver.name), Node("local",name="decltype(%s)::value_type(0)"%node.receiver.name)], pseudo_type=node.pseudo_type)
 def translateNotContains(node): return Node("call", function="!", args=[Node("standard_method_call", receiver=node.receiver, message="contains?", args=node.args, pseudo_type=node.pseudo_type)])
 def translateLenDict(node): return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
-def translateLenArray(node): return Node("method_call", receiver=node.receiver, message=".Length", args=[], pseudo_type=node.pseudo_type)
+def translateLenArray(node): return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 def translatekeyDict(node): return Node("method_call", receiver=node.receiver, message=".Keys", args=[], pseudo_type=node.pseudo_type)
 def translateget(node): 
     if "value" in dir(node.args[0]):
@@ -80,7 +82,7 @@ class CppRules(GeneralRule):
         "float": "double",
         "double": "double",
         "bool": "bool",
-        "array": "vector<%s, %s> ", # 
+        "array": "vector<%s>(%s) ", # 
         "list": "vector",
         "tuple": "tuple",
         "str": "string",
@@ -94,7 +96,7 @@ class CppRules(GeneralRule):
         "double": "double",
         "float": "double",
         "boolean": "bool",
-        "array": "vector<%s, %s> ", # 
+        "array": "vector<%s>(%s) ", # 
         "list": "vector",
         "tuple": "tuple",
         "string": "string",
@@ -105,7 +107,7 @@ class CppRules(GeneralRule):
     functions = {
         'math': {
             'ln':          'log',
-            'log':         'log10',
+            'log':         translateLog,
             'tan':         'tan',
             'sin':         'sin',
             'cos':         'cos',
@@ -166,7 +168,9 @@ class CppRules(GeneralRule):
             'insert_at': translateInsert,
             'contains?': translateContains,
             'not contains?': translateNotContains,
-            'index': translateIndex
+            'index': translateIndex,
+             "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("list", elements = node.args, pseudo_type=node.receiver.pseudo_type ))
+
         },
         'dict': {
             'len': translateLenDict,
@@ -210,15 +214,15 @@ class CppRules(GeneralRule):
     {
     '''
     copy_constrList = '''
-        for (int i = 0; i < toCopy.%s.Count; i++)
+        for (int i = 0; i < toCopy.get%s().Count; i++)
         {
-            %s.Add(toCopy.%s[i]);
+            %s.Add(toCopy.get%s()[i]);
         }
     '''
     copy_constrArray = '''
         for (int i = 0; i < %s; i++)
         {
-            _%s[i] = toCopy._%s[i];
+            %s[i] = toCopy.get%s()[i];
         }
     '''
     public_properties_compo = '''

@@ -26,6 +26,7 @@ authors:
       (INRES), University of Bonn, Bonn, Germany,
   - given-names: Davide
     family-names: Fumagalli
+    affiliation: Institute for Environment and Sustainability
   - given-names: Patrice
     family-names: Lecharpentier
     affiliation: INRAE
@@ -45,6 +46,11 @@ authors:
       Florida, Gainesville, USA
   - given-names: 'Gerrit '
     family-names: Hoogenboom
+    affiliation: >-
+      Agricultural & Biological Engineering, University of
+      Florida, Gainesville, USA
+  - given-names: 'Fabio '
+    family-names: Oliveira
     affiliation: >-
       Agricultural & Biological Engineering, University of
       Florida, Gainesville, USA

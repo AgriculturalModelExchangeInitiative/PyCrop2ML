@@ -383,6 +383,12 @@ class ActionStmt(AliasNode):
 
 class AcImpliedDo(AliasNode):
     _fields_spec = ["acImpliedDo","impliedDoVariable" ,"expression"]
+    
+class SFExprList(AliasNode):
+    _fields_spec = ["expression", "DOUBLECOLON",  "COLON"]
+
+class SubscriptTripletTail(AliasNode):
+    _fields_spec = ["expression", "DOUBLECOLON",  "COLON"]
 
 
 
@@ -631,6 +637,10 @@ class Transformer(BaseNodeTransformer):
         return ActionStmt.from_spec(node)
     def visit_AcImpliedDo(self, node):
         return AcImpliedDo.from_spec(node)
+    def visit_SFExprList(self, node):
+        return SFExprList.from_spec(node)
+    def visit_SubscriptTripletTail(self, node):
+        return SubscriptTripletTail.from_spec(node)
 
 class AstTransformer():
     def __init__(self, tree, code :str = None ,comments: str=None, env=None):
@@ -642,7 +652,6 @@ class AstTransformer():
             self.type_env = Env(dict(list(TYPED_API.items())), None)
             self.type_env['arrays']={}
         self.code : str = code
-        print(self.type_env['arrays'])
         if self.code:
             self.codelines = self.code.split("\n")
 
@@ -1144,7 +1153,9 @@ class AstTransformer():
         if attrSpecSeq:
             self.attr = {}
             attr = self.visit(attrSpecSeq)
-        if attr and "DIMENSION" in attr and "ALLOCATABLE" in attr and attr["DIMENSION"] == [":"]:
+            
+        #if attr and "DIMENSION" in attr and "ALLOCATABLE" in attr and attr["DIMENSION"] == [":"]:
+        if attr and ("allocatable" in attr or "ALLOCATABLE" in attr):
             typ = "list"
             pseudo_type = ["list", elemtype_]
         else : 
@@ -1152,13 +1163,13 @@ class AstTransformer():
             pseudo_type = elemtype_
         for j in names:
             zj = {"type":typ, "name": str(j["name"]), "pseudo_type":pseudo_type}
-            if "dim" in j:
+            if "dim" in j and typ!="list":
                 zj["type"] = "array"
                 zj["dim"] = j["dim"]
                 zj["elts"] = j["elts"]
                 zj["pseudo_type"] = ["array", elemtype_]  
                 self.type_env['arrays'].update({zj["name"]: zj["elts"] }) 
-            elif attr and  "DIMENSION" in attr and "ALLOCATABLE" not in attr:
+            elif attr and  "DIMENSION" in attr and ("ALLOCATABLE" not in attr and "allocatable" not in attr):
                 zj["type"] = "array"
                 zj["dim"] = len(attr["DIMENSION"])
                 zj["elts"] = attr["DIMENSION"]
@@ -1172,8 +1183,8 @@ class AstTransformer():
         return res
     
     def visit_attrspecseq(self, node, attrSpecSeq,attrSpec,comments, location):
-        if "DIMENSION" in dir(attrSpec) : self.attr.update({"DIMENSION": self.visit(attrSpec.arraySpec)})
-        elif "INTENT" in dir(attrSpec):  self.attr.update({"INTENT": self.visit(attrSpec.intentSpec)})
+        if ("DIMENSION" in dir(attrSpec) or "dimmension" in dir(attrSpec) ) : self.attr.update({"DIMENSION": self.visit(attrSpec.arraySpec)})
+        elif ("INTENT" in dir(attrSpec) or "intent" in dir(attrSpec)):  self.attr.update({"INTENT": self.visit(attrSpec.intentSpec)})
         else : self.attr.update({self.visit(attrSpec):None})
 
         if attrSpecSeq: 
@@ -1241,9 +1252,9 @@ class AstTransformer():
                         "value" : self.visit(expression),
                         "pseudo_type":"VOID",
                         "comments":comments}
-                if isinstance(res["target"]["pseudo_type"], list) and res["target"]["pseudo_type"][0]=="array" and res["value"]["type"] in ["int", "float", "str", "bool"]:
-                    type_ = res["value"]["type"]
-                    res["value"] = {'type': 'array',
+                if isinstance(res["target"]["pseudo_type"], list) and (res["target"]["pseudo_type"][0]=="array" or res["target"]["pseudo_type"][0]=="list") and res["value"]["pseudo_type"] in ["int", "float", "str", "bool"]:
+                    type_ = res["value"]["pseudo_type"]
+                    res["value"] = {'type': res["target"]["pseudo_type"][0],
                                     'elements': {'type': 'binary_op',
                                     'op': '*',
                                     'left': {'type': 'list',
@@ -1251,7 +1262,7 @@ class AstTransformer():
                                     'elements': [res["value"]]},
                                     'right': self.type_env['arrays'][res["target"]["name"]],
                                     'pseudo_type': ['list', type_]},
-                                    'pseudo_type': ['array', type_]}
+                                    'pseudo_type': ["array",type_]}
                 if self.recursive and str(NAME)==self.out:
                         return {"type":"implicit_return",
                                 "value": res["value"],
@@ -1279,6 +1290,7 @@ class AstTransformer():
             return  self.visit(sFExprList)       
         else:
             return self.translate_list(commaSectionSubscript)
+        
 
     def visit_expression(self, node, level5Expr, expression, definedBinaryOp, comments,location):
         if definedBinaryOp:
@@ -1946,12 +1958,34 @@ class AstTransformer():
     
     def visit_sectionsubscript(self, node, expression,subscriptTripletTail,comments,location):
         if expression:
+            res = self.visit(expression)
+            #print("uuuuuuuuu", res)
             if subscriptTripletTail:
-                pass
+                r = self.visit(subscriptTripletTail)
+                #print("uuuuuuuuu2", r)
+                if "args" in r and r["colon"]==1:
+                    res2 = {"sliceindex":[res, r["args"][0]]}
+                    return res2
+                else:
+                    print(f" visit_sectionsubscript not implemented at {location}")
             else:
-                return self.visit(expression)
+                return res
         else:
             return self.visit(subscriptTripletTail)
+
+    def visit_subscripttriplettail(self, node, expression, COLON, DOUBLECOLON, comments, location):
+        if expression:
+            res = self.visit(expression)
+            if COLON:
+                if len(res)==1:
+                    return {"args":res, "colon":1}
+                else:
+                    return {"args":res, "colon":2}
+            elif DOUBLECOLON:
+                return {"args":res, "colon":3}
+        else:
+            return {"colon":3}
+
         
     
     def visit_functionarglist(self, node, functionArg, functionArgList,sectionSubscriptList,comments, location):
@@ -2001,16 +2035,25 @@ class AstTransformer():
                 return z
         id_type = self.type_env[name]
         if id_type and isinstance(id_type, list):
+            args = args[0][0]
+            if "sliceindex" in args:
+                res = {'type': 'sliceindex',
+                        'receiver': {'type': 'local',
+                                    'name': name,
+                                    'pseudo_type': id_type},
+                        'message': 'sliceindex',
+                        'args': [args["sliceindex"][0],args["sliceindex"][1]],
+                        'pseudo_type': id_type}
+                return res
             return {'type': 'index',
                     'sequence': {'type': 'local',
                     'name': name,
                     'pseudo_type': id_type},
-                    'index': args[0][0],
+                    'index': args,
                     'pseudo_type': id_type[-1] }
         
         else:
             fname = name
-            print(name, "jjhhhhhhhhh")
             c = self.type_env.top['functions']
             if fname in c:
                 pseudo_type = c[fname][-1]
@@ -2377,6 +2420,19 @@ class AstTransformer():
     def visit_acimplieddo(self, node, acImpliedDo,impliedDoVariable ,expression, comments, location):
         print("akklll", location)
         return 
+    
+    def visit_sfexprlist(self, node, expression, COLON, DOUBLECOLON, comments, location):
+        res = self.visit(expression)
+        if not COLON and not DOUBLECOLON:
+            return res
+        elif COLON and expression:
+            print("uiiiiiiii", "TODO") #TODO
+
+
+            
+        
+                
+        
 
        
 

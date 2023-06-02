@@ -304,13 +304,36 @@ class F90_Cyml_ast():
             "expr": self.visit(node.expr)
         }
     
+    def visit_sliceindex(self, node):
+        rec = self.visit(node.receiver)
+        args = self.visit(node.args)
+        
+        if len(args) == 2:
+            arg0 = {"type":"binary_op", "op":"-", "left":args[0], "right":{"type":"int", "value":"1", "paseudo_type":"int"}, "pseudo_type":"int"}
+
+            return {'type': 'sliceindex',
+                    'receiver': self.visit(node.receiver),
+                    'message': 'sliceindex',
+                    'args': [arg0, args[1]],
+                    'pseudo_type': rec["pseudo_type"]}
+        else:
+            return {'type': 'sliceindex',
+                    'receiver': self.visit(node.receiver),
+                    'message': 'sliceindex',
+                    'args': args,
+                    'pseudo_type': rec["pseudo_type"]}
+    
     def visit_index(self, node):
         z = self.visit(node.sequence)
         index = self.visit(node.index)
+        if not isinstance(index, list): index = index
+        elif isinstance(index, list) and len(index)==1: index = index[0]
+        else: print("#########TODO") #TODO
+        #print("bababa", index)
         return {'type': 'index',
             'sequence': z,
             'index': {"type":"binary_op", "op":"-", "left":index, "right":{"type":"int", "value":"1","pseudo_type":"int"}},
-            'pseudo_type': z["pseudo_type"]}
+            'pseudo_type': z["pseudo_type"][-1]}
 
     def visit_while_statement(self, node):
         
@@ -350,7 +373,6 @@ class F90_Cyml_ast():
     
     def visit_whereconstruct(self, node):
         test = self.visit(node.test)
-        print(test, "yuuuuuuuuuuuu")
         body = self.visit(node.body)
         m = transform_to_syntax_tree(body)
         r = TransformLocal()

@@ -237,18 +237,32 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
 
     def visit_sliceindex(self, node):
         self.visit(node.receiver)
-        self.write(u"[")
-        if node.message=="sliceindex_from":
-            self.visit(node.args)
-            self.write(u":")
-        if node.message=="sliceindex_to":
-            self.write(u":")
-            self.visit(node.args)
-        if node.message=="sliceindex":
+        if node.receiver.pseudo_type[0]=="list":
+            self.write("GetRange(")
             self.visit(node.args[0])
-            self.write(u":")
-            self.visit(node.args[1])
-        self.write(u"]")
+            self.write(u",")
+            self.visit(node.args[1])  
+            self.write(u")")
+        else: 
+            if node.message == "sliceindex":
+                self.write(".ToList().GetRange(")
+                self.visit(node.args[0])
+                self.write(u",")
+                self.visit(node.args[1])  
+                self.write(u")")
+            """
+            self.write(u"[")
+            if node.message=="sliceindex_from":
+                self.visit(node.args)
+                self.write(u":")
+            if node.message=="sliceindex_to":
+                self.write(u":")
+                self.visit(node.args)
+            if node.message=="sliceindex":
+                self.visit(node.args[0])
+                self.write(u":")
+                self.visit(node.args[1])
+            self.write(u"]")"""
     
     def visit_assignment(self, node):
         self.newline(node)
@@ -267,6 +281,15 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 
             elif node.value.type=="none":
                 pass
+            
+            elif node.value.type=="binary_op"  and isinstance(node.target.pseudo_type, list):
+                self.write("for (var i = 0; i < ")
+                self.visit(node.value.right)
+                self.write("; i++){")
+                self.visit(node.target)
+                self.write(".Add(")
+                self.visit(node.value.left.elements[0])
+                self.write(");}")
                          
             else:
                 self.visit(node.target)
@@ -447,16 +470,18 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                             if not node.name.startswith("init_"):
                                 if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.%s"%arg.name)
-                                if arg.name.endswith("_t1") and arg.name in self.states:
+                                elif arg.name.endswith("_t1") and arg.name in self.states:
                                     self.write(" = s1.%s"%arg.name[:-3])
-                                if arg.name in self.rates:
+                                elif arg.name in self.rates:
                                     self.write(" = r.%s"%arg.name)
-                                if arg.name in self.auxiliary:
+                                elif arg.name in self.auxiliary:
                                     self.write(" = a.%s"%arg.name) 
-                                if arg.name in self.exogenous:
+                                elif arg.name in self.exogenous:
                                     self.write(" = ex.%s"%arg.name)
                             else:
-                                if arg.pseudo_type[0] =="list":
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.%s"%arg.name)                                
+                                elif arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
                                     if not arg.elts:
@@ -953,11 +978,11 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                         length = arg.elts[0].value
                     else:
                         length = arg.elts[0].name
-                    if not length: length = "toCopy._%s.Length"%(arg.name)
+                    if not length: length = "toCopy.%s.Length"%(arg.name)
                     self.write("%s = new %s[%s];"%(arg.name, self.types[arg.pseudo_type[1]], length))
                     self.write(self.copy_constrArray%(length,arg.name,arg.name))
             else:
-                self.write("_%s = toCopy._%s;"%(arg.name, arg.name))
+                self.write("%s = toCopy.%s;"%(arg.name, arg.name))
 
 
     def visit_list_decl(self, node):
@@ -1205,6 +1230,10 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
+            for m in self.model.model:
+                if name.lower() == signature2(m).lower():
+                    name = signature2(m)
+                    break
             self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
             self.newline(node)
         else:

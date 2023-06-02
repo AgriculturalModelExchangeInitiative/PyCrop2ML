@@ -274,7 +274,8 @@ METHOD_API = {
         'map':      StandardMethodCall('list', 'map'),
         'filter':   StandardMethodCall('list', 'filter'),
         'copy':     StandardMethodCall('list', 'copy'),
-        'index':    StandardMethodCall('list', 'index')
+        'index':    StandardMethodCall('list', 'index'),
+        'allocate': StandardMethodCall('list', 'allocate')
     },
 
     'dict': {
