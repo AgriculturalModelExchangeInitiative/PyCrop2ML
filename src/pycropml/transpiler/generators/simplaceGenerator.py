@@ -306,11 +306,13 @@ class SimplaceGenerator(JavaGenerator):
                             self.write(arg.name)
                             if node.name.startswith("init"):
                                 if arg.type == "array" and "elts" in dir(arg):
-                                    self.write(" = new ")
-                                    self.visit_decl(arg.pseudo_type[1])
-                                    self.write("[")
-                                    self.visit(arg.elts[0]) if len(arg.elts)>0 else self.write(" = %s.getValue();" % arg.name)
-                                    self.write("]")
+                                    if len(arg.elts)>0:
+                                        self.write(" = new ")
+                                        self.visit_decl(arg.pseudo_type[1])
+                                        self.write("[")
+                                        self.visit(arg.elts[0])  
+                                        self.write("]")
+                                    else: self.write(" = %s.getValue();" % arg.name)
                                 else: self.write(f" = {arg.name}.getDefault()")
                             self.write(";")
         self.indentation -= 1

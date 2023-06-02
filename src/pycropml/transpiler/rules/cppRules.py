@@ -168,7 +168,9 @@ class CppRules(GeneralRule):
             'insert_at': translateInsert,
             'contains?': translateContains,
             'not contains?': translateNotContains,
-            'index': translateIndex
+            'index': translateIndex,
+             "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("list", elements = node.args, pseudo_type=node.receiver.pseudo_type ))
+
         },
         'dict': {
             'len': translateLenDict,

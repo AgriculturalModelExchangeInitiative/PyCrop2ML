@@ -126,7 +126,8 @@ class RRules(GeneralRule):
             'not contains?': translateNotContains,
             'index': lambda node: Node("call", function="which", \
                 args=[Node("simpleCall", op='%in%', value=node.receiver, \
-                    sequence=node.args, pseudo_type='Boolean')])
+                    sequence=node.args, pseudo_type='Boolean')]),
+            'allocate': translateAllocate
         },
         'datetime':{
             'datetime': lambda node : Node(type="str", value=argsToStr(node.args)),
