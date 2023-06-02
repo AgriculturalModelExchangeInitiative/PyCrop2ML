@@ -165,7 +165,8 @@ class JavaRules(GeneralRule):
             'insert_at': ".insert",
             'contains?': '.contains',
             'not contains?': translateNotContains,
-            'index': '.indexOf'
+            'index': '.indexOf',
+            "allocate": lambda node: Node("assignment", target = node.receiver, value = Node("array", elts = node.args, pseudo_type=node.receiver.pseudo_type ))
         },
         'dict': {
             'len': translateLenDict,
