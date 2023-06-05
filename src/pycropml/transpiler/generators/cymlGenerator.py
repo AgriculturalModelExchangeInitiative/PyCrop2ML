@@ -81,7 +81,9 @@ class CymlGenerator(CodeGenerator, CymlRules):
                 self.write('[')
                 self.visit(node.value.elements.left.elements[0])
                 self.write(']*(')
-                self.visit(self.arrVar[node.target.name])
+                if "right" in dir(node.value.elements) and isinstance(node.value.elements.right[0], Node):
+                    self.visit(node.value.elements.right[0])
+                else: self.visit(self.arrVar[node.target.name])
                 self.write(')')
                 self.newline(node)
             else:
@@ -292,7 +294,10 @@ class CymlGenerator(CodeGenerator, CymlRules):
                 self.write("%s %s"%(pa.pseudo_type, pa.name))
             elif pa.pseudo_type[0]=="array" and "elts" in dir(pa):
                 if isinstance(pa.elts[0], str): self.write("%s %s[]"%(pa.pseudo_type[-1], pa.name))
-                else: self.write("%s %s[%s]"%(pa.pseudo_type[-1], pa.name, pa.elts[0].name if "name" in dir(pa.elts[0]) else pa.elts[0].value))
+                else: 
+                    x = pa.elts[0].name if "name" in dir(pa.elts[0]) else pa.elts[0].value
+                    self.write("%s %s[%s]"%(pa.pseudo_type[-1], pa.name, x))
+                    self.arrVar[pa.name] = pa.elts[0]
             else:
                 self.write("%s %s"%(pa.pseudo_type[-1]+pa.pseudo_type[0],pa.name))
             if i!= (len(node.params)-1):
@@ -379,7 +384,8 @@ class CymlGenerator(CodeGenerator, CymlRules):
                 else:
                     self.write("%s["%(n.name))
                     self.comma_separated_list(n.elts) if isinstance(n.elts, list) else self.visit(n.elts)
-                    self.write("]")   
+                    self.write("]")
+                    self.arrVar[n.name] = n.elts[0]   
             else:
                 pass
             if p!= len(node.decl)-1:

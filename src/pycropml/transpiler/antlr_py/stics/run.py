@@ -145,6 +145,7 @@ def run_stics(component, package):
     # Find the not required functions or subroutines
     notreq = extr.notRequiredFunc(asgt)
     for f in files:
+        print(f)
         with open(os.path.join(component,f), 'r') as text:
             mod = text.read()
         #comments = fortrancomments(mod)
@@ -184,7 +185,7 @@ def run_stics(component, package):
                 if m and m.type=="declaration":
                     decl.append(m)
                     for inp in m.decl:
-                        if inp.name in input1 and inp.name not in modunit_asg[0].indexnames :
+                        if inp.name in input1 and inp.name not in modunit_asg[0].indexnames and "value" not in dir(inp) :
                             inputs1.append(inp)
 
 
@@ -198,6 +199,7 @@ def run_stics(component, package):
                 otherparams = list(res.values())
             else: otherparams=[]
             model_inputs = [m for m in otherparams + newinputs + modunit_asg[0].inputs+ inputs1 if m.type in types]
+
             model_outputs = modunit_asg[0].outputs
             
             inout = list(set([m.name for m in model_inputs + model_outputs  ])) 
