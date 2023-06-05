@@ -128,15 +128,24 @@ class FortranExtraction(MetaExtraction):
         self.mc.model = [n.name for n in md]
         inps = [n.name for m in md for n in m.inputs ]
         outs = [n.name for m in md for n in m.outputs ]
+        print("ppppp", inps)
+        print("ppppp", inps)
+        
         m_in = set(inps) - set(outs)
+        print("ppppp", m_in)
         z = {}
         internallink= []
+        V = []
         for m in md:
-            vi = list(set([n.name for n in m.inputs ]).intersection(m_in))
+            #vi = list(set([n.name for n in m.inputs ]).intersection(m_in))
+            vi = [n.name for n in m.inputs]
             vo = [n.name for n in m.outputs]
             for v in vi:
-                inputlink.append({"target": m.name + "." + v, "source":v})
-            for v in vo: z.update({v:m.name})
+                if v not in V:
+                    inputlink.append({"target": m.name + "." + v, "source":v})
+            for v in vo: 
+                z.update({v:m.name})
+                V.append(v)
 
         for k, v in z.items():
             outputlink.append({"source": v + "." + k, "target":k})
