@@ -385,7 +385,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
                     self.write("%s["%(n.name))
                     self.comma_separated_list(n.elts) if isinstance(n.elts, list) else self.visit(n.elts)
                     self.write("]")
-                    self.arrVar[n.name] = n.elts[0]   
+                    if n.elts and len(n.elts)>=1: self.arrVar[n.name] = n.elts[0]   
             else:
                 pass
             if p!= len(node.decl)-1:
