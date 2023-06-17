@@ -29,6 +29,7 @@ states_tags = ["!%%CyML State Begin%%", "!%%CyML State End%%"]
 compute_tags = ["!%%CyML Compute Begin%%", "!%%CyML Compute End%%"]
 ignore_tags = ["!%%CyML Ignore Begin%%", "!%%CyML Ignore End%%"]
 composition_tags = ["!%%CyML Composition Begin%%", "!%%CyML Composition End%%"]
+description_tags = ["!%%CyML Description Begin%%", "!%%CyML Description End%%"]
 
 start_linecom = ["!", ["C", 1]] # if item is a list: first is the tag and scond is the porition of the tag
 default_mltCom = ['%%%%', '%%%%%'] # use '%%%%' if the language didn't provide multi lines comments
@@ -226,8 +227,15 @@ def run_stics(component, package):
                 algoPart_asg = to_CASG(algoPart_dictasg)
                 codes_compute = translate(decl+algoPart_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)                               
             
-            r = ExtractComments(mod, "!", '"""', '"""') 
-            mdata = extract(r)
+            #r = ExtractComments(mod, "!", '"""', '"""') 
+            
+            startcom = description_tags[0] # start of description extraction
+            startend = description_tags[1] # end of description extraction
+            # Transform comments to a list of comments. Each item represents 
+            # an entire description of an input/output
+            commentsPart = extraction(mod, startcom, startend)
+            mdata = extract(commentsPart[0]+"\n\n")
+            #mdata = extract(r)
             #metainfo = extractMetaInfo(mod, "!")
                                
             out_compute = os.path.join(package,  "crop2ml", "algo", "pyx", mdata.name + ".pyx")
