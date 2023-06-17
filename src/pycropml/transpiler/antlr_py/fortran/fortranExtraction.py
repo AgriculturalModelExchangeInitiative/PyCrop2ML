@@ -128,11 +128,8 @@ class FortranExtraction(MetaExtraction):
         self.mc.model = [n.name for n in md]
         inps = [n.name for m in md for n in m.inputs ]
         outs = [n.name for m in md for n in m.outputs ]
-        print("ppppp", inps)
-        print("ppppp", inps)
-        
+
         m_in = set(inps) - set(outs)
-        print("ppppp", m_in)
         z = {}
         internallink= []
         V = []

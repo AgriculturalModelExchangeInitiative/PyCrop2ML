@@ -97,7 +97,7 @@ def run_python(components, package):
                     
                     
                     
-                    mdata = extract(meth.doc) # create a ModelUnit object (description, inputs and outputs). After we complete with other info
+                    mdata = extract(meth.doc +"\n\n") # create a ModelUnit object (description, inputs and outputs). After we complete with other info
                     #print(mdata.description.ExtendedDescription, "babfsdvhsdbvjsbvbsjvjskdfbv")
 
                     inout = list({var.name for var in mdata.inputs + mdata.outputs}) # extract model in/out
