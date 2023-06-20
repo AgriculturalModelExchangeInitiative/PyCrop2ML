@@ -58,11 +58,11 @@ class Model2Package(object):
         dir_compo = dir_crop2ml.glob("composition*.xml")[0]
         name_mc = model_parser(dir_compo)[0].name
 
-        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc.capitalize())}State.cpp"\n'
-        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc.capitalize())}Rate.cpp"\n'
-        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc.capitalize())}Auxiliary.cpp"\n'
-        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc.capitalize())}Exogenous.cpp"\n'
-        self.import_test += f'#include "{os.path.join(rel_dir_src, m.name.capitalize())}.cpp"\n'
+        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc)}State.cpp"\n'
+        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc)}Rate.cpp"\n'
+        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc)}Auxiliary.cpp"\n'
+        self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc)}Exogenous.cpp"\n'
+        self.import_test += f'#include "{os.path.join(rel_dir_src, m.name)}.cpp"\n'
 
         return self.import_test
 
