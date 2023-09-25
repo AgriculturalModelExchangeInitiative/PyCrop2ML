@@ -287,9 +287,15 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                 self.visit(node.value.right)
                 self.write("; i++){")
                 self.visit(node.target)
-                self.write(".Add(")
-                self.visit(node.value.left.elements[0])
-                self.write(");}")
+                if node.target.pseudo_type[0]=="list":
+                    self.write(".Add(")
+                    self.visit(node.value.left.elements[0])
+                    self.write(")")
+                else:
+                    self.write("[i] = ")
+                    self.visit(node.value.left.elements[0])
+                self.write(";}")
+                    
                          
             else:
                 self.visit(node.target)

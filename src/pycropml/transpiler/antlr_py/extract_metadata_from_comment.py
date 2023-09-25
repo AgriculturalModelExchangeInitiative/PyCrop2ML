@@ -9,6 +9,7 @@ from pycropml.modelunit import ModelUnit
 from pycropml.description import Description
 from pycropml.inout import Input, Output
 import os
+import re
 # Return a file's comments.
 def ExtractComments(filename, c_st_single, c_st_multi, c_end_multi):
     # If a language has no block comment style, be sure that the default c_st_multi and c_end_multi will never be met.
@@ -41,9 +42,9 @@ def ExtractComments(filename, c_st_single, c_st_multi, c_end_multi):
                 all_text = all_text[end_pos + 1:]
     return comments
 
-pattern_attr_val = r"(\*?\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\w+\s:,ï\[\]\\_\./\'-]*))"
+pattern_attr_val = r"(\*\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\-\(\)\w+\s:,ï\[\]\\_\./\'\*]*))"
 
-import re
+
 def extract(comment):
     keywords = ["name", "version", "timestep" ]
     patterns = [r'(\s*-?\s*Name:\s*(?P<name>\w+))',
@@ -60,60 +61,73 @@ def extract(comment):
     m = ModelUnit(head)
 
     # description element of modelUnit (Title, Authors, Reference, Institution, Abstract)
-    pat_description = r'(Description:\s*\r*\n*(.*\*\s*\w+:.+\r*\n*/*)+)'
-    description = attval(pat_description, comment)
+    pat_description = r'-\s*Description:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*inputs|\n\s*[#!/]*\s*-\s*outputs|$)'
+    text_description = re.search(pat_description, comment, re.DOTALL).group(1)
+    description = attval(text_description)
     d = Description()
     for k, v in description.items(): setattr(d, k, v) 
     m.add_description(d)
 
     # inputs
-    inputs = comment.split("inputs:")[1].split("outputs:")[0]
-    pat_ = r'(name:\s*.+\s*)'
-    z = re.findall(pat_, inputs, re.MULTILINE)
+    pat_inputs = r'-\s*inputs:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*outputs|\n\s*[#!/]*\n)'
+    inputs_part = re.search(pat_inputs, comment, re.DOTALL).group(1)
+    pat_input = r'\*\s*name:\s*(.*?)(?=\n\s*[#!/]*\s*\*\s*name:|\n\n)'
+    input_parts = re.findall(pat_input, inputs_part+"\n\n", re.DOTALL)
     inpList = []
-    if z:
-        for inp in z:
+    if input_parts:
+        for inp in input_parts:
             input={}
-            name = inp.replace("\r\n", "").replace("name:", "").lstrip().rstrip()
-            pat_name = r'(%s\s*\r*\n*(.*\*\*\s*.+?:.+\r*\n*)+)'%(inp)
+            name = inp.split("\n")[0].strip()
+            inp = "\n".join(inp.split("\n")[1:])
             input["name"] = name
-            input.update(attval(pat_name, inputs))
+            input.update(attval(inp))
             inpList.append(Input(input))
     m.inputs = inpList
 
     # outputs
-    outputs = comment.split("outputs:")[1]
-    z = re.findall(pat_, outputs, re.MULTILINE)
+    pat_outputs = r'-\s*outputs:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*inputs|\n\s*[#!/]*\s*\n)'
+    outputs_part = re.search(pat_outputs, comment, re.DOTALL).group(1)
+    pat_output = r'\*\s*name:\s*(.*?)(?=\n\s*[#!/]*\s*\*\s*name:|\n\n)'
+    output_parts = re.findall(pat_output, outputs_part+'\n\n', re.DOTALL)
     outList = []
-    if z:
-        for out in z:
+    if output_parts:
+        for out in output_parts:
             output={}
-            name = out.replace("\r\n", "").replace("name:", "").lstrip().rstrip()
-            pat_name = r'(%s\s*\r*\n*(.*\*\*\s*.+?:.+\r*\n*)+)'%(out)
+            name = out.split("\n")[0].strip()
+            out = "\n".join(out.split("\n")[1:])
             output["name"] = name
-            output.update(attval(pat_name, outputs))
+            output.update(attval(out))
             outList.append(Output(output))
     m.outputs = outList
     
     return m
 
-def attval(pat_name, string):  
-    att = re.findall(pat_name, string, re.MULTILINE)
-    lines = att[0][0].split('\n')[1:-1]
+def attval(text):  
+    space = "    "
+    lines = text.split('\n')
     dic = {}
+    last_attr = None
     for line in lines:
         if not line: continue
-        attribute = re.search(pattern_attr_val, line).group("attribute")
-        value = re.search(pattern_attr_val, line, re.ASCII).group("value").replace('\r', "")
-        dic[attribute] = str(value)
+        obj = re.search(pattern_attr_val, line)
+        if not obj: attribute = last_attr
+        else: attribute = obj.group("attribute")
+        obj = re.search(pattern_attr_val, line, re.ASCII)
+        if not obj:
+            value =  '\n' + space*3 + line.strip()
+        else: value = obj.group("value").replace('\r', "").strip()
+        if attribute in dic : dic[attribute] += str(value)
+        else: dic[attribute] = value
+        last_attr = attribute
     return dic
+
 
 
 def extract_compo(comment):
     keywords = ["name", "version", "timestep" ]
-    patterns = [r'(\b(?i)Name:\s*(?P<name>\w+))',
-                r'(-Version:\s*(?P<version>\d+\.*\d+))',
-                r'(-Time step:\s*(?P<timestep>\d+\.*\d*))'] 
+    patterns = [r'(\s*-?\s*Name:\s*(?P<name>\w+))',
+                r'(\s*-?\s*Version:\s*(?P<version>\d+\.*\d+))',
+                r'(\s*-?\s*Time step:\s*(?P<timestep>\d+\.*\d*))'] 
     
     # header of modelUnit name, version, timestep
     head = {}
@@ -125,8 +139,9 @@ def extract_compo(comment):
     m = ModelComposition(head)
 
     # description element of modelUnit (Title, Authors, Reference, Institution, Abstract)
-    pat_description = r'(Description:\s*\r*\n*(.*\*\s*\w+:.+\r*\n*/*)+)'   # Todo
-    description = attval(pat_description, comment)
+    pat_description = r'-\s*Description:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*inputs|\n\s*[#!/]*\s*-\s*outputs|$)'
+    text_description = re.search(pat_description, comment, re.DOTALL).group(1)
+    description = attval(text_description)    
     d = Description()
     for k, v in description.items(): 
         setattr(d, k, v) 

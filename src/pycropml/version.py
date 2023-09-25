@@ -11,7 +11,7 @@ MAJOR = 1
 MINOR = 2
 """(int) Version minor component."""
 
-POST = 9
+POST = 14
 """(int) Version post or bugfix component."""
 
 __version__ = ".".join([str(s) for s in (MAJOR, MINOR, POST)])

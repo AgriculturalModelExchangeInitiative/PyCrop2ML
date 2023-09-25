@@ -279,9 +279,9 @@ class Topology():
         img = Path(os.path.join(dir_images, "%s.png"%self.model.name))
         print(img)
         df = pd.DataFrame(G.edges(data=True), columns=['Source', 'Target', 'Weight'])
-        df['Weight'] = df['Weight'].map(lambda x: x['weight'])
+        df['Weight'] = df['Weight'].map(lambda x: x['weight'] if 'weight' in x else 0)
         a.write_png(img)
-        df.to_csv(os.path.join(dir_images, 'graphe.csv'), index=False)
+        df.to_csv(os.path.join(os.path.dirname(dir_images), 'graphe.csv'), index=False)
     
     def writeSVG(self):
         a=to_pydot(self.createGraph())
