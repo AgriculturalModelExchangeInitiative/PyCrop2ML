@@ -68,7 +68,7 @@ def transpile_package(package, language):
     pkg = Path(sourcef)
     models = model_parser(pkg) # parse xml files and create python model object
     output = Path(os.path.join(pkg, 'src'))
-    dir_test= Path(os.path.join(pkg, 'test'))
+    dir_test = Path(os.path.join(pkg, 'test'))
     dir_doc = Path(os.path.join(pkg, 'doc'))
 
     # Generate packages if the directories does not exists.
@@ -85,7 +85,7 @@ def transpile_package(package, language):
 
     m2p = render_cyml.Model2Package(models, dir=output)
     m2p.generate_package()        # generate cyml models in "pyx" directory
-    tg_rep1 = Path(os.path.join(output, language)) # target language models  directory in output
+    tg_rep1 = Path(os.path.join(output, language))  # target language models  directory in output
     dir_test_lang = Path(os.path.join(dir_test, language))
     
     if not tg_rep1.isdir():
@@ -103,10 +103,10 @@ def transpile_package(package, language):
 
 
     # generate cyml functions
-    cyml_rep = Path(os.path.join(output, 'pyx')) # cyml model directory in output
+    cyml_rep = Path(os.path.join(output, 'pyx'))  # cyml model directory in output
 
     # create topology of composite model
-    T = Topology(namep,package)
+    T = Topology(namep, package)
     mc_name = T.model.name
 
     # Record VPZ
