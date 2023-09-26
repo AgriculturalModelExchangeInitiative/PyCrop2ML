@@ -309,8 +309,8 @@ class Topology():
         code += self.decl(defa=False)
         code += self.inps_assignment()
         lines = [tab+l for l in self.algorithm().split('\n') if l.split()]
+        lines.append(self.outs_assignment())
         code += '\n'.join(lines)
-        code += self.outs_assignment()
         code += "\n" + tab + "return " + ", ".join([out.name for out in self.model.outputs])
         out_states=[out for out in self.model.outputs if out.variablecategory=="state"]
         if self.model.initialization:
@@ -615,7 +615,7 @@ class Topology():
             var = inter["target"]
             var_mod = inter["source"].split(".")[1]
             if var != var_mod:
-                code += tab + "%s = %s \n"%(var_mod, var)
+                code += f"{tab}{var} = {var_mod}\n"#tab + "%s = %s \n"%(var, var_mod)
         return code
                      
     def compotranslate(self, language):
