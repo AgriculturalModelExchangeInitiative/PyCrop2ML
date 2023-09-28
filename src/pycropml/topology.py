@@ -12,6 +12,7 @@ from pycropml.transpiler.main import Main
 from copy import copy
 from pycropml.render_cyml import my_input, DATATYPE
 import pandas as pd
+import importlib
 
  
 class Package:
@@ -49,7 +50,6 @@ class Package:
                 self.wralea_path = os.path.join(self.path, "model.py")
                 self.crop2ml_path = os.path.join(self.path, "crop2ml")
 
-
  
 class PackageManager:
     def __init__(self, proj):
@@ -80,26 +80,27 @@ class PackageManager:
         else:
             print("pkge doesn't exist")
 
-import importlib
+
+
 
 class Topology:
     pkgs = {}
 
     def __init__(self, name, pkg=None):
         self.name = name
-        if pkg is None:
+        if pkg:
+            self.pkg = pkg
+        else:
             if self.isPackage(self.name):
                 self.pkg = self.load_pkge(self.name).crop2mlpath
             else: 
                 self.pkg = input(f"Give the path of package {self.name}")
-        else:
-            self.pkg = pkg
         self.data = Path(self.pkg)/"crop2ml"
         self.diff_in, self.diff_out = {}, {}
         composite_file = self.data.glob("composition*.xml")[0]
         self.mu = model_parser(self.pkg)
         self.model, = composition.model_parser(composite_file)
-        self.pkgs[self.name]=[self.pkg, self.model]
+        self.pkgs[self.name] = [self.pkg, self.model]
         self.model.inputs = self.meta_inp(self.name)
         self.model.outputs = self.meta_out(self.name)
         self.model.ext = self.meta_ext(self.name)
@@ -326,21 +327,21 @@ class Topology:
         lines.append(self.outs_assignment())
         code += '\n'.join(lines)
         code += "\n" + tab + "return " + ", ".join([out.name for out in self.model.outputs])
-        out_states=[out for out in self.model.outputs if out.variablecategory=="state"]
+        out_states = [out for out in self.model.outputs if out.variablecategory == "state"]
         if self.model.initialization:
             file_init = self.model.initialization[0].filename
-            path_init = Path(os.path.join(self.pkg,"crop2ml", file_init))
+            path_init = Path(os.path.join(self.pkg, "crop2ml", file_init))
             with open(path_init, 'r') as f:
                 code_init = f.read()
             if code_init is not None:
                 lines = [tab+l for l in code_init.split('\n') if l.split()]
-                code += self.generate_function_signature(self.model) +'\n'
+                code += self.generate_function_signature(self.model) + '\n'
                 code += self.val_init(self.model)
                 code += '\n'.join(lines)
-                code += '\n'+tab + 'return  ' + ', '.join(self.listab) + '\n'
+                code += '\n' + tab + 'return  ' + ', '.join(self.listab) + '\n'
         return code
 
-    def generate_function_signature(self,model):
+    def generate_function_signature(self, model):
         input = model.inputs
         output = model.outputs
         inout = input + output
@@ -349,7 +350,7 @@ class Topology:
         # initialization inputs
         for inp in inout:
             if inp.name not in outname and not inp.name.endswith("_t1"):
-                if inp.name not in tab :
+                if inp.name not in tab:
                     tab.append(inp)
         if sys.version_info[0] >= 3:
             init_inp = tab.copy()
@@ -373,7 +374,7 @@ class Topology:
         statenames = [st.name for st in model.states]
         #inout = inputs + outputs
         tab = ""
-        self.listab=[]
+        self.listab = []
         for inp in inputs:
             if inp.name not in self.listab and inp.name in statenames:
                 name = inp.name
@@ -383,7 +384,7 @@ class Topology:
                 if inp.datatype == "DOUBLE":
                     tab += f"    cdef float {name} = 0.0\n"
                 if inp.datatype == "STRING":
-                    tab += f"    cdef str {name} ='' \n"
+                    tab += f"    cdef str {name} = '' \n"
                 if inp.datatype == "BOOLEAN":
                     tab += f"    cdef bool {name} = FALSE\n"
                 if inp.datatype == "INTLIST":
@@ -404,7 +405,7 @@ class Topology:
                     tab += f"    cdef stringarray {name}\n"
         return tab       
 
-    def retrive(self, pkgname):
+    def retrieve(self, pkgname):
         if pkgname in self.pkgs:
             pkg = self.pkgs[pkgname][0]
             mc = self.pkgs[pkgname][1]
@@ -416,7 +417,7 @@ class Topology:
         return pkg, mc
 
     def meta_inp(self, pkgname):
-        pkg, mc = self.retrive(pkgname)        
+        pkg, mc = self.retrieve(pkgname)
         list_var = []
         mod_inputs = []
         for inter in mc.inputlink:
@@ -433,9 +434,9 @@ class Topology:
                     mod_inputs.append(inp)
                 else:
                     name = self.pkg_m(mc, mod)
-                    pos = [j for j,k in enumerate(mc.model) if k.name == mod][0]
+                    pos = [j for j, k in enumerate(mc.model) if k.name == mod][0]
                     if mc.model[pos].file.split(".")[0] == "unit":
-                        mc_path = self.retrive(name)[1].path
+                        mc_path = self.retrieve(name)[1].path
                         inps = [m.inputs for m in model_parser(mc_path) if m.name == mod][0]
                         inp = [k for k in inps if k.name == var_mod][0]
                     else:
@@ -447,7 +448,7 @@ class Topology:
         return mod_inputs
 
     def meta_ext(self, pkgname):
-        pkg, mc = self.retrive(pkgname)        
+        pkg, mc = self.retrieve(pkgname)
         list_var = []
         mod_ext = []
         for inter in mc.internallink: 
@@ -480,7 +481,7 @@ class Topology:
         return mod_ext
 
     def meta_out(self, pkgname):
-        pkg, mc = self.retrive(pkgname)
+        pkg, mc = self.retrieve(pkgname)
         list_var = []
         mod_outputs = []
         for inter in mc.outputlink:    
@@ -505,8 +506,8 @@ class Topology:
                     list_var.append(var_mod)                           
         return mod_outputs
 
-    # check if a model m is a composite model including in mc   
     def check_compo(self, mc, m):
+        """check if a model m is a composite model including in mc"""
         test = False
         for mod in mc.model:
             if mod.name == m:
@@ -515,8 +516,8 @@ class Topology:
                     break
         return test
 
-    # get the name of composite model package    
     def pkg_m(self,mc, m):
+        """get the name of composite model package """
         pkg_name = None
         for mod in mc.model:
             if mod.name == m:
@@ -531,8 +532,8 @@ class Topology:
         return ppkg
     """
 
-    # get the info of an input of a model unit from its name and the name of the input
     def info_inputs_mu(self, ppkg, mu, varname):
+        """get the info of an input of a model unit from its name and the name of the input"""
         mod = model_parser(ppkg)
         for m in mod:
             if m.name == mu:
@@ -540,8 +541,8 @@ class Topology:
                     if inp.name == varname:
                         return inp
  
-    # get the info of an output of a model unit from its name and the name of the output
     def info_outputs_mu(self, ppkg, mu, varname):
+        """get the info of an output of a model unit from its name and the name of the output"""
         mod = model_parser(ppkg)
         for m in mod:
             if m.name == mu:
@@ -549,16 +550,16 @@ class Topology:
                     if out.name == varname:
                         return out   
     
-    # get the model unit from an input of a composite model                
     def get_mu_inp(self, pkgname, varname):
+        """get the model unit from an input of a composite model"""
         listvar = []
-        ppkg, mc = self.retrive(pkgname)
+        ppkg, mc = self.retrieve(pkgname)
         for inp in mc.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
             if var == varname and var not in listvar:
                 if self.check_compo(mc,mod):
-                    ppkg, mc = self.retrive(self.pkg_m(mc, mod))
+                    ppkg, mc = self.retrieve(self.pkg_m(mc, mod))
                     self.get_mu_inp(ppkg, var)      
                 inp = self.info_inputs_mu(ppkg, mod, var)
                 listvar.append(var)
@@ -566,13 +567,13 @@ class Topology:
 
     def get_mu_out(self, pkgname, varname):
         listvar = []
-        ppkg, mc = self.retrive(pkgname)
+        ppkg, mc = self.retrieve(pkgname)
         for out in mc.outputlink:
             var = out["target"]
             mod = out["source"].split(".")[0]
             if var == varname and var not in listvar:
                 if self.check_compo(mc,mod):
-                    ppkg, mc = self.retrive(self.pkg_m(mc, mod))
+                    ppkg, mc = self.retrieve(self.pkg_m(mc, mod))
                     self.get_mu_out(ppkg, var)      
                 out = self.info_outputs_mu(ppkg, mod, var)
                 listvar.append(var)
@@ -642,7 +643,7 @@ class Topology:
         for mod in model.model:
             if mod.package_name is not None:
                 T = Topology(mod.package_name)
-                model = self.retrive(mod.package_name)[1]
+                model = self.retrieve(mod.package_name)[1]
                 self.translate_all(model)
                 
     def translate(self):

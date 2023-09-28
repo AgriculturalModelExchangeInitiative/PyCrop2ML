@@ -351,12 +351,12 @@ class CppGenerator(CodeGenerator, CppRules):
         self.newline(node)
 
     def internal_declaration(self, node):
-        statements  = node.block
+        statements = node.block
         if isinstance(statements, list):
             intern_decl = statements[0].decl if statements[0].type == "declaration" else None
             for stmt in statements[1:]:
                 if stmt.type == "declaration":
-                    intern_decl = intern_decl+stmt.decl
+                    intern_decl = (intern_decl if intern_decl else []) + stmt.decl
         else:
             intern_decl = statements.decl if statements.type == "declaration" else None
         return intern_decl
@@ -370,7 +370,7 @@ class CppGenerator(CodeGenerator, CppRules):
                 if 'elements' in dir(inter):
                     self.initialValue.append(Node(type="initial", name=inter.name, pseudo_type=inter.pseudo_type,
                                                   value=inter.elements))
-            internal_name= [e.name for e in self.internal]
+            internal_name = [e.name for e in self.internal]
         self.params = self.retrieve_params(node)
         params_name = [e.name  for e in self.params]
         outputs = self.transform_return(node)[1]
@@ -396,8 +396,8 @@ class CppGenerator(CodeGenerator, CppRules):
         return newNode    
 
     def visit_module(self, node):
-        
-        if self.model: self.write(f'#ifndef _{self.model.name.upper()}_\n')
+        #if self.model:
+        #    self.write(f'#ifndef _{self.model.name.upper()}_\n')
                    
         self.write('#define _USE_MATH_DEFINES\n'
                    '#include <cmath>\n'
@@ -411,11 +411,12 @@ class CppGenerator(CodeGenerator, CppRules):
                    '#include <tuple>\n')
         if self.model:
             self.write(f'#include "{self.model.name}.h"\n')
+        self.write(f"using namespace {Path(self.model.path).name};")
 
-        self.write("using namespace std;\n")
+        #self.write("using namespace std;\n")
         self.visit(node.body)
         self.newline(node)
-        self.write('#endif')
+        #self.write('#endif')
 
     def visit_function_definition(self, node):      
         self.newline(node)
@@ -425,8 +426,10 @@ class CppGenerator(CodeGenerator, CppRules):
         if not node.name.startswith("model_") and not node.name.startswith("init_"):
             # self.templateArr(node.params)
             self.visit_decl(node.return_type) if node.return_type else self.write("void")
-            if self.model: self.write(" %s::"%self.model.name)
-            self.write(" %s("%node.name)
+            if self.model:
+                self.write(f" {self.model.name}::{node.name}(")
+            else:
+                self.write(f" {node.name}(")
             for i, pa in enumerate(node.params):
                 print(pa.name, pa.feat)
                 # if pa.name in self.array_parameter(node.params)[0].values(): continue
@@ -439,15 +442,18 @@ class CppGenerator(CodeGenerator, CppRules):
             self.write('{') 
             self.newline(node)
         else:
-            self.write(f"{self.model.name}::{self.model.name}() {{}}") if not node.name.startswith("init_") else ""
+            if not node.name.startswith("init_"):
+                self.write(f"{self.model.name}::{self.model.name}() {{}}")
             self.newline(node) 
             if self.node_param and not node.name.startswith("init_"):
                 self.getter(self.model.name,self.node_param)
                 self.newline(1)
                 self.setter(self.model.name,self.node_param)
-                self.newline(1)    
-            self.write(f"void {self.model.name}::Calculate_Model(") if not node.name.startswith("init_") \
-                else self.write(f"void {self.model.name}::Init(")
+                self.newline(1)
+            if node.name.startswith("init_"):
+                self.write(f"void {self.model.name}::Init(")
+            else:
+                self.write(f"void {self.model.name}::Calculate_Model(")
             self.write(f'{self.name}State &s, {self.name}State &s1, {self.name}Rate &r, {self.name}Auxiliary &a, {self.name}Exogenous &ex)')
             self.newline(node)
             self.write('{') 
@@ -468,20 +474,10 @@ class CppGenerator(CodeGenerator, CppRules):
                         self.newline(node) 
                         if self.model and arg.name not in self.modparam:
                             self.visit_decl(arg.pseudo_type)
-                            self.write(" ")
-                            self.write(arg.name)
-                            if not node.name.startswith("init_"):
-                                if arg.name in self.states and not arg.name.endswith("_t1"):
-                                    self.write(f" = s.get{arg.name}()")
-                                elif arg.name.endswith("_t1") and arg.name in self.states:
-                                    self.write(f" = s1.get{arg.name[:-3]}()")
-                                elif arg.name in self.rates:
-                                    self.write(f" = r.get{arg.name}()")
-                                elif arg.name in self.auxiliary:
-                                    self.write(f" = a.get{arg.name}()")
-                                elif arg.name in self.exogenous:
-                                    self.write(f" = ex.get{arg.name}()")
-                            else:
+                            if arg.pseudo_type[0] in ["list", "array"]:
+                                self.write("&")
+                            self.write(f" {arg.name}")
+                            if node.name.startswith("init_"):
                                 if arg.name in self.exogenous:
                                     self.write(f" = ex.get{arg.name}()")
                                 elif arg.pseudo_type[0] == "list":
@@ -492,7 +488,19 @@ class CppGenerator(CodeGenerator, CppRules):
                                         self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>()")
                                     else:
                                         self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>({x})")
-                            self.write(";")                   
+                            else:
+                                # make left hand side a reference to the result in case of lists and arrays
+                                if arg.name in self.states and not arg.name.endswith("_t1"):
+                                    self.write(f" = s.get{arg.name}()")
+                                elif arg.name.endswith("_t1") and arg.name in self.states:
+                                    self.write(f" = s1.get{arg.name[:-3]}()")
+                                elif arg.name in self.rates:
+                                    self.write(f" = r.get{arg.name}()")
+                                elif arg.name in self.auxiliary:
+                                    self.write(f" = a.get{arg.name}()")
+                                elif arg.name in self.exogenous:
+                                    self.write(f" = ex.get{arg.name}()")
+                            self.write(";")
             self.indentation -= 1 
         self.body(node.block)
         self.newline(node)
@@ -502,7 +510,7 @@ class CppGenerator(CodeGenerator, CppRules):
         self.write('}') 
         self.newline(node)
 
-    def getter(self,m, node):
+    def getter(self, m, node):
         for arg in node:
             self.newline(node)
             self.visit_decl(arg.pseudo_type)
@@ -510,7 +518,7 @@ class CppGenerator(CodeGenerator, CppRules):
                 else self.write(f"& {m}::get{arg.name}()")
             self.write(f" {{ return this->{arg.name}; }}")
 
-    def setter(self,m, node):
+    def setter(self, m, node):
         for arg in node:
             self.newline(node)
             self.write(f"void {m}::set{arg.name}(")
@@ -543,7 +551,8 @@ class CppGenerator(CodeGenerator, CppRules):
                     self.write("make_tuple(")
                     self.comma_separated_list(node.value.elements)
                     self.write(")")
-                else: self.visit(node.value)
+                else:
+                    self.visit(node.value)
             self.write(";")  
     
     def visit_return(self, node):
@@ -634,7 +643,7 @@ class CppGenerator(CodeGenerator, CppRules):
 
         self.newline(node)
     
-    def visit_list_decl(self, node, pa=None):        
+    def visit_list_decl(self, node, pa=None):
         if not isinstance(node[1], list):
             self.write(self.types[node[1]])
             self.write('>')
@@ -642,7 +651,8 @@ class CppGenerator(CodeGenerator, CppRules):
             node = node[1]
             self.visit_decl(node, pa)
             self.write('>')
-        if pa: self.write(f" {pa.name}")
+        if pa and "name" in dir(pa):
+            self.write(f" {pa.name}")
     
     def visit_dict_decl(self, node):  
         self.write(self.types[node[1]])
@@ -665,22 +675,26 @@ class CppGenerator(CodeGenerator, CppRules):
     
     def visit_float_decl(self, node, pa=None):
         self.write(self.types[node])
-        self.write(f" {pa.name}") if (pa and "name" in dir(pa)) else ''
+        if pa and "name" in dir(pa):
+            self.write(f" {pa.name}")
 
     def visit_datetime_decl(self, node):
         self.write(self.types[node]) 
 
     def visit_int_decl(self, node, pa=None):
         self.write(self.types[node])
-        self.write(f" {pa.name}") if (pa and "name" in dir(pa)) else ''
+        if pa and "name" in dir(pa):
+            self.write(f" {pa.name}")
 
     def visit_str_decl(self, node, pa=None):
         self.write(self.types[node])
-        self.write(f" {pa.name}") if (pa and "name" in dir(pa)) else ''
+        if pa and "name" in dir(pa):
+            self.write(f" {pa.name}")
         
     def visit_bool_decl(self, node, pa=None):
         self.write(self.types[node])
-        self.write(f" {pa.name}") if (pa and "name" in dir(pa)) else ''
+        if pa and "name" in dir(pa):
+            self.write(f" {pa.name}")
 
     def visit_array_decl(self, node, pa=None):
         """if pa: 
@@ -703,25 +717,25 @@ class CppGenerator(CodeGenerator, CppRules):
             if node[0] == "list":
                 self.write('std::vector<')
                 self.visit_list_decl(node, pa)
-            if node[0] == "dict":
+            elif node[0] == "dict":
                 self.write("std::map<")
                 self.visit_dict_decl(node)
-            if node[0] == "tuple":
+            elif node[0] == "tuple":
                 self.write('std::tuple<')
                 self.visit_tuple_decl(node)
-            if node[0] == "array":
+            elif node[0] == "array":
                 self.write('std::vector<')
                 self.visit_array_decl(node, pa)
         else:
             if node == "float":
                 self.visit_float_decl(node, pa)
-            if node == "int":
+            elif node == "int":
                 self.visit_int_decl(node, pa)
-            if node == "str":
+            elif node == "str":
                 self.visit_str_decl(node, pa)
-            if node == "bool":
+            elif node == "bool":
                 self.visit_bool_decl(node, pa) 
-            if node in ("DateTime", "datetime"):
+            elif node in ("DateTime", "datetime"):
                 self.visit_datetime_decl(node)                              
 
     def visit_pair(self, node):
@@ -789,7 +803,6 @@ class CppGenerator(CodeGenerator, CppRules):
         """TODO"""
         pass
 
-    
     def visit_for_iterator(self, node):
         #self.write("%s "%node.iterator.pseudo_type)
         self.write("const auto& ")
@@ -881,7 +894,7 @@ class CppTrans(CppGenerator):
                     variables.append(inp)
                     varnames.append(category+inp.name)
                     if isinstance(m, ModelComposition) and "diff_in" in dir(m):
-                        k_ = get_key(m.diff_in, inp.name )
+                        k_ = get_key(m.diff_in, inp.name)
                         if k_:
                             node_ = deepcopy(inp)
                             node_.name = k_
@@ -1073,7 +1086,9 @@ class CppTrans(CppGenerator):
         self.newline(extra=1)
         self.setter(typ, nodes)
     
-    def generate_hpp(self, node, typ, dc=False, mc=None, h=None, init=False, iscompo=False):
+    def generate_hpp(self, node, typ, dc=False, mc=None, h=None, init=False, iscompo=False, ns=None):
+        if ns:
+            self.write(f"namespace {ns} {{\n")
         self.write(f"class {typ}")
         self.newline(1)
         self.write("{")
@@ -1091,6 +1106,8 @@ class CppTrans(CppGenerator):
         self.indentation -= 2
         self.write("};")
         self.newline(1)
+        if ns:
+            self.write("}\n")
         #if dc:
         #    self.write("#endif")
     
@@ -1107,7 +1124,8 @@ def to_struct_cpp(models, rep, name):
     header_mu_cpp(models, rep, name)
     headerCompo(models, rep, name)
     generator = CppTrans(models)
-    generator.result = [f'#include "{name}State.h"']
+    generator.result = [f'#include "{name}State.h"\n']
+    generator.result.append(f"using namespace {rep.name};\n")
     generator.model2Node()
     states = generator.node_states
     generator.generate(states, f"{name}State")
@@ -1116,14 +1134,16 @@ def to_struct_cpp(models, rep, name):
     with open(filename, "wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
-    generator.result = [f'#include "{name}Rate.h"']
+    generator.result = [f'#include "{name}Rate.h"\n']
+    generator.result.append(f"using namespace {rep.name};\n")
     generator.generate(rates, f"{name}Rate")
     z1 = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}Rate.cpp"))
     with open(filename, "wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))       
     auxiliary = generator.node_auxiliary
-    generator.result = [f'#include "{name}Auxiliary.h"']
+    generator.result = [f'#include "{name}Auxiliary.h"\n']
+    generator.result.append(f"using namespace {rep.name};\n")
     generator.generate(auxiliary, f"{name}Auxiliary")
     z2 = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}Auxiliary.cpp"))
@@ -1131,7 +1151,8 @@ def to_struct_cpp(models, rep, name):
         tg2_file.write(z2.encode('utf-8'))
 
     exogenous = generator.node_exogenous
-    generator.result = [f'#include "{name}Exogenous.h"']
+    generator.result = [f'#include "{name}Exogenous.h"\n']
+    generator.result.append(f"using namespace {rep.name};\n")
     generator.generate(exogenous, f"{name}Exogenous")
     z2 = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}Exogenous.cpp"))
@@ -1155,7 +1176,7 @@ def header_cpp(models, rep, name):
     generator.model2Node()
 
     states = generator.node_states
-    generator.generate_hpp(states, f"{name}State", dc=True)
+    generator.generate_hpp(states, f"{name}State", dc=True, ns=rep.name)
     z = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}State.h"))
     with open(filename, "wb") as tg_file:
@@ -1171,7 +1192,7 @@ def header_cpp(models, rep, name):
 #include <vector>
 #include <string>
 """]
-    generator.generate_hpp(rates, f"{name}Rate", dc=True)
+    generator.generate_hpp(rates, f"{name}Rate", dc=True, ns=rep.name)
     z1 = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}Rate.h"))
     with open(filename, "wb") as tg1_file:
@@ -1187,7 +1208,7 @@ def header_cpp(models, rep, name):
 #include <vector>
 #include <string>
 """]
-    generator.generate_hpp(auxiliary, f"{name}Auxiliary", dc=True)
+    generator.generate_hpp(auxiliary, f"{name}Auxiliary", dc=True, ns=rep.name)
     z2 = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}Auxiliary.h"))
     with open(filename, "wb") as tg2_file:
@@ -1203,7 +1224,7 @@ def header_cpp(models, rep, name):
 #include <vector>
 #include <string>
 """]
-    generator.generate_hpp(exogenous, f"{name}Exogenous", dc=True)
+    generator.generate_hpp(exogenous, f"{name}Exogenous", dc=True, ns=rep.name)
     z2 = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{name}Exogenous.h"))
     with open(filename, "wb") as tg2_file:
@@ -1231,6 +1252,7 @@ def header_mu_cpp(models, rep, name):
             init = True
         generator = CppTrans([m])
         generator.result = [f'''
+#pragma once
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include <iostream>
@@ -1243,7 +1265,7 @@ def header_mu_cpp(models, rep, name):
 ''']
         generator.model2Node()
         param = generator.node_param
-        generator.generate_hpp(param, f"{m.name}", mc=mc, h=h, init=init)
+        generator.generate_hpp(param, f"{m.name}", mc=mc, h=h, init=init, ns=rep.name)
         z = ''.join(generator.result)
         filename = Path(os.path.join(rep, f"{m.name}.h"))
         with open(filename, "wb") as tg_file:
@@ -1262,7 +1284,7 @@ def headerCompo(models, rep, name):
     generator.result = [includes + "\n\n"]
     generator.model2Node()
     param = generator.node_param
-    generator.generate_hpp(param, f"{mc}Component", mc=mc, h=h, init=True, iscompo=True)
+    generator.generate_hpp(param, f"{mc}Component", mc=mc, h=h, init=True, iscompo=True, ns=rep.name)
     z = ''.join(generator.result)
     filename = Path(os.path.join(rep, f"{mc}Component.h"))
     with open(filename, "wb") as tg_file:
@@ -1270,15 +1292,16 @@ def headerCompo(models, rep, name):
 
 
 class CppCompo(CppTrans):
-    """ This class generate the C++ composite class.
-    """
+    """ This class generate the C++ composite class."""
+
     def __init__(self, tree=None, modelt=None, name=None):
-        CppTrans.__init__(self,[modelt]) 
-        self.modelt=modelt
+        CppTrans.__init__(self, [modelt])
+        self.modelt = modelt
         self.tree = tree
         self.name = modelt.name
         self.init = False
-        self.write('#include "%sComponent.h"\n'%self.name) 
+        self.write(f'#include "{self.name}Component.h"\n')
+        self.write(f"using namespace {modelt.path.name};\n")
         self.modeltparams = [pa.name for pa in self.modelt.inputs if "parametercategory" in dir(pa)]
         self.model2Node()
         self.statesName = [st.name for st in self.states]
@@ -1286,7 +1309,7 @@ class CppCompo(CppTrans):
         self.auxiliaryName = [au.name for au in self.auxiliary]
         self.exogenousName = [ex.name for ex in self.exogenous]
         self.aux = [link["source"].split(".")[1] for link in self.modelt.internallink]
-        self.realinp=[]  # determine the real inputs of the composite      
+        self.realinp = []  # determine the real inputs of the composite
         for node in self.node_auxiliary + self.node_exogenous:
             if node.name not in self.realinp and node.name not in self.aux:
                 self.realinp.append(node)
@@ -1296,12 +1319,12 @@ class CppCompo(CppTrans):
         self.newline(node)
         if "function" in dir(self.modelt) and self.modelt.function:
             func_name = os.path.split(self.modelt.function[0].filename)[1]
-            func_path = os.path.join(self.modelt.path,"src","pyx", func_name)
-            func_tree=parser(Path(func_path))  
+            func_path = os.path.join(self.modelt.path, "src", "pyx", func_name)
+            func_tree = parser(Path(func_path))
             newtree = AstTransformer(func_tree, func_path)
             dictAst = newtree.transformer()
-            nodeAst= transform_to_syntax_tree(dictAst)
-            self.modelt=None
+            nodeAst = transform_to_syntax_tree(dictAst)
+            self.modelt = None
             self.visit(nodeAst.body)
         self.indentation -= 1        
         self.newline(node)              
@@ -1309,21 +1332,26 @@ class CppCompo(CppTrans):
     def visit_function_definition(self, node):      
         self.add_features(node)
         self.funcname = node.name
-        self.write(self.constructor%("%sComponent"%self.modelt.name,"%sComponent"%self.modelt.name)) if not node.name.startswith("init_") else self.write("")
+        if node.name.startswith("init_"):
+            self.write("")
+        else:
+            self.write(self.constructor%(f"{self.modelt.name}Component", f"{self.modelt.name}Component"))
         self.newline(extra=1)          
 
+        n = self.name
         if self.node_param and not node.name.startswith("init_"):
-            self.getter( "%sComponent"%self.name,self.node_param)
+            self.getter(f"{n}Component", self.node_param)
             self.newline(extra=1)
-            self.setter( "%sComponent"%self.name,self.node_param)
+            self.setter(f"{n}Component", self.node_param)
             self.newline(node)      
 
-        if not node.name.startswith("init_"):
-            self.write("void %sComponent::Calculate_Model("%self.name)
+        if node.name.startswith("init_"):
+            self.write(f"void {n}Component::Init(")
+            self.init = True
         else:
-            self.write("void %sComponent::Init("%self.name)
-            self.init=True
-        self.write('%sState& s, %sState& s1, %sRate& r, %sAuxiliary& a, %sExogenous& ex)'%(self.name,self.name, self.name, self.name, self.name))
+            self.write(f"void {n}Component::Calculate_Model(")
+
+        self.write(f"{n}State &s, {n}State &s1, {n}Rate &r, {n}Auxiliary &a, {n}Exogenous &ex)")
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1331,28 +1359,29 @@ class CppCompo(CppTrans):
         self.newline(node)
         self.visit_return(node)
         self.newline(node)
-        #self.indentation -= 1 
+        # self.indentation -= 1
         self.write('}') 
         self.newline(node)
         typ = self.modelt.name+"Component"
-        if not node.name.startswith("init_"):
-            self.write("%s::%s(%s& toCopy)"%(typ, typ, typ))
+        if node.name.startswith("init_"):
+            self.write("")  # copy constructor
+        else:
+            self.write(f"{typ}::{typ}({typ}& toCopy)")
             self.newline(1)
             self.write("{")
             self.copyconstructor(self.node_param)
             self.newline(node)
             self.write('}')  
-        else: self.write("")###### copy constructor     
         self.newline(1)
 
     def visit_assignment(self, node):
-        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
-            name  = node.value.function.split('model_')[1]
+        if "function" in dir(node.value) and node.value.function.split('_')[0] == "model":
+            name = node.value.function.split('model_')[1]
             for m in self.modelt.model:
                 if name.lower() == signature2(m).lower():
                     name = signature2(m)
                     break
-            self.write("_%s.Calculate_Model(s, s1, r, a, ex);"%(name))
+            self.write(f"_{name}.Calculate_Model(s, s1, r, a, ex);")
             self.newline(node)
         else:
             self.newline(node)
@@ -1383,7 +1412,7 @@ class CppCompo(CppTrans):
             self.newline(node)
 
     def visit_declaration(self, node):
-        if self.init is True:
+        if self.init:
             return CppGenerator(self.tree).visit_declaration(node)
         else: 
             pass
@@ -1392,15 +1421,16 @@ class CppCompo(CppTrans):
         h = 'from datetime import datetime\n'
         for m in self.model.inputs:
             if "parametercategory" in dir(m):
-                if "len" in dir(m): m.len="100"
-                h +="cdef " + my_input(m) + "\n"
+                if "len" in dir(m):
+                    m.len = "100"
+                h += "cdef " + my_input(m) + "\n"
         return h
     
     def tranAssignParam(self):
         from pycropml.transpiler.main import Main
-        snip =Main(self.assignParam(),"cpp")
-        a=snip.parse()    
-        g=snip.to_ast(self.assignParam())  
+        snip = Main(self.assignParam(), "cpp")
+        a = snip.parse()
+        g = snip.to_ast(self.assignParam())
         snip.dictAst
         return snip.to_source()
     
@@ -1414,82 +1444,82 @@ class CppCompo(CppTrans):
     def visit_local(self, node):
         self.write(node.name)
 
-
     """def visit_declaration(self, node):
         pass"""
     
     def visit_return(self, node):
         self.newline(node)
 
-    def getter(self,m, node):
+    def getter(self, m, node):
         for arg in node:
             self.newline(node)
-            argname = arg.name
-            if argname in self.getRealInputs():
+            if arg.name in self.getRealInputs():
                 self.visit_decl(arg.pseudo_type)
-                self.write(" %s::get%s()"%(m,arg.name)) if not isinstance(arg.pseudo_type, list) else self.write("& %s::get%s()"%(m,arg.name) )         
-                self.write (" {return this-> %s; }"%arg.name)
+                if isinstance(arg.pseudo_type, list):
+                    self.write(f"& {m}::get{arg.name}()")
+                else:
+                    self.write(f" {m}::get{arg.name}()")
+                #mo = self.get_mo(arg.name)
+                #for mi in mo:
+                #    self.write(f"{{ return _{list(mi.keys())[0]}.get{list(mi.values())[0]}(); }}")
+                #    self.newline(1)
+                self.write(f"{{ return this->{arg.name}; }}")
                 
-    def setter(self,m, node):
+    def setter(self, m, node):
         for arg in node:
             self.newline(node)
             argname = arg.name
             if argname in self.getRealInputs():
                 if not isinstance(arg.pseudo_type, list):
-                    self.write("void %s::set%s("%(m,arg.name))
+                    self.write(f"void {m}::set{arg.name}(")
                     self.visit_decl(arg.pseudo_type)
-                    self.write(" _%s)"%arg.name)
+                    self.write(f" _{arg.name})")
                 else:
-                    self.write("void %s::set%s(const "%(m,arg.name))
+                    self.write(f"void {m}::set{arg.name}(const ")
                     self.visit_decl(arg.pseudo_type)
-                    self.write("& _%s)"%arg.name)
+                    self.write(f"& _{arg.name})")
                 self.newline(1)
                 self.write("{")
                 self.newline(1)
                 self.indentation += 1
                 mo = self.get_mo(arg.name)
                 for mi in mo:
-                        self.write("_%s.set%s(_%s);"%(list(mi.keys())[0],list(mi.values())[0], arg.name))            
-                        self.newline(1)  
+                    self.write(f"_{list(mi.keys())[0]}.set{list(mi.values())[0]}(_{arg.name});")
+                    self.newline(1)
                 self.newline(1)
-                self.indentation -=1
+                self.indentation -= 1
                 self.write("}")
 
-        
-        
     def getRealInputs(self):
-        inputs=[]
+        inputs = []
         for inp in self.modelt.inputlink:
             var = inp["source"]
             inputs.append(var)
         return inputs
-        
- 
-    def get_mo(self,varname):
-        listmo=[]
+
+    def get_mo(self, varname):
+        listmo = []
         for inp in self.modelt.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
             modvar = inp["target"].split(".")[1]
-            if var==varname:
-                listmo.append({mod:modvar})
+            if var == varname:
+                listmo.append({mod: modvar})
         return listmo
-    
 
-      
     def copyconstructor(self,node):
         for arg in node:
             self.newline(node)
             if arg.name in self.getRealInputs():
                 if isinstance(arg.pseudo_type, list):
-                    if arg.pseudo_type[0] =="list":
-                        self.write("    %s"%self.copy_constrList%(arg.name,arg.name,arg.name))
+                    if arg.pseudo_type[0] == "list":
+                        self.write(f"    {self.copy_constrList%(arg.name,arg.name,arg.name)}")
                     if arg.pseudo_type[0] =="array":
                         #self.write("    %s"%self.copy_constrArray%(arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name,arg.name,arg.name))
                         length = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name 
-                        if not length: length = "toCopy.get%s().size()"%(arg.name)
-                        self.write("    %s"%self.copy_constrArray%(length,arg.name,arg.name))
-                
+                        if not length:
+                            length = f"toCopy.get{arg.name}().size()"
+                        self.write(f"    {self.copy_constrArray%(length,arg.name,arg.name)}")
                 else:
                     self.write("    %s = toCopy.get%s();"%(arg.name, arg.name)) 
 
@@ -1497,7 +1527,7 @@ class CppCompo(CppTrans):
         pass
     
     def wrapper(self):           
-        self.write("class %sWrapper"%self.modelt.name)
+        self.write(f"class {self.modelt.name}Wrapper")
         self.newline(1)
         self.write("{") 
         self.newline(1)
@@ -1521,36 +1551,35 @@ class CppCompo(CppTrans):
         self.write("}")
         self.newline(extra=1)
 
-
     def privateWrap(self) :
         name = self.modelt.name
-        self.write("private %sState s;"%(name))
+        self.write(f"private {name}State s;")
         self.newline(1)
-        self.write("private %sRate r;"%(name))
+        self.write(f"private {name}Rate r;")
         self.newline(1)
-        self.write("private %sAuxiliary a;"%(name))
+        self.write(f"private {name}Auxiliary a;")
         self.newline(1)
-        self.write("private %sExogenous ex;"%(name))
+        self.write(f"private {name}Exogenous ex;")
         self.newline(1)
-        self.write("private %sComponent %sComponent;"%(name,name.lower()))
+        self.write(f"private {name}Component {name.lower()}Component;")
         self.newline(extra=1)
     
     def constrWrap(self):
         name = self.modelt.name
-        self.write("public %sWrapper()"%(name))
+        self.write(f"public {name}Wrapper()")
         self.newline(1)
         self.write("{") 
         self.newline(1)
         self.indentation += 1
-        self.write("s = new %sState();"%(name))
+        self.write(f"s = new {name}State();")
         self.newline(1)
-        self.write("r = new %sRate();"%(name))
+        self.write(f"r = new {name}Rate();")
         self.newline(1)
-        self.write("a = new %sAuxiliary();"%(name))
+        self.write(f"a = new {name}Auxiliary();")
         self.newline(1)
-        self.write("ex = new %sExogenous();"%(name))
+        self.write(f"ex = new {name}Exogenous();")
         self.newline(1)
-        self.write("%sComponent = new %sComponent();"%(name.lower(), name))
+        self.write(f"{name.lower()}Component = new {name}Component();")
         self.newline(1)
         self.write("loadParameters();")
         self.newline(1)
@@ -1559,34 +1588,36 @@ class CppCompo(CppTrans):
     
     def outputWrap(self):
         out = [out.name for out in self.modelt.outputs]
-        tabout=[]
-        nodes =self.node_states+self.node_rates+self.node_auxiliary+self.node_exogenous
+        tabout = []
+        nodes = self.node_states + self.node_rates + self.node_auxiliary + self.node_exogenous
         for node in nodes :
             if node.name in out and node.name not in tabout:
                 self.getset([node], True)
                 tabout.append(node.name)
 
     def copyconstrWrap(self):
-        self.write("public %sWrapper(%sWrapper toCopy, bool copyAll) : this()"%(self.modelt.name,self.modelt.name))
+        n = self.modelt.name
+        self.write(f"public {n}Wrapper({n}Wrapper toCopy, bool copyAll) : this()")
         self.newline(1)
         self.write("{")
         self.newline(1)
         self.indentation += 1
-        self.write("s = (toCopy.s != null) ? new %sState(toCopy.s, copyAll) : null;"%(self.model.name))
+        self.write(f"s = (toCopy.s != null) ? new {n}State(toCopy.s, copyAll) : null;")
         self.newline(1)
         self.newline(1)
-        self.write("r = (toCopy.r != null) ? new %sRate(toCopy.r, copyAll) : null;"%(self.model.name))
+        self.write(f"r = (toCopy.r != null) ? new {n}Rate(toCopy.r, copyAll) : null;")
         self.newline(1)
-        self.write("a = (toCopy.a != null) ? new %sAuxiliary(toCopy.a, copyAll) : null;"%(self.model.name))
+        self.write(f"a = (toCopy.a != null) ? new {n}Auxiliary(toCopy.a, copyAll) : null;")
         self.newline(1)
-        self.write("ex = (toCopy.ex != null) ? new %sExogenous(toCopy.ex, copyAll) : null;"%(self.model.name))
+        self.write(f"ex = (toCopy.ex != null) ? new {n}Exogenous(toCopy.ex, copyAll) : null;")
         self.newline(1)
         self.write("if (copyAll)")
         self.newline(1)
         self.write("{")
         self.newline(1)
         self.indentation += 1
-        self.write("%sComponent = (toCopy.%sComponent != null) ? new %sComponent(toCopy.%sComponent) : null;"%(self.model.name.lower(),self.model.name.lower(),self.model.name,self.model.name.lower()))
+        nl = n.lower()
+        self.write(f"{nl}Component = (toCopy.{n}Component != null) ? new {n}Component(toCopy.{nl}Component) : null;")
         self.newline(1)
         self.indentation -= 1        
         self.write("}")
@@ -1599,7 +1630,7 @@ class CppCompo(CppTrans):
         self.write("{")
         self.newline(1)
         self.indentation += 1 
-        self.write("%sComponent.Init(s, r, a);"%(self.modelt.name.lower()))
+        self.write(f"{self.modelt.name.lower()}Component.Init(s, r, a);")
         self.newline(1)
         self.write("loadParameters();")
         self.newline(1)
@@ -1612,31 +1643,33 @@ class CppCompo(CppTrans):
         self.write("{")
         self.newline(1)
         self.indentation += 1
-        tab=[]         
+        tab = []
         for node in self.modparam :
             if node.name not in tab:
-                self.write("%sComponent.%s = %s;"%(self.model.name.lower(), node.name, node.name))
+                self.write(f"{self.model.name.lower()}Component.{node.name} = {node.name};")
                 tab.append(node.name)
                 self.newline(1)
         self.indentation -= 1 
         self.write("}")
     
     def estimateWrap(self):
-        self.write("public void Estimate%s("%(self.modelt.name))       
+        modelt_name = self.modelt.name
+        self.write(f"public void Estimate{modelt_name}(")
         for node in self.realinp:
                 self.visit_decl(node.pseudo_type)
                 self.write(" ")
                 self.write(node.name)
-                self.write(", ") if node!=self.realinp[len(self.realinp)-1] else ''
+                self.write(", ") if node != self.realinp[len(self.realinp)-1] else ''
         self.write(")")
         self.newline(1)
         self.write("{")
         self.newline(1)
         self.indentation += 1 
         for node in self.realinp:
-            self.write("a.%s = %s;"%(node.name, node.name))
+            self.write(f"a.{node.name} = {node.name};")
             self.newline(1)
-        self.write("%sComponent.Calculate_%s(s, s1, r, a);"%(self.modelt.name.lower(),self.modelt.name.lower()))
+        n = modelt_name.lower()
+        self.write(f"{n}Component.Calculate_{n}(s, s1, r, a);")
         self.newline(1)
         self.indentation -= 1 
         self.write("}")
@@ -1644,16 +1677,18 @@ class CppCompo(CppTrans):
 
 def to_wrapper_cpp(models, rep, name):
     generator = CppCompo(modelt=models)
-    generator.result=["#define _USE_MATH_DEFINES\n"
-                      "#include <cmath>\n"
-                      "#include <iostream>\n"
-                      "#include <vector>\n"
-                      "#include <string>\n"
-                      "using namespace std;\n"]
+    generator.result = [
+        "#define _USE_MATH_DEFINES\n"
+        "#include <cmath>\n"
+        "#include <iostream>\n"
+        "#include <vector>\n"
+        "#include <string>\n"
+        #"using namespace std;\n"
+    ]
     generator.model2Node()
     generator.wrapper()
-    z= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sWrapper.cpp"%name))
+    z = ''.join(generator.result)
+    filename = Path(os.path.join(rep, f"{name}Wrapper.cpp"))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
     return 0

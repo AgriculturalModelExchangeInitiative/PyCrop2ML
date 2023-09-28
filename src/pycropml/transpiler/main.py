@@ -95,24 +95,25 @@ def formaterNext(line):
     return code
 
 class Main():
-    def __init__(self, file,language, models=None, name=None):
+    def __init__(self, file, language, models=None, name=None):
         self.file = file
-        self.language=language
+        self.language = language
         self.models = models 
-        if sys.version_info[0]>3: self.path = os.path.abspath(file) 
-        else : 
+        if sys.version_info[0] > 3:
+            self.path = os.path.abspath(file)
+        else:
             self.path = Path(self.file)
-            self.file =(self.file)
+            self.file = self.file
         self.name = name   
 
     def parse(self):
-        self.tree= parser(self.file)
+        self.tree = parser(self.file)
         return self.tree
 
     def to_ast(self, source):
         self.newtree = AstTransformer(self.tree, source, self.models)
         self.dictAst = self.newtree.transformer()
-        self.nodeAst= transform_to_syntax_tree(self.dictAst)
+        self.nodeAst = transform_to_syntax_tree(self.dictAst)
         return self.nodeAst
 
     def to_source(self):
@@ -120,8 +121,8 @@ class Main():
         #node = self.nodeAst.body
         node = self.nodeAst
         generator.visit(node)
-        z= ''.join(generator.result)
-        if self.language=='f90' or self.language=='dssat' or self.language=='stics':
+        z = ''.join(generator.result)
+        if self.language == 'f90' or self.language == 'dssat' or self.language == 'stics':
             z = formater(z)
         return z
     
@@ -129,7 +130,7 @@ class Main():
         generator = COMPOSERS[self.language](self.nodeAst,self.models, self.name)
         node = self.nodeAst
         generator.visit(node)
-        z= ''.join(generator.result)
-        if self.language=='f90' or self.language=='dssat' or self.language=='stics' :
+        z = ''.join(generator.result)
+        if self.language == 'f90' or self.language == 'dssat' or self.language == 'stics':
             z = formater(z)
         return z 

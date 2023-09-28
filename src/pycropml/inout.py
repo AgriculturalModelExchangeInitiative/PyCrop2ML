@@ -1,8 +1,7 @@
 import six
 
+
 class InputOutput(object):
-    """
-    """
     def __init__(self, kwds):
         self.min = None
         self.max = None
@@ -14,17 +13,9 @@ class InputOutput(object):
         return str(self._attributes)
 
 
-
 class Input(InputOutput):
-    """ Input """
+    """Input """
 
 
 class Output(InputOutput):
-    """ Output
-    """
-
-    def __setattr__(self, k, v):
-        print("output.__setattr__(", k, ",", v, ")")
-        if k == "name" and self._attributes["name"] == "newSoilTemperature" and v == "soilTemperature":
-            print("here")
-        InputOutput.__setattr__(self, k, v)
+    """Output"""

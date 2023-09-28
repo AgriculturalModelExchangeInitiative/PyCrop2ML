@@ -11,7 +11,7 @@ def translateLenStr(node):
 
 
 def translateLog(node):
-    return Node("call", function="log10", args=[node.args[0]], pseudo_type=node.pseudo_type)
+    return Node("call", function="std::log10", args=[node.args[0]], pseudo_type=node.pseudo_type)
 
 
 def translateSum(node):
@@ -97,11 +97,11 @@ def translate_min_max(node, f):
 
 
 def translateMIN(node):
-    return translate_min_max(node, "min")
+    return translate_min_max(node, "std::min")
 
 
 def translateMAX(node):
-    return translate_min_max(node, "max")
+    return translate_min_max(node, "std::max")
 
 
 class CppRules(GeneralRule):
@@ -157,20 +157,20 @@ class CppRules(GeneralRule):
 
     functions = {
         'math': {
-            'ln': 'log',
+            'ln': 'std::log',
             'log': translateLog,
-            'tan': 'tan',
-            'sin': 'sin',
-            'cos': 'cos',
-            'asin': 'asin',
-            'acos': 'acos',
-            'atan': 'atan',
-            'sqrt': 'sqrt',
-            'ceil': '(int) ceil',
-            'round': 'round',
-            'exp': 'exp',
-            'pow': 'pow',
-            'floor': 'floor'
+            'tan': 'std::tan',
+            'sin': 'std::sin',
+            'cos': 'std::cos',
+            'asin': 'std::asin',
+            'acos': 'std::acos',
+            'atan': 'std::atan',
+            'sqrt': 'std::sqrt',
+            'ceil': '(int) std::ceil',
+            'round': 'std::round',
+            'exp': 'std::exp',
+            'pow': 'std::pow',
+            'floor': 'std::floor'
 
         },
         'io': {
@@ -182,8 +182,8 @@ class CppRules(GeneralRule):
         'system': {
             'min': translateMIN,
             'max': translateMAX,
-            'abs': 'abs',
-            'pow': 'pow'},
+            'abs': 'std::abs',
+            'pow': 'std::pow'},
         'datetime': {
             'datetime': lambda node: Node(type="str", value=argsToStr(node.args))
         }
