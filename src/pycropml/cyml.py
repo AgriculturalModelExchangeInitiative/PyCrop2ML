@@ -66,9 +66,9 @@ def transpile_package(package, language):
     sourcef = package
     namep = sourcef.split(os.path.sep)[-1]
     pkg = Path(sourcef)
-    models = model_parser(pkg) # parse xml files and create python model object
+    models = model_parser(pkg)  # parse xml files and create python model object
     output = Path(os.path.join(pkg, 'src'))
-    dir_test= Path(os.path.join(pkg, 'test'))
+    dir_test = Path(os.path.join(pkg, 'test'))
     dir_doc = Path(os.path.join(pkg, 'doc'))
 
     # Generate packages if the directories does not exists.
@@ -84,8 +84,8 @@ def transpile_package(package, language):
         dir_images.mkdir()
 
     m2p = render_cyml.Model2Package(models, dir=output)
-    m2p.generate_package()        # generate cyml models in "pyx" directory
-    tg_rep1 = Path(os.path.join(output, language)) # target language models  directory in output
+    m2p.generate_package()  # generate cyml models in "pyx" directory
+    tg_rep1 = Path(os.path.join(output, language))  # target language models  directory in output
     dir_test_lang = Path(os.path.join(dir_test, language))
     
     if not tg_rep1.isdir():
@@ -96,17 +96,16 @@ def transpile_package(package, language):
     if not tg_rep.isdir():
         tg_rep.mkdir()
 
-    if not dir_test_lang.isdir() :  #Create if it doesn't exist
+    if not dir_test_lang.isdir():  #Create if it doesn't exist
         dir_test_lang.mkdir()
 
     m2p.write_tests()
 
-
     # generate cyml functions
-    cyml_rep = Path(os.path.join(output, 'pyx')) # cyml model directory in output
+    cyml_rep = Path(os.path.join(output, 'pyx'))  # cyml model directory in output
 
     # create topology of composite model
-    T = Topology(namep,package)
+    T = Topology(namep, package)
     mc_name = T.model.name
 
     # Record VPZ
@@ -116,27 +115,25 @@ def transpile_package(package, language):
 
     # domain class
     if language in domain_class:
-        getattr(getattr(pycropml.transpiler.generators,
-                    '%sGenerator' % NAMES[language]),
-                'to_struct_%s' % language)([T.model],tg_rep, mc_name)
+        getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
+                f'to_struct_{language}')([T.model], tg_rep, mc_name)
     # wrapper
     if language in wrapper:
-        getattr(getattr(pycropml.transpiler.generators,
-                    '%sGenerator' % NAMES[language]),
-                'to_wrapper_%s' % language)(T.model,tg_rep, mc_name)    
+        getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
+                f'to_wrapper_{language}')(T.model, tg_rep, mc_name)
 
     # Transform model unit to languages and platforms
     for k, file in enumerate(cyml_rep.files()):
         with open(file, 'r') as fi:
             source = fi.read()
         name = os.path.split(file)[1].split(".")[0]
-        for model in models:                         # in the case we have'nt the same order
+        for model in models:  # in the case we haven't the same order
             if name.lower() == model.name.lower() and prefix(model) != "function":
                 test = Main(file, language, model, T.model.name)
                 test.parse()
                 test.to_ast(source)
                 code = test.to_source()
-                filename = Path(os.path.join(tg_rep, "%s.%s"%(nameconvention.signature(model, ext[language]), ext[language])))
+                filename = Path(os.path.join(tg_rep, f"{nameconvention.signature(model, ext[language])}.{ext[language]}"))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                 if language in langs:
@@ -145,17 +142,17 @@ def transpile_package(package, language):
 
     # Create Cyml Composite model
     T_pyx = T.algo2cyml(dir_images)
-    fileT = Path(os.path.join(cyml_rep, "%sComponent.pyx"%mc_name))
+    fileT = Path(os.path.join(cyml_rep, f"{mc_name}Component.pyx"))
     with open(fileT, "wb") as tg_file:
         tg_file.write(T_pyx.encode('utf-8'))  
 
-    filename = Path(os.path.join(tg_rep, "%sComponent.%s"%(mc_name, ext[language])))
+    filename = Path(os.path.join(tg_rep, f"{mc_name}Component.{ext[language]}"))
     code = T.compotranslate(language).encode('utf-8')
     if code:
         with open(filename, "wb") as tg_file:
             tg_file.write(code)   
 
-    ## create computing algorithm
+    # create computing algorithm
     if language == "py":
         simulation = PythonSimulation(T.model)
         simulation.generate()
@@ -176,8 +173,10 @@ def transpile_package(package, language):
     status = 0
     return status
 
+
 def transpile_component(component, package, language):
-    """Transform a framework model component to Crop2ML/CyML
+    """
+    Transform a framework model component to Crop2ML/CyML
 
     Args:
         component (path): a Crop2ML folder containing a repository of a framework model component
@@ -186,18 +185,11 @@ def transpile_component(component, package, language):
     Returns:
         package: Crop2ML package containing xml files and 
     """
-    
 
     translator = {
-        format: getattr(
-                    getattr(
-                        getattr(
-                            pycropml.transpiler.antlr_py,
-                            '%s' % NAMES[format].lower()),
-                    'run'),
-                'run_%s' % NAMES[format])
+        format: getattr(getattr(getattr(pycropml.transpiler.antlr_py, NAMES[format].lower()), 'run'), f'run_{NAMES[format]}')
         for format in cymltx_languages
-}
+    }
     print('translator :', translator)
     translator[language](component, package)
 

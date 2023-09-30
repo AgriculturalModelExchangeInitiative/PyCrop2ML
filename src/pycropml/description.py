@@ -12,7 +12,7 @@ class Description(object):
 
     def __init__(self):
         self.Title = ''
-        self.Authors= ''
+        self.Authors = ''
         self.Institution = ''
         self.Reference = ''
         self.ShortDescription = ''
