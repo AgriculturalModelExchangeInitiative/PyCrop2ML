@@ -601,18 +601,19 @@ class FortranGenerator(CodeGenerator, FortranRules):
             parameters.append(pa.name)
             node_params.append(pa)
         return node.params
-    
+
     def internal_declaration(self, node):
-        statements  = node.block
+        statements = node.block
         if isinstance(statements, list):
-            intern_decl=statements[0].decl if statements[0].type=="declaration" else None
+            intern_decl = statements[0].decl if statements[0].type == "declaration" else None
             for stmt in statements[1:]:
-                if stmt.type=="declaration":
-                    intern_decl=intern_decl+stmt.decl
+                if stmt.type == "declaration":
+                    intern_decl = (intern_decl if intern_decl else []) + stmt.decl
                 if self.z.ForSequence:
                     for i in range(self.z.nbForSeq):
-                        intern_decl = intern_decl+[Node(type="int", name="i_cyml%s"%i, pseudo_type="int")]
-        else: intern_decl=statements.decl if statements.type=="declaration" else None
+                        intern_decl = intern_decl + [Node(type="int", name="i_cyml%s" % i, pseudo_type="int")]
+        else:
+            intern_decl = statements.decl if statements.type == "declaration" else None
         return intern_decl
     
     def add_features(self, node):

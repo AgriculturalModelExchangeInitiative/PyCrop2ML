@@ -169,7 +169,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.write("0d")
 
     def visit_array(self, node):
-        print("ppap",node.y)
+        #print("ppap",node.y)
         if hasattr(node, "elts"):
             self.write("new %s[ "%self.types[node.pseudo_type[1]]) 
             self.visit(node.elts)
@@ -352,13 +352,14 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         return arg'''
 
     def internal_declaration(self, node):
-        statements  = node.block
+        statements = node.block
         if isinstance(statements, list):
-            intern_decl=statements[0].decl if statements[0].type=="declaration" else None
+            intern_decl = statements[0].decl if statements[0].type == "declaration" else None
             for stmt in statements[1:]:
-                if stmt.type=="declaration":
-                    intern_decl=intern_decl+stmt.decl
-        else: intern_decl=statements.decl if statements.type=="declaration" else None
+                if stmt.type == "declaration":
+                    intern_decl = (intern_decl if intern_decl else []) + stmt.decl
+        else:
+            intern_decl = statements.decl if statements.type == "declaration" else None
         return intern_decl
     
     def add_features(self, node):
@@ -884,7 +885,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                     if category+ex.name not in varnames:
                         variables.append(ex)
                         varnames.append(category+ex.name) 
-        print(varnames)
+        #print(varnames)
         st = []
         for var in variables:
             if "variablecategory" in dir(var):

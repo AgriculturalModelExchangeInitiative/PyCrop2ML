@@ -245,7 +245,7 @@ class Model2Package(object):
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']
-                    print(outs.keys())
+                    #print(outs.keys())
 
                     code = '\n'
                     test_codes.append(code)

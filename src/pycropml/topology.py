@@ -168,7 +168,7 @@ class Topology:
                 t_ = z["target"].unique()
                 for j in t_:
                     res.append((mod.name, j, z.loc[z["target"] == j, "value"].sum()))
-        print(res) 
+        #print(res)
         #return nx.DiGraph(d, name = self.model.name)
         G.add_weighted_edges_from(res)
         return G

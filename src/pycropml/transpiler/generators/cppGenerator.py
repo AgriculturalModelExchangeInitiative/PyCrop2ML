@@ -377,7 +377,7 @@ class CppGenerator(CodeGenerator, CppRules):
         if not isinstance(outputs, list):
             outputs = [outputs]
         outputs_name = [e.name for e in outputs]
-        print(outputs_name)
+        #print(outputs_name)
         variables = self.params + self.internal if self.internal else self.params
         newNode = []
         for var in variables:
@@ -421,7 +421,7 @@ class CppGenerator(CodeGenerator, CppRules):
     def visit_function_definition(self, node):      
         self.newline(node)
         self.funcname = node.name
-        print(self.funcname)
+        #print(self.funcname)
         z = self.add_features(node)
         if not node.name.startswith("model_") and not node.name.startswith("init_"):
             # self.templateArr(node.params)
@@ -431,7 +431,7 @@ class CppGenerator(CodeGenerator, CppRules):
             else:
                 self.write(f" {node.name}(")
             for i, pa in enumerate(node.params):
-                print(pa.name, pa.feat)
+                #print(pa.name, pa.feat)
                 # if pa.name in self.array_parameter(node.params)[0].values(): continue
                 # if pa.feat=="IN"  and pa.type in ["list","array"]: self.write("const ")
                 self.visit_decl(pa.pseudo_type, pa)
@@ -901,8 +901,8 @@ class CppTrans(CppGenerator):
                             variables.append(node_)
                             varnames.append(category+k_)
             for out in m.outputs:
-                print(out)
-                print(out.name)
+                #print(out)
+                #print(out.name)
                 category = out.variablecategory if "variablecategory" in dir(out) else out.parametercategory
                 if category+out.name not in varnames:
                     variables.append(out)
@@ -920,7 +920,7 @@ class CppTrans(CppGenerator):
                     if category+ex.name not in varnames:
                         variables.append(ex)
                         varnames.append(category+ex.name) 
-        print(varnames)
+        #print(varnames)
         st = []
         for var in variables:
             if "variablecategory" in dir(var):

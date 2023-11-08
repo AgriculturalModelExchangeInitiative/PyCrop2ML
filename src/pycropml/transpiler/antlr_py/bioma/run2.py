@@ -211,7 +211,7 @@ def run_bioma(component, output):
     domclass = []
     compo = ""
     for  k, v in files.items():
-        print(v)
+        #print(v)
         with open(v, 'r') as f:
             code = f.read()
         if code : # and k=="WheatLAIState.cs":
