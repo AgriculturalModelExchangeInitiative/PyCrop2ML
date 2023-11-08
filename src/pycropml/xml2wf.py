@@ -27,8 +27,8 @@ class XmlToWf:
         self.internalLinks = self.xmlwf.internallink
         self.diff_in = self.xmlwf.diff_in
         self.diff_out = self.xmlwf.diff_out
-        print(self.diff_in)
-        print(self.diff_out)
+        #print(self.diff_in)
+        #print(self.diff_out)
         self.inputs = []
         self.outputs = []
     

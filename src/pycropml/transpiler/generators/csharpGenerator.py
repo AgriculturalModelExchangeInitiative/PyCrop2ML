@@ -169,7 +169,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             self.write("0d")
 
     def visit_array(self, node):
-        print("ppap",node.y)
+        #print("ppap",node.y)
         if hasattr(node, "elts"):
             self.write("new %s[ "%self.types[node.pseudo_type[1]]) 
             self.visit(node.elts)
@@ -885,7 +885,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                     if category+ex.name not in varnames:
                         variables.append(ex)
                         varnames.append(category+ex.name) 
-        print(varnames)
+        #print(varnames)
         st = []
         for var in variables:
             if "variablecategory" in dir(var):
