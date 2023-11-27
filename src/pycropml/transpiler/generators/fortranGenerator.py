@@ -433,7 +433,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(', &\n        '.join(parameters))
         if len(self.z.returns)==1 and "name" in dir(self.z.returns[0].value):
             self.write(') RESULT(%s)'%(','.join(self.transform_return(node)[0])) )
-        elif len(self.z.returns)>1 or "name" not in dir(self.z.returns[0].value) :        
+        elif len(self.z.returns)>1 or "name" not in dir(self.z.returns[0].value) :       
             self.write(') RESULT(res_cyml)') 
         else:
             self.write(') RESULT(%s)'%(','.join(self.transform_return(node)[0])) )
@@ -443,13 +443,18 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.newline(node)
         self.write("IMPLICIT NONE")
         self.newline(node)
+        pnames = [e.name  for e in node_params]
         self.visit_declaration(node_params) #self.visit_decl(node)
-        self.visit_declaration(self.transform_return(node)[1]) 
-        if check_range_function().process(node):
-            self.visit_declaration([Node(type="int", name="i_cyml_r", pseudo_type="int")])
+        rname = self.transform_return(node)[0]
+        if rname and rname[0] not in pnames: 
+            self.visit_declaration(self.transform_return(node)[1]) 
+        var_range = check_range_function()
+        var_range.process(node)
+        print("res", var_range.res)
+        if var_range.res : self.visit_declaration([Node(type="int", name="i_cyml_r", pseudo_type="int")])
         interVar = [i for i in newNode if "feat" not in dir(i)]
         self.visit_declaration(interVar)
-        if len(self.z.returns)>1: 
+        if len(self.z.returns)>=1 and "name" not in dir(self.z.returns[0].value): 
             self.visit_declaration([Node(type="local", name="res_cyml", pseudo_type=node.return_type)])
         if self.initialValue:
             for n in self.initialValue:
