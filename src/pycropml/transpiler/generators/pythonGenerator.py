@@ -28,7 +28,6 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.tree=tree
         self.model=model
         self.name = name
-        print(self.model,name,signature(self.model),"yyyyyy")
         self.indent_with=' '*4 
         self.imp=True
         if self.model: 
@@ -246,7 +245,6 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(extra=1)
         self.newline(node)
         self.funcname = node.name
-        print(self.funcname, self.funcname.split("model_"))
         if self.model and self.funcname.startswith("model_") and self.funcname.split("model_")[1]==signature(self.model):
             self.write("#%%CyML Model Begin%%")
             self.newline(node)

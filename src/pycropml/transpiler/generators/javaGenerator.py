@@ -295,7 +295,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.visit(node.target)
                     self.write("= new %s["%(self.types2[node.value.pseudo_type[1]]))
                     self.visit(node.value.elements.right)
-                    self.write("]")
+                    self.write("];")
                     self.newline(node)
                 else:
                     self.visit(node.target)
