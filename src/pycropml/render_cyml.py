@@ -441,7 +441,8 @@ def my_input(_input, defa=False):
                 return f"str {name}='{default}'"
             elif DATATYPE[_type] == "datetime":                   
                 return f"datetime {name} = {transfDate(_type,default)}"
-            elif _type in DATATYPE:                
+            elif _type in DATATYPE: 
+                if "ARRAY" in _type : return  f'{DATATYPE[_type]}array {name}'
                 default = float(default) if DATATYPE[_type] == "float" else int(default)
                 return f'{DATATYPE[_type]} {name} = {default}'
         else:

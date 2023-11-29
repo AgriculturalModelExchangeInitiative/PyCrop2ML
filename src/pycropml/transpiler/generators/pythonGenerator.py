@@ -28,6 +28,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.tree=tree
         self.model=model
         self.name = name
+        print(self.model,name,signature(self.model),"yyyyyy")
         self.indent_with=' '*4 
         self.imp=True
         if self.model: 
@@ -245,6 +246,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(extra=1)
         self.newline(node)
         self.funcname = node.name
+        print(self.funcname, self.funcname.split("model_"))
         if self.model and self.funcname.startswith("model_") and self.funcname.split("model_")[1]==signature(self.model):
             self.write("#%%CyML Model Begin%%")
             self.newline(node)
@@ -291,7 +293,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
             self.newline(node)
             self.write("#%%CyML Init End%%")
             self.newline(node)
-        self.model = None
+        #self.model = None
         
     def visit_implicit_return(self, node):
         self.newline(node)
@@ -349,7 +351,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
                     self.comma_separated_list(n.elements)
                     self.write("] )") 
             elif n.type=="array" and 'elements' not in dir(n):
-                if n.elts:
+                if "elts" in dir(n) and n.elts:
                     c = n.pseudo_type[1][0]
                     self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))
                     self.write(" = array('%s',"%n.pseudo_type[1][0])

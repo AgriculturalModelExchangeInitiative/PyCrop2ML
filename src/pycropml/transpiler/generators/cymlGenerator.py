@@ -396,10 +396,16 @@ class CymlGenerator(CodeGenerator, CymlRules):
     def visit_array(self,node): 
         if hasattr(node, "elts"):
             type_ = node.pseudo_type[-1]
-            if type_=="int" or type_=="bool": newtype="i"
-            if type_=="float": newtype="f"
-            if type_=="str": newtype="u"
-            self.write("array('%s', [None]*"%newtype)
+            if type_=="int" or type_=="bool": 
+                newtype="i"
+                self.write("array('%s', [0]*"%newtype)
+            if type_=="float": 
+                newtype="f"
+                self.write("array('%s', [0.0]*"%newtype)
+            if type_=="str": 
+                newtype="u"
+                self.write("array('%s', [None]*"%newtype) # to check
+            
             self.visit(node.elts)            #one dimension array
             self.write(")")
             
