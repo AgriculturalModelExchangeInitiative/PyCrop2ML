@@ -443,9 +443,9 @@ def run_bioma(component, output):
         # Transform comments to a list of comments. Each item represents 
         # an entire description of an input/output
         commentsPart = extraction(mod, startcom, startend)
-        mdata = extract(commentsPart[0]+"\n\n")
-        z.model = mdata
-        
+        if commentsPart:
+            mdata = extract(commentsPart[0]+"\n\n")
+            z.model = mdata
         
         #print(z.model.outputs)
         z.model.function = [n.name for n in funcs if f]
