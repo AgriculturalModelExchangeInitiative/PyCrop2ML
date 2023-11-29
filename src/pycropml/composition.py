@@ -100,13 +100,12 @@ class Parser(object):
    
 
 class ModelParser(Parser):
-    """ Read an XML file and transform it in our object model.
-    """
+    """Read an XML file and transform it in our object model."""
 
     def parse(self, fn):
         self.modelcompos = []
-        self.aPath=os.path.abspath(fn)
-        self.path_mc =retrieve_path(fn)
+        self.aPath = os.path.abspath(fn)
+        self.path_mc = retrieve_path(fn)
           
         # Current proxy node for managing properties
         doc = xml.parse(fn)
@@ -236,8 +235,8 @@ class ModelParser(Parser):
         
             
 def model_parser(fn):
-    """ Parse a composite model and return the model.
-    
+    """
+    Parse a composite model and return the model.
     Returns ModelComposite object of the CropML Model.
     """
 
