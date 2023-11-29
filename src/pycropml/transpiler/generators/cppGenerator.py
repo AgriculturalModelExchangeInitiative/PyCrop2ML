@@ -587,7 +587,7 @@ class CppGenerator(CodeGenerator,CppRules):
                 if n.type=="list":
                     self.write("vector<%s> %s;"%(self.types[n.pseudo_type[1]],n.name))
                 elif n.type=="array":
-                    if not n.elts:
+                    if "elts" not in dir(n) or not n.elts:
                         self.write(f"vector<{self.types[n.pseudo_type[1]]}> {n.name};")
                     else:
                         self.write(f"vector<{self.types[n.pseudo_type[1]]}> {n.name}")

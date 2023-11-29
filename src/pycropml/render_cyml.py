@@ -436,7 +436,8 @@ def my_input(_input, defa=False):
                 return "str %s='%s'"%(name, default)
             elif DATATYPE[_type] == "datetime":                   
                 return "datetime %s=%s"%(name, transfDate(_type,default))                               
-            elif _type in DATATYPE:                
+            elif (_type in DATATYPE) : 
+                if ("ARRAY" in _type) : return  '%sarray %s'%(DATATYPE[_type], name) #=[%s(%s)]'%(DATATYPE[_type], name,DATATYPE[_type], default)           
                 default = float(default) if DATATYPE[_type]=="float" else int(default)                                    
                 return '%s %s=%s'%(DATATYPE[_type], name, default)
         else:

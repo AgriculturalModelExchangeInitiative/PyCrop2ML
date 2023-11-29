@@ -574,8 +574,8 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                     self.write("List<%s> %s = new List<%s>();"%(self.types[n.pseudo_type[1]],n.name, self.types[n.pseudo_type[1]]))
                 if n.type=="array":
                     self.write(f"{self.types[n.pseudo_type[1]]}[]")
-                    self.write(f" {n.name} ;") if n.dim ==0 else self.write(f" {n.name} = ")
-                    if n.elts:
+                    self.write(f" {n.name} ;") if "dim" not in dir(n) or n.dim ==0 else self.write(f" {n.name} = ")
+                    if "elts" in dir(n) and n.elts:
                         self.write(f" new {self.types[n.pseudo_type[1]]} ")
                         for j in n.elts:
                             self.write("[")

@@ -291,6 +291,17 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.write(");")
                 self.newline(node)     
             elif node.value.type=="array" and "elements" in dir(node.value):
+                if "right" in dir(node.value.elements):
+                    self.visit(node.target)
+                    self.write("= new %s["%(self.types2[node.value.pseudo_type[1]]))
+                    self.visit(node.value.elements.right)
+                    self.write("]")
+                    self.newline(node)
+                else:
+                    self.visit(node.target)
+                    self.write(' = ')
+                    self.write("new %s[] "%self.types2[node.value.pseudo_type[1]])
+
                 if isinstance(node.value.elements, Node):
                     self.write("Arrays.fill(")
                     self.visit(node.target)
@@ -672,8 +683,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                 if n.type=="array":
                     self.write(f"{self.types2[n.pseudo_type[1]]}[]")
-                    self.write(f" {n.name} ;") if n.dim ==0 else self.write(f" {n.name} = ")
-                    if n.elts:
+                    self.write(f" {n.name} ;") if "dim" not in dir(n) or n.dim ==0 else self.write(f" {n.name} = ")
+                    if "elts" in dir(n) and n.elts:
                         self.write(f" new {self.types2[n.pseudo_type[1]]} ")
                         for j in n.elts:
                             self.write("[")
