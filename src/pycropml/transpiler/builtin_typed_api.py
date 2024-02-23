@@ -408,7 +408,7 @@ PSEUDO_OPS = {
     ExprNodes.MulNode: '*',
     ExprNodes.DivNode: '/',
     ExprNodes.PowNode: '**',
-    ExprNodes.PrimaryCmpNode: ['==','<','>','<=','>=','!=', 'in', 'not_in'],
+    ExprNodes.PrimaryCmpNode: ['==','<','>','<=','>=','!=', 'in', 'not_in',"is"],
     ExprNodes.ModNode: '%',
     ExprNodes.BoolBinopNode: ['and','or']
 }

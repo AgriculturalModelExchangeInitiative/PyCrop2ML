@@ -389,7 +389,7 @@ class AstTransformer():
             }"""
 
     def visit_nonenode(self, node,  location):
-        return {"type":"none", "value":"None"}
+        return {"type":"none", "value":"None", "pseudo_type":"none"}
         
     def visit_inplaceassignmentnode(self, node, lhs, rhs, location):
         z = node.end_pos()
@@ -770,7 +770,6 @@ class AstTransformer():
                     self._definition_index["functions"][message] = self.visit_node(x[0])
                     q = c[message][-1]
                     if argx != param_types:
-                        print(message, "iooooooooooooo", argx, param_types)
                         raise PseudoCythonTypeCheckError("Types incompatibility at line %s"%location[0])
                     #q = self._type_check(argx+returnx,message, param_types)[-1]
                     self.function_name = v 
@@ -785,7 +784,7 @@ class AstTransformer():
                     arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
                 if function.name not in meth and function.name not in FUNCTION_API["math"] :
-                    print("err", function.name, FUNCTION_API["math"].keys())
+                    print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
                 else:
                     if self.retrieve_library(function.name) not in self._imports:
                         self._imports.append(
@@ -1758,7 +1757,7 @@ class AstTransformer():
             right_node = self.visit_node(operand2)
             left_node = self.visit_node(operand1)
         if node.operator not in ["in", "not_in"]:
-            self._confirm_comparable(
+            if node.operator != "is": self._confirm_comparable(
                 op, left_node['pseudo_type'], right_node['pseudo_type'], location)
             result = {
                 'type': 'comparison',
@@ -1852,7 +1851,6 @@ class AstTransformer():
                 if silent:
                     return False
                 else:
-                    print(to, from_)
                     raise PseudoCythonTypeCheckError(
                         err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
             for f, t in zip(from_[1:-1], to[1:-1]):
