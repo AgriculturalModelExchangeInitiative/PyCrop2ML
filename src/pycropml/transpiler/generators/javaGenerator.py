@@ -253,7 +253,14 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write(u"]")
     
     def visit_assignment(self, node):
-        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
+        if node.value.type == "binary_op" and node.value.left.type == "list":
+            self.visit(node.target)
+            self.write(".fill(")
+            self.visit(node.value.right)
+            self.write(", ")
+            self.visit(node.value.left.elements[0])
+            self.write(");")
+        elif "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
             for m in self.model.model:
                 if name == signature2(m):
@@ -993,7 +1000,6 @@ class JavaTrans(CodeGenerator,JavaRules):
                         variables.append(ex)
                         varnames.append(category + ex.name) 
         #print(len(variables))
-        
         st = []
         for var in variables:
             if "variablecategory" in dir(var):
@@ -1038,8 +1044,9 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.node_rates= create(self.rates)
         self.node_auxiliary= create(self.auxiliary) 
         self.node_exogenous= create(self.exogenous)
-        self.node_param=create(self.modparam)       
-    
+        self.node_param=create(self.modparam)   
+
+        
     def private(self,node):
         vars = []
         for arg in node:

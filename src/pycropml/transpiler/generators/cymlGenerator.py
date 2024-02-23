@@ -99,6 +99,9 @@ class CymlGenerator(CodeGenerator, CymlRules):
         
     def visit_constant(self, node):
         self.write(self.constant[node.library][node.name])
+    
+    def visit_none(self, node):
+        self.write("None")
 
     def visit_if_statement(self, node):
         self.newline(node)
@@ -106,7 +109,10 @@ class CymlGenerator(CodeGenerator, CymlRules):
             self.translate_com(node.comments)
         self.newline(node)
         self.write('if ')
-        self.visit(node.test)
+        if node.test.right.type=="none" and node.test.op=="==":
+            self.visit(node.test.left)
+            self.write(" is None")
+        else: self.visit(node.test)
         self.write(':')
         self.body(node.block)
         while True:

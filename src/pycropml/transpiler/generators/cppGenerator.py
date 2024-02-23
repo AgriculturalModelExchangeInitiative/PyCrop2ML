@@ -142,6 +142,9 @@ class CppGenerator(CodeGenerator, CppRules):
     def visit_print(self, node):
         pass
 
+    def visit_ExprStatNode(self, node):
+        self.visit(node.expr)
+
     def visit_float(self, node):
         self.write(node.value)
 
@@ -178,7 +181,17 @@ class CppGenerator(CodeGenerator, CppRules):
             l = l[0]
         z = self.methods[l][node.message]        
         if callable(z):
-            self.visit(z(node))
+            if node.message == "sum" and node.receiver.type == "sliceindex":
+                self.write("std::accumulate(")
+                self.visit(node.receiver.receiver)
+                self.write(".begin() + ")
+                self.visit(node.receiver.args[0])
+                self.write(",")
+                self.visit(node.receiver.receiver)
+                self.write(".begin() + ")
+                self.visit(node.receiver.args[1])
+                self.write(", 0.0)")
+            else: self.visit(z(node))
         else:
             if not node.args:
                 self.write(z)
@@ -219,7 +232,16 @@ class CppGenerator(CodeGenerator, CppRules):
         self.write(u"]")
     
     def visit_assignment(self, node):
-        if "function" in dir(node.value) and node.value.function.split('_')[0] == "model":
+        if node.value.type == "binary_op" and node.value.left.type == "list":
+            self.visit(node.target)
+            self.write(".assign(")
+            self.visit(node.value.right)
+            self.write(", ")
+            self.visit(node.value.left.elements[0])
+            self.write(");")
+            
+            
+        elif "function" in dir(node.value) and node.value.function.split('_')[0] == "model":
             name = node.value.function.split('model_')[1]
             for m in self.model.model:
                 if name == signature2(m):
@@ -603,7 +625,7 @@ class CppGenerator(CodeGenerator, CppRules):
                 if n.type == "list":
                     self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
                 elif n.type == "array":
-                    if not n.elts:
+                    if "elts" not in dir(n) or not n.elts:
                         self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
                     else:
                         self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name}")
@@ -1244,6 +1266,7 @@ def header_mu_cpp(models, rep, name):
                 path_func = Path(os.path.join(m.path, "crop2ml", file_func))
                 func_tree=parser(Path(path_func))  
                 newtree = AstTransformer(func_tree,path_func)
+                #print(newtree)
                 dictAst = newtree.transformer()
                 nodeAst= transform_to_syntax_tree(dictAst)
                 z ={nodeAst.body[0].name: [nodeAst.body[0].return_type,nodeAst.body[0].params]}

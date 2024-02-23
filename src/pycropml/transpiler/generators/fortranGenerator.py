@@ -26,6 +26,14 @@ import shutil
 #shutil.copyfileobj(f_src, f_dest) 
 
 
+def transf_var_name(name):
+    #if var_name starts with "_" we replace it by "cy_"
+    if name.startswith("_"):
+        name = "cy_" + name[1:]
+    return name
+ 
+    
+    
 class FortranGenerator(CodeGenerator, FortranRules):
     """ 
     This class contains the specific properties of 
@@ -67,12 +75,16 @@ class FortranGenerator(CodeGenerator, FortranRules):
         pass
         
     def visit_comparison(self, node):
-        #self.write('(')
-        self.visit_binary_op(node)
-        #self.write(')')
+        if node.op == "is":
+            if node.right.type == "none":
+                self.write("NULL(")
+                self.visit(node.left)
+                self.write(")")
+        else:
+            self.visit_binary_op(node)
 
     def visit_local(self, node):
-        self.write(node.name)
+        self.write(transf_var_name(node.name))
     #    self.write("(%s - 1)"%node.name) if node.name in self.index else self.write(node.name)
 
     def visit_binary_op(self, node):
@@ -153,7 +165,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write('call ')
             self.visit(node)
         elif node.value.type =="list" and not node.value.elements:
-            self.write("\n        deallocate(%s)\n"%node.target.name)
+            self.write("\n        deallocate(%s)\n"%transf_var_name(node.target.name))
         elif node.value.type == "notAnumber":
             self.visit_notAnumber(node)
         else:
@@ -715,6 +727,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )")  
         if ("feat" not in dir(node)) and (("elts" not in dir(node) or not node.elts or len(node.elts)==0)): # and node.name not in self.parameters :
+            self.write(", ALLOCATABLE ")
+        if("feat" in dir(node) and node.feat=="OUT") and ("elts" in dir(node) or not node.elts or len(node.elts)==0):
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):

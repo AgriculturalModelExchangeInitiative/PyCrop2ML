@@ -209,9 +209,12 @@ class PythonGenerator(CodeGenerator, PythonRules):
 
         
     def visit_comparison(self, node):
-        #self.write('(')
-        self.visit_binary_op(node)
-        #self.write(')')
+        if node.op == "is":
+            if node.right.type == "none":
+                self.visit(node.left)
+                self.write(" is None")
+        else:
+            self.visit_binary_op(node)
 
     def visit_method_call(self, node):
         "%s.%s"%(self.visit(node.receiver),self.write(node.message))  

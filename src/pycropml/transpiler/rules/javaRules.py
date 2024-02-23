@@ -77,7 +77,7 @@ class JavaRules(GeneralRule):
 
     types = {
         "int": "Integer",
-        "float": "Double",
+        "float": "double",
         "bool": "Boolean",
         "array": "%s[] %s",
         "list": "List",

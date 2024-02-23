@@ -15,12 +15,14 @@ def translateLog(node):
 
 
 def translateSum(node):
-    return Node("call", function="accumulate",
-                args=[Node("local", name=f"{node.receiver.name}.begin()"),
-                      Node("local", name=f"{node.receiver.name}.end()"),
-                      Node("local", name=f"decltype({node.receiver.name})::value_type(0)")],
-                pseudo_type=node.pseudo_type)
-
+    if "name" in dir(node.receiver):
+        print(node.receiver.y)
+        return Node("call", function="accumulate",
+                    args=[Node("local", name=f"{node.receiver.name}.begin()"),
+                        Node("local", name=f"{node.receiver.name}.end()"),
+                        Node("int", value="0" if node.receiver.pseudo_type[1] == "int" else "0.0")],
+                    pseudo_type=node.pseudo_type)
+    
 
 def translateNotContains(node):
     return Node("call", function="!", args=[Node("standard_method_call", receiver=node.receiver,
