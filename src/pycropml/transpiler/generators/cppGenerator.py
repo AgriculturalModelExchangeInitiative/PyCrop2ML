@@ -1,6 +1,6 @@
 # coding: utf8
 from pycropml.transpiler.codeGenerator import CodeGenerator
-from pycropml.nameconvention import signature2
+from pycropml.nameconvention import signature2, signature2_from_name
 from pycropml.transpiler.rules.cppRules import CppRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
@@ -1137,7 +1137,8 @@ class CppTrans(CppGenerator):
         self.newline(extra = 1)
         for m in self.models[0].model:
             name = m.name
-            self.write(f"{name} _{name};")
+            self.write(f"{name} _{signature2(m)};")
+            #self.write(f"{name} _{name};")
             self.newline(1)
 
 
@@ -1507,7 +1508,7 @@ class CppCompo(CppTrans):
                 self.indentation += 1
                 mo = self.get_mo(arg.name)
                 for mi in mo:
-                    self.write(f"_{list(mi.keys())[0]}.set{list(mi.values())[0]}(_{arg.name});")
+                    self.write(f"_{signature2_from_name(mi[0])}.set{mi[1]}(_{arg.name});")
                     self.newline(1)
                 self.newline(1)
                 self.indentation -= 1
@@ -1527,7 +1528,7 @@ class CppCompo(CppTrans):
             mod = inp["target"].split(".")[0]
             modvar = inp["target"].split(".")[1]
             if var == varname:
-                listmo.append({mod: modvar})
+                listmo.append((mod, modvar))
         return listmo
 
     def copyconstructor(self,node):
