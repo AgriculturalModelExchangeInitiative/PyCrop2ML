@@ -291,14 +291,14 @@ class SimplaceGenerator(JavaGenerator):
                             self.write(arg.name)
                             if arg.type=="list": self.write(" = Arrays.asList(%s.getValue());" % arg.name)
                             else:
-                                if arg.type == "array" and "elts" in dir(arg) and len(arg.elts)>0 and arg.name not in self.par_ :
-                                    self.write(" = new ")
+                                #if arg.type == "array" and "elts" in dir(arg) and len(arg.elts)>0 and arg.name not in self.par_ :
+                                '''self.write(" = new ")
                                     self.visit_decl(arg.pseudo_type[1])
                                     self.write("[")
                                     self.visit(arg.elts[0])
-                                    self.write("];")
-                                else:
-                                    self.write(" = %s.getValue();" % arg.name)
+                                    self.write("];")'''
+                                #else:
+                                self.write(" = %s.getValue();" % arg.name)
                     elif arg.feat!="INOUT":
                             self.newline(1)
                             self.visit_decl(arg.pseudo_type)

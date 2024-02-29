@@ -253,7 +253,14 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write(u"]")
     
     def visit_assignment(self, node):
-        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
+        if node.value.type == "binary_op" and node.value.left.type == "list":
+            self.visit(node.target)
+            self.write(".fill(")
+            self.visit(node.value.right)
+            self.write(", ")
+            self.visit(node.value.left.elements[0])
+            self.write(");")
+        elif "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
             for m in self.model.model:
                 if name == signature2(m):
@@ -291,6 +298,17 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.write(");")
                 self.newline(node)     
             elif node.value.type=="array" and "elements" in dir(node.value):
+                if "right" in dir(node.value.elements):
+                    self.visit(node.target)
+                    self.write("= new %s["%(self.types2[node.value.pseudo_type[1]]))
+                    self.visit(node.value.elements.right)
+                    self.write("];")
+                    self.newline(node)
+                else:
+                    self.visit(node.target)
+                    self.write(' = ')
+                    self.write("new %s[] "%self.types2[node.value.pseudo_type[1]])
+
                 if isinstance(node.value.elements, Node):
                     self.write("Arrays.fill(")
                     self.visit(node.target)
@@ -673,8 +691,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.write("List<%s> %s = new ArrayList<>(Arrays.asList());"%(self.types2[n.pseudo_type[1]],n.name))
                 if n.type=="array":
                     self.write(f"{self.types2[n.pseudo_type[1]]}[]")
-                    self.write(f" {n.name} ;") if n.dim ==0 else self.write(f" {n.name} = ")
-                    if n.elts:
+                    self.write(f" {n.name} ;") if "dim" not in dir(n) or n.dim ==0 else self.write(f" {n.name} = ")
+                    if "elts" in dir(n) and n.elts:
                         self.write(f" new {self.types2[n.pseudo_type[1]]} ")
                         for j in n.elts:
                             self.write("[")
@@ -982,7 +1000,6 @@ class JavaTrans(CodeGenerator,JavaRules):
                         variables.append(ex)
                         varnames.append(category + ex.name) 
         #print(len(variables))
-        
         st = []
         for var in variables:
             if "variablecategory" in dir(var):
@@ -1027,8 +1044,9 @@ class JavaTrans(CodeGenerator,JavaRules):
         self.node_rates= create(self.rates)
         self.node_auxiliary= create(self.auxiliary) 
         self.node_exogenous= create(self.exogenous)
-        self.node_param=create(self.modparam)       
-    
+        self.node_param=create(self.modparam)   
+
+        
     def private(self,node):
         vars = []
         for arg in node:

@@ -17,6 +17,11 @@ from copy import deepcopy
 from typing import *
 
 from pycropml.transpiler.antlr_py.csharp.csharp_preprocessing import ExprStatNode, TransformLocal, CheckingInOut, Custom_call, Declarations,Assignment, Member_access, Binary_op, Index, Local
+from pycropml.transpiler.antlr_py.codeExtraction import extraction
+from pycropml.transpiler.antlr_py.extract_metadata_from_comment import extract
+
+description_tags = ["//%%CyML Description Begin%%", "//%%CyML Description End%%"]
+
 
 """ Read BioMA component and extract metadata
 
@@ -258,6 +263,7 @@ def run_bioma(component, output):
     dclass = []
     domclass = []
     compo = {}
+    source_codes=[]
     for  k, v in files.items():
         with open(v, 'r') as f:
             code = f.read()
@@ -279,8 +285,9 @@ def run_bioma(component, output):
                 if m.getmethod( g[0],"EstimateOfAssociatedClasses"):
                     compo[k] = strAsg
                 else: 
-                    stra[k] = strAsg
+                    stra[k]=strAsg
                     straNames.append(g[0].name)
+                    source_codes.append(code)
 
             elif g and g[0].base and g[0].base[0].type=="IVarInfoClass":
                 varinfo[k] = strAsg
@@ -298,6 +305,7 @@ def run_bioma(component, output):
     all_var = kk.getAllVar(vinfo, dclass)
     for k, st in enumerate(strats):
         print(k, st)
+        mod = source_codes[k]
         #st_ = deepcopy(st)
         z = BiomaExtraction() 
         description = z.description(st)  
@@ -307,6 +315,7 @@ def run_bioma(component, output):
         var =  z.totalvar(st)
         algo = z.getAlgo(st)
         init_ = z.getInit(st)
+        print("uuuuuuuuuuu", init_)
         funcs = z.externFunction(st, algo.block, False)  
         funcs = [f for f in funcs if f]
         strat_var = z.getStrategyVar(st)
@@ -428,6 +437,16 @@ def run_bioma(component, output):
         print(zz.inputs, zz.outputs)
         z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs)))
         print(z.model.name) 
+
+        startcom = description_tags[0] # start of description extraction
+        startend = description_tags[1] # end of description extraction
+        # Transform comments to a list of comments. Each item represents 
+        # an entire description of an input/output
+        commentsPart = extraction(mod, startcom, startend)
+        if commentsPart:
+            mdata = extract(commentsPart[0]+"\n\n")
+            z.model = mdata
+        
         #print(z.model.outputs)
         z.model.function = [n.name for n in funcs if f]
         if init_:

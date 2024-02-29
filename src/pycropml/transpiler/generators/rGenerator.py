@@ -324,7 +324,7 @@ class RGenerator(CodeGenerator, RRules):
                 if n.type=="array": 
                     typ = n.pseudo_type[-1]
                     newtyp = changetyp(typ)
-                    if n.elts:
+                    if "elts" in dir(n) and n.elts:
                         self.write(" <- vector(,")   
                         self.visit(n.elts[0])
                         self.write(")")

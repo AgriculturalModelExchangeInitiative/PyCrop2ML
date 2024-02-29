@@ -297,6 +297,10 @@ class Java_Cyml_ast(javaRules.Java_CymlRules):
          'pseudo_type': 'Void',
          'otherwise': self.visit(node.otherwise),
            "comments": node.comments}
+    
+    def visit_Void(self, node):
+        return {"type":"none", "value":"None", "pseudo_type":"none"}
+        
  
     def visit_else_statement(self, node):
         return {'type': 'else_statement',
