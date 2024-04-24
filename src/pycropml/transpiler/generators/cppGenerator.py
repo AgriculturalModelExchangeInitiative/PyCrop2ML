@@ -286,6 +286,16 @@ class CppGenerator(CodeGenerator, CppRules):
             self.newline(node)
                 
         elif node.value.type == "array" and "elements" in dir(node.value):
+            if "right" in dir(node.value.elements):
+                self.visit(node.target)
+                self.write(f" = std::move(std::vector<{self.types[node.value.pseudo_type[1]]}>(")
+                self.visit(node.value.elements.right)
+                self.write("));")
+                self.newline(node)
+            else:
+                self.visit(node.target)
+                self.write(f" = std::move(std::vector<{self.types[node.value.pseudo_type[1]]}>());")
+
             self.write("fill(")
             self.visit(node.target)
             self.write(".begin(),")
