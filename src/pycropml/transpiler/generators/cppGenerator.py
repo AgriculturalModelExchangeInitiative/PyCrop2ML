@@ -13,7 +13,7 @@ from pycropml import code2nbk
 from pycropml.render_cyml import my_input
 from pycropml.composition import ModelComposition
 from copy import deepcopy
-
+from itertools import chain
 
 class CppGenerator(CodeGenerator, CppRules):
     """
@@ -290,20 +290,22 @@ class CppGenerator(CodeGenerator, CppRules):
                 self.visit(node.target)
                 self.write(f" = std::move(std::vector<{self.types[node.value.pseudo_type[1]]}>(")
                 self.visit(node.value.elements.right)
+                self.write(", ")
+                self.visit(node.value.elements.left.elements[0])
                 self.write("));")
                 self.newline(node)
             else:
                 self.visit(node.target)
                 self.write(f" = std::move(std::vector<{self.types[node.value.pseudo_type[1]]}>());")
 
-            self.write("fill(")
-            self.visit(node.target)
-            self.write(".begin(),")
-            self.visit(node.target)
-            self.write(".end(), ")
-            self.visit(node.value.elements.left.elements[0])
-            self.write(");")
-            self.newline(node)
+            #self.write("fill(")
+            #self.visit(node.target)
+            #self.write(".begin(),")
+            #self.visit(node.target)
+            #self.write(".end(), ")
+            #self.visit(node.value.elements.left.elements[0])
+            #self.write(");")
+            #self.newline(node)
             
         elif node.value.type == "none":
               pass
@@ -322,39 +324,41 @@ class CppGenerator(CodeGenerator, CppRules):
 
     def transform_return(self, node):
         if self.funcname.startswith("model") or self.funcname.startswith("init"):
-            returnvalues = node.block[-1].value
-            if returnvalues.type == "tuple":
-                output = [elt.name for elt in returnvalues.elements]
-                node_output = [elt for elt in returnvalues.elements]
+            return_values = node.block[-1].value
+            if return_values.type == "tuple":
+                output_names = [elt.name for elt in return_values.elements]
+                output_nodes = [elt for elt in return_values.elements]
             else:
-                output = [returnvalues.name]
-                node_output = [returnvalues]
+                output_names = [return_values.name]
+                output_nodes = [return_values]
         else:
             if len(self.z.returns) == 1:
-                returnvalues = self.z.returns[0].value
-                if returnvalues.type == "tuple":
-                    output = [elt.name for elt in returnvalues.elements]
-                    node_output = [elt for elt in returnvalues.elements]
+                return_values = self.z.returns[0].value
+                if return_values.type == "tuple":
+                    output_names = [elt.name for elt in return_values.elements]
+                    output_nodes = [elt for elt in return_values.elements]
                 else:
-                    if "name" in dir(returnvalues): 
-                        output = [returnvalues.name]
-                        node_output = [returnvalues]
+                    if "name" in dir(return_values):
+                        output_names = [return_values.name]
+                        output_nodes = [return_values]
                     else:                  
-                        output = []
-                        node_output = []  
+                        output_names = []
+                        output_nodes = []
             else: 
-                output = []
-                node_output = []
-        return output, node_output
+                output_names = []
+                output_nodes = []
+        return output_names, output_nodes
 
-    def retrieve_params(self, node):
-        parameters = []
+    @staticmethod
+    def retrieve_params(node):
+        return [pa for pa in node.params]
+        #parameters = []
         node_params = []
         for pa in node.params:
-            parameters.append(pa.name)
+            #parameters.append(pa.name)
             node_params.append(pa)
         return node.params
-    
+
     def array_parameter(self, params):
         dict_arrParamSize = {}
         i = 0
@@ -384,50 +388,39 @@ class CppGenerator(CodeGenerator, CppRules):
             self.write(f"template<{', '.join(map(myfunc, uniq_val))}>")
         self.newline(node)
 
-    def internal_declaration(self, node):
-        statements = node.block
-        if isinstance(statements, list):
-            intern_decl = statements[0].decl if statements[0].type == "declaration" else None
-            for stmt in statements[1:]:
-                if stmt.type == "declaration":
-                    intern_decl = (intern_decl if intern_decl else []) + stmt.decl
-        else:
-            intern_decl = statements.decl if statements.type == "declaration" else None
-        return intern_decl
-    
+    @staticmethod
+    def internal_declaration(node):
+        """create a list of all the internal declaration nodes for a given function node"""
+        statements = node.block if isinstance(node.block, list) else [node.block]
+        decls = filter(None, map(lambda s: s.decl if s.type == "declaration" else None, statements))
+        return list(chain.from_iterable(decls))
+
     def add_features(self, node):
-        self.internal = self.internal_declaration(node)
-        internal_name = []
-        if self.internal is not None:
-            self.internal = self.internal if isinstance(self.internal, list) else [self.internal]
-            for inter in self.internal:
-                if 'elements' in dir(inter):
-                    self.initialValue.append(Node(type="initial", name=inter.name, pseudo_type=inter.pseudo_type,
-                                                  value=inter.elements))
-            internal_name = [e.name for e in self.internal]
-        self.params = self.retrieve_params(node)
-        params_name = [e.name  for e in self.params]
-        outputs = self.transform_return(node)[1]
-        if not isinstance(outputs, list):
-            outputs = [outputs]
-        outputs_name = [e.name for e in outputs]
-        #print(outputs_name)
-        variables = self.params + self.internal if self.internal else self.params
-        newNode = []
+        internal_decls = self.internal_declaration(node)
+        internal_names = [e.name for e in internal_decls]
+        for int_decl in internal_decls:
+                if 'elements' in dir(int_decl):
+                    self.initialValue.append(Node(type="initial", name=int_decl.name, pseudo_type=int_decl.pseudo_type,
+                                                  value=int_decl.elements))
+        self.params = [p for p in node.params]
+        params_name = [p.name for p in node.params]
+        output_names, _ = self.transform_return(node)
+        variables = self.params + internal_decls
+        new_nodes = []
         for var in variables:
-            if var not in newNode:
-                if var.name in params_name and var.name not in outputs_name:
+            if var not in new_nodes:
+                if var.name in params_name and var.name not in output_names:
                     var.feat = "IN"
-                    newNode.append(var)
-                if var.name in params_name and var.name in outputs_name:
+                    new_nodes.append(var)
+                if var.name in params_name and var.name in output_names:
                     var.feat = "INOUT"
-                    newNode.append(var)
-                if var.name in internal_name and var.name in outputs_name:
+                    new_nodes.append(var)
+                if var.name in internal_names and var.name in output_names:
                     var.feat = "OUT"
-                    newNode.append(var)
-                if var.name in internal_name and var.name not in outputs_name:
-                    newNode.append(var)
-        return newNode    
+                    new_nodes.append(var)
+                if var.name in internal_names and var.name not in output_names:
+                    new_nodes.append(var)
+        return new_nodes
 
     def visit_module(self, node):
         #if self.model:
