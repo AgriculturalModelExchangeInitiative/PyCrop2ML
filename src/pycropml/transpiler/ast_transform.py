@@ -750,8 +750,8 @@ class AstTransformer():
                 return self._translate_builtin_call('global', function.name, arg_nodes, location, attrib=0)
 
         elif isinstance(function, ExprNodes.NameNode):
-            if not self._fromimport and function.name not in list(self.type_env.top['functions'].keys()):
-                print("errr")
+            #if not self._fromimport and function.name not in list(self.type_env.top['functions'].keys()):
+            #    print("errr")
             c = self.type_env.top['functions']
             message = function.name
             param_types = [param['pseudo_type'] for param in self.visit_node(args)]
@@ -780,8 +780,7 @@ class AstTransformer():
                     "function": message,
                     "pseudo_type": q}
             else:
-                arg_nodes = [arg if not isinstance(
-                    arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
+                arg_nodes = [arg if not isinstance(arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
                 if function.name not in meth and function.name not in FUNCTION_API["math"] :
                     print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
