@@ -26,7 +26,6 @@ class CodeGenerator(NodeVisitor):
             self.write('# line: %s' % node.lineno)
             self.new_lines = 1
 
-    
     def body(self, statements):
         self.new_line = True
         self.indentation += 1
