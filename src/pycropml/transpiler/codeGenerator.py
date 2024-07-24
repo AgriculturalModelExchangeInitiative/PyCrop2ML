@@ -32,7 +32,8 @@ class CodeGenerator(NodeVisitor):
         if isinstance(statements, list):
             for stmt in statements:
                 self.visit(stmt)
-        else: self.visit(statements)
+        else:
+            self.visit(statements)
         self.indentation -= 1
 
     def body_or_else(self, node):

@@ -212,6 +212,12 @@ class Cpp2Generator(CodeGenerator, CppRules):
     def visit_method_call(self, node):
         "%s.%s" % (self.visit(node.receiver), self.write(node.message))
 
+    def visit_local(self, node):
+        sn = self.struct_name_for(node.name)
+        if sn:
+            self.write(f"{sn}.")
+        self.write(node.name)
+
     def visit_index(self, node):
         self.visit(node.sequence)
         self.write(u"[")
@@ -399,9 +405,17 @@ class Cpp2Generator(CodeGenerator, CppRules):
         decls = filter(None, map(lambda s: s.decl if s.type == "declaration" else None, statements))
         return list(chain.from_iterable(decls))
 
+    @staticmethod
+    def internal_assignments(node):
+        """create a list of all the internal assignment nodes for a given function node"""
+        statements = node.block if isinstance(node.block, list) else [node.block]
+        assignments = filter(None, map(lambda s: s.target if s.type == "assignment" else None, statements))
+        return list(assignments)
+
     def add_features(self, node):
         internal_decls = self.internal_declaration(node)
         internal_names = [e.name for e in internal_decls]
+
         for int_decl in internal_decls:
             if 'elements' in dir(int_decl):
                 self.initialValue.append(Node(type="initial", name=int_decl.name, pseudo_type=int_decl.pseudo_type,
@@ -424,6 +438,14 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     new_nodes.append(var)
                 if var.name in internal_names and var.name not in output_names:
                     new_nodes.append(var)
+
+        #for i_ass in self.internal_assignments(node):
+        #    di_ass = dir(i_ass)
+        #    if "name" in di_ass and i_ass.name in output_names:
+        #        i_ass.feat = "OUT"
+        #    elif "sequence" in di_ass and i_ass.sequence.name in output_names:
+        #        i_ass.sequence.feat = "OUT"
+
         return new_nodes
 
     def visit_module(self, node):
@@ -523,10 +545,10 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     if arg.feat in ("IN", "INOUT"):
                         self.newline(node)
                         if self.model and arg.name not in self.modparam:
-                            self.visit_decl(arg.pseudo_type)
-                            if arg.pseudo_type[0] in ["list", "array"]:
-                                self.write("&")
-                            self.write(f" {arg.name}")
+                            #self.visit_decl(arg.pseudo_type)
+                            #if arg.pseudo_type[0] in ["list", "array"]:
+                            #    self.write("&")
+                            #self.write(f" {arg.name}")
                             if node.name.startswith("init_"):
                                 if arg.name in self.exogenous:
                                     self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
@@ -538,19 +560,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
                                         self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>()")
                                     else:
                                         self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>({x})")
-                            else:
-                                # make left hand side a reference to the result in case of lists and arrays
-                                if arg.name in self.states and not arg.name.endswith("_t1"):
-                                    self.write(f" = {self.cpp_struct_names['s']}.get{arg.name}()")
-                                elif arg.name.endswith("_t1") and arg.name in self.states:
-                                    self.write(f" = {self.cpp_struct_names['s1']}.get{arg.name[:-3]}()")
-                                elif arg.name in self.rates:
-                                    self.write(f" = {self.cpp_struct_names['r']}.get{arg.name}()")
-                                elif arg.name in self.auxiliary:
-                                    self.write(f" = {self.cpp_struct_names['a']}.get{arg.name}()")
-                                elif arg.name in self.exogenous:
-                                    self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
-                            self.write(";")
+                            #else:
+                            #    # make left hand side a reference to the result in case of lists and arrays
+                            #    if arg.name in self.states and not arg.name.endswith("_t1"):
+                            #        self.write(f" = {self.cpp_struct_names['s']}.get{arg.name}()")
+                            #    elif arg.name.endswith("_t1") and arg.name in self.states:
+                            #        self.write(f" = {self.cpp_struct_names['s1']}.get{arg.name[:-3]}()")
+                            #    elif arg.name in self.rates:
+                            #        self.write(f" = {self.cpp_struct_names['r']}.get{arg.name}()")
+                            #    elif arg.name in self.auxiliary:
+                            #        self.write(f" = {self.cpp_struct_names['a']}.get{arg.name}()")
+                            #    elif arg.name in self.exogenous:
+                            #        self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
+                            #self.write(";")
             self.indentation -= 1
         self.body(node.block)
         self.newline(node)
@@ -605,22 +627,28 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     self.visit(node.value)
             self.write(";")
 
+    def struct_name_for(self, arg_name):
+        if arg_name in self.states:
+            return self.cpp_struct_names['s']
+        if arg_name in self.rates:
+            return self.cpp_struct_names['r']
+        if arg_name in self.auxiliary:
+            return self.cpp_struct_names['a']
+        if arg_name in self.exogenous:
+            return self.cpp_struct_names['ex']
+        return None
+
+
     def visit_return(self, node):
         if self.model:
             self.newline(node)
             self.indentation += 1
-            for arg in self.add_features(node):
-                if "feat" in dir(arg):
-                    if arg.feat in ("OUT", "INOUT"):
-                        self.newline(node)
-                        if arg.name in self.states:
-                            self.write(f"{self.cpp_struct_names['s']}.set{arg.name}({arg.name});")
-                        if arg.name in self.rates:
-                            self.write(f"{self.cpp_struct_names['r']}.set{arg.name}({arg.name});")
-                        if arg.name in self.auxiliary:
-                            self.write(f"{self.cpp_struct_names['a']}.set{arg.name}({arg.name});")
-                        if arg.name in self.exogenous:
-                            self.write(f"{self.cpp_struct_names['ex']}.set{arg.name}({arg.name});")
+            return
+            #for arg in self.add_features(node):
+            #    if "feat" in dir(arg):
+            #        if arg.feat in ("OUT", "INOUT"):
+            #            self.newline(node)
+            #            self.write(f"{self.struct_name_for(arg.name)}.set{arg.name}({arg.name});")
         else:
             self.newline(node)
             self.indentation += 1
@@ -645,27 +673,34 @@ class Cpp2Generator(CodeGenerator, CppRules):
     def visit_declaration(self, node):
         self.newline(node)
         for n in node.decl:
+            dn = dir(n)
             self.newline(node)
-            if 'value' not in dir(n) and not isinstance(n.pseudo_type, list) and n.pseudo_type != "datetime":
+            if 'value' not in dn and not isinstance(n.pseudo_type, list) and n.pseudo_type != "datetime":
                 self.write(self.types[n.pseudo_type])
                 self.write(f' {n.name};')
-            elif 'elements' not in dir(n) and n.type in ("list", "array"):
-                if n.type == "list":
-                    self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
-                elif n.type == "array":
-                    if "elts" not in dir(n) or not n.elts:
-                        self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
-                    else:
-                        self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name}")
-                        self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
-            elif 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
-                self.write(f"{self.types[n.type]} {n.name}")
-                self.write(" = ")
-                if n.type == "local":
-                    self.write(n.value)
+            elif 'elements' not in dn and n.type in ("list", "array"):
+                if "feat" in dn and n.feat == "OUT":
+                    pass
                 else:
-                    self.visit(n)
-                self.write(";")
+                    if n.type == "list":
+                        self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
+                    elif n.type == "array":
+                        if "elts" not in dn or not n.elts:
+                            self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
+                        else:
+                            self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name}")
+                            self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
+            elif 'value' in dn and n.type in ("int", "float", "str", "bool"):
+                if "feat" in dn and n.feat == "OUT":
+                    pass
+                else:
+                    self.write(f"{self.types[n.type]} {n.name}")
+                    self.write(" = ")
+                    if n.type == "local":
+                        self.write(n.value)
+                    else:
+                        self.visit(n)
+                    self.write(";")
             elif n.type == 'datetime':
                 self.newline(node)
                 self.write("DateTime ")
@@ -674,17 +709,25 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     self.write(" = ")
                     self.visit(n.elts)
                 self.write(";")
-            elif 'elements' in dir(n) and n.type in ("list", "tuple"):
-                if n.type == "list":
-                    self.visit_decl(n.pseudo_type)
-                    self.write(n.name)
-                    self.write(" = ")
-                    self.write(u'{')
-                    self.comma_separated_list(n.elements)
-                    self.write(u'};')
-                if n.type == 'tuple':
-                    pass
-            elif 'pairs' in dir(n) and n.type == "dict":
+            elif 'elements' in dn and n.type in ("list", "tuple"):
+                if "feat" in dn and n.feat in ("OUT", "INOUT"):
+                    if n.type == "list":
+                        self.write(f"{self.struct_name_for(n.name)}.{n.name}")
+                        self.write(" = ")
+                        self.write(u'{')
+                        self.comma_separated_list(n.elements)
+                        self.write(u'};')
+                else:
+                    if n.type == "list":
+                        self.visit_decl(n.pseudo_type)
+                        self.write(n.name)
+                        self.write(" = ")
+                        self.write(u'{')
+                        self.comma_separated_list(n.elements)
+                        self.write(u'};')
+                    if n.type == 'tuple':
+                        pass
+            elif 'pairs' in dn and n.type == "dict":
                 self.visit_decl(n.pseudo_type)
                 self.write(n.name)
                 self.write(u' = {')
@@ -1194,7 +1237,8 @@ class Cpp2Trans(Cpp2Generator):
         self.newline(extra=1)
         self.setter(typ, nodes)
 
-    def generate_hpp(self, node, typ, dc=False, mc=None, h=None, init=False, is_composite=False, ns=None, is_param_struct=False):
+    def generate_hpp(self, node, typ, dc=False, mc=None, h=None, init=False, is_composite=False, ns=None,
+                     is_param_struct=False):
         if ns:
             self.write(f"namespace {ns} {{\n")
         if is_param_struct:
@@ -1352,10 +1396,8 @@ def header_cpp(models, rep, name):
 
 
 def header_mu_cpp(models, rep, name):
-    mc = models[0].name
-    h = []
-    init = False
     for m in models[0].model:
+        h = []
         if m.function:
             for mf in m.function:
                 file_func = mf.filename
@@ -1369,8 +1411,6 @@ def header_mu_cpp(models, rep, name):
                 for f in filter(lambda x: x.type == "function_definition", node_ast.body):
                     z[f.name] = [f.return_type, f.params]
                 h.append(z)
-        if m.initialization:
-            init = True
         generator = Cpp2Trans([m])
         generator.result = [f'''
 #pragma once
@@ -1386,12 +1426,12 @@ def header_mu_cpp(models, rep, name):
 ''']
         generator.model_to_node()
         param = generator.node_param
-        generator.generate_hpp(param, f"{m.name}", mc=mc, h=h, init=init, ns=rep.name)
+        generator.generate_hpp(param, f"{m.name}", mc=models[0].name, h=h, init=len(m.initialization) > 0,
+                               ns=rep.name)
         z = ''.join(generator.result)
         filename = Path(os.path.join(rep, f"{m.name}.h"))
         with open(filename, "wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
-        h = []
 
 
 def header_composite(models, rep, name):
@@ -1425,15 +1465,27 @@ class Cpp2Compo(Cpp2Trans):
         self.write(f"using namespace {modelt.path.name};\n")
         self.modeltparams = [pa.name for pa in self.modelt.inputs if "parametercategory" in dir(pa)]
         self.model_to_node()
-        self.statesName = [st.name for st in self.states]
-        self.ratesName = [rt.name for rt in self.rates]
-        self.auxiliaryName = [au.name for au in self.auxiliary]
-        self.exogenousName = [ex.name for ex in self.exogenous]
+        self.state_names = [st.name for st in self.states]
+        self.rate_names = [rt.name for rt in self.rates]
+        self.auxiliary_names = [au.name for au in self.auxiliary]
+        self.exogenous_names = [ex.name for ex in self.exogenous]
         self.aux = [link["source"].split(".")[1] for link in self.modelt.internallink]
         self.realinp = []  # determine the real inputs of the composite
         for node in self.node_auxiliary + self.node_exogenous:
             if node.name not in self.realinp and node.name not in self.aux:
                 self.realinp.append(node)
+
+    def struct_name_for(self, arg_name):
+        if arg_name in self.state_names:
+            return self.cpp_struct_names['s']
+        if arg_name in self.rate_names:
+            return self.cpp_struct_names['r']
+        if arg_name in self.auxiliary_names:
+            return self.cpp_struct_names['a']
+        if arg_name in self.exogenous_names:
+            return self.cpp_struct_names['ex']
+        return None
+
 
     def visit_module(self, node):
         self.visit(node.body)
@@ -1507,26 +1559,28 @@ class Cpp2Compo(Cpp2Trans):
         else:
             self.newline(node)
             if node.value.name not in self.modeltparams:
-                if node.target.name in self.statesName:
-                    self.write("s.set")
-                elif node.target.name in self.ratesName:
-                    self.write("r.set")
-                elif node.target.name in self.auxiliaryName:
-                    self.write("a.set")
-                elif node.target.name in self.exogenousName:
-                    self.write("ex.set")
+                #if node.target.name in self.statesName:
+                #    self.write("s.set")
+                #elif node.target.name in self.ratesName:
+                #    self.write("r.set")
+                #elif node.target.name in self.auxiliaryName:
+                #    self.write("a.set")
+                #elif node.target.name in self.exogenousName:
+                #    self.write("ex.set")
                 self.visit(node.target)
-                self.write('(')
-                if node.value.name in self.statesName:
-                    self.write("s.get")
-                elif node.value.name in self.ratesName:
-                    self.write("r.get")
-                elif node.value.name in self.auxiliaryName:
-                    self.write("a.get")
-                elif node.value.name in self.exogenousName:
-                    self.write("ex.get")
+                self.write(" = ")
+                #self.write('(')
+                #if node.value.name in self.statesName:
+                #    self.write("s.get")
+                #elif node.value.name in self.ratesName:
+                #    self.write("r.get")
+                #elif node.value.name in self.auxiliaryName:
+                #    self.write("a.get")
+                #elif node.value.name in self.exogenousName:
+                #    self.write("ex.get")
                 self.visit(node.value)
-                self.write("());")
+                self.write(";")
+                #self.write("());")
             else:
                 # x = self.getmo(node.target.name)
                 pass
@@ -1563,6 +1617,9 @@ class Cpp2Compo(Cpp2Trans):
         return code
 
     def visit_local(self, node):
+        sn = self.struct_name_for(node.name)
+        if sn:
+            self.write(f"{sn}.")
         self.write(node.name)
 
     """def visit_declaration(self, node):
