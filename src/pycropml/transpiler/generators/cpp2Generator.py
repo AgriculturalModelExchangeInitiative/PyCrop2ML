@@ -1112,7 +1112,7 @@ class Cpp2Trans(Cpp2Generator):
         self.indentation += 1
         for arg in node:
             self.newline(node)
-            if (is_composite and arg.name in self.getRealInputs()) or not is_composite:
+            if (is_composite and arg.name in self.get_composite_inputs()) or not is_composite:
                 self.visit_decl(arg.pseudo_type, arg)
                 self.write(";")
 
@@ -1161,7 +1161,7 @@ class Cpp2Trans(Cpp2Generator):
         if not is_param_struct:
             for i, arg in enumerate(node):
                 self.newline(node)
-                if (iscompo and arg.name in self.getRealInputs()) or not iscompo:
+                if (iscompo and arg.name in self.get_composite_inputs()) or not iscompo:
                     self.visit_decl(arg.pseudo_type)
                     self.write(f" get{arg.name}();") if not isinstance(arg.pseudo_type, list) else self.write(
                         f"& get{arg.name}();")
@@ -1177,7 +1177,7 @@ class Cpp2Trans(Cpp2Generator):
                     self.write(f" _{arg.name});")
                     self.newline(extra=1 if i < len(node)-1 else 0)
 
-    def getRealInputs(self):
+    def get_composite_inputs(self):
         inputs = []
         for inp in self.models[0].inputlink:
             var = inp["source"]
@@ -1212,7 +1212,7 @@ class Cpp2Trans(Cpp2Generator):
             self.write(self.write(self.public_properties_wrap.format(arg.cat, arg.name)
                                   if wrap else self.public_properties.format(arg.name, arg.name)))
 
-    def copyconstructor(self, node):
+    def copy_constructor(self, node):
         for arg in node:
             self.newline(node)
             if isinstance(arg.pseudo_type, list):
@@ -1542,7 +1542,7 @@ class Cpp2Compo(Cpp2Trans):
             self.write(f"{typ}::{typ}({typ}& toCopy)")
             self.newline(1)
             self.write("{")
-            self.copyconstructor(self.node_param)
+            self.copy_constructor(self.node_param)
             self.newline(node)
             self.write('}')
         self.newline(1)
@@ -1631,7 +1631,7 @@ class Cpp2Compo(Cpp2Trans):
     def getter(self, m, node):
         for arg in node:
             self.newline(node)
-            if arg.name in self.getRealInputs():
+            if arg.name in self.get_composite_inputs():
                 self.visit_decl(arg.pseudo_type)
                 if isinstance(arg.pseudo_type, list):
                     self.write(f"& {m}::get{arg.name}()")
@@ -1647,7 +1647,7 @@ class Cpp2Compo(Cpp2Trans):
         for arg in node:
             self.newline(node)
             argname = arg.name
-            if argname in self.getRealInputs():
+            if argname in self.get_composite_inputs():
                 if not isinstance(arg.pseudo_type, list):
                     self.write(f"void {m}::set{arg.name}(")
                     self.visit_decl(arg.pseudo_type)
@@ -1668,7 +1668,7 @@ class Cpp2Compo(Cpp2Trans):
                 self.indentation -= 1
                 self.write("}")
 
-    def getRealInputs(self):
+    def get_composite_inputs(self):
         inputs = []
         for inp in self.modelt.inputlink:
             var = inp["source"]
@@ -1676,19 +1676,19 @@ class Cpp2Compo(Cpp2Trans):
         return inputs
 
     def get_mo(self, varname):
-        listmo = []
+        list_mo = []
         for inp in self.modelt.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
-            modvar = inp["target"].split(".")[1]
+            mod_var = inp["target"].split(".")[1]
             if var == varname:
-                listmo.append((mod, modvar))
-        return listmo
+                list_mo.append((mod, mod_var))
+        return list_mo
 
-    def copyconstructor(self, node):
+    def copy_constructor(self, node):
         for arg in node:
             self.newline(node)
-            if arg.name in self.getRealInputs():
+            if arg.name in self.get_composite_inputs():
                 if isinstance(arg.pseudo_type, list):
                     if arg.pseudo_type[0] == "list":
                         self.write(f"    {self.copy_constrList % (arg.name, arg.name, arg.name)}")
