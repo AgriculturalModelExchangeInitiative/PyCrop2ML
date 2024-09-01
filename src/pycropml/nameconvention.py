@@ -1,6 +1,3 @@
-
-
-
 def signature1(model):
     """_summary_
 
@@ -25,12 +22,15 @@ def signature2(model):
     Returns:
         str: name
     """
-    name = model.name
-    name = name.strip()
-    name = name.replace(' ', '_')
-    name = name[0].upper()+name[1:]
+    return signature2_from_name(model.name)
 
-    return name
+
+def signature2_from_name(name):
+    n = name.strip()
+    n = n.replace(' ', '_')
+    n = n[0].upper() + n[1:]
+    return n
+
 
 def signature(model, format):
     """_summary_
@@ -43,5 +43,5 @@ def signature(model, format):
     """
     if format in ("py", "r", "f90"):
         return signature1(model)
-    
-    else: return signature2(model)
+    else:
+        return signature2(model)
