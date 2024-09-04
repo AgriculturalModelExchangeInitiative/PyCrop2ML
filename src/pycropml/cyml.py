@@ -36,7 +36,7 @@ ext = {'r':'r','cs':'cs','cpp':'cpp', 'py':'py', 'f90':'f90', 'java':'java', 'si
 cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py"]
 langs = ["cs", "cpp", "java", "f90", "r", "py"]
 
-domain_class = ["cs", "java", 'sirius','cpp', "bioma", "sirius2"]
+domain_class = ["cs", "java", 'sirius','cpp', "bioma", "sirius2", "apsim"]
 wrapper=["cs", "sirius", "bioma", "sirius2"]
 platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "stics", "sirius2"]
 

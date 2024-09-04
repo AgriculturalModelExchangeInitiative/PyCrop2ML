@@ -185,15 +185,18 @@ class CsharpRules(GeneralRule):
                 }
     }
     public_properties = '''
-        {
-            get { return this._%s; }
-            set { this._%s= value; } 
-        }'''
+    {
+        get { return this._%s; }
+        set { this._%s= value; } 
+    }'''
 
     public_properties_wrap = '''{ get { return %s.%s;}} 
      '''  
     constructor = '''
-        public %s() { }
+    /// <summary>
+    /// Constructor of the %s component")
+    /// </summary>  
+    public %s() { }
     '''
 
     copy_constr = '''

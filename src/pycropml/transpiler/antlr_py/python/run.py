@@ -133,8 +133,7 @@ def run_python(components, package):
                         exfunc = os.path.join(package, "crop2ml", "algo", "pyx", name + ".pyx")
                         with open(exfunc, "w") as fi:
                             fi.write(extcode + '\n')
-                            
-                            
+                                
                     if py_inits:
                         dict_init = {} 
                         name_i = re.findall(r'(def\s+.+\()', py_inits[0])[0].replace("def", "").replace("(", "").strip()
@@ -150,11 +149,13 @@ def run_python(components, package):
                             fi.write(init_ + '\n')
                         mdata.initialization = [dict_init]  
                         
-                        generate_unitfile(package, mdata, package_name)           
+                        models.append(mdata)
+                        generate_unitfile(package, mdata, package_name)  
+                                 
                         break
                     else:
+                        models.append(mdata)
                         generate_unitfile(package, mdata, package_name)  
-                    models.append(mdata)
 
     for composite in composites:
         with open(composite, "r") as f:

@@ -902,9 +902,7 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                     z.name = z.name[:-3]
                     self.states.append(z)
                     st.append(z.name)
-
-
-                                                 
+                                               
                 if var.variablecategory=="rate" :
                     self.rates.append(var)
                 if var.variablecategory=="auxiliary":
@@ -923,15 +921,21 @@ class CsharpTrans(CodeGenerator,CsharpRules):
                 if "variablecategory" in dir(var) and var.variablecategory=="exogenous": return "ex"
             for st in typevar:
                 if st.datatype in ("INT","DOUBLE","BOOLEAN","STRING","INTLIST","DOUBLELIST","STRINGLIST", "DATE", "DATELIST"):
-                    node=Node(type="local", name=st.name, pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st))
-                    node_typevar.append(node)
+                    node=Node(type="local", name=st.name, pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st), description=st.description, unit=st.unit, mini=st.min, maxi=st.max, datatype=st.datatype)
                 if st.datatype in ("INTARRAY","DOUBLEARRAY","STRINGARRAY", "DATEARRAY", ):
                     if st.len.isdigit():
                         elts = Node(type='int', value= st.len, pseudo_type= 'int')
                     else:
                         elts = Node(type='name', name= st.len, pseudo_type= 'int')
-                    node=Node(type="local", name=st.name, elts=[elts], pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st))
-                    node_typevar.append(node)
+                    node=Node(type="local", name=st.name, elts=[elts], pseudo_type=self.DATATYPE[st.datatype], cat=catvar(st), description=st.description, unit=st.unit, mini=st.min, maxi=st.max, datatype=st.datatype)
+                if "variablecategory" in dir(st): node.category=st.variablecategory
+                else: node.category=st.parametercategory
+                if "default" in dir(st): 
+                    node.default=st.default
+                    if node.default is None: node.default = "null"
+                if node.maxi == "": node.maxi = "null"
+                if node.mini =="": node.mini= "null"
+                node_typevar.append(node)
             return node_typevar
         self.node_states = create(self.states)
         self.node_rates= create(self.rates)
@@ -1156,6 +1160,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         for node in self.node_auxiliary + self.node_exogenous:
             if node.name not in self.realinp and node.name not in self.aux and node.name not in outs:
                 self.realinp.append(node)
+        self.paramnames=[p.name for p in self.modparam]
 
     def visit_module(self, node):           
         self.write("public class %sComponent"%self.model.name)
@@ -1179,22 +1184,24 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("}")  
 
     def getsetParam(self,node, pa)   :
-        for arg in pa :                          
-            self.newline(1)
-            self.write("public ")
-            self.visit_decl(arg.pseudo_type)
-            self.write(' ' +arg.name)
-            self.open(node)
-            self.write("get")
-            self.open(node)
-            self.write(" return _%s.%s; "%(self.get_mo(arg.name)[0],arg.name))
-            self.close(node)
-            self.newline(1)
-            self.write("set")
-            self.open(node)
-            self.setCompo(arg.name)
-            self.close(node)
-            self.close(node)
+        print(self.paramnames)
+        for arg in pa :  
+            if arg.name in self.paramnames:                        
+                self.newline(1)
+                self.write("public ")
+                self.visit_decl(arg.pseudo_type)
+                self.write(' ' +arg.name)
+                self.open(node)
+                self.write("get")
+                self.open(node)
+                self.write(" return _%s.%s; "%(self.get_mo(arg.name)[0],arg.name))
+                self.close(node)
+                self.newline(1)
+                self.write("set")
+                self.open(node)
+                self.setCompo(arg.name)
+                self.close(node)
+                self.close(node)
         self.newline(extra=1)
            
 
