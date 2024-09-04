@@ -96,7 +96,7 @@ class MetaExtraction():
         getmeth = []
         if res_meth:
             for r in res_meth:
-                if r[-1]:
+                if r[-1] and hasattr(r[-1], 'pseudo_type'):
                     mth = self.getmethod(tree, r[0], type_, r[-1].pseudo_type)
                 else:
                      mth = self.getmethod(tree, r[0], type_)
