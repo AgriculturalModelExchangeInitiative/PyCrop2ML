@@ -34,10 +34,13 @@ class PythonExtraction(MetaExtraction):
         inp = {}
         #name = re.findall(r'(def\s+.+\()', py_unit)[0].replace("def", "").replace("(", "").strip()
         funcs = self.getMethod(tree)
+        print(funcs)
         algo = [f for f in funcs if f.name.startswith("model")]
         self.getTypeNode(algo[0].block,"custom_call")
         call = self.getTree
         self.mc.model = [c.function.split("model_")[-1] for c in call]
+        print(self.mc.model)  
+        print([n.name for n in models])  
         inps, outs = [], []
         md = [n for m in self.mc.model for n in models if m.lower() == n.name.split("model_")[-1].lower()]
         self.mc.model = [n.name for n in md]
@@ -68,5 +71,6 @@ class PythonExtraction(MetaExtraction):
         self.mc.inputlink = inputlink
         self.mc.outputlink = outputlink
         self.mc.internallink = internallink
+        print(self.mc.model)
         return self.mc
         

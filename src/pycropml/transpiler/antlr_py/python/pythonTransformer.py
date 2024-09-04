@@ -400,7 +400,6 @@ class AstTransformer():
 
     def _translate_type(self, type_):
         r = []
-        print(type_)
         if "sequence" in type_: r.append(maptype_[type_["sequence"]])
         if "value" in type_: 
             if '[' in type_["value"].decode('utf-8'):
