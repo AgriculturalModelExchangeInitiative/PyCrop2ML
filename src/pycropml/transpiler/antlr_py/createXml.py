@@ -1,15 +1,14 @@
-from pycropml.transpiler.antlr_py.toxml import Namespace
-import xmlformatter
 import os
 from path import Path
 
+import xmlformatter
 
-
+from pycropml.transpiler.antlr_py.toxml import Namespace
 
 class ns(Namespace):
     "Custom xml namespace"
 
-class Pl2Crop2ml(object):
+class Pl2Crop2ml:
     """ Export a platform component into a Crop2ML ModelUnit.
 
     """
@@ -44,6 +43,7 @@ class Pl2Crop2ml(object):
         for inp in md.inputs:
             if "variablecategory" in dir(inp):
                 if inp.datatype.endswith("ARRAY"):
+                    print(inp)
                     inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, len=inp.len, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
                 else: inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
             else: 
@@ -187,11 +187,11 @@ def generate_compositefile(package, mc, package_name):
 
 def create_repo(package):
     crop2ml_rep = Path(os.path.join(package, 'crop2ml'))
-    if not crop2ml_rep.isdir():
+    if not crop2ml_rep.is_dir():
         crop2ml_rep.mkdir()
     algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not algo_rep.isdir():
+    if not algo_rep.is_dir():
         algo_rep.mkdir()
     cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not cyml_rep.isdir():
+    if not cyml_rep.is_dir():
         cyml_rep.mkdir() 
