@@ -1133,7 +1133,7 @@ class AstTransformer():
             rt = self.visit(test)
             if len(node.children) == 1:
                 return rt
-            elif node.childen[0]==COLON:
+            elif node.children[0]==COLON:
                 print("todo [:c]")
                 if sliceop:
                     print("todo sliceop [:c:c]")
