@@ -55,8 +55,7 @@ class ApsimGenerator(CsharpGenerator):
                 
 
     def usingApsim(self):
-        self.write("""
-using System;
+        self.write("""using System;
 using System.Collections.Generic;
 using System.Linq;    
 using Models.Core;   
@@ -185,7 +184,7 @@ using Models.Core;
 
     def visit_module(self, node):
         self.write("namespace Models.Crop2ML;")
-        self.newline(node)
+        self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(node)
         self.write(self.doc.header)
@@ -216,8 +215,7 @@ class ApsimTrans(CsharpTrans):
 
 
     def using(self):
-        self.write("""
-using System;
+        self.write("""using System;
 using System.Collections.Generic;
 using Models.Core;
 """)
@@ -278,10 +276,10 @@ using Models.Core;
     def generate(self, nodes, typ, name): 
         self.using()
         self.write("namespace Models.Crop2ML;")
-        self.newline(1)
+        self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"/// {nodes[0].category} variables class of the {name} component")
+        self.write(f"/// {nodes[0].category} variables class of the {name} component") if len(nodes)>0 else ""
         self.newline(1)
         self.write("/// </summary>")  
         self.newline(1)
@@ -369,7 +367,8 @@ class ApsimCompo(CsharpCompo):
         self.write("""using Models.Core;
 using Models.Utilities;
 using System; 
-namespace Models.Crop2ML;     
+namespace Models.Crop2ML;
+     
 """)
 
     def constructor(self, node):
@@ -509,8 +508,7 @@ namespace Models.Crop2ML;
         self.close(node)
 
     def wrapper(self):
-        self.write("""
-using APSIM.Shared.Utilities;
+        self.write("""using APSIM.Shared.Utilities;
 using Models.Climate;
 using Models.Core;
 using Models.Interfaces;
@@ -616,8 +614,8 @@ namespace Models.Crop2ML;""")
         self.indentation -= 1 
         self.newline(1)
         self.write("}")
-        '''self.newline(1)
-        self.write("setExogenous();")'''
+        self.newline(1)
+        self.write("setExogenous();")
         self.newline(1)
         self.write("%sComponent.CalculateModel(s,s1, r, a, ex);"%(self.model.name.lower()))
         self.newline(1)
