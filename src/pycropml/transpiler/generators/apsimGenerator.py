@@ -58,7 +58,8 @@ class ApsimGenerator(CsharpGenerator):
         self.write("""
 using System;
 using System.Collections.Generic;
-using System.Linq;       
+using System.Linq;    
+using Models.Core;   
 """)
 
 
@@ -218,6 +219,7 @@ class ApsimTrans(CsharpTrans):
         self.write("""
 using System;
 using System.Collections.Generic;
+using Models.Core;
 """)
 
     def open(self, node):
@@ -403,26 +405,84 @@ namespace Models.Crop2ML;
         self.newline(extra=1)     
         self.createModelInstances()   
         self.newline(extra=1)      
-        print(self.modparam)
         self.getsetParam(node,self.node_param)
         self.newline(extra=1)
         self.visit(node.body)
         self.newline(extra=1)
         self.newline(node)
+        if not self.model.initialization:
+            self.write("/// <summary>")
+            self.newline(1)
+            self.write(f"/// Initialization of {self.model.name} component")
+            self.newline(1)
+            self.write("/// </summary>")
+            self.newline(1)
+            self.initcomposition(node)
+            self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
         self.write(f"/// constructor copy of {self.model.name} component")
         self.newline(1)
         self.write("/// </summary>")
         self.newline(1)
+        self.write('/// <param name="toCopy"></param>')
+        self.newline(1)
         self.copy_Constructor(self.node_param)
         self.newline(node)
         self.close(node)
+        
+    def initcomposition(self, node):
+        self.write(f"public void Init({self.model.name}State s, {self.model.name}State s1, {self.model.name}Rate r, {self.model.name}Auxiliary a, {self.model.name}Exogenous ex)")
+        self.open(node)
+        self.newline(1)
+        for m in self.model.ord:
+            for mod in self.model.model:
+                if m == mod.name and "initialization" in dir(mod):
+                    self.write(f"_{m}.Init(s, s1, r, a, ex);")
+                    self.newline(1)
         self.close(node)
+        
+
+    def getsetParam(self,node, pa)   :
+        for arg in pa :  
+            if arg.name in self.parameters:                        
+                self.newline(extra=1)
+                self.write("/// <summary>") 
+                self.newline(1)
+                self.write(f"/// Gets and sets the {arg.description}")
+                self.newline(1)
+                self.write("/// </summary>")  
+                self.newline(1) 
+                self.write(f'[Description("{arg.description}")] ')
+                self.newline(1)
+                self.write(f'[Units("{arg.unit}")] ')
+                self.newline(1)
+                self.write("public ")
+                self.visit_decl(arg.pseudo_type)
+                self.write(' ' +arg.name)
+                self.open(node)
+                self.write("get")
+                self.open(node)
+                self.write(" return _%s.%s; "%(self.get_mo(arg.name)[0]["modu"],self.get_mo(arg.name)[0]["var"]))
+                self.close(node)
+                self.newline(1)
+                self.write("set")
+                self.open(node)
+                self.setCompo(arg.name)
+                self.close(node)
+                self.close(node)
+        self.newline(extra=1)
     
     def visit_function_definition(self, node):
         if node.name.startswith("model"):
-            self.write(f"private void CalculateModel({self.name}State s,{self.name}State s1,{self.name}Rate r,{self.name}Auxiliary a,{self.name}Exogenous ex)")
+            self.newline(1)
+            self.write("/// <summary>")
+            self.newline(1)
+            self.write(f"/// Algorithm of {self.model.name} component")
+            self.newline(1)
+            self.write("/// </summary>")
+            self.newline(1)
+            self.write(f"public void CalculateModel({self.name}State s,{self.name}State s1,{self.name}Rate r,{self.name}Auxiliary a,{self.name}Exogenous ex)")
         else:
             self.write("/// <summary>")
             self.newline(1)
@@ -440,18 +500,6 @@ namespace Models.Crop2ML;
     def visit_implicit_return(self, node):
         self.newline(node)
 
-    def visit_assignment(self, node):
-        if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
-            name  = node.value.function.split('model_')[1]
-            self.write("_%s.Estimate(s,s1, r, a, ex);"%(name))
-            self.newline(node)
-        else:
-            self.newline(node)
-            self.visit(node.target)
-            self.write(' = ')
-            self.visit(node.value) 
-            self.write(";")
-            self.newline(node)
     
     def interfaceStrategy(self, node):
         self.write('using System;'); self.newline(1)
@@ -461,47 +509,151 @@ namespace Models.Crop2ML;
         self.close(node)
 
     def wrapper(self):
-        self.write("using %sCrop2ML_%s.DomainClass;"%(self.customer,self.model.name))
+        self.write("""
+using APSIM.Shared.Utilities;
+using Models.Climate;
+using Models.Core;
+using Models.Interfaces;
+using Models.PMF;
+using Models.Soils;
+using Models.Surface;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+namespace Models.Crop2ML;""")
+
+        self.newline(extra=1)  
+        self.write("/// <summary>")
         self.newline(1)
-        self.write("using %sCrop2ML_%s.Strategies;"%(self.customer,self.model.name))
-        self.newline(extra=1)
-        self.write("namespace %sModel.Model.%s"%(self.customer, self.model.name))
+        self.write(f"///  This class encapsulates the {self.model.name}Component")
         self.newline(1)
-        self.write("{") 
-        self.newline(1)
-        self.indentation += 1         
-        self.write("class %sWrapper :  UniverseLink"%self.model.name)
+        self.write("/// </summary>")  
+        self.write("""
+[Serializable]
+[PresenterName("UserInterface.Presenters.PropertyPresenter")]
+[ViewName("UserInterface.Views.PropertyView")]
+[ValidParent(ParentType = typeof(Zone))]
+""")    
+        self.write("class %sWrapper :  Model"%self.model.name)
         self.newline(1)
         self.write("{") 
         self.newline(1)
         self.indentation += 1
+        self.write("[Link] Clock clock = null;")
+        self.newline(1)
+        self.write("//[Link] Weather weather = null; // other links")
+        self.newline(extra=1)
         self.privateWrap()
+        self.newline(extra=1)
+        self.write("/// <summary>")
+        self.newline(1)
+        self.write(f"///  The constructor of the Wrapper of the {self.model.name}Component")
+        self.newline(1)
+        self.write("/// </summary>") 
+        self.newline(1) 
         self.constrWrap()
         self.newline(extra=1)
         self.outputWrap()
         self.newline(extra=1)
+        self.write("/// <summary>")
+        self.newline(1)
+        self.write(f"///  The Constructor copy of the wrapper of the {self.model.name}Component")
+        self.newline(1)
+        self.write("/// </summary>") 
+        self.newline(1)
+        self.write(f'/// <param name="toCopy"></param>')
+        self.newline(1)
+        self.write(f'/// <param name="copyAll"></param>') 
+        self.newline(1)  
         self.copyconstrWrap()
         self.newline(extra=1)
+        self.newline(extra=1)
+        self.write("/// <summary>")
+        self.newline(1)
+        self.write(f"///  The Initialization method of the wrapper of the {self.model.name}Component")
+        self.newline(1)
+        self.write("/// </summary>") 
+        self.newline(1)
         self.initWrap()
         self.newline(extra=1)
+        self.newline(extra=1)
+        self.write("/// <summary>")
+        self.newline(1)
+        self.write(f"///  Load parameters of the wrapper of the {self.model.name}Component")
+        self.newline(1)
+        self.write("/// </summary>") 
+        self.newline(1)
         self.loadParamWrap()
+        self.newline(extra=1)
+        self.write("/// <summary>")
+        self.newline(1)
+        self.write(f"///  Set exogenous variables of the wrapper of the {self.model.name}Component")
+        self.newline(1)
+        self.write("/// </summary>") 
+        self.newline(1)
+        self.setexogenousWrap()
         self.newline(extra=1)
         self.estimateWrap()
         self.newline(extra=1)
         self.indentation -= 1
         self.write("}")
-        self.newline(extra=1)
-        self.indentation -= 1
+
+    def estimateWrap(self):
+        self.write('[EventSubscribe("Crop2MLProcess")]')
+        self.newline(1)
+        self.write("public void CalculateModel(object sender, EventArgs e)")       
+        self.newline(1)
+        self.write("{")
+        self.newline(1)
+        self.indentation += 1 
+        self.write("if (clock.Today == clock.StartDate)")
+        self.newline(1)
+        self.write("{")
+        self.newline(1)
+        self.indentation += 1 
+        self.write("Init();")
+        self.newline(1)
+        self.indentation -= 1 
+        self.newline(1)
         self.write("}")
+        '''self.newline(1)
+        self.write("setExogenous();")'''
+        self.newline(1)
+        self.write("%sComponent.CalculateModel(s,s1, r, a, ex);"%(self.model.name.lower()))
+        self.newline(1)
+        self.indentation -= 1 
+        self.write("}")
+        
+        
+    def outputWrap(self):
+        out = [out.name for out in self.model.outputs]
+        tabout=[]
+        nodes =self.node_states+self.node_rates+self.node_auxiliary + self.node_exogenous
+        for node in nodes :
+            if node.name in out and node.name not in tabout:
+                self.newline(extra=1)
+                self.write("/// <summary>")
+                self.newline(1)
+                self.write(f"///  The get method of the {node.description} output variable")
+                self.newline(1)
+                self.write("/// </summary>") 
+                self.newline(1)
+                self.write(f'[Description("{node.description}")]')
+                self.newline(1)
+                self.write(f'[Units("{node.unit}")]')
+                self.getset([node], True)
+                tabout.append(node.name)
     
     def constrWrap(self):
         name = self.model.name
-        self.write("public %sWrapper(Universe universe) : base(universe)"%(name))
+        self.write("public %sWrapper()"%(name))
         self.newline(1)
         self.write("{") 
         self.newline(1)
         self.indentation += 1
         self.write("s = new %sState();"%(name))
+        self.newline(1)
+        self.write("s1 = new %sState();"%(name))
         self.newline(1)
         self.write("r = new %sRate();"%(name))
         self.newline(1)
@@ -509,16 +661,14 @@ namespace Models.Crop2ML;
         self.newline(1)
         self.write("ex = new %sExogenous();"%(name))
         self.newline(1)
-        self.write("%sComponent = new %s();"%(name.lower(), name))
-        self.newline(1)
-        self.write("loadParameters();")
+        self.write("%sComponent = new %sComponent();"%(name.lower(), name))
         self.newline(1)
         self.indentation -= 1
         self.write("}")
 
 
     def copyconstrWrap(self):
-        self.write("public %sWrapper(Universe universe, %sWrapper toCopy, bool copyAll) : base(universe)"%(self.model.name,self.model.name))
+        self.write("public %sWrapper(%sWrapper toCopy, bool copyAll) "%(self.model.name,self.model.name))
         self.newline(1)
         self.write("{")
         self.newline(1)
@@ -537,7 +687,7 @@ namespace Models.Crop2ML;
         self.write("{")
         self.newline(1)
         self.indentation += 1
-        self.write("%sComponent = (toCopy.%sComponent != null) ? new %s(toCopy.%sComponent) : null;"%(self.model.name.lower(),self.model.name.lower(),self.model.name,self.model.name.lower()))
+        self.write("%sComponent = (toCopy.%sComponent != null) ? new %sComponent(toCopy.%sComponent) : null;"%(self.model.name.lower(),self.model.name.lower(),self.model.name,self.model.name.lower()))
         self.newline(1)
         self.indentation -= 1        
         self.write("}")
@@ -545,20 +695,12 @@ namespace Models.Crop2ML;
         self.indentation -= 1        
         self.write("}")
 
-def to_wrapper_bioma(models, rep, name, customer = ''):
+def to_wrapper_apsim(models, rep, name, customer = ''):
     generator = ApsimCompo(model = models, customer=customer)
-    generator.result=[u"using System;\nusing System.Collections.Generic;\nusing System.Linq;\n"]
     generator.model2Node()
     generator.wrapper()
     z= ''.join(generator.result)
     filename = Path(os.path.join(rep, "%sWrapper.cs"%name))
     with open(filename, "wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
-    filename = Path(os.path.join(rep, "IStrategy%s%s.cs"%(customer,name)))
-    generator2 = ApsimCompo(model = models)
-    generator2.interfaceStrategy(1)
-    z= ''.join(generator2.result)
-    with open(filename, "wb") as tg2_file:
-        tg2_file.write(z.encode('utf-8'))
-
     return 0
