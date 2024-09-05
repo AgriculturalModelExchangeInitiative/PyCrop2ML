@@ -1155,13 +1155,13 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.ratesName = [rt.name for rt in self.rates]
         self.auxiliaryName = [au.name for au in self.auxiliary]
         self.exogenousName = [ex.name for ex in self.exogenous]
+        self.parameters = [p.name for p in self.model.inputs if "parametercategory" in dir(p)]
         if "internallink" in dir(self.model): self.aux = [link["source"].split(".")[1] for link in self.model.internallink]
         self.realinp=[]     
         for node in self.node_auxiliary + self.node_exogenous:
             if node.name not in self.realinp and node.name not in self.aux and node.name not in outs:
                 self.realinp.append(node)
-        self.paramnames=[p.name for p in self.modparam]
-
+        
     def visit_module(self, node):           
         self.write("public class %sComponent"%self.model.name)
         self.newline(node)
@@ -1184,9 +1184,8 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("}")  
 
     def getsetParam(self,node, pa)   :
-        print(self.paramnames)
         for arg in pa :  
-            if arg.name in self.paramnames:                        
+            if arg.name in self.parameters:                        
                 self.newline(1)
                 self.write("public ")
                 self.visit_decl(arg.pseudo_type)
@@ -1194,7 +1193,7 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
                 self.open(node)
                 self.write("get")
                 self.open(node)
-                self.write(" return _%s.%s; "%(self.get_mo(arg.name)[0],arg.name))
+                self.write(" return _%s.%s; "%(self.get_mo(arg.name)[0]["modu"],self.get_mo(arg.name)[0]["var"]))
                 self.close(node)
                 self.newline(1)
                 self.write("set")
@@ -1251,11 +1250,12 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
             self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
             self.newline(node)
         else:
-            self.newline(node)
-            self.visit(node.target)
-            self.write(' = ')
-            self.visit(node.value) 
-            self.write(";")
+            if self.model.diff_in.get(node.target.name)!=node.value.name or (node.target.name not in self.parameters and node.value.name not in self.parameters):
+                self.newline(node)
+                self.visit(node.target)
+                self.write(' = ')
+                self.visit(node.value) 
+                self.write(";")
             self.newline(node)
 
     def visit_declaration(self, node):
@@ -1306,25 +1306,21 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.newline(node)
     
     def setCompo(self, p):
-        a=[]
         mo = self.get_mo(p)
         for m in mo:
             self.newline(1)
-            self.write("_%s.%s = value;"%(m,p))
+            self.write("_%s.%s = value;"%(m["modu"],m["var"]))
 
 
  
     def get_mo(self,varname):
         listmo=[]
-        name = self.model.diff_in[varname] if varname in self.model.diff_in else None
         for inp in self.model.inputlink:
             var = inp["source"]
             mod = inp["target"].split(".")[0]
+            modvar = inp["target"].split(".")[1]
             if var==varname:
-                listmo.append(mod)
-            else:
-                if name and name == var:
-                    listmo.append(mod)  
+                listmo.append({"modu":mod, "var":modvar})
         return listmo
     
     def createModelInstances(self):
@@ -1337,16 +1333,17 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
       
     def copyconstructor(self,node):
         for arg in node:
-            self.newline(node)
-            if isinstance(arg.pseudo_type, list):
-                if arg.pseudo_type[0] =="list":
-                    self.write("    %s"%self.copy_constrList%(arg.name,arg.name,arg.name))
-                if arg.pseudo_type[0] =="array":
-                    length = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name 
-                    if not length: length = "toCopy._%s.Length"%(arg.name)
-                    self.write("    %s"%self.copy_constrArray%(length,arg.name,arg.name))
-            else:
-                self.write("    %s = toCopy.%s;"%(arg.name, arg.name)) 
+            if arg.name in self.parameters:
+                self.newline(node)
+                if isinstance(arg.pseudo_type, list):
+                    if arg.pseudo_type[0] =="list":
+                        self.write("%s"%self.copy_constrList%(arg.name,arg.name,arg.name))
+                    if arg.pseudo_type[0] =="array":
+                        length = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name 
+                        if not length: length = "toCopy.%s.Length"%(arg.name)
+                        self.write("%s"%self.copy_constrArray%(length,arg.name,arg.name))
+                else:
+                    self.write("%s = toCopy.%s;"%(arg.name, arg.name)) 
 
     def initCompo(self):            
         pass
@@ -1370,11 +1367,28 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.newline(extra=1)
         self.loadParamWrap()
         self.newline(extra=1)
+        self.setexogenousWrap()
+        self.newline(extra=1)
         self.estimateWrap()
         self.newline(extra=1)
         self.indentation -= 1
         self.write("}")
         self.newline(extra=1)
+    
+    def setexogenousWrap(self):
+        self.write("private void setExogenous()")  
+        self.newline(1)
+        self.write("{")
+        self.newline(1)
+        self.indentation += 1
+        tab = []
+        for node in self.model.inputs :  
+            if "variablecategory" in dir(node) and node.variablecategory=="exogenous" and node.name not in tab:  
+                self.write("ex.%s = null; // To be modified"%(node.name))
+                self.newline(1)
+                tab.append(node.name)
+        self.indentation -= 1 
+        self.write("}")
 
 
     def privateWrap(self) :
@@ -1455,10 +1469,12 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.write("public void Init()")
         self.write("{")
         self.newline(1)
-        self.indentation += 1 
-        self.write("%sComponent.Init(s, r, a);"%(self.model.name.lower()))
+        self.indentation += 1
+        self.write("setExogenous();") 
         self.newline(1)
         self.write("loadParameters();")
+        self.newline(1)
+        self.write("%sComponent.Init(s, s1, r, a, ex);"%(self.model.name.lower()))
         self.newline(1)
         self.indentation -= 1
         self.write("}")
@@ -1470,9 +1486,9 @@ class CsharpCompo(CsharpTrans,CsharpGenerator):
         self.newline(1)
         self.indentation += 1
         tab=[]         
-        for node in self.modparam :
-            if node.name not in tab:
-                self.write("%sComponent.%s = %s;"%(self.model.name.lower(), node.name, node.name))
+        for node in self.node_param :  
+            if node.name in self.parameters and node.name not in tab:  
+                self.write("%sComponent.%s = null; // To be modified"%(self.model.name.lower(), node.name))
                 tab.append(node.name)
                 self.newline(1)
         self.indentation -= 1 

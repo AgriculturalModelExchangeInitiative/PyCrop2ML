@@ -37,7 +37,7 @@ cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "p
 langs = ["cs", "cpp", "java", "f90", "r", "py"]
 
 domain_class = ["cs", "java", 'sirius','cpp', "bioma", "sirius2", "apsim"]
-wrapper=["cs", "sirius", "bioma", "sirius2"]
+wrapper=["cs", "sirius", "bioma", "sirius2", "apsim"]
 platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "stics", "sirius2"]
 
 def transpile_file(source, language):

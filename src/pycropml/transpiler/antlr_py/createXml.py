@@ -1,5 +1,5 @@
 import os
-from path import Path
+from pathlib import Path
 
 import xmlformatter
 
