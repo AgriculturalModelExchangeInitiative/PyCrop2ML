@@ -466,7 +466,7 @@ class AstTransformer():
         }
 
     def visit_boolnode(self, node, location):
-        return {'type': 'bool', 'value': node.value, 'pseudo_type': 'bool'}
+        return {'type': 'bool', 'value': str(node.value).lower(), 'pseudo_type': 'bool'}
 
     def visit_indexnode(self, node, base, index, location):
         value_node = self.visit_node(base)

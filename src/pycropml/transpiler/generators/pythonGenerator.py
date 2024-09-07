@@ -120,7 +120,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
         else: self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(str(node.value))
+        self.write(str(node.value).capitalize())
 
     def visit_str(self, node):
         self.safe_double(node)

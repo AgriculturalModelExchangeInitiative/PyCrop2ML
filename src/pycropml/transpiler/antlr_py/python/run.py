@@ -154,6 +154,7 @@ def run_python(components, package):
                         # save external functions
                         for ext in extfunc:
                             name = ext.name
+                            print("iiiiii", name)
                             mdata.function.append(name)
                             r = [ext]
                             # find all external dependencies of external functions

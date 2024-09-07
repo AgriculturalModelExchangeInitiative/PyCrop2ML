@@ -1127,6 +1127,7 @@ class AstTransformer():
 
     def visit_subscript(self, node, ELLIPSIS, test, COLON, sliceop,comments, location):
         rt = []
+        print(node.get_text())
         if ELLIPSIS:
             pass
         elif test:
@@ -1151,7 +1152,7 @@ class AstTransformer():
             if sliceop:
                 print("todo [::c]")
             else:
-                    rt = {'type': 'sliceindex', 'message': 'slice_', 'args': []}   
+                rt = {'type': 'sliceindex', 'message': 'slice_', 'args': []}   
         return rt
     
     def visit_atom(self, node, OPEN_PAREN, yield_expr, testlist_comp, OPEN_BRACKET, OPEN_BRACE,dictorsetmaker, REVERSE_QUOTE, testlist, ELLIPSIS, name,  PRINT, EXEC, MINUS, number, NONE, STRING, comments, location):

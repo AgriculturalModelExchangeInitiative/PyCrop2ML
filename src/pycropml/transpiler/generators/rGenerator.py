@@ -102,7 +102,7 @@ class RGenerator(CodeGenerator, RRules):
         self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(str(node.value).upper())
+        self.write(node.value).upper()
 
     def visit_str(self, node):
         self.emit_string(node)
