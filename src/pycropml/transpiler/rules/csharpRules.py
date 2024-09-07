@@ -202,16 +202,16 @@ class CsharpRules(GeneralRule):
     copy_constr = '''
     public %s(%s toCopy, bool copyAll) // copy constructor 
     {
-    if (copyAll)
-    {
+        if (copyAll)
+        {
     '''
     copy_constrList = '''
-        for (int i = 0; i < toCopy.%s.Count; i++)
-        { %s.Add(toCopy.%s[i]); }
+            for (int i = 0; i < toCopy.%s.Count; i++)
+                { %s.Add(toCopy.%s[i]); }
     '''
     copy_constrArray = '''
-        for (int i = 0; i < %s; i++)
-        { %s[i] = toCopy.%s[i]; }
+            for (int i = 0; i < %s; i++)
+                { %s[i] = toCopy.%s[i]; }
     '''
     public_properties_compo = '''
     {

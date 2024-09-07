@@ -3,6 +3,7 @@ from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.csharpRules import CsharpRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
+from pycropml.nameconvention import signature2, signature2_from_name
 import os
 from path import Path
 from pycropml.transpiler.Parser import parser
@@ -67,19 +68,48 @@ using Models.Core;
         #self.add_features(node)
         self.funcname = node.name
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
-            self.write("public static ")
-            self.visit_decl(node.return_type) if node.return_type else self.write("void")
-            self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
-            for i, pa in enumerate(node.params):
-                self.visit_decl(pa.pseudo_type)
-                self.write(" %s"%pa.name)
-                if i!= (len(node.params)-1):
-                    self.write(', ')
+            self.write("/// <summary>")
+            self.newline(1)
+            self.write(f"/// ")
+            self.newline(1)
+            self.write("/// </summary>")  
+            self.newline(1) 
+            if isinstance(node.block, list)  and "elements" in dir(node.block[-1].value):           
+                self.write("public static void ")
+                tg = [elt.name for elt in node.block[-1].value.elements]
+                self.tg = tg
+                tb = []
+                #self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
+                for i, pa in enumerate(node.params):
+                    if pa.name in tg:
+                        self.write("ref ")
+                        tb.append(pa.name)
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if i!= (len(node.params)-1):
+                        self.write(', ')
+                for elt in node.block[-1].value.elements:
+                    if elt.name not in tb:
+                        self.write(", out ")
+                        self.visit_decl(elt.pseudo_type)
+                        self.write(f' {elt.name}') 
+            else:
+                self.write("public static ")
+                self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
+                for i, pa in enumerate(node.params):
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if i!= (len(node.params)-1):
+                        self.write(', ')  
             self.write(')')
             self.newline(node)
             self.write('{') 
             self.newline(node)
         else:
+            name = signature2_from_name(self.model.name)
+            cpnent = signature2_from_name(self.name)
             if self.node_param and not node.name.startswith("init_") :
                 for arg in self.node_param: 
                     self.newline(extra=1) 
@@ -107,25 +137,25 @@ using Models.Core;
                     self.write(' ' +arg.name)
                     self.write(self.public_properties%(arg.name,arg.name))
             self.newline(extra=1)
-            self.write(self.constructor%(self.model.name,self.model.name)) if not node.name.startswith("init_") else ""
+            self.write(self.constructor%(name,name)) if not node.name.startswith("init_") else ""
             self.newline(node)  
             if node.name.startswith("init_"):
                 self.write("/// <summary>")
                 self.newline(1)
-                self.write(f"/// initialization of the {self.model.name} component")
+                self.write(f"/// initialization of the {name} component")
                 self.newline(1)
                 self.write("/// </summary>")  
                 self.newline(1)
             else:
                 self.write("/// <summary>")
                 self.newline(1)
-                self.write(f"/// Algorithm of the {self.model.name} component")
+                self.write(f"/// Algorithm of the {name} component")
                 self.newline(1)
                 self.write("/// </summary>")  
                 self.newline(1)              
             self.write("public void ")
             self.write(" CalculateModel(") if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(cpnent, cpnent,cpnent, cpnent, cpnent))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -197,7 +227,7 @@ using Models.Core;
         self.newline(node)
         self.write("/// </summary>")
         self.newline(node)
-        self.write("public class %s"%(self.model.name))
+        self.write("public class %s"%(signature2_from_name(self.model.name)))
         self.open(node)
         self.visit(node.body)
         self.close(node)  #class          
@@ -243,34 +273,26 @@ using Models.Core;
         self.newline(1)
         self.write(f'/// <param name="copyAll"></param>') 
         self.newline(1)  
-        self.write('public %s(%s toCopy, bool copyAll) // copy constructor '%(typ, typ))
+        self.write('public %s(%s toCopy, bool copyAll) // copy constructor '%(signature2_from_name(typ), signature2_from_name(typ)))
         self.open(nodes)
         self.write('if (copyAll)')
         self.open(nodes)
+        self.indentation -= 2
         self.copyconstructor(nodes)
         self.close(nodes)
         self.close(nodes)
         self.newline(extra = 1)
-    
-    def clone(self, node):
-        self.write("public virtual Object Clone()")
-        self.open(node)
-        self.write('IDomainClass myclass = (IDomainClass) this.MemberwiseClone();')
-        self.newline(node)
-        self.write('_parametersIO.PopulateClonedCopy(myclass);')
-        self.newline(node)
-        self.write('return myclass;')
-        self.close(node)
+
 
     def constr(self, node, typ):
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"/// Constructor {typ} domain class")
+        self.write(f"/// Constructor {signature2_from_name(typ)} domain class")
         self.newline(1)
         self.write("/// </summary>")  
         self.newline(1)  
-        self.write('public %s() { }'%typ)
+        self.write('public %s() { }'%signature2_from_name(typ))
         self.newline(1)
         
     def generate(self, nodes, typ, name): 
@@ -283,7 +305,7 @@ using Models.Core;
         self.newline(1)
         self.write("/// </summary>")  
         self.newline(1)
-        self.write("public class %s"%typ)
+        self.write("public class %s"%signature2_from_name(typ))
         self.newline()
         self.write("{")
         self.indentation += 1        
@@ -372,13 +394,15 @@ namespace Models.Crop2ML;
 """)
 
     def constructor(self, node):
-        self.write("public %sComponent() {}"%self.model.name)  
+        self.write("public %sComponent() {}"%signature2_from_name(self.model.name))  
 
     
     def copy_Constructor(self, node):
-        self.write('public %sComponent(%sComponent toCopy): this() // copy constructor '%(self.model.name, self.model.name))
+        self.write('public %sComponent(%sComponent toCopy): this() // copy constructor '%(signature2_from_name(self.model.name), signature2_from_name(self.model.name)))
         self.open(node)
+        self.indentation -= 1
         self.copyconstructor(self.node_param)
+        self.indentation -= 1
         self.close(node)
         
 
@@ -391,12 +415,12 @@ namespace Models.Crop2ML;
         self.newline(1)
         self.write("/// </summary>")
         self.newline(1)
-        self.write(f"public class {self.model.name}Component ")
+        self.write(f"public class {signature2_from_name(self.model.name)}Component ")
         self.open(node)
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  constructor of {self.model.name} component")
+        self.write(f"///  constructor of {signature2_from_name(self.model.name)} component")
         self.newline(1)
         self.write("/// </summary>")
         self.newline(1)
@@ -412,7 +436,7 @@ namespace Models.Crop2ML;
         if not self.model.initialization:
             self.write("/// <summary>")
             self.newline(1)
-            self.write(f"/// Initialization of {self.model.name} component")
+            self.write(f"/// Initialization of {signature2_from_name(self.model.name)} component")
             self.newline(1)
             self.write("/// </summary>")
             self.newline(1)
@@ -420,7 +444,7 @@ namespace Models.Crop2ML;
             self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"/// constructor copy of {self.model.name} component")
+        self.write(f"/// constructor copy of {signature2_from_name(self.model.name)} component")
         self.newline(1)
         self.write("/// </summary>")
         self.newline(1)
@@ -431,13 +455,14 @@ namespace Models.Crop2ML;
         self.close(node)
         
     def initcomposition(self, node):
-        self.write(f"public void Init({self.model.name}State s, {self.model.name}State s1, {self.model.name}Rate r, {self.model.name}Auxiliary a, {self.model.name}Exogenous ex)")
+        name = signature2_from_name(self.model.name)
+        self.write(f"public void Init({name}State s, {name}State s1, {name}Rate r, {name}Auxiliary a, {name}Exogenous ex)")
         self.open(node)
         self.newline(1)
         for m in self.model.ord:
             for mod in self.model.model:
-                if m == mod.name and "initialization" in dir(mod):
-                    self.write(f"_{m}.Init(s, s1, r, a, ex);")
+                if m == mod.name and "initialization" in dir(mod) and mod.initialization:
+                    self.write(f"_{signature2_from_name(m)}.Init(s, s1, r, a, ex);")
                     self.newline(1)
         self.close(node)
         
@@ -462,7 +487,7 @@ namespace Models.Crop2ML;
                 self.open(node)
                 self.write("get")
                 self.open(node)
-                self.write(" return _%s.%s; "%(self.get_mo(arg.name)[0]["modu"],self.get_mo(arg.name)[0]["var"]))
+                self.write(" return _%s.%s; "%(signature2_from_name(self.get_mo(arg.name)[0]["modu"]),self.get_mo(arg.name)[0]["var"]))
                 self.close(node)
                 self.newline(1)
                 self.write("set")
@@ -473,19 +498,21 @@ namespace Models.Crop2ML;
         self.newline(extra=1)
     
     def visit_function_definition(self, node):
+        name = signature2_from_name(self.model.name)
+        cpnt = signature2_from_name(self.name)
         if node.name.startswith("model"):
             self.newline(1)
             self.write("/// <summary>")
             self.newline(1)
-            self.write(f"/// Algorithm of {self.model.name} component")
+            self.write(f"/// Algorithm of {signature2_from_name(self.model.name)} component")
             self.newline(1)
             self.write("/// </summary>")
             self.newline(1)
-            self.write(f"public void CalculateModel({self.name}State s,{self.name}State s1,{self.name}Rate r,{self.name}Auxiliary a,{self.name}Exogenous ex)")
+            self.write(f"public void CalculateModel({cpnt}State s,{cpnt}State s1,{cpnt}Rate r,{cpnt}Auxiliary a,{cpnt}Exogenous ex)")
         else:
             self.write("/// <summary>")
             self.newline(1)
-            self.write(f"/// initialization of the {self.name} component")
+            self.write(f"/// initialization of the {name} component")
             self.newline(1)
             self.write("/// </summary>")
             self.newline(1)
@@ -499,15 +526,10 @@ namespace Models.Crop2ML;
     def visit_implicit_return(self, node):
         self.newline(node)
 
-    
-    def interfaceStrategy(self, node):
-        self.write('using System;'); self.newline(1)
-        self.write('namespace %s%s.DomainClass'%(self.customer,self.model.name))
-        self.write('void SetParametersDefaultValue();')
-        self.close(node)
-        self.close(node)
+
 
     def wrapper(self):
+        name = signature2_from_name(self.model.name)
         self.write("""using APSIM.Shared.Utilities;
 using Models.Climate;
 using Models.Core;
@@ -523,7 +545,7 @@ namespace Models.Crop2ML;""")
         self.newline(extra=1)  
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  This class encapsulates the {self.model.name}Component")
+        self.write(f"///  This class encapsulates the {name}Component")
         self.newline(1)
         self.write("/// </summary>")  
         self.write("""
@@ -532,7 +554,7 @@ namespace Models.Crop2ML;""")
 [ViewName("UserInterface.Views.PropertyView")]
 [ValidParent(ParentType = typeof(Zone))]
 """)    
-        self.write("class %sWrapper :  Model"%self.model.name)
+        self.write("class %sWrapper :  Model"%name)
         self.newline(1)
         self.write("{") 
         self.newline(1)
@@ -545,7 +567,7 @@ namespace Models.Crop2ML;""")
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  The constructor of the Wrapper of the {self.model.name}Component")
+        self.write(f"///  The constructor of the Wrapper of the {name}Component")
         self.newline(1)
         self.write("/// </summary>") 
         self.newline(1) 
@@ -555,7 +577,7 @@ namespace Models.Crop2ML;""")
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  The Constructor copy of the wrapper of the {self.model.name}Component")
+        self.write(f"///  The Constructor copy of the wrapper of the {name}Component")
         self.newline(1)
         self.write("/// </summary>") 
         self.newline(1)
@@ -568,7 +590,7 @@ namespace Models.Crop2ML;""")
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  The Initialization method of the wrapper of the {self.model.name}Component")
+        self.write(f"///  The Initialization method of the wrapper of the {signature2_from_name(self.model.name)}Component")
         self.newline(1)
         self.write("/// </summary>") 
         self.newline(1)
@@ -577,7 +599,7 @@ namespace Models.Crop2ML;""")
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  Load parameters of the wrapper of the {self.model.name}Component")
+        self.write(f"///  Load parameters of the wrapper of the {signature2_from_name(self.model.name)}Component")
         self.newline(1)
         self.write("/// </summary>") 
         self.newline(1)
@@ -585,7 +607,7 @@ namespace Models.Crop2ML;""")
         self.newline(extra=1)
         self.write("/// <summary>")
         self.newline(1)
-        self.write(f"///  Set exogenous variables of the wrapper of the {self.model.name}Component")
+        self.write(f"///  Set exogenous variables of the wrapper of the {signature2_from_name(self.model.name)}Component")
         self.newline(1)
         self.write("/// </summary>") 
         self.newline(1)
@@ -643,7 +665,7 @@ namespace Models.Crop2ML;""")
                 tabout.append(node.name)
     
     def constrWrap(self):
-        name = self.model.name
+        name = signature2_from_name(self.model.name)
         self.write("public %sWrapper()"%(name))
         self.newline(1)
         self.write("{") 
@@ -666,26 +688,27 @@ namespace Models.Crop2ML;""")
 
 
     def copyconstrWrap(self):
-        self.write("public %sWrapper(%sWrapper toCopy, bool copyAll) "%(self.model.name,self.model.name))
+        name = signature2_from_name(self.model.name)
+        self.write("public %sWrapper(%sWrapper toCopy, bool copyAll) "%(name,name))
         self.newline(1)
         self.write("{")
         self.newline(1)
         self.indentation += 1
-        self.write("s = (toCopy.s != null) ? new %sState(toCopy.s, copyAll) : null;"%(self.model.name))
+        self.write("s = (toCopy.s != null) ? new %sState(toCopy.s, copyAll) : null;"%(name))
         self.newline(1)
         self.newline(1)
-        self.write("r = (toCopy.r != null) ? new %sRate(toCopy.r, copyAll) : null;"%(self.model.name))
+        self.write("r = (toCopy.r != null) ? new %sRate(toCopy.r, copyAll) : null;"%(name))
         self.newline(1)
-        self.write("a = (toCopy.a != null) ? new %sAuxiliary(toCopy.a, copyAll) : null;"%(self.model.name))
+        self.write("a = (toCopy.a != null) ? new %sAuxiliary(toCopy.a, copyAll) : null;"%(name))
         self.newline(1)
-        self.write("ex = (toCopy.ex != null) ? new %sExogenous(toCopy.ex, copyAll) : null;"%(self.model.name))
+        self.write("ex = (toCopy.ex != null) ? new %sExogenous(toCopy.ex, copyAll) : null;"%(name))
         self.newline(1)
         self.write("if (copyAll)")
         self.newline(1)
         self.write("{")
         self.newline(1)
         self.indentation += 1
-        self.write("%sComponent = (toCopy.%sComponent != null) ? new %sComponent(toCopy.%sComponent) : null;"%(self.model.name.lower(),self.model.name.lower(),self.model.name,self.model.name.lower()))
+        self.write("%sComponent = (toCopy.%sComponent != null) ? new %sComponent(toCopy.%sComponent) : null;"%(name.lower(),name.lower(),name,name.lower()))
         self.newline(1)
         self.indentation -= 1        
         self.write("}")

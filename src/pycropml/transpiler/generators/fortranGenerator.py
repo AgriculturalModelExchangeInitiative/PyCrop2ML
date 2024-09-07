@@ -262,7 +262,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(str(node.value))     
         
     def visit_bool(self, node):
-        self.write(".TRUE.") if node.value==True else self.write(".FALSE.")
+        self.write(".TRUE.") if node.value=="true" else self.write(".FALSE.")
 
     def visit_str(self, node):
         if node.value==b'':

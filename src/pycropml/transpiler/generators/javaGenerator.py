@@ -196,7 +196,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
         self.write(u'}')
     
     def visit_bool(self, node):
-        self.write("true") if node.value==True else self.write("false")
+        self.write(node.value) #if node.value==True else self.write("false")
    
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
