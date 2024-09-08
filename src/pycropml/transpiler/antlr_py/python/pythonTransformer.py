@@ -595,7 +595,6 @@ class AstTransformer():
             t = self.visit(trailer)
             fname = r["name"] if isinstance(r, dict) else r
             m = t[0]
-            print("ittiii", m)
             if "type" in m and m["type"] == "sliceindex":
                 m["receiver"]= r
                 m["pseudo_type"] = r["pseudo_type"] 
@@ -681,7 +680,6 @@ class AstTransformer():
                                 "function": message,
                                 "pseudo_type": "unknown"}     
                         if r not in meth:
-                            print(node.get_text())
                             print("err", fname)
                         else:
                             if self.retrieve_library(fname) not in self._imports:
@@ -1118,7 +1116,6 @@ class AstTransformer():
         r1 = self.visit(subscript)
         if not COMMA:
             return r1
-        print("uuuuu", r1)
         res = r1 if len(r1)>1 else r1[0]
         r = {}
         r['type'] = "index"
@@ -1143,7 +1140,6 @@ class AstTransformer():
 
     def visit_subscript(self, node, ELLIPSIS, test, COLON, sliceop,comments, location):
         rt = []
-        print(node.get_text())
         if ELLIPSIS:
             pass
         elif test:
@@ -1159,8 +1155,6 @@ class AstTransformer():
                     print("todo sliceop [:c:c]")
                 else: print("todo [:c]")
             else:
-                print("yessss1")
-                print(rt)
                 if len(test)==1:
                     return  {'type': "sliceindex",
                             'message': "sliceindex_from",
@@ -1429,7 +1423,6 @@ class AstTransformer():
             print("comp_for not yet implemented")
         else:
             r =  self.visit(test) 
-            print(r)
             return r
     
     
