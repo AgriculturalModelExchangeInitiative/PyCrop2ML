@@ -174,7 +174,8 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.visit(node.expr)
     
     def visit_list(self, node):
-        if node.elements.type == "binary_op":     
+        print(node.y)
+        if "type" in dir(node.elements) and node.elements.type == "binary_op":     
             self.visit(node.elements.left.elements[0])
         else:
             self.emit_sequence(node.elements, u"[]")

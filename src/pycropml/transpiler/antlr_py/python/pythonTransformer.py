@@ -93,7 +93,7 @@ class Arglist(AliasNode):
     _fields_spec =["argument"]
 
 class Subscriptlist(AliasNode):
-    _fields_spec =["subscript"]
+    _fields_spec =["subscript", "COMMA"]
 
 class Argument(AliasNode):
     _fields_spec =["test","comp_for", "ASSIGN" ,"POWER", "STAR"]
@@ -103,6 +103,9 @@ class Subscript(AliasNode):
 
 class Atom(AliasNode):
     _fields_spec =["OPEN_PAREN", "yield_expr", "testlist_comp", "OPEN_BRACKET", "OPEN_BRACE", "dictorsetmaker", "REVERSE_QUOTE", "testlist", "ELLIPSIS", "name",  "PRINT", "EXEC", "MINUS", "number", "NONE", "STRING"]
+
+class Testlist_comp(AliasNode):
+    _fields_spec = ["test", "comp_for", "star_expr", "COMMA"]
     
 class Expr_stmt(AliasNode):
     _fields_spec = ["testlist_star_expr", "assign_part"]
@@ -206,6 +209,8 @@ class Transformer(BaseNodeTransformer):
         return While_stmt.from_spec(node)
     def visit_Class_or_func_def_stmt(self, node):
         return Class_or_func_def_stmt.from_spec(node)
+    def visit_Testlist_comp(self, node):
+        return Testlist_comp.from_spec(node)
                 
 
 class AstTransformer():
@@ -589,6 +594,12 @@ class AstTransformer():
                 return r
             t = self.visit(trailer)
             fname = r["name"] if isinstance(r, dict) else r
+            m = t[0]
+            print("ittiii", m)
+            if "type" in m and m["type"] == "sliceindex":
+                m["receiver"]= r
+                m["pseudo_type"] = r["pseudo_type"] 
+                return m
             if "args" in t[0]:
                 args = t[0]["args"]
                 if fname in BUILTIN_FUNCTIONS:
@@ -670,6 +681,7 @@ class AstTransformer():
                                 "function": message,
                                 "pseudo_type": "unknown"}     
                         if r not in meth:
+                            print(node.get_text())
                             print("err", fname)
                         else:
                             if self.retrieve_library(fname) not in self._imports:
@@ -689,9 +701,10 @@ class AstTransformer():
                         print('TODO method_call')
  
             else:
-                t[0]["sequence"] = r
-                if isinstance(r, dict): t[0]["pseudo_type"] = r["pseudo_type"][-1]
-                return t
+                return {"type":"index", 
+                        "sequence":r, 
+                        "index":t[0], 
+                        "pseudo_type":r["pseudo_type"][-1]}
         else:
             r = self.visit(expr)
             if len(r)>1:                
@@ -1101,8 +1114,11 @@ class AstTransformer():
         return r
 
 
-    def  visit_subscriptlist(self, node, subscript,comments, location):
+    def  visit_subscriptlist(self, node, subscript,comments,COMMA, location):
         r1 = self.visit(subscript)
+        if not COMMA:
+            return r1
+        print("uuuuu", r1)
         res = r1 if len(r1)>1 else r1[0]
         r = {}
         r['type'] = "index"
@@ -1135,18 +1151,27 @@ class AstTransformer():
             if len(node.children) == 1:
                 return rt
             elif node.children[0]==COLON:
-                print("todo [:c]")
-                if sliceop:
+                if len(test)==1:
+                    return  {'type': "sliceindex",
+                            'message': "sliceindex_to",
+                            'args': rt}
+                elif sliceop:
                     print("todo sliceop [:c:c]")
                 else: print("todo [:c]")
             else:
                 print("yessss1")
-                if len(test)==2:
-                    print("todo [c:c]")
+                print(rt)
+                if len(test)==1:
+                    return  {'type': "sliceindex",
+                            'message': "sliceindex_from",
+                            'args': rt}
+                elif len(test)==2:
                     if sliceop:
                         print("todo [c:c:c]")
                     else:
-                         print("todo [c:c]")
+                        return  {'type': "sliceindex",
+                                'message': "sliceindex",
+                                'args': rt}
         else:
             print("yessss6")
             if sliceop:
@@ -1156,7 +1181,6 @@ class AstTransformer():
         return rt
     
     def visit_atom(self, node, OPEN_PAREN, yield_expr, testlist_comp, OPEN_BRACKET, OPEN_BRACE,dictorsetmaker, REVERSE_QUOTE, testlist, ELLIPSIS, name,  PRINT, EXEC, MINUS, number, NONE, STRING, comments, location):
-
         if OPEN_PAREN:
             if not yield_expr and not testlist_comp:
                 print("ExprNodes.TupleNode(pos, args = [])")
@@ -1169,7 +1193,8 @@ class AstTransformer():
             if not testlist_comp:
                 return {'type': 'list', 'elements': [], 'pseudo_type': ['list', None]}
             else:
-                return self.visit(testlist_comp)
+                res = self.visit(testlist_comp)
+                return {'type': 'list', 'elements': res, 'pseudo_type': ['list', res[0]["pseudo_type"]]}
         elif OPEN_BRACE:
             if not dictorsetmaker:
                 return {'type': 'dict', 'pairs': [], 'pseudo_type': ['dict', None, None]}
@@ -1397,7 +1422,17 @@ class AstTransformer():
                 'test': test_node,
                 'block': self.visit(suite),
                 'pseudo_type': 'Void'
-            }    
+            }   
+    
+    def visit_testlist_comp(self, node, test, comp_for, COMMA,star_expr, comments, location):
+        if comp_for:
+            print("comp_for not yet implemented")
+        else:
+            r =  self.visit(test) 
+            print(r)
+            return r
+    
+    
 
 
 
