@@ -823,7 +823,7 @@ class AstTransformer():
         pseudo_type = self.type_env[str(NAME)]
         if not pseudo_type: self.notdeclared.add(str(NAME))
         res = self.visit(expression)
-        return {"type":"assignment", "target":{"type":"local", "name":str(NAME), "pseudo_type":pseudo_type}, "value":res, "comments":comments}
+        return {"type":"assignment", "op":"=", "target":{"type":"local", "name":str(NAME), "pseudo_type":pseudo_type}, "value":res, "comments":comments}
 
     
     def visit_module(self, node, moduleStmt, moduleBody, comments, location):
@@ -1243,14 +1243,14 @@ class AstTransformer():
                                   "object":{"type":self.type_env.top[str(NAME)], "name": str(NAME), "pseudo_type":self.type_env.top[str(NAME)]},
                                   "name":nam
                                   },
-                        "value":self.visit(expression),
+                        "value":self.visit(expression),"op":"=",
                         "comments":comments}
         else :
             if not sFExprListRef and not substringRange :
                 res = {"type":"assignment",
                         "target": {"type":"local", "name":str(NAME), "pseudo_type": self.type_env.top[str(NAME)]} ,
                         "value" : self.visit(expression),
-                        "pseudo_type":"VOID",
+                        "pseudo_type":"VOID","op":"=",
                         "comments":comments}
                 if isinstance(res["target"]["pseudo_type"], list) and (res["target"]["pseudo_type"][0]=="array" or res["target"]["pseudo_type"][0]=="list") and res["value"]["pseudo_type"] in ["int", "float", "str", "bool"]:
                     type_ = res["value"]["pseudo_type"]
@@ -1323,7 +1323,7 @@ class AstTransformer():
                             'pseudo_type':"void",
                         "comments":comments}
         else:
-            return [{"type":"assignment", "target":j, "value":{"type":j["pseudo_type"],"value":k[0],"type":j["pseudo_type"] }, 'pseudo_type':"void",
+            return [{"type":"assignment", "op":"=", "target":j, "value":{"type":j["pseudo_type"],"value":k[0],"type":j["pseudo_type"] }, 'pseudo_type':"void",
                         "comments":comments} for j,k in zip(res1, res2)]
                 
     
@@ -2007,7 +2007,7 @@ class AstTransformer():
     
     def visit_functionarg(self, node,NAME, expression,comments, location):
 
-        return {"type":"assignment", "target":{"type":"local", "name":str(NAME), "pseudo_type":self.type_env[str(NAME)]},
+        return {"type":"assignment", "op":"=", "target":{"type":"local", "name":str(NAME), "pseudo_type":self.type_env[str(NAME)]},
                                             "value":self.visit(expression),
                                             "pseudo_type":"VOID" ,
                                              "comments":comments}
@@ -2162,8 +2162,10 @@ class AstTransformer():
         arguments = [m for m in d if 'attr' in m and  (m['attr']=="IN" or  m['attr']=="INOUT") ] 
         out_pseudo_t = [m["pseudo_type"] for m in d if 'attr' in m and  (m['attr']=="OUT" or  m['attr']=="INOUT") ] 
         in_pseudo_t = [m["pseudo_type"] for m in arguments]
+        implicit_return = {}
         if self.out:
             return_type = [m["pseudo_type"] for m in d if self.out==m["name"] ]
+            implicit_return = {"type": "implicit_return", "pseudo_type":return_type[0] , "comments":comments}
         else: return_type = out_pseudo_t if len(out_pseudo_t)==1 else [["tuple"]+out_pseudo_t]
         body = []
         for n in z["_body"] :
@@ -2173,10 +2175,15 @@ class AstTransformer():
                 z["decl"] = []
                 z["comments"]=comments
                 for m in  n["decl"]:
-                    if m not in arguments and (self.out and self.out!=m["name"] and self.recursive==False) :
+                    if m not in arguments and  self.recursive==False : #(self.out and self.out!=m["name"]"
                         z["decl"].append(m)
                         body.append(z)
+                    if m not in arguments and  self.out and self.out==m["name"] and self.recursive==False: #self.out and self.out!=m["name"]
+                        res = dict(m)
+                        res["type"] = "local"
+                        implicit_return["value"] = res
             else: body.append(n)
+        body.append(implicit_return)
         res = {"type":"function_definition", 
                 "name": str(name), 
                 "params":arguments, 
