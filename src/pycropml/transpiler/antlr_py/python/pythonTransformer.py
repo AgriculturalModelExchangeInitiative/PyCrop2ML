@@ -1238,38 +1238,38 @@ class AstTransformer():
             print("I dont know", location)
         
     def visit_expr_stmt(self, node, testlist_star_expr,  assign_part, comments, location):
-            target = self.visit(testlist_star_expr)
-            if assign_part:
-                value = self.visit(assign_part)
-                if isinstance(value, dict) and "type" in value and value["type"] == 'declaration': 
-                    target = target["name"] if isinstance(target, dict) else target
-                    self.type_env.top[target] = value["decl"][0]["pseudo_type"]
-                    value["decl"][0]["name"] = target
-                    return value
-                elif isinstance(value, list):
-                    r = {"type":"list", "elements":value["value"], "pseudo_type":value[0]["pseudo_type"]}
-                else:
-                    r = value["value"]
+        target = self.visit(testlist_star_expr)
+        if assign_part:
+            value = self.visit(assign_part)
+            if isinstance(value, dict) and "type" in value and value["type"] == 'declaration': 
+                target = target["name"] if isinstance(target, dict) else target
+                self.type_env.top[target] = value["decl"][0]["pseudo_type"]
+                value["decl"][0]["name"] = target
+                return value
+            elif isinstance(value, list):
+                r = {"type":"list", "elements":value["value"], "pseudo_type":value[0]["pseudo_type"]}
+            else:
+                r = value["value"]
                     
-                #elif isinstance(value, dict) and value["type"] == 'attribute': 
-                    #value = 
+            #elif isinstance(value, dict) and value["type"] == 'attribute': 
+                #value = 
                 
-                return {
+            return {
                     'type': 'assignment',
                     'target': target,
                     'value': r,
                     'op':value["op"],
                     'pseudo_type': 'Void'
                 } 
+        else:
+            r = self.visit(testlist_star_expr)
+            if r["type"] == "str":
+                self.doc += r["value"].decode("utf-8") + "\n"
             else:
-                r = self.visit(testlist_star_expr)
-                if r["type"] == "str":
-                    self.doc += r["value"].decode("utf-8") + "\n"
-                else:
-                    return {
+                return {
                         "type": "ExprStatNode",
                         "expr": self.visit(testlist_star_expr)
-                }
+            }
                 
     
     def visit_assign_part(self, node, ASSIGN, testlist_star_expr, yield_exp, COLON, test ,testlist, ADD_ASSIGN, SUB_ASSIGN, MULT_ASSIGN, AT_ASSIGN, DIV_ASSIGN, MOD_ASSIGN,

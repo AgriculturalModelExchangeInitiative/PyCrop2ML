@@ -285,7 +285,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
 
     def visit_array(self, node):
 
-        if node.elements.type != "list":
+        if "type" in dir(node.elements) and node.elements.type != "list":
             if node.elements.type == "standard_call" and node.elements.function=="range":
                 self.write(u'(/(i_cyml_r,')
                 if len(node.elements.args)==1:
@@ -671,7 +671,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def part_declaration(self, node):
         self.visit_decl(node)
         if node.name in self.mod_parameters:
-            self.write(", PARAMETER :: %s = %s"%(node.name, valParam(self.model,node.name)))
+            self.write(", PARAMETER :: %s = %s"%(transf_var_name(node.name), valParam(self.model,node.name)))
         elif 'feat' in dir(node):         
             self.write(", INTENT(%s) "%(node.feat))
 
@@ -682,7 +682,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             if n.name not in self.mod_parameters:
                 self.newline(node)             
                 self.part_declaration(n)
-                self.write(':: %s'%(n.name)) 
+                self.write(':: %s'%(transf_var_name(n.name)))
             else:
                 self.newline(node)
                 self.part_declaration(n)                         
@@ -728,6 +728,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.write(" )")  
         if ("feat" not in dir(node)) and (("elts" not in dir(node) or not node.elts or len(node.elts)==0)): # and node.name not in self.parameters :
             self.write(", ALLOCATABLE ")
+        print(node.y)
         if("feat" in dir(node) and node.feat=="OUT") and ("elts" in dir(node) or not node.elts or len(node.elts)==0):
             self.write(", ALLOCATABLE ")
 
