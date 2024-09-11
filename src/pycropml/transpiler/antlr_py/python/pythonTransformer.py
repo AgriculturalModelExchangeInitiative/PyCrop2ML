@@ -1407,7 +1407,17 @@ class AstTransformer():
                     'name': expr_l[0]["name"]
                 },
                 'block':block
-            }     
+            }  
+        elif isinstance(test_l, dict) and test_l["type"]=="local" and test_l["pseudo_type"][0] in ["array", "list"]:
+            return {
+                'type': 'for_statement',
+                'sequences': {'type': 'for_sequence', 'sequence': test_l},
+                'iterators': {
+                    'type': 'for_iterator',
+                    'iterator': expr_l
+                },
+                "block": block
+            }   
         
     def visit_while_stmt(self, node,test,  suite ,else_clause, comments, location):
         test_node = self.visit(test)
