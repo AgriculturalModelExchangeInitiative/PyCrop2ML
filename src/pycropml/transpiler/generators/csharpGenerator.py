@@ -276,7 +276,13 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
             name  = node.value.function.split('model_')[1]
             self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
         else:
-            if node.value.type == "standard_call" and node.value.function=="integr":
+            if node.target.type=="index" and node.target.sequence.pseudo_type[0]=="list":
+                self.visit(node.target.sequence)
+                self.write(".Add(")
+                self.visit(node.value)
+                self.write(");")
+    
+            elif node.value.type == "standard_call" and node.value.function=="integr":
                 self.write("%s = new List<%s>(%s);"%(node.target.name,self.types[node.target.pseudo_type[1]], node.value.args[0].name))
                 self.newline(node)
                 if isinstance(node.value.args[1].pseudo_type, list):
@@ -318,7 +324,7 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
                         self.write(", out ")
                         self.write(elt.name)
                 self.write(");")
-                self.newline(1)             
+                self.newline(1)         
             else:
                 self.visit(node.target)
                 self.write(' = ')
