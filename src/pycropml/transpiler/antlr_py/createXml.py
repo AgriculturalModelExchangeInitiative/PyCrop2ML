@@ -61,7 +61,12 @@ class Pl2Crop2ml:
         xml.append(outputs)
         if md.initialization:
             for f in md.initialization:
-                init = ns.Initialization(name = f["name"], language="cyml", filename="algo/pyx/%s"%(f["filename"]))
+                if "algo" in f["filename"]:
+                    res = f["filename"]
+                else:
+                    res = "algo/pyx/%s"%f["filename"]
+
+                init = ns.Initialization(name = f["name"], language="cyml", filename=res)
                 xml.append(init)
         if md.function:
             for f in md.function:
