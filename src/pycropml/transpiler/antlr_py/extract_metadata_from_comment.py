@@ -137,7 +137,6 @@ def extract_compo(comment):
             head[keywords[i]] = re.search(p, comment).group(keywords[i])   
         i = i + 1
     m = ModelComposition(head)
-
     # description element of modelUnit (Title, Authors, Reference, Institution, Abstract)
     pat_description = r'-\s*Description:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*inputs|\n\s*[#!/]*\s*-\s*outputs|$)'
     text_description = re.search(pat_description, comment, re.DOTALL).group(1)

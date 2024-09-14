@@ -43,7 +43,6 @@ class Pl2Crop2ml:
         for inp in md.inputs:
             if "variablecategory" in dir(inp):
                 if inp.datatype.endswith("ARRAY"):
-                    print(inp)
                     inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, len=inp.len, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
                 else: inputs.append(ns.Input(name=inp.name, description=inp.description, inputtype=inp.inputtype, variablecategory=inp.variablecategory,  datatype=inp.datatype, max=inp.max, min = inp.min, default=inp.default, unit=inp.unit))
             else: 

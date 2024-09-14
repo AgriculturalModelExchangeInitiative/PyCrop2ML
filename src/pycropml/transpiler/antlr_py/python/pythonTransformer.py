@@ -251,9 +251,9 @@ class AstTransformer():
         body = self.visit(self.tree)
         self.type_env.top['__name__'] = "str"
         self.q=None
-        
+        #'definition':self.signature,
         #print(self.type_env.values)
-        return {'type': 'module','definition':self.signature, 'iterators':self.iterators, 'body': body if isinstance(body, list) else [body]}
+        return {'type': 'module', 'iterators':self.iterators, 'body': body if isinstance(body, list) else [body]}
     
     def visit_definitions(self):
         definitions = []
@@ -655,7 +655,6 @@ class AstTransformer():
                                 self.accessReturn(x[0])
                                 q = self.q["pseudo_type"]
                         else:
-                            
                             x = [f for f in self.signature if f.name.NAME == message]
                             argx = [a["pseudo_type"] for a in self.visit(x[0].typedargslist)]
                             #self._definition_index["functions"][message] = self.visit(x[0])

@@ -38,6 +38,8 @@ modeltag_end = "#"+model_tags[1]
 inittag_begin = "#"+init_tags[0]
 inittag_end = "#"+init_tags[1]
 
+
+
 def run_python(components, package):
     
     create_repo(package)    
@@ -171,10 +173,12 @@ def run_python(components, package):
                                 fi.write(extcode + '\n')
                         
                         models.append(mdata)
+                        mdata = z.orderedvar(mdata,meth)
                         generate_unitfile(package, mdata, package_name)  
                                  
                         break
                     else:
+                        mdata = z.orderedvar(mdata,meth)
                         models.append(mdata)
                         generate_unitfile(package, mdata, package_name)  
 
