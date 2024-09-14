@@ -233,7 +233,6 @@ class AstTransformer():
                         e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
                 else:
                     #if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
-                    print(value_node)
                     if value_node["type"] != "none":
                         a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
                         name, self.function_name, location[0])) 
