@@ -5,14 +5,15 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from path import Path
-from datetime import datetime
 import os.path
-from pycropml.modelunit import ModelUnit
+from os.path import isdir
+import sys
+from path import Path
 import six
 import shutil
+from datetime import datetime
+from pycropml.modelunit import ModelUnit
 from . import error
-import sys
 
 DATATYPE = {}
 DATATYPE['INT'] = "int"
@@ -63,7 +64,7 @@ class Model2Package(object):
         # Create a directory (mymodel)
         
         directory = Path(os.path.join(self.cwd, 'pyx'))
-        if directory.isdir():
+        if isdir(directory):
             self.dir = directory
         else:
             self.dir = directory.mkdir()
@@ -335,7 +336,7 @@ class Model2Package(object):
         TODO: Manage several models rather than just one.
         """
         self.rep = Path(os.path.join(self.rep, 'test', 'pyx'))
-        if not self.rep.isdir():
+        if not isdir(self.rep):
             self.rep.mkdir()
         files = []
         count = 0

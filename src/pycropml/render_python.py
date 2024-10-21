@@ -8,11 +8,12 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
+import os.path
+from os.path import isdir
+import six
+from datetime import datetime
 from path import Path
 import numpy
-from datetime import datetime
-import os.path
-import six
 
 try:
     from openalea.core import interface as inter
@@ -78,7 +79,7 @@ class Model2Package(object):
         # Create a directory (mymodel)
         cwd = Path(self.dir)
         directory=cwd/'python_model'
-        if (directory).isdir() :
+        if isdir(directory):
             self.dir = directory
         else:
             self.dir = directory.mkdir()
@@ -458,7 +459,8 @@ def generate_doc(model):
     Institution: %s
     ExtendedDescription: %s
     ShortDescription: %s
-""" %(desc.Title, "-Version: " + model.version +  "  -Time step: " + model.timestep, desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
+""" %(desc.Title, "-Version: " + model.version +  "  -Time step: " + model.timestep, 
+      desc.Authors, desc.Reference, desc.Institution, desc.ExtendedDescription, desc.ShortDescription)
 
     code = '\n'
     code += _doc
