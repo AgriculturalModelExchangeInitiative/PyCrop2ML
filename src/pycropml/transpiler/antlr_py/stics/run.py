@@ -1,6 +1,12 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os
+#import copy
+from os.path import isdir
+import tempfile
+from path import Path
+from collections import OrderedDict
+
 from pycropml.composition import Description
 from pycropml.transpiler.antlr_py import repowalk
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
@@ -9,16 +15,12 @@ from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
 from pycropml.transpiler.antlr_py.fortran import f90_cyml
 from pycropml.transpiler.antlr_py.cmake.cmakeTransformer import retrievefiles
-from collections import OrderedDict
 #from pycropml.transpiler.antlr_py.extraction import ExtractComments  
 from pycropml.transpiler.antlr_py.codeExtraction import extraction
 from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Declarations, Attr, Assignment, Call_stmt, Implicit_return, Local
 from pycropml.transpiler.antlr_py.to_specification import extractMetaInfo, createObjectModel, extractcomments, createObjectCompo
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml, generate_compositefile, generate_unitfile, create_repo
-import tempfile
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract
-import copy
-from path import Path
 
 types = ["float", "str", "list", "array", "int", "boolean"]
 
