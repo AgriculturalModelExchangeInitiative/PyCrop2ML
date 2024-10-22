@@ -142,27 +142,32 @@ class CodeGenerator(NodeVisitor):
     
         
     def safe_double(self, node):
-        if  sys.version_info.major<3:
-            if '"' in node.value:
-                if "'" in node.value:
-                    s = '"%s"' % node.value.replace('"', '\\"')
-                else:
-                    s = "'%s'" % node.value
-            else:
-                s = '"%s"' % node.value
+        # Decode the byte string to a normal string if it's in byte form
+        value = node.value.decode() if isinstance(node.value, bytes) else node.value
+    
+        # Escape any existing double quotes in the value
+        escaped_value = value.replace('"', '')
+        escaped_value = escaped_value.replace("'", "")
+    
+        # Wrap the result in double quotes and return
+        self.write(f'"{escaped_value}"')
+
+
+    
+    def safe_double2(self, node):
+        value = node.value
+        if isinstance(value, bytes):
+            value = value.decode()
+
+        if '"' in value:
+            s = '%s' % value.replace('"', '')
+        elif "'" in value:
+            s = '%s' % value.replace("'", '')
         else:
-            if b'"' in node.value:
-                if b"'" in node.value:
-                    s = '"%s"' % node.value.replace('"', '\\"')
-                else:
-                    #s = "'%s'" % node.value
-                    s = node.value.decode()
-            else:
-                #s = '"%s"' % node.value 
-                s = '"%s"' % node.value.decode() 
+            s = '%s' % value
             
         self.write(s)
-    
+
     def visit_simpleCall(self, node):
         self.visit(node.value)
         self.write(" %s "%node.op)
