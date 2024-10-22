@@ -536,7 +536,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit_declaration(newNode) #self.visit_decl(node)         
         if self.initialValue:
             for n in self.initialValue:
-                if len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
+                if not isinstance(n.value, list) and isinstance(n.value, Node):
+                    self.write("%s = " %n.name)
+                    self.visit(n.value)
+                    self.newline(node) 
+                elif len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
                     self.write("%s = " %n.name)
                     self.write(u'(/')
                     self.comma_separated_list(n.value)
