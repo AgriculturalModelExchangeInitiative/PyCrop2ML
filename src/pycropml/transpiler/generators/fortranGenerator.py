@@ -470,7 +470,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.visit_declaration([Node(type="local", name="res_cyml", pseudo_type=node.return_type)])
         if self.initialValue:
             for n in self.initialValue:
-                if isinstance(n.pseudo_type, list) and len(n.value)>=1 and n.pseudo_type[0] in ("list","array"):
+                if not isinstance(n.value, list) and isinstance(n.value, Node):
+                    self.write("%s = " %str(n.name))
+                    self.visit(n.value)
+                    self.newline(node) 
+                elif isinstance(n.pseudo_type, list) and len(n.value)>=1 and n.pseudo_type[0] in ("list","array"):
                     self.write("%s = " %n.name)
                     self.write(u'(/')
                     self.comma_separated_list(n.value)
@@ -537,7 +541,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if self.initialValue:
             for n in self.initialValue:
                 if not isinstance(n.value, list) and isinstance(n.value, Node):
-                    self.write("%s = " %n.name)
+                    self.write("%s = " %str(n.name))
                     self.visit(n.value)
                     self.newline(node) 
                 elif len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
