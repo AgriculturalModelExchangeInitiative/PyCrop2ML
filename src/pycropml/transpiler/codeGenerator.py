@@ -153,21 +153,6 @@ class CodeGenerator(NodeVisitor):
         self.write(f'"{escaped_value}"')
 
 
-    
-    def safe_double2(self, node):
-        value = node.value
-        if isinstance(value, bytes):
-            value = value.decode()
-
-        if '"' in value:
-            s = '%s' % value.replace('"', '')
-        elif "'" in value:
-            s = '%s' % value.replace("'", '')
-        else:
-            s = '%s' % value
-            
-        self.write(s)
-
     def visit_simpleCall(self, node):
         self.visit(node.value)
         self.write(" %s "%node.op)
