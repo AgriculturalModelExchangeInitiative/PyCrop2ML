@@ -509,13 +509,14 @@ class PythonSimulation(CodeGenerator):
         PythonCompo ([type]): [description]
     """
 
-    def __init__(self, modelcomposite):
+    def __init__(self, modelcomposite, package_name=''):
         """[summary]
 
         Args:
             modelcomposite (ModelComposite): [description]
         """
         self.modelcomposite = modelcomposite
+        self.package_name = package_name if package_name else self.modelcomposite.name
         self.params = []
         self.variables = []
         self.stateInit = []
@@ -629,7 +630,7 @@ class PythonSimulation(CodeGenerator):
     def generate_setup(self):
         self.write("import setuptools")
         self.newline(1)
-        self.write("setuptools.setup(name='%s',"%self.modelcomposite.name)
+        self.write("setuptools.setup(name='%s',"%self.package_name)
         self.newline(1)
         self.write("version='0.1',")
         self.newline(1)
@@ -660,7 +661,7 @@ class PythonSimulation(CodeGenerator):
         # project metainformation
         self.write('[project]')
         self.newline(1)
-        self.write(f'name = "{self.modelcomposite.name}"')
+        self.write(f'name = "{self.package_name}"')
         self.newline(1)
         self.write('authors = [{name = "%s"}]'%(self.modelcomposite.description.Authors))
         self.newline(1)
@@ -669,6 +670,9 @@ class PythonSimulation(CodeGenerator):
         self.write('version="0.1"')
         self.newline(1)
 
+        # project dependencies
+        self.write('dependencies = ["pandas","numpy"]')
+        self.newline(1)
 
 
 def newtype_func(type_):
