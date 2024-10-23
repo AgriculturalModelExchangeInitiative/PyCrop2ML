@@ -648,6 +648,27 @@ class PythonSimulation(CodeGenerator):
         self.write("zip_safe=False)")
         self.newline(1)
 
+    def generate_pyproject(self):
+        # use setuptools
+        self.write('[build-system]')
+        self.newline(1)
+        self.write('requires = ["setuptools>=61", "setuptools_scm[toml]>=7"]')
+        self.newline(1)
+        self.write('build-backend = "setuptools.build_meta"')
+        self.newline(1)
+
+        # project metainformation
+        self.write('[project]')
+        self.newline(1)
+        self.write(f'name = "{self.modelcomposite.name}"')
+        self.newline(1)
+        self.write('authors = [{name = "%s"}]'%(self.modelcomposite.description.Authors))
+        self.newline(1)
+        self.write(f'description="{self.modelcomposite.description.Abstract}"')
+        self.newline(1)
+        self.write('version="0.1"')
+        self.newline(1)
+
 
 
 def newtype_func(type_):
