@@ -155,7 +155,7 @@ def transpile_package(package, language):
 
     # create computing algorithm
     if language == "py":
-        simulation = PythonSimulation(T.model)
+        simulation = PythonSimulation(T.model, package_name=namep)
         simulation.generate()
         code = ''.join(simulation.result)
         filename = Path(os.path.join(tg_rep, "simulation.py"))
@@ -164,10 +164,13 @@ def transpile_package(package, language):
             tg_file.write(code.encode("utf-8"))
         with open(initfile, "wb") as tg_file:
             tg_file.write("".encode("utf-8"))
-        setup = PythonSimulation(T.model)
-        setup.generate_setup()
+
+        setup = PythonSimulation(T.model, package_name=namep)
+        #setup.generate_setup()
+        setup.generate_pyproject()
         code = ''.join(setup.result)
-        setupfile = Path(os.path.join(tg_rep1, "setup.py"))
+        #setupfile = Path(os.path.join(tg_rep1, "setup.py"))
+        setupfile = Path(os.path.join(tg_rep1, "pyproject.toml"))
         with open(setupfile, "wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
 
