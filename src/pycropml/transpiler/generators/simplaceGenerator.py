@@ -117,18 +117,25 @@ class SimplaceGenerator(JavaGenerator):
                     self.write(" = ")
                     if n.type=="local":
                         self.write(n.value)
-                    else: self.visit(n)
+                    else: self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)
                     self.write(";")
-                elif 'elements' in dir(n) and n.type in ("list", "tuple"):
+                elif 'elements' in dir(n) and n.type in ("list", "tuple", "array"):
                     if n.type=="list":
                         self.visit_decl(n.pseudo_type)
                         self.write(n.name)
                         self.write(" = new ArrayList <>(Arrays.asList") 
-                    if n.type=='tuple':
+                        self.write(u'(')
+                        self.comma_separated_list(n.elements)
+                        self.write(u'));') 
+                    elif n.type=='tuple':
                         pass
-                    self.write(u'(')
-                    self.comma_separated_list(n.elements)
-                    self.write(u'));')           
+                    elif n.type=="array":
+                        self.visit_decl(n.pseudo_type)
+                        self.write(n.name)
+                        self.write(" = ")  
+                        self.write(u'{')
+                        self.comma_separated_list(n.elements)
+                        self.write(u'};')           
                 elif  n.type=='datetime':
                     self.newline(node)
                     self.write("Date")
@@ -488,7 +495,8 @@ class SimplaceGenerator(JavaGenerator):
 
                 if inp.datatype.startswith("DATE"): zmin, zmax,zdefault= "null", "null", "null"
                 self.write('addVariable(FWSimVariable.createSimVariable("%s", "%s", DATA_TYPE.%s, CONTENT_TYPE.%s,"%s", %s, %s, %s, this));'%(inp.name, inp.description,DATA_TYPE[inp.datatype],ztype,unit, zmin, zmax, zdefault))
-                self.newline(node)     
+                self.newline(node) 
+    
 
 
 
