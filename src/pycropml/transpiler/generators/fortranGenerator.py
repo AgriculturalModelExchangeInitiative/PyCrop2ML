@@ -737,7 +737,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if ("feat" not in dir(node)) and (("elts" not in dir(node) or not node.elts or len(node.elts)==0)): # and node.name not in self.parameters :
             self.write(", ALLOCATABLE ")
         print(node.y)
-        if("feat" in dir(node) and node.feat=="OUT") and ("elts" in dir(node) or not node.elts or len(node.elts)==0):
+        if("feat" in dir(node) and node.feat=="OUT") and ("elts" in dir(node) and (not node.elts or len(node.elts)==0)):
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):
