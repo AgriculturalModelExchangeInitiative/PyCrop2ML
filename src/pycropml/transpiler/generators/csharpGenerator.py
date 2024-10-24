@@ -278,9 +278,11 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         else:
             if node.target.type=="index" and node.target.sequence.pseudo_type[0]=="list":
                 self.visit(node.target.sequence)
-                self.write(".Add(")
+                self.write("[")
+                self.visit(node.target.index)
+                self.write("]=")
                 self.visit(node.value)
-                self.write(");")
+                self.write(";")
     
             elif node.value.type == "standard_call" and node.value.function=="integr":
                 self.write("%s = new List<%s>(%s);"%(node.target.name,self.types[node.target.pseudo_type[1]], node.value.args[0].name))
