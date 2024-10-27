@@ -1,8 +1,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
 
-from path import Path
 import os
+from os.path import isdir
+from path import Path
+
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
@@ -14,10 +16,6 @@ from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.to_specification import extractcomments
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml, generate_compositefile, generate_unitfile, create_repo
 from pycropml.transpiler.antlr_py.codeExtraction import remove
-
-
-
-
 
 
 def translate(algo, names):
@@ -76,13 +74,13 @@ def run_simplace(components, output):
     simpleStrat= Path(components).glob('*.java')
     compositeStrat = Path(components).glob('*.xml')[0]
     crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-    if not crop2ml_rep.isdir():
+    if not isdir(crop2ml_rep):
         crop2ml_rep.mkdir()
     algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not algo_rep.isdir():
+    if not isdir(algo_rep):
         algo_rep.mkdir()
     cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not cyml_rep.isdir():
+    if not isdir(cyml_rep):
         cyml_rep.mkdir()
     models = []
     for strat in simpleStrat:

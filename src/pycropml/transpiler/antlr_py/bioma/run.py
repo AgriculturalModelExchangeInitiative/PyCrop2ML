@@ -2,8 +2,15 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-from path import Path
 import os
+from os.path import isdir
+from copy import deepcopy
+from typing import *
+from path import Path
+
+import networkx as nx
+import itertools
+
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
 from pycropml.transpiler.antlr_py.bioma.biomaExtraction import BiomaExtraction
 from pycropml.transpiler.pseudo_tree import Node
@@ -13,8 +20,6 @@ from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
 from pycropml.transpiler.antlr_py import repowalk
-from copy import deepcopy
-from typing import *
 
 from pycropml.transpiler.antlr_py.csharp.csharp_preprocessing import ExprStatNode, TransformLocal, CheckingInOut, Custom_call, Declarations,Assignment, Member_access, Binary_op, Index, Local
 from pycropml.transpiler.antlr_py.codeExtraction import extraction
@@ -58,19 +63,18 @@ pseudo_type_={
 
 def create_package(output):
     crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-    if not crop2ml_rep.isdir():
+    if not isdir(crop2ml_rep):
         crop2ml_rep.mkdir()
     algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not algo_rep.isdir():
+    if not isdir(algo_rep):
         algo_rep.mkdir()
     cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not cyml_rep.isdir():
+    if not isdir(cyml_rep):
         cyml_rep.mkdir()
     return crop2ml_rep, cyml_rep    
                 
 
-import networkx as nx
-import itertools
+
 
 def function_dependency(st, f):
     r = [f]

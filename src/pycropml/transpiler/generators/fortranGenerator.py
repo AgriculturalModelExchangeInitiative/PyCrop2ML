@@ -470,7 +470,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.visit_declaration([Node(type="local", name="res_cyml", pseudo_type=node.return_type)])
         if self.initialValue:
             for n in self.initialValue:
-                if isinstance(n.pseudo_type, list) and len(n.value)>=1 and n.pseudo_type[0] in ("list","array"):
+                if not isinstance(n.value, list) and isinstance(n.value, Node):
+                    self.write("%s = " %str(n.name))
+                    self.visit(n.value)
+                    self.newline(node) 
+                elif isinstance(n.pseudo_type, list) and len(n.value)>=1 and n.pseudo_type[0] in ("list","array"):
                     self.write("%s = " %n.name)
                     self.write(u'(/')
                     self.comma_separated_list(n.value)
@@ -536,7 +540,11 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit_declaration(newNode) #self.visit_decl(node)         
         if self.initialValue:
             for n in self.initialValue:
-                if len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
+                if not isinstance(n.value, list) and isinstance(n.value, Node):
+                    self.write("%s = " %str(n.name))
+                    self.visit(n.value)
+                    self.newline(node) 
+                elif len(n.value)>=1 and (isinstance(n.pseudo_type, list) and n.pseudo_type[0] in ("list", "array")):
                     self.write("%s = " %n.name)
                     self.write(u'(/')
                     self.comma_separated_list(n.value)
@@ -729,7 +737,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         if ("feat" not in dir(node)) and (("elts" not in dir(node) or not node.elts or len(node.elts)==0)): # and node.name not in self.parameters :
             self.write(", ALLOCATABLE ")
         print(node.y)
-        if("feat" in dir(node) and node.feat=="OUT") and ("elts" in dir(node) or not node.elts or len(node.elts)==0):
+        if("feat" in dir(node) and node.feat=="OUT") and ("elts" in dir(node) and (not node.elts or len(node.elts)==0)):
             self.write(", ALLOCATABLE ")
 
     def visit_float_decl(self, node):

@@ -7,13 +7,15 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
+import six
+import os
+from os.path import isdir
 from path import Path
 
 # The package used to generate Notebook
 import nbformat as nbf
 
 from . import render_python as rp
-import six
 
 
 
@@ -48,7 +50,7 @@ class Model2Nb(rp.Model2Package):
         # Create a directory (mymodel)
         cwd = Path(self.dir)
         directory=cwd/'python_notebook'
-        if (directory).isdir() :
+        if isdir(directory):
             _dir = directory
         else:
             _dir = directory.mkdir()
