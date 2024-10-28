@@ -83,6 +83,8 @@ def run_simplace(components, output):
     if not isdir(cyml_rep):
         cyml_rep.mkdir()
     models = []
+    p = SimplaceExtraction()
+    auxiliary = p.getAuxiliary(compositeStrat)
     for strat in simpleStrat:
         print(strat)
         with open(strat, "r") as f:
@@ -96,7 +98,7 @@ def run_simplace(components, output):
         strAsg = to_CASG(dictasgt)
 
         mm = SimplaceExtraction()
-        mm.modelunit(strAsg)
+        mm.modelunit(strAsg, auxiliary)
         mm.model.description
 
         names = [ j.name for j in mm.model.inputs + mm.model.outputs]   
