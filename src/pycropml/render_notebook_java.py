@@ -8,6 +8,8 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
+import os
+from os.path import isdir
 from path import Path
 
 # The package used to generate Notebook
@@ -48,7 +50,7 @@ class Model2Nb(rp.Model2Package):
         # Create a directory (mymodel)
         cwd = Path(self.dir)
         directory=cwd/'java_notebook'
-        if (directory).isdir() :
+        if isdir(directory):
             _dir = directory
         else:
             _dir = directory.mkdir()
