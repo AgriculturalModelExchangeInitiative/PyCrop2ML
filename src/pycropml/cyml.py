@@ -5,6 +5,7 @@ Created on Tue Mar 19 22:59:23 2019
 @author: midingoy
 """
 import os
+from os.path import isdir
 from path import Path
 import pycropml
 from pycropml.transpiler.main import Main
@@ -69,10 +70,9 @@ ext = {'r': 'r',
 cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py"]
 langs = ["cs", "cpp", "java", "f90", "r", "py"]
 
-domain_class = ["cs", "java", 'sirius', 'cpp', "cpp2", "bioma", "sirius2"]
-wrapper = ["cs", "sirius", "bioma", "sirius2"]
-platform = ["simplace", "sirius", "openalea", "apsim", "bioma", "record", "dssat", "stics", "sirius2"]
-
+domain_class = ["cs", "java", "sirius", "cpp", "cpp2", "bioma", "sirius2", "apsim"]
+wrapper=["cs", "sirius", "bioma", "sirius2", "apsim"]
+platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "stics", "sirius2"]
 
 def transpile_file(source, language):
     sourcef = source
@@ -106,31 +106,31 @@ def transpile_package(package, language):
     dir_doc = Path(os.path.join(pkg, 'doc'))
 
     # Generate packages if the directories does not exists.
-    if not output.isdir():
+    if not isdir(output):
         output.mkdir()
-    if not dir_test.isdir():
+    if not isdir(dir_test):
         dir_test.mkdir()
-    if not dir_doc.isdir():
+    if not isdir(dir_doc):
         dir_doc.mkdir()
 
     dir_images = Path(os.path.join(dir_doc, 'images'))
-    if not dir_images.isdir():
+    if not isdir(dir_images):
         dir_images.mkdir()
 
     m2p = render_cyml.Model2Package(models, dir=output)
     m2p.generate_package()  # generate cyml models in "pyx" directory
     tg_rep1 = Path(os.path.join(output, language))  # target language models  directory in output
     dir_test_lang = Path(os.path.join(dir_test, language))
-
-    if not tg_rep1.isdir():
+    
+    if not isdir(tg_rep1):
         tg_rep1.mkdir()
 
     namep_ = namep.replace("-", "_")
     tg_rep = Path(os.path.join(tg_rep1, namep_))
-    if not tg_rep.isdir():
+    if not isdir(tg_rep):
         tg_rep.mkdir()
 
-    if not dir_test_lang.isdir():  # Create if it doesn't exist
+    if not isdir(dir_test_lang):  #Create if it doesn't exist
         dir_test_lang.mkdir()
 
     m2p.write_tests()
@@ -189,7 +189,7 @@ def transpile_package(package, language):
 
     # create computing algorithm
     if language == "py":
-        simulation = PythonSimulation(T.model)
+        simulation = PythonSimulation(T.model, package_name=namep)
         simulation.generate()
         code = ''.join(simulation.result)
         filename = Path(os.path.join(tg_rep, "simulation.py"))
@@ -198,10 +198,13 @@ def transpile_package(package, language):
             tg_file.write(code.encode("utf-8"))
         with open(initfile, "wb") as tg_file:
             tg_file.write("".encode("utf-8"))
-        setup = PythonSimulation(T.model)
-        setup.generate_setup()
+
+        setup = PythonSimulation(T.model, package_name=namep)
+        #setup.generate_setup()
+        setup.generate_pyproject()
         code = ''.join(setup.result)
-        setupfile = Path(os.path.join(tg_rep1, "setup.py"))
+        #setupfile = Path(os.path.join(tg_rep1, "setup.py"))
+        setupfile = Path(os.path.join(tg_rep1, "pyproject.toml"))
         with open(setupfile, "wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
 

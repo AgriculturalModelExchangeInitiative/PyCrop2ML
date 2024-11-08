@@ -89,7 +89,6 @@ def float_expander(type, message, args):
 def len_expander(type, message, args):
     receiver_type = args[0]['pseudo_type']
     if isinstance(receiver_type, list):
-        print(receiver_type, "ioooo")
         a = receiver_type[0]
     else:
         a = receiver_type

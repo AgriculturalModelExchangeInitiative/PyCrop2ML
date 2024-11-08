@@ -26,7 +26,7 @@ path
 six
 nbformat
 numpy==1.16.6
-Cython
+Cython==0.29.21
 nbsphinx
 networkx
 graphviz

@@ -1175,7 +1175,7 @@ class AstTransformer():
             typ = x[0] if isinstance(x, list) else x
             return {"type":typ, "pseudo_type":x}
         if OBJECT: 
-            return self.visit(OBJECT)
+            return {"type":"object", "pseudo_type":"object"}
         if DYNAMIC: 
             return self.visit(DYNAMIC)
         if STRING: 
@@ -1225,7 +1225,7 @@ class AstTransformer():
         typ = self.visit(type_)
         decls = self.visit(constant_declarators)
         for d in decls: 
-            d["type"] = typ       
+            d["type"] = typ["pseudo_type"]       
             res["decl"].append(d)
         return res
     

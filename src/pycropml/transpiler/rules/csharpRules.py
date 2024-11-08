@@ -185,30 +185,33 @@ class CsharpRules(GeneralRule):
                 }
     }
     public_properties = '''
-        {
-            get { return this._%s; }
-            set { this._%s= value; } 
-        }'''
+    {
+        get { return this._%s; }
+        set { this._%s= value; } 
+    }'''
 
     public_properties_wrap = '''{ get { return %s.%s;}} 
      '''  
     constructor = '''
-        public %s() { }
+    /// <summary>
+    /// Constructor of the %s component")
+    /// </summary>  
+    public %s() { }
     '''
 
     copy_constr = '''
     public %s(%s toCopy, bool copyAll) // copy constructor 
     {
-    if (copyAll)
-    {
+        if (copyAll)
+        {
     '''
     copy_constrList = '''
             for (int i = 0; i < toCopy.%s.Count; i++)
-            { %s.Add(toCopy.%s[i]); }
+                { %s.Add(toCopy.%s[i]); }
     '''
     copy_constrArray = '''
             for (int i = 0; i < %s; i++)
-            { %s[i] = toCopy.%s[i]; }
+                { %s[i] = toCopy.%s[i]; }
     '''
     public_properties_compo = '''
     {

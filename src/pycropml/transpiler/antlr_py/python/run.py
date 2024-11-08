@@ -38,6 +38,8 @@ modeltag_end = "#"+model_tags[1]
 inittag_begin = "#"+init_tags[0]
 inittag_end = "#"+init_tags[1]
 
+
+
 def run_python(components, package):
     
     create_repo(package)    
@@ -86,7 +88,7 @@ def run_python(components, package):
             
             # TODO we only handle one init function and one unit in the same module or no init function
             
-            
+            funcs = []
             if py_units:
                 for py_unit in py_units:
                     
@@ -133,8 +135,7 @@ def run_python(components, package):
                         exfunc = os.path.join(package, "crop2ml", "algo", "pyx", name + ".pyx")
                         with open(exfunc, "w") as fi:
                             fi.write(extcode + '\n')
-                            
-                            
+                                
                     if py_inits:
                         dict_init = {} 
                         name_i = re.findall(r'(def\s+.+\()', py_inits[0])[0].replace("def", "").replace("(", "").strip()
@@ -149,12 +150,37 @@ def run_python(components, package):
                         with open(out_compute, "w") as fi:
                             fi.write(init_ + '\n')
                         mdata.initialization = [dict_init]  
+
+                        #extract external function used in model unit
+                        extfunc = z.externFunction(file_asg, meth_, True)
+                        # save external functions
+                        for ext in extfunc:
+                            name = ext.name
+                            mdata.function.append(name)
+                            r = [ext]
+                            # find all external dependencies of external functions
+                            while True:
+                                ext = ext if  isinstance(ext, list) else [ext]
+                                ex = [z.externFunction(file_asg, m, True, m.name) for m in ext ][0]
+                                if ex:
+                                    r.append(ex)
+                                    ext = ex
+                                else:
+                                    break
+                            extcode = writeCyml(r)
+                            exfunc = os.path.join(package, "crop2ml", "algo", "pyx", name + ".pyx")
+                            with open(exfunc, "w") as fi:
+                                fi.write(extcode + '\n')
                         
-                        generate_unitfile(package, mdata, package_name)           
+                        models.append(mdata)
+                        mdata = z.orderedvar(mdata,meth)
+                        generate_unitfile(package, mdata, package_name)  
+                                 
                         break
                     else:
+                        mdata = z.orderedvar(mdata,meth)
+                        models.append(mdata)
                         generate_unitfile(package, mdata, package_name)  
-                    models.append(mdata)
 
     for composite in composites:
         with open(composite, "r") as f:

@@ -7,10 +7,10 @@ class DocGenerator(CodeGenerator):
         - Inputs details
         - Outputs details        
     """
-    def __init__(self, model=None, tag='#'):
+    def __init__(self, model=None, tag='#', indent_with=' '*4 ):
         CodeGenerator.__init__(self)
         self.model=model
-        self.indent_with=' '*4 
+        self.indent_with=indent_with 
         self.tag = tag
         if self.model:
             self.inputs_doc = self.comment(self.doc(self.model.inputs, "inputs"))

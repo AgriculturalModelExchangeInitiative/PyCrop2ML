@@ -7,6 +7,7 @@ from pycropml.render_cyml import signature
 from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+from pycropml.nameconvention import signature2, signature2_from_name
 
 class RGenerator(CodeGenerator, RRules):
     """This class contains the specific properties of 
@@ -102,7 +103,7 @@ class RGenerator(CodeGenerator, RRules):
         self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(str(node.value).upper())
+        self.write(node.value).upper()
 
     def visit_str(self, node):
         self.emit_string(node)
@@ -239,6 +240,70 @@ class RGenerator(CodeGenerator, RRules):
         self.newline(extra=1)
         self.newline(node)
         self.funcname = node.name
+        if node.name.startswith("init_"):
+            self.write(f"#' @Title Initialization of the {self.model.description.Title}")
+            self.newline(1)
+            for arg in node.params:
+                for inp in self.model.inputs:
+                    if arg.name == inp.name:
+                        self.write(f"#' @param {inp.name} ({inp.unit}) {inp.description} {inp.parametercategory if 'parametercategory' in dir(inp) else inp.variablecategory} ({inp.default}, {inp.min}-{inp.max}) ")
+                        self.newline(1)
+            self.write(f"#'")
+            self.newline(1)
+            self.write(f"#' @return")   
+            self.newline(1)        
+            for out in self.model.outputs:
+                if out.variablecategory=="state":
+                    self.write(f"#'   \item {out.name} ({out.unit}) {out.description} {out.variablecategory} ({out.min}-{inp.max}) ")
+                    self.newline(1)
+            self.newline(1)
+            self.write(f"#'")
+            self.newline(1)                
+            self.write(f"#' @export")
+            self.newline(1)
+            
+        if self.model and  node.name.startswith("model_") and node.name.split("model_")[1]==signature(self.model):
+                print(dir(self.model.description))
+                self.write(f"#' @Title {self.model.description.Title}")
+                self.newline(1)
+                self.write(f"#' @Description {self.model.description.ExtendedDescription}")
+                self.newline(1)
+                self.write(f"#' @Authors {self.model.description.Authors} ")
+                self.newline(1)
+                self.write(f"#' @Institutions {self.model.description.Institution}")    
+                self.newline(1)
+                self.write(f"#' @Reference {self.model.description.Reference}")
+                self.newline(1)
+                self.write(f"#' @Version {self.model.version}")
+                self.newline(1)
+                self.write(f"#'")
+                self.newline(1)
+                for inp in self.model.inputs:
+                    self.write(f"#' @param {inp.name} ({inp.unit}) {inp.description} {inp.parametercategory if 'parametercategory' in dir(inp) else inp.variablecategory} ({inp.default}, {inp.min}-{inp.max}) ")
+                    self.newline(1)
+                self.write(f"#'")
+                self.newline(1)
+                self.write(f"#' @return")
+                self.newline(1)
+                for out in self.model.outputs:
+                    self.write(f"#'   \item {out.name} ({out.unit}) {out.description} {out.variablecategory} ({out.min}-{inp.max}) ")
+                    self.newline(1)
+                self.write(f"#'")
+                self.newline(1)                
+                self.write(f"#' @export")
+                self.newline(1)
+                
+                
+                
+                """self.write(self.doc.header)
+                self.newline(node)
+                self.write(self.doc.desc)
+                self.newline(node)
+                self.write(self.doc.inputs_doc)
+                self.newline(node)
+                self.write(self.doc.outputs_doc)
+                self.newline(node)
+                self.model = None"""
         self.write('%s <- function (' % node.name)
         for i, pa in enumerate(node.params): 
             self.write(pa.name)
@@ -249,16 +314,6 @@ class RGenerator(CodeGenerator, RRules):
                 self.write(',\n         ')
         self.write('){')
         self.newline(node)
-        if self.model and  node.name.startswith("model_") and node.name.split("model_")[1]==signature(self.model):
-            self.write(self.doc.header)
-            self.newline(node)
-            self.write(self.doc.desc)
-            self.newline(node)
-            self.write(self.doc.inputs_doc)
-            self.newline(node)
-            self.write(self.doc.outputs_doc)
-            self.newline(node)
-            self.model = None
         self.body(node.block)
         self.newline(node)
         self.write("}")
@@ -432,21 +487,121 @@ class RCompo(RGenerator):
         for C# languages.
     """
     def __init__(self, tree, model=None, name=None):
+        RGenerator.__init__(self,tree, model, name)
         self.tree = tree
         self.model = model
         self.name = name
-        RGenerator.__init__(self,tree, model, self.name)
         x = os.path.split(self.model.aPath)[0]
         z=x.split('\\')#.pop()
         z.pop()
         sourcePath = "/".join(z)+"/src/r"
-        self.write("library (gsubfn) ")
         self.newline()
-        self.write("setwd('%s')"%sourcePath)
+        self.write("#setwd('%s')"%sourcePath)
         self.newline()
         for m in self.model.model:
             self.write("source('%s.r')"%m.name.lower().capitalize())
             self.newline()
+
+        if not self.model.initialization:
+            self.newline(1)
+            self.write(f"#' @Title Initialization of {signature2_from_name(self.model.name)} component")
+            self.newline(1)
+            self.write(f"#' ")
+            self.newline(1)
+            self.initcomposition(tree)
+            self.newline(extra=1)
+            
+
+    def visit_module(self, node):
+        self.newline(extra=1)
+        self.newline(node)
+        self.visit(node.body)
+
+    def initcomposition(self, node):
+        print(self.model.name)
+        name = "init_"+ signature2_from_name(self.model.name)
+        pas = []
+        inps = []
+        z = ""
+        for i, pa in enumerate(self.model.inputlink):
+            p_source = pa["source"]
+            p_target = pa["target"].split(".")[1]
+            for m in self.model.model:
+                for inp in m.inputs:
+                    n=None
+                    if p_target == inp.name and ("parametercategory" in dir(inp) or inp.variablecategory == "exogenous")  and p_target not in pas:
+                        z = z + p_source + ", "
+                        pas.append(p_target)
+                        n = 1
+                        inps.append(inp) 
+
+        outs = []
+        for m in self.model.ord:
+            for mod in self.model.model:
+                if m == mod.name and "initialization" in dir(mod) and mod.initialization:
+                    for out in mod.outputs:
+                        if out.variablecategory == "state":
+                            outs.append(out) 
+
+        for inp in inps:
+            self.write(f"#' @param {inp.name} ({inp.unit}) {inp.description} {inp.parametercategory if 'parametercategory' in dir(inp) else inp.variablecategory} ({inp.default}, {inp.min}-{inp.max}) ")
+            self.newline(1) 
+        
+        self.write(f"#'")
+        self.newline(1)
+        self.write(f"#' @return")
+        self.newline(1)
+        for out in outs:
+            self.write(f"#'   \item {out.name} ({out.unit}) {out.description} {out.variablecategory} ({out.min}-{inp.max}) ")
+            self.newline(1)
+
+        self.write(f"#'")
+        self.newline(1)
+        self.write(f"#' @export") 
+        self.newline(1)
+        self.write(f"{name} <- function(")
+        z = z[:-2]
+        self.write(z)
+
+        self.write("){")
+        self.newline(1)
+        self.indentation += 1
+        states = []
+        print([{m.name:m.variablecategory} for m in self.model.inputs if "variablecategory" in dir(m)])
+        for m in self.model.inputs:
+            if "variablecategory" in dir(m) and (m.variablecategory == "state" or m.variablecategory == "auxiliary"):
+                states.append(m.name)
+        print(states)
+        for n in self.model.diff_in:
+            # write assignment such as key = value
+            if self.model.diff_in[n] not in states:
+                self.write(f"{n} <- {self.model.diff_in[n]}")
+                self.newline(1)
+            
+        for m in self.model.ord:
+            for mod in self.model.model:
+                if m == mod.name and "initialization" in dir(mod) and mod.initialization:
+                    self.write(f"i_{signature(mod)} <- init_{signature(mod)}(")
+                    par =[]
+                    for inp in mod.inputs:
+                        if "parametercategory" in dir(inp):
+                            par.append(inp.name)  
+                        elif inp.variablecategory == "exogenous":
+                            par.append(inp.name)
+                    for i, pa in enumerate(par): 
+                        self.write(pa)
+                        if i!= (len(par)-1):
+                            self.write(', ')
+                    self.write(")")
+                    self.newline(1)
+
+        self.newline(1)
+        self.write("return (list (")
+        self.multValreturn(outs) 
+        self.write("))")
+        self.indentation -= 1
+        self.write("}")
+
 
     def visit_tuple(self,node):
         self.write("list[")

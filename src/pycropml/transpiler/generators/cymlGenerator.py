@@ -174,7 +174,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.visit(node.expr)
     
     def visit_list(self, node):
-        if node.elements.type == "binary_op":     
+        if "type" in dir(node.elements) and node.elements.type == "binary_op":     
             self.visit(node.elements.left.elements[0])
         else:
             self.emit_sequence(node.elements, u"[]")
@@ -232,6 +232,8 @@ class CymlGenerator(CodeGenerator, CymlRules):
             self.visit(node.args[0])
             self.write(u":")
             self.visit(node.args[1])
+        if node.message == "slice_":
+            self.write(u":")
         self.write(u"]")
 
 
@@ -341,7 +343,6 @@ class CymlGenerator(CodeGenerator, CymlRules):
         self.newline(node)
         if node.comments:
             self.translate_com(node.comments)    
-        #print(node.y)
         if node.decl[0].type=="list" and ("elements" not in dir(node.decl[0]) or not node.decl[0].elements):
             self.write("cdef %s "%(node.decl[0].pseudo_type[1].lower() + node.decl[0].pseudo_type[0]))
         elif node.decl[0].type == "array"and "elements" not in dir(node.decl[0]):

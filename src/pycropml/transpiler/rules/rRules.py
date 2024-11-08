@@ -46,7 +46,7 @@ class RRules(GeneralRule):
                  }
 
     unary_op = {
-        'not': 'not ',
+        'not': '!',
         '+': '+',
         '-': '-',
         '~': '~'

@@ -1,0 +1,10 @@
+name: mtg
+channels:
+  - amei
+  - openalea3
+  - conda-forge
+
+dependencies:
+  - python
+  - sphinx_rtd_theme
+  - pycropml

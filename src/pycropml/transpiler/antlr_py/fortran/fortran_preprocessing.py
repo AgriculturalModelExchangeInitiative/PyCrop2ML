@@ -106,8 +106,8 @@ class Call_stmt(Middleware):
         inputs = [args[n] for n in subr.inputs_pos]
         if otherparams: inputs = otherparams + inputs
         outputs = [args[n] for n in subr.outputs_pos]
-        if len(outputs)==1: tree =Node(type="assignment", target = Node(type="local", name=outputs[0].name, pseudo_type=outputs[0].pseudo_type), value = Node(type="custom_call", function=name, args=inputs), comments = comments)
-        else: tree =Node(type="assignment", target = Node(type="tuple", elements=outputs), value = Node(type="custom_call", function=name, args=inputs), comments = comments)
+        if len(outputs)==1: tree =Node(type="assignment", op="=", target = Node(type="local", name=outputs[0].name, pseudo_type=outputs[0].pseudo_type), value = Node(type="custom_call", function=name, args=inputs), comments = comments)
+        else: tree =Node(type="assignment", op="=",target = Node(type="tuple", elements=outputs), value = Node(type="custom_call", function=name, args=inputs), comments = comments)
         return self.transform_default(tree)
 
 
