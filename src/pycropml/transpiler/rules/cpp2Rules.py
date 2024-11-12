@@ -16,10 +16,14 @@ def translateLog(node):
 
 def translateSum(node):
     if "name" in dir(node.receiver):
-        print(node.receiver.y)
+        #print(node.receiver.y)
+        if "cpp_struct_name" in dir(node.receiver) and node.receiver.cpp_struct_name is not None:
+            name = f"{node.receiver.cpp_struct_name}.{node.receiver.name}"
+        else:
+            name = node.receiver.name
         return Node("call", function="accumulate",
-                    args=[Node("local", name=f"{node.receiver.name}.begin()"),
-                        Node("local", name=f"{node.receiver.name}.end()"),
+                    args=[Node("local", name=f"{name}.begin()"),
+                        Node("local", name=f"{name}.end()"),
                         Node("int", value="0" if node.receiver.pseudo_type[1] == "int" else "0.0")],
                     pseudo_type=node.pseudo_type)
     

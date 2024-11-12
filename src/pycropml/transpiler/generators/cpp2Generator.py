@@ -196,6 +196,8 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.visit(node.receiver.args[1])
                 self.write(", 0.0)")
             else:
+                if self.funcname.startswith("model_") or self.funcname.startswith("init_"):
+                    node.receiver.cpp_struct_name = self.struct_name_for(node.receiver.name)
                 self.visit(z(node))
         else:
             if not node.args:
@@ -213,9 +215,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         "%s.%s" % (self.visit(node.receiver), self.write(node.message))
 
     def visit_local(self, node):
-        sn = self.struct_name_for(node.name)
-        if sn:
-            self.write(f"{sn}.")
+        #if node.name not in list(map(lambda p: p.name, self.params)):
+        if self.funcname.startswith("model_") or self.funcname.startswith("init_"):
+            sn = self.struct_name_for(node.name)
+            if sn:
+                self.write(f"{sn}.")
         self.write(node.name)
 
     def visit_index(self, node):
@@ -539,27 +543,27 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.newline(node)
                 self.write(self.doc.outputs_doc)
                 self.newline(node)
-            self.indentation += 1
-            for arg in z:  # self.add_features(node) :
-                if "feat" in dir(arg):
-                    if arg.feat in ("IN", "INOUT"):
-                        self.newline(node)
-                        if self.model and arg.name not in self.modparam:
-                            #self.visit_decl(arg.pseudo_type)
-                            #if arg.pseudo_type[0] in ["list", "array"]:
-                            #    self.write("&")
-                            #self.write(f" {arg.name}")
-                            if node.name.startswith("init_"):
-                                if arg.name in self.exogenous:
-                                    self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
-                                elif arg.pseudo_type[0] == "list":
-                                    self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>()")
-                                elif arg.pseudo_type[0] == "array":
-                                    x = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
-                                    if not x:
-                                        self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>()")
-                                    else:
-                                        self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>({x})")
+            #self.indentation += 1
+            #for arg in z:  # self.add_features(node) :
+            #    if "feat" in dir(arg):
+            #        if arg.feat in ("IN", "INOUT"):
+            #            self.newline(node)
+            #            if self.model and arg.name not in self.modparam:
+            #                self.visit_decl(arg.pseudo_type)
+            #                if arg.pseudo_type[0] in ["list", "array"]:
+            #                    self.write("&")
+            #                self.write(f" {arg.name}")
+            #                if node.name.startswith("init_"):
+            #                    if arg.name in self.exogenous:
+            #                        self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
+            #                    elif arg.pseudo_type[0] == "list":
+            #                        self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>()")
+            #                    elif arg.pseudo_type[0] == "array":
+            #                        x = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
+            #                        if not x:
+            #                            self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>()")
+            #                        else:
+            #                            self.write(f" = std::vector<{self.types[arg.pseudo_type[1]]}>({x})")
                             #else:
                             #    # make left hand side a reference to the result in case of lists and arrays
                             #    if arg.name in self.states and not arg.name.endswith("_t1"):
@@ -573,7 +577,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                             #    elif arg.name in self.exogenous:
                             #        self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
                             #self.write(";")
-            self.indentation -= 1
+            #self.indentation -= 1
         self.body(node.block)
         self.newline(node)
         self.visit_return(node)
@@ -672,15 +676,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_declaration(self, node):
         self.newline(node)
+        is_init_or_model_func = self.funcname.startswith("model_") or self.funcname.startswith("init_")
         for n in node.decl:
             dn = dir(n)
             self.newline(node)
             if 'value' not in dn and not isinstance(n.pseudo_type, list) and n.pseudo_type != "datetime":
-                self.write(self.types[n.pseudo_type])
-                self.write(f' {n.name};')
+                if "feat" not in dn or ("feat" in dn and n.feat not in ("OUT", "INOUT")):
+                    self.write(self.types[n.pseudo_type])
+                    self.write(f' {n.name};')
             elif 'elements' not in dn and n.type in ("list", "array"):
-                if "feat" in dn and n.feat == "OUT":
-                    pass
+                if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
+                    if n.type == "array" and "elts" in dn and n.elts:
+                        self.write(f"{self.struct_name_for(n.name)}.{n.name} = std::vector<{self.types[n.pseudo_type[1]]}>")
+                        self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
                 else:
                     if n.type == "list":
                         self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
@@ -691,29 +699,28 @@ class Cpp2Generator(CodeGenerator, CppRules):
                             self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name}")
                             self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
             elif 'value' in dn and n.type in ("int", "float", "str", "bool"):
-                if "feat" in dn and n.feat == "OUT":
-                    pass
+                if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
+                    self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
                 else:
-                    self.write(f"{self.types[n.type]} {n.name}")
-                    self.write(" = ")
-                    if n.type == "local":
-                        self.write(n.value)
-                    else:
-                        self.visit(n)
-                    self.write(";")
+                    self.write(f"{self.types[n.type]} {n.name} = ")
+                if n.type == "local":
+                    self.write(n.value)
+                else:
+                    self.visit(n)
+                self.write(";")
             elif n.type == 'datetime':
-                self.newline(node)
-                self.write("DateTime ")
-                self.write(n.name)
+                if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
+                    self.write(f"{self.struct_name_for(n.name)}.{n.name}")
+                else:
+                    self.write(f"DateTime {n.name}")
                 if "elts" in dir(n):
                     self.write(" = ")
                     self.visit(n.elts)
                 self.write(";")
             elif 'elements' in dn and n.type in ("list", "tuple"):
-                if "feat" in dn and n.feat in ("OUT", "INOUT"):
+                if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     if n.type == "list":
-                        self.write(f"{self.struct_name_for(n.name)}.{n.name}")
-                        self.write(" = ")
+                        self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
                         self.write(u'{')
                         self.comma_separated_list(n.elements)
                         self.write(u'};')
@@ -769,12 +776,12 @@ class Cpp2Generator(CodeGenerator, CppRules):
     def visit_float_decl(self, node, pa=None):
         self.write(self.types[node])
         if pa:
-            dpa = dir(pa)
+            dpa = pa.__dict__
             if "name" in dpa:
                 self.write(f" {pa.name}")
                 if "default_val" in dpa and pa.default_val:
                     self.write(f"{{{pa.default_val}}}")
-                else:
+                elif dpa.get("feat", None) != "IN":
                     self.write(f"{{{0.0}}}")
 
     def visit_datetime_decl(self, node):
@@ -783,12 +790,12 @@ class Cpp2Generator(CodeGenerator, CppRules):
     def visit_int_decl(self, node, pa=None):
         self.write(self.types[node])
         if pa:
-            dpa = dir(pa)
+            dpa = pa.__dict__
             if "name" in dpa:
                 self.write(f" {pa.name}")
                 if "default_val" in dpa and pa.default_val:
                     self.write(f"{{{pa.default_val}}}")
-                else:
+                elif dpa.get("feat", None) != "IN":
                     self.write(f"{{{0}}}")
 
     def visit_str_decl(self, node, pa=None):
@@ -798,17 +805,17 @@ class Cpp2Generator(CodeGenerator, CppRules):
             if "name" in dpa:
                 self.write(f" {pa.name}")
                 if "default_val" in dpa and pa.default_val:
-                    self.write(f"{{{pa.default_val}}}")
+                    self.write(f"{{\"{pa.default_val}\"}}")
 
     def visit_bool_decl(self, node, pa=None):
         self.write(self.types[node])
         if pa:
-            dpa = dir(pa)
+            dpa = pa.__dict__
             if "name" in dpa:
                 self.write(f" {pa.name}")
                 if "default_val" in dpa and pa.default_val:
                     self.write(f"{{{pa.default_val}}}")
-                else:
+                elif dpa.get("feat", None) != "IN":
                     self.write(f"{{{False}}}")
 
     def visit_array_decl(self, node, pa=None):
