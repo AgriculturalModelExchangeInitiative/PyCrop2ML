@@ -19,9 +19,8 @@ from pycropml.cyml import transpile_file, transpile_package, transpile_component
 
 from pycropml.transpiler.main import languages
 
+
 def main():
-
-
     usage = """Usage: %prog [options] package language1 [languages]
 
 cyml transpiler translate a cyml source code or a Crop2ML package with algo in cyml
@@ -41,7 +40,7 @@ Example
         apsim, bioma, dssat, openalea, record, simplace, stics
 
 """
-#TODO
+    # TODO
     todo = """
     * target language must be:
         py for python
@@ -56,18 +55,17 @@ Example
 
     parser = OptionParser(usage=usage)
 
-
     parser.add_option("-f", "--file", dest="file", metavar="FILE",
-        help="cyml source code FILE to transpile")
+                      help="cyml source code FILE to transpile")
     parser.add_option("-p", "--package", dest="package",
-        help="package directory containing a crop2ml directory with algorithms.")
+                      help="package directory containing a crop2ml directory with algorithms.")
     parser.add_option("-c", "--component", dest="component",
-        help="framework model component directory")
+                      help="framework model component directory")
     parser.add_option("-l", "--languages", dest="languages", action="append",
-        choices=languages,
-        help="Target languages : "+','.join(languages))
+                      choices=languages,
+                      help="Target languages : " + ','.join(languages))
 
-    (opts, args)= parser.parse_args()
+    (opts, args) = parser.parse_args()
 
     sourcef = None
     pyx_filename = None
@@ -86,10 +84,11 @@ Example
     elif opts.component:
         sourcef = component = opts.component
     else:
-        if len(args)==0: 
+        if len(args) == 0:
             parser.print_usage()
             return
-        else: sourcef = args[0]
+        else:
+            sourcef = args[0]
 
     sourcef = Path(sourcef)
     if not sourcef.exists():
@@ -99,8 +98,8 @@ Example
         langs = opts.languages
     else:
         if opts.component:
-           newpackage = args[0]
-           args = args[1:]
+            newpackage = args[0]
+            args = args[1:]
         langs = [a for a in args if a in languages]
 
     fail = False
@@ -108,7 +107,7 @@ Example
         if arg == sourcef:
             continue
         if arg not in languages:
-            parser.error("%s is not a supported language"%arg)
+            parser.error("%s is not a supported language" % arg)
             fail = True
 
     if fail:
@@ -119,11 +118,10 @@ Example
         print(parser.usage)
         return
 
-
     if pyx_filename or len(sourcef.split(".")) == 2:
         # translate from cyml code
         if sourcef.split(".")[1] != "pyx":
-            parser.error("Source code %s is not a Cyml file (.pyx estension) "%(str(sourcef)))
+            parser.error("Source code %s is not a Cyml file (.pyx estension) " % (str(sourcef)))
             return
 
         for language in langs:
@@ -133,8 +131,7 @@ Example
             status = transpile_package(sourcef, language)
     else:
         for language in langs:
-            status = transpile_component(sourcef,newpackage,language)
-
+            status = transpile_component(sourcef, newpackage, language)
 
 
 if __name__ == '__main__':
