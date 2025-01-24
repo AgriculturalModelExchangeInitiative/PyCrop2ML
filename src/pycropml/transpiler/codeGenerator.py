@@ -26,14 +26,14 @@ class CodeGenerator(NodeVisitor):
             self.write('# line: %s' % node.lineno)
             self.new_lines = 1
 
-    
     def body(self, statements):
         self.new_line = True
         self.indentation += 1
         if isinstance(statements, list):
             for stmt in statements:
                 self.visit(stmt)
-        else: self.visit(statements)
+        else:
+            self.visit(statements)
         self.indentation -= 1
 
     def body_or_else(self, node):
