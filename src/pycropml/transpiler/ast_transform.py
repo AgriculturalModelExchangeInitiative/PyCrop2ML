@@ -792,7 +792,8 @@ class AstTransformer():
                 arg_nodes = [arg if not isinstance(arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
                 if function.name not in meth and function.name not in FUNCTION_API["math"] :
-                    print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
+                    print("err", function.name)
+                    #print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
                 else:
                     if self.retrieve_library(function.name) not in self._imports:
                         self._imports.append(
@@ -1046,6 +1047,7 @@ class AstTransformer():
                 }
 
     def visit_subnode(self, node, operand1, operand2, location):
+        print(node.py_result, node.target_code, location)
         op = node.operator
         operand1 = node.operand1
         operand2 = node.operand2
