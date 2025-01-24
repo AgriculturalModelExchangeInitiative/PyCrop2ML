@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.IsMomentRegistredZC_39" name="IsMomentRegistredZC_39" timestep="1" version="001">
+    <Description>
+        <Title>IsMomentRegistredZC_39 model</Title>
+        <Authors>Pierre Martre</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>if FlagLeafLiguleJustVisible is already Registred </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="calendarMoments_t1" description="List containing appearance of each stage" inputtype="variable" variablecategory="state" datatype="STRINGLIST" max="" min="" default="" unit=""/></Inputs>
+    <Outputs>
+        <Output name="isMomentRegistredZC_39" description=" if Flag leaf ligule has already appeared " datatype="INT" variablecategory="state" max="1" min="0" unit=""/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/IsMomentRegistredZC_39.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

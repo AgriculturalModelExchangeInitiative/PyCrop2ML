@@ -23,6 +23,7 @@ DATATYPE['DOUBLE'] = "float"
 DATATYPE['DOUBLELIST'] = "list"
 DATATYPE['INTLIST'] = "list"
 DATATYPE['STRINGLIST'] = "list"
+DATATYPE['STRINGARRAY'] = "str"
 DATATYPE['CHARLIST'] = "list"
 DATATYPE['DATELIST'] = "datelist"
 DATATYPE['DOUBLEARRAY'] = "float"
@@ -169,6 +170,8 @@ class Model2Package(object):
                 outs.append(inp)
                 if not inp.default:
                     other += tab + inp.name + " = " + default_value(inp)+"\n"
+            elif "parametercategory" in dir(inp) and inp.parametercategory == "private":
+                outs.append(inp)
         
         code = ""
         if model_unit.initialization:
@@ -448,14 +451,14 @@ def my_input(_input, defa=False):
                 default = float(default) if DATATYPE[_type] == "float" else int(default)
                 return f'{DATATYPE[_type]} {name} = {default}'
         else:
-            if _type == "DOUBLEARRAY" or _type == "INTARRAY":
+            if _type == "DOUBLEARRAY" or _type == "INTARRAY" or _type == "STRINGARRAY":
                 length = _input.len
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return (f"{DATATYPE[_type]} {name}[{length}]")
             else:
                 return (f"{DATATYPE2[_type]} {name}")
     else:
-            if _type == "DOUBLEARRAY" or _type == "INTARRAY":
+            if _type == "DOUBLEARRAY" or _type == "INTARRAY" or _type == "STRINGARRAY":
                 length = _input.len
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return (f"{DATATYPE[_type]} {name}[{length}]")
@@ -480,6 +483,7 @@ DATATYPE2['DOUBLE'] = "float"
 DATATYPE2['DOUBLELIST'] = "floatlist"
 DATATYPE2['INTLIST'] = "intlist"
 DATATYPE2['STRINGLIST'] = "stringlist"
+DATATYPE2['STRINGARRAY'] = "stringarray"
 DATATYPE2['CHARLIST'] = "stringlist"
 DATATYPE2['DATELIST'] = "datelist"
 DATATYPE2['DOUBLEARRAY'] = "floatarray"

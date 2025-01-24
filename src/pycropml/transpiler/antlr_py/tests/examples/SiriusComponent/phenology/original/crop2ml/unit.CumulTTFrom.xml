@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.CumulTTFrom" name="CumulTTFrom" timestep="1" version="001">
+    <Description>
+        <Title>CumulTTFrom model</Title>
+        <Authors>Pierre Martre</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>Calculate CumulTT </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="cumulTT" description="cumul thermal times at currentdate" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="-200" default="112.330110409888" unit="Â°C d"/>
+        <Input name="calendarMoments_t1" description="List containing appearance of each stage" inputtype="variable" variablecategory="state" datatype="STRINGLIST" max="" min="" default="" unit=""/>
+        <Input name="calendarCumuls_t1" description="list containing for each stage occured its cumulated thermal times" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="Â°C d"/></Inputs>
+    <Outputs>
+        <Output name="cumulTTFromZC_65" description=" cumul TT from Anthesis to current date " datatype="DOUBLE" variablecategory="auxiliary" max="-5000" min="0" unit="Â°C d"/>
+        <Output name="cumulTTFromZC_91" description=" cumul TT from EndGrainFilling to current date " datatype="DOUBLE" variablecategory="auxiliary" max="4000" min="0" unit="Â°C d"/>
+        <Output name="cumulTTFromZC_39" description=" cumul TT from FlagLeafLiguleJustVisible to current date " datatype="DOUBLE" variablecategory="auxiliary" max="5000" min="0" unit="Â°C d"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/CumulTTFrom.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

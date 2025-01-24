@@ -35,7 +35,9 @@ class CymlRules(GeneralRule):
                  "<=": "<=",
                  "!=": "!=",
                  "%":"%",
-                 "&":"&"
+                 "&":"&",
+                 "is":"is",
+                "is not":"is not"
                  }
 
     unary_op = {
@@ -71,7 +73,8 @@ class CymlRules(GeneralRule):
             'round':        'round',
             'exp':         'exp',
             "floor": "floor",
-            "pow": "pow"
+            "pow": "pow",
+            "isnan": "isnan"
 
         },
        'io': {

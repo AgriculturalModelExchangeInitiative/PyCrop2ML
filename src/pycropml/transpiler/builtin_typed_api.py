@@ -196,7 +196,8 @@ TYPED_API = {
         'ceil':         ['float', 'int'],
         'exp':          ['float','float'],
         'pi': 'pi',
-        'floor':["Number", "int"]
+        'floor':["Number", "int"],
+        'isnan':["Number", "boolean"]
         
         
     },
@@ -408,7 +409,7 @@ PSEUDO_OPS = {
     ExprNodes.MulNode: '*',
     ExprNodes.DivNode: '/',
     ExprNodes.PowNode: '**',
-    ExprNodes.PrimaryCmpNode: ['==','<','>','<=','>=','!=', 'in', 'not_in',"is"],
+    ExprNodes.PrimaryCmpNode: ['==','<','>','<=','>=','!=', 'in', 'not_in',"is", "is_not"],
     ExprNodes.ModNode: '%',
     ExprNodes.BoolBinopNode: ['and','or']
 }

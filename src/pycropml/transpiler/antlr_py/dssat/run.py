@@ -255,7 +255,7 @@ def run_dssat(component, package):
                 comments_compute = fortrancomments(algoPart)
                 algoPart_dictasg = to_dictASG(algoPart, language,comments_compute, env = modunit_asg[0].env)
                 algoPart_asg = to_CASG(algoPart_dictasg)
-                r = translate(decl+algoPart_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
+                codes_compute = translate(decl+algoPart_asg,asgt,imports,inout=inout, index = modunit_asg[0].indexnames)
             
             if ratecalculation:
                 ratep = True

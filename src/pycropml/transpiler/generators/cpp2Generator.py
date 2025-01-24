@@ -1406,18 +1406,20 @@ def header_mu_cpp(models, rep, name):
     for m in models[0].model:
         h = []
         if m.function:
+            from pycropml.transpiler.main import Main
+            V="from math import *\n"
             for mf in m.function:
                 file_func = mf.filename
                 path_func = Path(os.path.join(m.path, "crop2ml", file_func))
-                func_tree = parser(Path(path_func))
-                newtree = AstTransformer(func_tree, path_func)
-                # print(newtree)
-                dict_ast = newtree.transformer()
-                node_ast = transform_to_syntax_tree(dict_ast)
-                z = {}
-                for f in filter(lambda x: x.type == "function_definition", node_ast.body):
-                    z[f.name] = [f.return_type, f.params]
-                h.append(z)
+                with open(path_func, 'r') as file:
+                    V += file.read() + "\n\n"
+            cst = Main(V, 'cpp')
+            p = cst.parse()   # convert to cst
+            node_ast = cst.to_ast(V)  # convert to ast 
+            z = {}
+            for f in filter(lambda x: x.type == "function_definition", node_ast.body):
+                z[f.name] = [f.return_type, f.params]
+            h = [z]
         generator = Cpp2Trans([m])
         generator.result = [f'''
 #pragma once

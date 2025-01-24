@@ -234,6 +234,11 @@ TYPED_API = {
         'len':     [["List", '@t'],'int'],
         'index':      ['@t','int'],
     },
+    'array': {
+        'ConstrainedCopy':       [['array', '@t'],'int',['array', '@t'],"int","int", ['array', '@t']],
+        #"copyto":       [['array', '@t'],"int",['array', '@t']],
+        "except":       [['array', '@t'],['array', '@t']]
+    }
 }
     
 ORIGINAL_METHODS = {
@@ -288,7 +293,8 @@ ORIGINAL_METHODS = {
         'length':      'len',
         'find':        'find(element)',
         'count':       'count(element)',
-        'append':       'append(element)'
+        'append':       'append(element)',
+        'Except': 'except(element)',
     },
 
     'tuple': {
@@ -324,7 +330,7 @@ KEY_TYPES = {'str', 'int', 'float', 'bool','double'}
 
 PSEUDO_KEY_TYPES = {'str', 'int', 'float', 'bool','double'}
 
-BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow', "mean", "count", "copy", "integr"}
+BUILTIN_FUNCTIONS = {'print', 'input', 'str', 'set', 'int','float', 'len', 'any', 'all', 'sum', 'min', 'max', 'abs','pow', "mean", "count", "copy", "integr", "except"}
 
 FORBIDDEN_TOP_LEVEL_FUNCTIONS = {'map', 'filter'}
 

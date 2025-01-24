@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Simplace.SoilTemp.SnowCoverCalculator" name="SnowCoverCalculator" timestep="1" version="001">
+    <Description>
+        <Title>SnowCoverCalculator model</Title>
+        <Authors>Gunther Krauss</Authors>
+        <Institution>INRES Pflanzenbau, Uni Bonn</Institution>
+        <URI>http://www.simplace.net/doc/simplace_modules/</URI>
+        <Reference>(&apos;http://www.simplace.net/doc/simplace_modules/&apos;,)</Reference>
+        <ExtendedDescription>as given in the documentation</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="cCarbonContent" description="Carbon content of upper soil layer" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="20.0" min="0.0" default="0.5" unit="http://www.wurvoc.org/vocabularies/om-1.8/percent"/>
+        <Input name="iTempMax" description="Daily maximum temperature" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="50.0" min="-40.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="iTempMin" description="Daily minimum temperature" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="50.0" min="-40.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="iRadiation" description="Solar radiation" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="2000.0" min="0.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/megajoule_per_square_metre"/>
+        <Input name="iRAIN" description="Rain amount" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="60.0" min="0.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/millimetre"/>
+        <Input name="iCropResidues" description="Crop residues plus above ground biomass" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="20000.0" min="0.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/gram_per_square_metre"/>
+        <Input name="iPotentialSoilEvaporation" description="Potenial Evaporation" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="12.0" min="0.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/millimetre"/>
+        <Input name="iLeafAreaIndex" description="Leaf area index" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="10.0" min="0.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/square_metre_per_square_metre"/>
+        <Input name="iSoilTempArray" description="Soil Temp array of last day" inputtype="variable" variablecategory="exogenous" datatype="DOUBLEARRAY" len="" max="35.0" min="-15.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="Albedo" description="Albedo" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="1.0" min="0.0" default="" unit="http://www.wurvoc.org/vocabularies/om-1.8/one"/>
+        <Input name="SnowWaterContent" description="Snow water content" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="1500.0" min="0.0" default="0.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/millimetre"/>
+        <Input name="SoilSurfaceTemperature" description="Soil surface temperature" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="70.0" min="-40.0" default="0.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Input name="AgeOfSnow" description="Age of snow" inputtype="variable" variablecategory="state" datatype="INT" max="null" min="0" default="0" unit="http://www.wurvoc.org/vocabularies/om-1.8/one"/></Inputs>
+    <Outputs>
+        <Output name="SnowWaterContent" description="Snow water content" datatype="DOUBLE" variablecategory="state" max="1500.0" min="0.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/millimetre"/>
+        <Output name="SoilSurfaceTemperature" description="Soil surface temperature" datatype="DOUBLE" variablecategory="state" max="70.0" min="-40.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"/>
+        <Output name="AgeOfSnow" description="Age of snow" datatype="INT" variablecategory="state" max="null" min="0" unit="http://www.wurvoc.org/vocabularies/om-1.8/one"/>
+        <Output name="SnowIsolationIndex" description="Snow isolation index" datatype="DOUBLE" variablecategory="auxiliary" max="1.0" min="0.0" unit="http://www.wurvoc.org/vocabularies/om-1.8/one"/></Outputs>
+    <Initialization name="init" language="cyml" filename="algo/pyx/init.SnowCoverCalculator.pyx"/>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/SnowCoverCalculator.pyx"/>
+    <Parametersets>
+        <Parameterset name="pset1" description="first parametersets">
+            <Param name="cCarbonContent">10.0</Param></Parameterset></Parametersets>
+    <Testsets>
+        <Testset name="testset1" parameterset="pset1" description="first testset">
+            <Test name="test1">
+                <InputValue name="iTempMax">3.0</InputValue>
+                <InputValue name="iTempMin">-9.0</InputValue>
+                <InputValue name="iRadiation">1.4</InputValue>
+                <InputValue name="iRAIN">6.0</InputValue>
+                <InputValue name="iCropResidues">30.0</InputValue>
+                <InputValue name="iPotentialSoilEvaporation">0.6</InputValue>
+                <InputValue name="iLeafAreaIndex">0.1</InputValue>
+                <InputValue name="iSoilTempArray">[2.6, 5.4, 8.6, 12.2, 11.4, 10.6, 9.8, 9.0]</InputValue>
+                <InputValue name="SnowWaterContent">5.0</InputValue>
+                <InputValue name="AgeOfSnow">5</InputValue>
+                <InputValue name="SoilSurfaceTemperature">1.8397688</InputValue>
+                <OutputValue name="SnowWaterContent" precision="5">10.7</OutputValue>
+                <OutputValue name="AgeOfSnow" precision="5">6</OutputValue>
+                <OutputValue name="SnowIsolationIndex" precision="5">1.0</OutputValue>
+                <OutputValue name="SoilSurfaceTemperature" precision="5">2.6</OutputValue></Test></Testset></Testsets></ModelUnit>

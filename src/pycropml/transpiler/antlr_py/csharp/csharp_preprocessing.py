@@ -378,7 +378,6 @@ class Custom_call(Middleware):
                         return transform_to_syntax_tree({"type": 'assignment', "target":self.ext_func_inout[f.name]["outputs"],'op':"=", 'value': tree})
                     z.getTypeNode(f, "implicit_return")
                     if not z.getTree:
-                        print("TODODODODODODO")
                         return transform_to_syntax_tree({"type": 'ExprStatNode', 'expr': tree})
         return self.transform_default(tree)
 
@@ -420,7 +419,6 @@ class Declarations(Middleware):
             else:
                  
                 if decl.type=="array" and "init" in dir(decl.value):
-                    print(decl.name, "bababe")
                     if decl.value.init.value is None:
                         r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
                         self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
@@ -436,7 +434,7 @@ class Declarations(Middleware):
                     self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
                     self.declnames.append(decl.name)
                 else:
-                    if decl.value.type=="List" and "args" in dir(decl.value) and len(decl.value.args)==1 and decl.value.args[0].name==decl.name: return
+                    if "type" in dir(decl.value) and decl.value.type=="List" and "args" in dir(decl.value) and len(decl.value.args)==1 and decl.value.args[0].name==decl.name: return
                     if isinstance(decl.pseudo_type, Node):
                         r = decl.value.pseudo_type
                         decl.type = r[0] if  isinstance(r, list)   else r
@@ -445,7 +443,7 @@ class Declarations(Middleware):
                     if "name" in dir(decl.value) and decl.name== decl.value.name: return
                     tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = decl.value, comments = tree.comments)
                    
-                    if decl.type == "unknown":
+                    if decl.type == "unknown" or decl.type == "var":
                         x = decl.value.pseudo_type
                         if isinstance(x, list):
                             decl.type = x[0]
