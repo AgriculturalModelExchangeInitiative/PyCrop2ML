@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.UpdatePhase" name="UpdatePhase" timestep="1" version="001">
+    <Description>
+        <Title>UpdatePhase model</Title>
+        <Authors>Pierre MARTRE</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>This strategy advances the phase and calculate the final leaf number    	</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="fixPhyll" description=" Phyllochron Varietal parameter " inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="1000" min="0" default="" unit="Â°C d leaf-1"/>
+        <Input name="hasLastPrimordiumAppeared_t1" description="if Last Primordium has Appeared" inputtype="variable" variablecategory="state" datatype="INT" max="1" min="0" default="0" unit=""/>
+        <Input name="minFinalNumber" description="minimum final leaf number" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="5.5" unit="leaf"/>
+        <Input name="ignoreGrainMaturation" description="true to ignore grain maturation" inputtype="parameter" parametercategory="constant" datatype="INT" max="0" min="0" default="0" unit=""/>
+        <Input name="cumulTTFromZC_39" description=" cumul TT from FlagLeafLiguleJustVisible to current date " inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="5000" min="0" default="" unit="Â°C d"/>
+        <Input name="phyllochron" description="phyllochron" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="1000" min="0" default="0" unit="Â°C d leaf-1"/>
+        <Input name="maxDL" description="Saturating photoperiod above which final leaf number is not influenced by daylength" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="24" min="0" default="15" unit="h"/>
+        <Input name="grainCumulTT" description="cumulTT used for the grain developpment" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="0" default="0" unit="Â°C d"/>
+        <Input name="vernaprog" description="progression on a 0  to 1 scale of the vernalization" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="1" min="0" default="0.5517254187376879" unit=""/>
+        <Input name="cumulTT" description="cumul thermal times at currentdate" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="-200" default="112.330110409888" unit="Â°C d"/>
+        <Input name="dayLength" description="day length" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="0" default="12.3037621834005" unit="mm2 m-2"/>
+        <Input name="isMomentRegistredZC_39" description=" if Flag leaf ligule has already appeared " inputtype="variable" variablecategory="state" datatype="INT" max="1" min="0" default="" unit=""/>
+        <Input name="sLDL" description="Daylength response of leaf production" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1" min="0" default="0.85" unit="leaf h-1"/>
+        <Input name="pFLLAnth" description="Phyllochronic duration of the period between flag leaf ligule appearance and anthesis" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000" min="0" default="2.22" unit=""/>
+        <Input name="finalLeafNumber_t1" description="final leaf number" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="degfm" description="Grain maturation duration (from physiological maturity to harvest ripeness)" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="50" min="0" default="0" unit="Â°C d"/>
+        <Input name="cumulTTFromZC_91" description=" cumul TT from EndGrainFilling to current date " inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="4000" min="0" default="" unit="Â°C d"/>
+        <Input name="phase_t1" description=" the name of the phase" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="7" min="0" default="1" unit=""/>
+        <Input name="p" description="Phyllochron (Varietal parameter)" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000" min="0" default="120" unit="Â°C d leaf-1"/>
+        <Input name="gAI" description="Green Area Index of the day" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="500.0" min="0.0" default="0.0" unit="m2 leaf m-2 ground"/>
+        <Input name="leafNumber_t1" description="Actual number of phytomers" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="dgf" description="Grain filling duration (from anthesis to physiological maturity)" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="10000" min="0" default="450" unit="Â°C d"/>
+        <Input name="choosePhyllUse" description="Switch to choose the type of phyllochron calculation to be used" inputtype="parameter" parametercategory="constant" datatype="STRING" max="" min="" default="" unit=""/>
+        <Input name="isVernalizable" description="true if the plant is vernalizable" inputtype="parameter" parametercategory="constant" datatype="INT" max="1" min="0" default="1" unit=""/>
+        <Input name="dse" description="Thermal time from sowing to emergence" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000" min="0" default="105" unit="Â°C d"/>
+        <Input name="pHEADANTH" description="Number of phyllochron between heading and anthesiss" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000" min="0" default="1" unit=""/>
+        <Input name="dcd" description="Duration of the endosperm cell division phase" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="10000" min="0" default="100" unit="Â°C d"/></Inputs>
+    <Outputs>
+        <Output name="phase" description=" the name of the phase" datatype="DOUBLE" variablecategory="state" max="7" min="0" unit=""/>
+        <Output name="hasLastPrimordiumAppeared" description="if Last Primordium has Appeared" datatype="INT" variablecategory="state" max="1" min="0" unit=""/>
+        <Output name="finalLeafNumber" description="final leaf number" datatype="DOUBLE" variablecategory="state" max="25" min="0" unit="leaf"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/UpdatePhase.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

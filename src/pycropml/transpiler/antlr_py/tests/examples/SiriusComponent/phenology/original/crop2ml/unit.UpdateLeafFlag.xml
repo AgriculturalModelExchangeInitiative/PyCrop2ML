@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.UpdateLeafFlag" name="UpdateLeafFlag" timestep="1" version="001">
+    <Description>
+        <Title>UpdateLeafFlag model</Title>
+        <Authors>Pierre MARTRE</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>tells if flag leaf has appeared and update the calendar if so    	</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="Â°C d"/>
+        <Input name="finalLeafNumber" description="final leaf number" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="calendarMoments" description="List containing appearance of each stage" inputtype="variable" variablecategory="state" datatype="STRINGLIST" max="" min="" default="" unit=""/>
+        <Input name="calendarDates" description="List containing  the dates of the wheat developmental phases" inputtype="variable" variablecategory="state" datatype="DATELIST" max="" min="" default="" unit=""/>
+        <Input name="cumulTT" description="cumul thermal times at currentdate" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="-200" default="112.330110409888" unit="Â°C d"/>
+        <Input name="leafNumber" description="Actual number of phytomers" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="hasFlagLeafLiguleAppeared_t1" description="true if flag leaf has appeared (leafnumber reached finalLeafNumber)" inputtype="variable" variablecategory="state" datatype="INT" max="1" min="0" default="1" unit=""/>
+        <Input name="phase" description=" the name of the phase" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="7" min="0" default="1" unit=""/>
+        <Input name="currentdate" description="current date " inputtype="variable" variablecategory="auxiliary" datatype="DATE" max="" min="" default="" unit=""/></Inputs>
+    <Outputs>
+        <Output name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" datatype="DOUBLELIST" variablecategory="state" max="" min="" unit="Â°C d"/>
+        <Output name="calendarMoments" description="List containing appearance of each stage" datatype="STRINGLIST" variablecategory="state" max="" min="" unit=""/>
+        <Output name="calendarDates" description="List containing  the dates of the wheat developmental phases" datatype="DATELIST" variablecategory="state" max="" min="" unit=""/>
+        <Output name="hasFlagLeafLiguleAppeared" description="true if flag leaf has appeared (leafnumber reached finalLeafNumber)" datatype="INT" variablecategory="state" max="1" min="0" unit=""/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/UpdateLeafFlag.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

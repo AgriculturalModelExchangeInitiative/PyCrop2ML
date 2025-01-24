@@ -77,6 +77,9 @@ class Cs_Cyml_ast():
         else: 
             return node
     
+    def visit_tuple(self, node):
+        return {"type":"tuple", "elements": self.visit(node.elements), "pseudo_type": ["tuple"]+[i.pseudo_type for i in node.elements]}
+    
     def visit_namespace(self, node):
         return self.visit(node.body)
             
@@ -94,6 +97,8 @@ class Cs_Cyml_ast():
     def visit_methodDef(self, node):
         self.var_index = []
         self.function_name = node.name
+        print(node.name, "_________________________________________________________")
+        #print(node.name, [i.name for i in node.params])
         pa = self.visit(node.params)
         block = self.visit(node.block)
         
@@ -154,6 +159,15 @@ class Cs_Cyml_ast():
             return {'type': 'int', 'value': val, 'pseudo_type': 'int'}
         elif "name" in dir(node): 
             return {'type': 'int', 'name':str(node.name), 'pseudo_type': 'int'}
+        
+    def visit_sliceindex(self, node):
+        
+        return {'type': 'sliceindex', 
+                "args":[self.visit(node.args[0]), self.visit(node.args[1])], 
+                "message": "sliceindex", 
+                "pseudo_type": node.pseudo_type, 
+                "receiver": self.visit(node.receiver)}
+
 
     def visit_double(self, node):
         if "value" in dir(node) and "name" in dir(node): 
@@ -161,6 +175,8 @@ class Cs_Cyml_ast():
             return  {'type': 'float', 'name': str(node.name), 'value': val, 'pseudo_type': 'float'}
         elif "value" in dir(node): 
             val = self.visit(node.value)
+            if "D" in val:
+                val = val.replace("D", "")
             return {'type': 'float', 'value': val, 'pseudo_type': 'float'}
         elif "name" in dir(node): return {'type': 'float', 'name':str(node.name), 'pseudo_type': 'float'}
         else: 
@@ -184,6 +200,8 @@ class Cs_Cyml_ast():
             return  {'type': 'float', 'name': str(node.name), 'value': val["value"], 'pseudo_type': 'float'}
         elif "value" in dir(node): 
             val = self.visit(node.value)
+            if "D" in val:
+                val = val.replace("D", "")
             return {'type': 'float', 'value': val, 'pseudo_type': 'float'}
         elif "name" in dir(node): return {'type': 'float', 'name':str(node.name), 'pseudo_type': 'float'}
 
@@ -216,8 +234,10 @@ class Cs_Cyml_ast():
         return res
     
     def visit_List(self, node):
-        if "value" not in dir(node):
+        if "value" not in dir(node) and "elements" not in dir(node):
             z = []
+        elif "elements" in dir(node):
+            z = self.visit(node.elements)
         elif "name" not in dir(node):
             z = self.visit(node.init.value)
         else:
@@ -286,11 +306,12 @@ class Cs_Cyml_ast():
          'value': z, 'pseudo_type': z['pseudo_type']}
     
     def visit_binary_op(self, node):
-        return {'type': 'binary_op',
+        res = {'type': 'binary_op',
           'op': str(node.op),
           'left': self.visit(node.left),
           'right': self.visit(node.right),
           'pseudo_type': self.translate_decl(node.pseudo_type)}
+        return res
     
     def visit_if_statement(self, node):
         return {'type': 'if_statement',
@@ -310,12 +331,20 @@ class Cs_Cyml_ast():
            'block': self.visit(node.block),
            'pseudo_type': 'Void'}
     
+    def visit_none(self, node):
+        return {'type': 'none',
+            'pseudo_type': 'none'}
+    
     def visit_comparison(self, node):
+        right = self.visit(node.right)
         z = {'type': 'comparison',
             'op': cyml_ru(node.op, self.op),
             'left':self.visit(node.left),
             'right': self.visit(node.right),
             'pseudo_type': 'Void'}
+        if z["op"] in ["==", "!="] and right["type"] == "none":
+            z["op"] = "is" if z["op"] == "==" else "is not"
+            return z
         if (z["left"]["pseudo_type"] == "float" or z["left"]["pseudo_type"] == "double") and z["right"]["pseudo_type"] == "int":
             z["right"] = {"type":"standard_method_call", "message":"float", "receiver":z["right"], "args":[], "pseudo_type":"float"}
         elif (z["left"]["pseudo_type"] == "int") and (z["right"]["pseudo_type"] == "float" or  z["right"]["pseudo_type"] == "double"):
@@ -382,14 +411,13 @@ class Cs_Cyml_ast():
                 'iterators': {'type': 'for_iterator',
                     'iterator': self.visit(node.iterators.iterator)},
                 'block': self.visit(node.block)} 
-        
-        if z["index"]["name"] not in self.var_index:
+        if (z["iterators"]["iterator"]["name"] not in self.var_index) or ():
             self.decl.append({'type': 'declaration',
                             'decl': [{'type': z["iterators"]["iterator"]["pseudo_type"],
                                         'name': z["iterators"]["iterator"]["name"],
                                         'pseudo_type': z["iterators"]["iterator"]["pseudo_type"]}]})
-            self.var_index.append(z["index"]["name"])
-        
+            #self.var_index.append(z["index"]["name"])
+            self.var_index.append(z["iterators"]["iterator"]["name"])
         return z
     
     def visit_unary_op(self, node):

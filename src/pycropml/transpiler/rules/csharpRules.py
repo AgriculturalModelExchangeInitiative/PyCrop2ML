@@ -74,7 +74,9 @@ class CsharpRules(GeneralRule):
                  "/": "/",
                  ">=": ">=",
                  "<=": "<=",
-                 "!=": "!="
+                 "!=": "!=",
+                 "is":"==",
+                 "is_not":"!="
                  }
 
     unary_op = {
@@ -112,7 +114,8 @@ class CsharpRules(GeneralRule):
             'round':        'Math.Round',
             'exp':         'Math.Exp',
             'pow':          'Math.Pow',
-            'floor':  'Math.Floor'
+            'floor':  'Math.Floor',
+            "isnan": "double.IsNaN"
 
         },
         'io': {
@@ -206,12 +209,12 @@ class CsharpRules(GeneralRule):
         {
     '''
     copy_constrList = '''
-            for (int i = 0; i < toCopy.%s.Count; i++)
-                { %s.Add(toCopy.%s[i]); }
+        for (int i = 0; i < toCopy.%s.Count; i++)
+            { %s.Add(toCopy.%s[i]); }
     '''
     copy_constrArray = '''
-            for (int i = 0; i < %s; i++)
-                { %s[i] = toCopy.%s[i]; }
+        for (int i = 0; i < %s; i++)
+            { %s[i] = toCopy.%s[i]; }
     '''
     public_properties_compo = '''
     {

@@ -73,14 +73,29 @@ using Models.Core;
             self.write(f"/// ")
             self.newline(1)
             self.write("/// </summary>")  
-            self.newline(1) 
-            if isinstance(node.block, list)  and "elements" in dir(node.block[-1].value):           
-                self.write("public static void ")
+            self.newline(1)
+            params = [pa.name for pa in node.params] 
+            if isinstance(node.block, list)  and node.block[-1].type=="implicit_return" and "elements" in dir(node.block[-1].value):           
                 tg = [elt.name for elt in node.block[-1].value.elements]
+                not_in_node = []
+                
+                for elt in node.block[-1].value.elements:
+                    if elt.name not in params:
+                        not_in_node.append(elt)
+                not_in = [elt.name for elt in not_in_node]
+                self.not_in_node = not_in_node
+                self.not_in = not_in
                 self.tg = tg
+                if len(not_in_node) != 1:
+                    self.write("public static void ")
+                    self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
+                
+                else:
+                    self.write("public static ")
+                    self.visit_decl(not_in_node[0].pseudo_type)
+                    self.write(" %s("%node.name)
+                    
                 tb = []
-                #self.visit_decl(node.return_type) if node.return_type else self.write("void")
-                self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
                 for i, pa in enumerate(node.params):
                     if pa.name in tg:
                         self.write("ref ")
@@ -90,7 +105,7 @@ using Models.Core;
                     if i!= (len(node.params)-1):
                         self.write(', ')
                 for elt in node.block[-1].value.elements:
-                    if elt.name not in tb:
+                    if elt.name not in tb and elt.name not in not_in:
                         self.write(", out ")
                         self.visit_decl(elt.pseudo_type)
                         self.write(f' {elt.name}') 
@@ -166,31 +181,44 @@ using Models.Core;
                 if "feat" in dir(arg):
                     if arg.feat in ["IN","INOUT"] :
                         self.newline(node) 
-                        if self.model and arg.name not in self.modparam:
-                            self.visit_decl(arg.pseudo_type)
-                            self.write(" ")
-                            self.write(arg.name)
-                            if not node.name.startswith("init_"):
-                                if arg.name in self.states and not arg.name.endswith("_t1") :
-                                    self.write(" = s.%s"%arg.name)
-                                elif arg.name.endswith("_t1") and arg.name in self.states:
-                                    self.write(" = s1.%s"%arg.name[:-3])
-                                elif arg.name in self.rates:
-                                    self.write(" = r.%s"%arg.name)
-                                elif arg.name in self.auxiliary:
-                                    self.write(" = a.%s"%arg.name) 
-                                elif arg.name in self.exogenous:
-                                    self.write(" = ex.%s"%arg.name)
+                        if self.model and arg.name not in self.newmodparam:
+                            if not node.name.startswith("init_") :
+                                if arg.name not in self.privates:
+                                    self.visit_decl(arg.pseudo_type)
+                                    self.write(" ")
+                                    self.write(arg.name)
+                                    if arg.name in self.states and not arg.name.endswith("_t1") :
+                                        self.write(" = s.%s"%arg.name)
+                                    elif arg.name.endswith("_t1") and arg.name in self.states:
+                                        self.write(" = s1.%s"%arg.name[:-3])
+                                    elif arg.name in self.rates:
+                                        self.write(" = r.%s"%arg.name)
+                                    elif arg.name in self.auxiliary:
+                                        self.write(" = a.%s"%arg.name) 
+                                    elif arg.name in self.exogenous:
+                                        self.write(" = ex.%s"%arg.name)
+                                    self.write(";")
                             else:
-                                if arg.name in self.exogenous:
-                                    self.write(" = ex.%s"%arg.name)                                
-                                elif arg.pseudo_type[0] =="list":
-                                    self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
-                                elif arg.pseudo_type[0] =="array":
-                                    if not arg.elts:
-                                        pass
-                                    else: self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
-                            self.write(";")                   
+                                if arg.name in self.privates:
+                                    self.visit_decl(arg.pseudo_type)
+                                    self.write(" ")
+                                    self.write(f"{arg.name}_loc = {arg.name}") 
+                                else:
+                                    self.visit_decl(arg.pseudo_type)
+                                    self.write(" ")
+                                    self.write(arg.name)
+                                      
+                                    if arg.name in self.exogenous:
+                                        self.write(" = ex.%s"%arg.name)  
+                                                              
+                                    elif arg.pseudo_type[0] =="list":
+                                        self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
+                                    elif arg.pseudo_type[0] =="array":
+                                        if not arg.elts:
+                                            self.write(" = null;")
+                                        else: 
+                                            self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                                self.write(";")                 
             self.indentation -= 1 
         self.body(node.block)
         self.newline(node)

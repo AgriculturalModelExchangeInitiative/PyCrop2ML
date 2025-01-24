@@ -22,6 +22,8 @@ def translateAllocate(node):
     newtyp = changetyp(typ)
     return Node("assignment", target = node.receiver, value=Node("call", function = "vector", args=[Node("empty"),node.args]), pseudo_type=node.pseudo_type)
 
+def translateIsNot(node):
+    return Node("call", function="!is.null", args=[node.left])
 
 class RRules(GeneralRule):
 
@@ -42,7 +44,8 @@ class RRules(GeneralRule):
                  "<=": "<=",
                  "!=": "!=",
                  "%":"%%",
-                 "**":"^"
+                 "**":"^",
+                 "is_not":translateIsNot
                  }
 
     unary_op = {
@@ -75,7 +78,8 @@ class RRules(GeneralRule):
             'ceil':         'ceiling',
             'round':        'round',
             'exp':         'exp',
-            'floor':'floor'
+            'floor':'floor',
+            "isnan":"is.nan"
 
         },
        'io': {
@@ -91,9 +95,11 @@ class RRules(GeneralRule):
             'pow': translatePow,
             'modulo': translateModulo,
             "copy":translateCopy,
-            "integr":lambda node: Node("call", function="c", args=node.args)},
+            "integr":lambda node: Node("call", function="c", args=node.args),
+            "round": 'round'
+        },
         'datetime':{
-            'datetime':  lambda node : Node(type="str", value=argsToStr(node.args))
+            'datetime':  lambda node : Node(type="str", value=argsToStr(node.args)),
         }
     }
     constant = {
