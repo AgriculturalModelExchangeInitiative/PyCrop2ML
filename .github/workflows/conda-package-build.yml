@@ -41,6 +41,16 @@ jobs:
     steps:
     - name: Chekout
       uses: actions/checkout@v3
+
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v2
+      with:
+        miniforge-variant: "Mambaforge"
+        miniforge-version: "latest"
+        python-version: 3.${{ matrix.python-minor-version }}
+        auto-update-conda: true
+        use-mamba: true
+
     - name: Determine publish
       uses: haya14busa/action-cond@v1
       id: publish
