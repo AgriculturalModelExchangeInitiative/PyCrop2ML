@@ -48,12 +48,25 @@ jobs:
         cond: ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/v') }}
         if_true: 'true'
         if_false: 'false'
+    - name: Determine NumPy Version
+      id: set-numpy
+      run: |
+        if [[ "${{ matrix.python-minor-version }}" == "3.7" ]]; then
+          echo "numpy-version=1.16.6" >> $GITHUB_ENV
+        elif [[ "${{ matrix.python-minor-version }}" == "3.8" ]]; then
+          echo "numpy-version=1.22.4" >> $GITHUB_ENV
+        elif [[ "${{ matrix.python-minor-version }}" == "3.9" ]]; then
+           echo "numpy-version=2.0.2" >> $GITHUB_ENV
+        else
+          echo "Unsupported Python version"
+          exit 1
+        fi
     - name: Build and Publish
       uses: openalea/action-build-publish-anaconda@main
       with:
         conda: conda
         mamba: true
-        numpy: '16.6'
+        numpy: ${{ env.numpy-version }}
         python: ${{ matrix.python-minor-version }}
         channels: amei, openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
