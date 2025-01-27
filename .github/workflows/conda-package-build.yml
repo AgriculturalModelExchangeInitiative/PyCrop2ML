@@ -52,11 +52,11 @@ jobs:
       id: set-numpy
       run: |
         if [[ "${{ matrix.python-minor-version }}" == "7" ]]; then
-          echo "numpy-version=1.16.6" >> $GITHUB_ENV
+          echo "numpy-version=16.6" >> $GITHUB_ENV
         elif [[ "${{ matrix.python-minor-version }}" == "8" ]]; then
-          echo "numpy-version=1.22.4" >> $GITHUB_ENV
+          echo "numpy-version=22" >> $GITHUB_ENV
         elif [[ "${{ matrix.python-minor-version }}" == "9" ]]; then
-           echo "numpy-version=2.0.2" >> $GITHUB_ENV
+           echo "numpy-version=22" >> $GITHUB_ENV
         else
           echo "Unsupported Python version"
           exit 1
