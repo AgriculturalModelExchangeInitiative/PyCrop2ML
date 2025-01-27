@@ -53,7 +53,7 @@ jobs:
       with:
         conda: conda
         mamba: true
-        numpy: '16.1'
+        numpy: '16.6'
         python: ${{ matrix.python-minor-version }}
         channels: amei, openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
