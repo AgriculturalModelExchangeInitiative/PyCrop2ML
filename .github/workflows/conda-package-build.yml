@@ -50,6 +50,7 @@ jobs:
         if_false: 'false'
     - name: Determine NumPy Version
       id: set-numpy
+      shell: bash
       run: |
         if [[ "${{ matrix.python-minor-version }}" == "7" ]]; then
           echo "numpy-version=16.6" >> $GITHUB_ENV
