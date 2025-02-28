@@ -63,13 +63,8 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.params=[]
         self.recursive=False
         self.allocatable = {}
-        print(dir(self.model))
         self.privates = [p.name for p in model.inputs if "parametercategory" in dir(p) and p.parametercategory=="private" and "ARRAY" in p.datatype ]
         self.states_arr = [p.name for p in model.inputs if "variablecategory" in dir(p) and p.variablecategory=="state" and "ARRAY" in p.datatype ]
-        #self.exo_arr = [p.name for p in model.inputs if "variablecategory" in dir(p) and p.variablecategory=="exogenous" and "ARRAY" in p.datatype ]
-        print("privatessssss", self.privates)
-        #self.totfunctions = self.z.functions
-        #print("kkkkkkk", [f.name for f in self.totfunctions])
         if self.model: 
             self.doc= DocGenerator(model, '!')
         self.funcname = ""
@@ -558,11 +553,9 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.funcname = node.name
         self.recursive = node.recursive
         self.z = middleware(node, alloc = self.allocatable)
-        if node.name.startswith("init_soiltemperature"): print("iniiiiiiiiiiiiit", self.allocatable)
         self.z.transform(node)
         self.parameters=[]
         self.node_params=[]
-        if node.name.startswith("readParam"): print("mmmmmmmmmmmmmmmmmmmmmmmmmm", self.z.allocated_var)
         for pa in node.params:
             if pa.name not in self.mod_parameters:
                 self.parameters.append(pa.name)

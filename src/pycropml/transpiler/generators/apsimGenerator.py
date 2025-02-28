@@ -744,6 +744,18 @@ namespace Models.Crop2ML;""")
         self.indentation -= 1        
         self.write("}")
 
+class ApsimInterface(CsharpCompo):
+    """ This class used to the component interface for APSIM platform.
+    """
+    def __init__(self, tree=None, model=None, name=None, customer=""):
+        CsharpCompo.__init__(self, tree, model, name)
+        self.model=model
+        self.tree = tree
+        self.name = name
+        self.customer=customer
+        
+
+
 def to_wrapper_apsim(models, rep, name, customer = ''):
     generator = ApsimCompo(model = models, customer=customer)
     generator.model2Node()

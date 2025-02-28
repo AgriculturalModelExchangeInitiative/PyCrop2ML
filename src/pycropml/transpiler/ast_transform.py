@@ -88,7 +88,6 @@ class AstTransformer():
         self.type_env.top['__name__'] = "str"
         self.q=None
         
-        #print(self.type_env.values)
         return {'type': 'module','definition':self.signature, 'iterators':self.iterators, 'body': body if isinstance(body, list) else [body]}
 
     def visit_definitions(self):
@@ -476,7 +475,6 @@ class AstTransformer():
 
     def visit_indexnode(self, node, base, index, location):
         value_node = self.visit_node(base)
-        # print("val",value_node)
         if isinstance(base, ExprNodes.IndexNode):
             value_general_type = "array"
         else:
@@ -1047,7 +1045,6 @@ class AstTransformer():
                 }
 
     def visit_subnode(self, node, operand1, operand2, location):
-        print(node.py_result, node.target_code, location)
         op = node.operator
         operand1 = node.operand1
         operand2 = node.operand2
@@ -1102,7 +1099,6 @@ class AstTransformer():
         op = node.operator
         operand1 = node.operand1
         operand2 = node.operand2
-        #print(type(operand1), type(operand2))
         if isinstance(operand1, ExprNodes.AttributeNode) and operand1.obj.name=="u":
             return {
                     "type":"units",
