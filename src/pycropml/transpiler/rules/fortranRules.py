@@ -50,8 +50,15 @@ def translateList(node):
         pass
     return
 
+def translate_isnot(node): 
+    print(node.y)
+    if node.type=="array":
+        return Node("assignment", op="!=",value=Node("int", value="0", pseudo_type="int"), target=Node("call", function="SIZE", args=Node(type=node.type, left = node.name,pseudo_type=node.pseudo_type)))    
+        #return Node("call", function="SIZE", args=Node(type=node.type, left = node.name,pseudo_type=node.pseudo_type))
+    return  Node("call", function="ALLOCATED", args=Node(type=node.type, left = node.name,pseudo_type=node.pseudo_type))
 
-
+def translate_isnan(node):
+    return Node("binary_op", op="!=", left=node.args, right=node.args, pseudo_type=node.pseudo_type)
 
 class FortranRules(GeneralRule):
     def __init__(self):
@@ -70,7 +77,8 @@ class FortranRules(GeneralRule):
                 "<=":".LE.",
                 ">=":".GE.",
                 "!=":".NE.",
-                '**':'**'
+                '**':'**',
+                "is_not":translate_isnot
             }
     unary_op = {
         'not':'.NOT. ',
@@ -83,7 +91,7 @@ class FortranRules(GeneralRule):
            "int": "INTEGER",
            "float":"REAL",
            "bool":"LOGICAL",
-           "str":"CHARACTER(65)",
+           "str":"CHARACTER(len=*)",
            "list": "%s,DIMENSION (:), ALLOCATABLE::",
            "array":"%s, DIMENSION(%s)",
            "datetime":"CHARACTER(65)"
@@ -103,7 +111,8 @@ class FortranRules(GeneralRule):
                 'exp' :         'EXP',
                 'ceil':          translateCeil,
 				'pow' : translatePow,
-                'floor': "FLOOR"
+                'floor': "FLOOR",
+                "isnan": translate_isnan
             },
        'io': {
             'print':    translatePrint,
@@ -115,7 +124,7 @@ class FortranRules(GeneralRule):
                     'min': translateMIN,
                     'max': translateMAX,
                     'abs':'ABS',
-                    'round': 'Round',
+                    'round': 'NINT',
                     'pow': translatePow,
                     'modulo':   "modulo",
                     "copy": translateCopy,

@@ -320,7 +320,7 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 self.newline(node)
                 self.write("%s:%s"%(n.name, n.pseudo_type))
                 self.write(" = ") 
-                self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value)      
+                self.visit(n.value) if isinstance(n.value, Node) else self.write(n.value.capitalize())      
             elif  n.type=="str" and "value" in dir(n):
                 self.newline(node)
                 self.write("%s:%s"%(n.name, n.pseudo_type))
@@ -356,9 +356,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
                     c = n.pseudo_type[1][0]
                     self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))
                     self.write(" = array('%s',"%n.pseudo_type[1][0])
-                    self.write("[%s]*"%initVal(c))
+                    self.write("[%s]*("%initVal(c))
                     self.visit(n.elts[0]) if isinstance(n.elts, list) else self.visit(n.elts)
-                    self.write(")")   
+                    self.write("))")   
                 else:
                     self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))           
                 self.newline(node)
@@ -389,9 +389,9 @@ class PythonGenerator(CodeGenerator, PythonRules):
                 newtype= newtype_func(type_)
                 self.write("array('%s', ["%newtype)
                 self.visit(node.elements.left.elements[0])
-                self.write(']*')
+                self.write(']*(')
                 self.visit(node.elements.right)
-                self.write(")")
+                self.write("))")
         else:
             type_ = node.elements[0].type
             newtype= newtype_func(type_)

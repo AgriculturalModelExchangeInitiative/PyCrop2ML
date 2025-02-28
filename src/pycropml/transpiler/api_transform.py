@@ -236,6 +236,7 @@ FUNCTION_API = {
         'ceil':     StandardCall('math', 'ceil'),
         'exp':      StandardCall('math', 'exp'),
         'floor':    StandardCall('math', 'floor'),
+        'isnan':    StandardCall('math', 'isnan')
         
     },
     'datetime':{

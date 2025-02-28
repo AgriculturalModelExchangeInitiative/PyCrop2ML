@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="SQ.EnergyBalance.DiffusionLimitedEvaporation" name="DiffusionLimitedEvaporation" timestep="1" version="1.0">
+    <Description>
+        <Title>DiffusionLimitedEvaporation Model</Title>
+        <Authors>Peter D. Jamieson, Glen S. Francis, Derick R. Wilson, Robert J. Martin</Authors>
+        <Institution>New Zealand Institute for Crop and Food Research Ltd.,</Institution>
+        <URI></URI>
+        <Reference>https://doi.org/10.1016/0168-1923</Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="deficitOnTopLayers" description="deficit On TopLayers" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="0" default="5341" unit="g m-2 d-1"/>
+        <Input name="soilDiffusionConstant" description="soil Diffusion Constant" inputtype="parameter" parametercategory="soil" datatype="DOUBLE" max="10" min="0" default="4.2" unit=""/></Inputs>
+    <Outputs>
+        <Output name="diffusionLimitedEvaporation" description="the evaporation from the diffusion limited soil " datatype="DOUBLE" variablecategory="state" max="5000" min="0" unit="g m-2 d-1"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/DiffusionLimitedEvaporation.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

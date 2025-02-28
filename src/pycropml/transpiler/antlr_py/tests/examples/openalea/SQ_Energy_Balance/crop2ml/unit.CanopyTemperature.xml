@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="SQ.EnergyBalance.CanopyTemperature" name="CanopyTemperature" timestep="1" version="1.0">
+    <Description>
+        <Title>CanopyTemperature Model</Title>
+        <Authors>Peter D. Jamieson, Glen S. Francis, Derick R. Wilson, Robert J. Martin</Authors>
+        <Institution>New Zealand Institute for Crop and Food Research Ltd.,</Institution>
+        <URI></URI>
+        <Reference>https://doi.org/10.1016/0168-1923</Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="minTair" description="minimum air temperature" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="45" min="-30" default="0.7" unit="degC"/>
+        <Input name="maxTair" description="maximum air Temperature" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="45" min="-30" default="7.2" unit="degC"/>
+        <Input name="cropHeatFlux" description="Crop heat flux" inputtype="variable" variablecategory="rate" datatype="DOUBLE" max="10000" min="0" default="447.912" unit="g/m"/>
+        <Input name="conductance" description="the boundary layer conductance" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="10000" min="0" default="598.685" unit="m/d"/>
+        <Input name="lambdaV" description="latent heat of vaporization of water" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="10" min="0" default="2.454" unit="MJ/kg"/>
+        <Input name="rhoDensityAir" description="Density of air" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="None" min="None" default="1.225" unit="kg/m"/>
+        <Input name="specificHeatCapacityAir" description="Specific heat capacity of dry air" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="None" min="None" default="0.00101" unit="MJ/kg/degC"/></Inputs>
+    <Outputs>
+        <Output name="minCanopyTemperature" description="minimal Canopy Temperature  " datatype="DOUBLE" variablecategory="state" max="45" min="-30" unit="degC"/>
+        <Output name="maxCanopyTemperature" description="maximal Canopy Temperature " datatype="DOUBLE" variablecategory="state" max="45" min="-30" unit="degC"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/CanopyTemperature.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//SIMPLACE/DTD GRP 1.0//EN" "http://simplace.net/dtd/GroupComponent.dtd">
+<configuration class="SoilTemperature">
+	<simgroup>
+		<simcomponent id="SnowCoverCalculator" class="SnowCoverCalculator">
+			<input id="cCarbonContent" source="SoilTemperature.cCarbonContent" />
+			<input id="iTempMax" source="SoilTemperature.iAirTemperatureMax" />
+			<input id="iSoilTempArray" source="STMPsimCalculator.SoilTempArray" />
+			<output id="SoilSurfaceTemperature" destination="SoilTemperature.SoilSurfaceTemperature" />
+            
+		</simcomponent>
+		<simcomponent id="STMPsimCalculator" class="STMPsimCalculator">
+			<input id="cSoilLayerDepth" source="SoilTemperature.cSoilLayerDepth" />
+			<input id="cFirstDayMeanTemp" source="SoilTemperature.cFirstDayMeanTemp" />
+			<input id="iSoilSurfaceTemperature" source="SnowCoverCalculator.SoilSurfaceTemperature" />
+
+			<output id="SoilTempArray" destination="SoilTemperature.SoilTempArray" />
+		</simcomponent>
+	</simgroup>
+</configuration>

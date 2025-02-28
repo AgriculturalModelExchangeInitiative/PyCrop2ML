@@ -23,6 +23,7 @@ class SimplaceGenerator(JavaGenerator):
         self.var = self.inputs+self.outputs
         self.states_, self.statesName_=[], []
         self.states = deepcopy(self.model.states)
+        self.privates=[param.name for param in self.model.inputs if param.inputtype=="parameter" and param.parametercategory=="private"]
         for s in self.states:
             if s.name.endswith("_t1") and s.name[:-3] not in self.statesName_: 
                 s.name = s.name[:-3]
@@ -163,7 +164,7 @@ class SimplaceGenerator(JavaGenerator):
                         self.newline(node)
 
     def visit_local(self, node):
-        if node.name in self.var:
+        if (self.funcname.startswith("model_") or self.funcname.startswith("init_")) and node.name in self.var:
             return self.write("t_%s"%node.name)
         else: self.write(node.name)
 
@@ -191,6 +192,33 @@ class SimplaceGenerator(JavaGenerator):
                 else: self.write("%s.add("%node.target.name)
                 self.visit( node.value.args[1])
                 self.write(");")
+            elif node.target.type=="sliceindex" and node.target.message=="sliceindex" \
+                and node.value.type=="sliceindex" and node.value.message=="sliceindex":
+                    self.write("System.arraycopy(")
+                    self.visit(node.value.receiver)
+                    self.write(", ")
+                    self.visit(node.value.args[0])
+                    self.write(", ")
+                    self.visit(node.target.receiver)
+                    self.write(", ")
+                    self.visit(node.target.args[0])
+                    self.write(", ")
+                    if node.target.args[1].type=="binary_op" and node.target.args[1].op=="+":
+                        self.visit(node.target.args[1].right)
+                    else: self.visit(node.target.args[1])
+                    self.write(");")
+
+            elif node.target.type=="sliceindex" and node.target.message=="sliceindex" \
+                and "name" in dir(node.value):
+                    self.write("System.arraycopy(")
+                    self.visit(node.value)
+                    self.write(", 0, ")
+                    self.visit(node.target.receiver)
+                    self.write(", ")
+                    self.visit(node.target.args[0])
+                    self.write(", ")
+                    self.visit(node.value)
+                    self.write(".length);")
             elif node.value.type == "standard_call" and node.value.function=="datetime":
                 self.newline(node)
                 if len(node.value.args)==3:node.value.args.extend([00,00,00])
@@ -228,8 +256,13 @@ class SimplaceGenerator(JavaGenerator):
                     outs = [n.name for n in func.block[-1].value.elements]
                     for k,out in enumerate(outs):
                         self.newline(node)
-                        if node.target.elements[k].name in self.var: self.write("t_")
-                        self.write(f'{node.target.elements[k].name} = zz_{node.value.function}.get{out}();')
+                        if "name" in dir(node.target.elements[k]):
+                            if (self.funcname.startswith("model_") or self.funcname.startswith("init_")) and node.target.elements[k].name in self.var: self.write("t_")
+                            self.write(f'{node.target.elements[k].name} = zz_{node.value.function}.get{out}();')
+                        else:
+                            self.visit(node.target.elements[k])
+                            self.write(f' = zz_{node.value.function}.get{out}();')
+                            
                         
             elif node.value.type=="none":
                 pass
@@ -264,8 +297,9 @@ class SimplaceGenerator(JavaGenerator):
                     self.write(" %s("%node.name)
                 for i, pa in enumerate(node.params):
                     self.visit_decl(pa.pseudo_type)
-                    if pa.name in self.var: self.write(f" t_{pa.name}")
-                    else:self.write(" %s"%pa.name)
+                    #if pa.name in self.var: self.write(f" t_{pa.name}")
+                    #else:self.write(" %s"%pa.name)
+                    self.write(" %s"%pa.name)
                     if i!= (len(node.params)-1):
                         self.write(', ')
                 self.write(')')
@@ -273,6 +307,12 @@ class SimplaceGenerator(JavaGenerator):
             self.write('{') 
             self.newline(node)
             self.indentation+=1
+            r = self.meta.process(node)
+            if self.meta.extern:
+                for j,k in self.meta.extern.items():
+                    if k.return_type[0]=="tuple":
+                        self.write(f"{j} zz_{j};")
+                        self.newline(node)
         else:
             self.ismodel=True
             self.meta = Custom_call(self.module)
@@ -286,11 +326,43 @@ class SimplaceGenerator(JavaGenerator):
             self.indentation += 1
             if self.meta.extern:
                 for j,k in self.meta.extern.items():
-                    self.write(f"{j} zz_{j};")
-                    self.newline(node)
+                    if k.return_type[0]=="tuple":
+                        self.write(f"{j} zz_{j};")
+                        self.newline(node)
             for arg in self.add_features(node):
                 if "feat" in dir(arg):
-                    if arg.feat in ("IN") or (node.name.startswith("model_") and arg.feat=="INOUT"):
+                    if arg.feat == "IN" or (node.name.startswith("model_") and arg.feat=="INOUT"):
+                        self.newline(1)
+                        self.visit_decl(arg.pseudo_type)
+                        self.write(" t_")
+                        self.write(arg.name)
+                        if arg.type=="list": self.write(" = Arrays.asList(%s.getValue());" % arg.name)
+                        else:
+                            self.write(" = %s.getValue();" % arg.name)
+                    elif node.name.startswith("init_") and arg.feat=="INOUT":
+                        self.newline(1)
+                        self.visit_decl(arg.pseudo_type)
+                        self.write(" t_")
+                        self.write(arg.name)
+                        if arg.type=="list": self.write("new ArrayList<>();")
+                        else:
+                            if arg.type == "array" and "elts" in dir(arg) and len(arg.elts)>0:
+                                self.write(" = new ")
+                                self.visit_decl(arg.pseudo_type[1])
+                                self.write("[")
+                                self.visit(arg.elts[0])
+                                self.write("];") 
+                            else: self.write(" = %s.getDefault();" % arg.name)                  
+                    elif arg.feat=="OUT":
+                        self.newline(1)
+                        self.visit_decl(arg.pseudo_type)
+                        self.write(" t_")
+                        self.write(arg.name)
+                        if arg.type=="list": self.write("new ArrayList<>();")
+                        else: self.write(" = %s.getDefault();" % arg.name)                    
+                        
+                        
+                    """if arg.feat in ("IN") or (node.name.startswith("model_") and arg.feat=="INOUT"):
                         self.newline(1)
                         if self.model :
                             self.visit_decl(arg.pseudo_type)
@@ -318,10 +390,10 @@ class SimplaceGenerator(JavaGenerator):
                                         self.visit_decl(arg.pseudo_type[1])
                                         self.write("[")
                                         self.visit(arg.elts[0])  
-                                        self.write("]")
+                                        self.write("];")
                                     else: self.write(" = %s.getValue();" % arg.name)
-                                else: self.write(f" = {arg.name}.getDefault()")
-                            self.write(";")
+                                else: self.write(f" = {arg.name}.getDefault();")
+                            else: self.write(";")"""
         self.indentation -= 1
         self.body(node.block)
         self.newline(node)
@@ -474,7 +546,9 @@ class SimplaceGenerator(JavaGenerator):
         vars = []
         for inp in elem:
             if inp.name not in vars:
-                if hasattr(inp, "parametercategory"):
+                if hasattr(inp, "parametercategory") and inp.parametercategory == "private":
+                    ztype = "privat"
+                elif hasattr(inp, "parametercategory"):
                     ztype = "constant"
                 elif hasattr(inp, "variablecategory") and hasattr(inp, "inputtype") and inp.variablecategory in ["auxiliary", "exogenous"]:
                     ztype = "input"

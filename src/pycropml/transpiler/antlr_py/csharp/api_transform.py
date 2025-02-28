@@ -178,6 +178,85 @@ def pow_expander(type, message, args):
 def modulo_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'modulo', 'args': args, 'pseudo_type':"int"}
 
+
+def copyto_expander(type, message, args):
+    res =        {'type': 'assignment',
+     'op':'=',
+     'target': {'type': 'sliceindex',
+      'receiver': args[1],
+      'message': 'sliceindex',
+      'args': [args[2],
+       {'type': 'binary_op',
+        'op': '+',
+        'left': args[2],
+        'right': {'type': 'standard_method_call',
+         'receiver': args[0],
+         'args': [],
+         'message': 'len',
+         'pseudo_type': 'int'},
+        'pseudo_type': 'int'}],
+      'pseudo_type': args[0]["pseudo_type"]},
+     'value': args[0],
+     'pseudo_type': 'Void'
+    }
+    return res
+
+def copyarray_expander(type, message, args):
+    res = {'type': 'assignment',
+        'op':'=',
+        'target': {'type': 'sliceindex',
+        'receiver': args[1],
+        'message': 'sliceindex',
+        'args': [{"type":'int', 'value':"0", 'pseudo_type':'int'},
+        args[2]],
+        'pseudo_type': args[1]["pseudo_type"]},
+        'value': {'type': 'sliceindex',
+        'receiver': args[0],
+        'message': 'sliceindex',
+        'args': [{"type":'int', 'value':"0", 'pseudo_type':'int'},
+        args[2]],
+        'pseudo_type': args[0]["pseudo_type"]},
+        'pseudo_type': 'Void'}
+    return res
+
+
+def constrained_copy_expander(type, message, args):
+    res = {'type': 'assignment',
+     'op':'=',
+     'target': {'type': 'sliceindex',
+      'receiver': args[2],
+      'message': 'sliceindex',
+      'args': [args[3],
+       {'type': 'binary_op',
+        'op': '+',
+        'left': args[3],
+        'right': args[4],
+        'pseudo_type': 'int'}],
+      'pseudo_type': args[2]["pseudo_type"]},
+     'value': {'type': 'sliceindex',
+      'receiver': args[0],
+      'message': 'sliceindex',
+      'args': [args[1],
+       {'type': 'binary_op',
+        'op': '+',
+        'left': args[1],
+        'right': args[4],
+        'pseudo_type': 'int'}],
+      'pseudo_type': args[0]["pseudo_type"]},
+     'pseudo_type': 'Void'}
+    return res
+    
+
+def isnandouble_expander(type, message, args):
+    return {'type': 'standard_call',
+      'namespace': 'math',
+      'function': 'isnan',
+      'args': [args[0]],
+      'pseudo_type': 'bool',
+      'attrib': 1} 
+    
+    
+    
 def integr_expander(type, message, args):
     
     if isinstance(args[0]["pseudo_type"], list) and isinstance(args[1]["pseudo_type"] ,list):
@@ -211,7 +290,8 @@ FUNCTION_API = {
     },
     "Convert":
         {
-            "ToInt32":StandardMethodCall("number", "int",  expander=int_expander)
+            "ToInt32":StandardMethodCall("number", "int",  expander=int_expander),
+            "ToDouble":StandardMethodCall("number", "float",  expander=float_expander)
             
             
         },
@@ -247,6 +327,14 @@ FUNCTION_API = {
     },
     'array':{
         'array': StandardMethodCall('numpy', 'array', expander = array_expander )
+    } ,
+    'Array':{
+        'Copy': StandardMethodCall('array', 'copy', expander = copyarray_expander ),
+        'ConstrainedCopy': StandardMethodCall('array', 'constrained_copy', expander = constrained_copy_expander)
+    } ,
+    
+        'double':{
+        'IsNaN': StandardMethodCall('double', 'isnan', expander = isnandouble_expander )
     }    
     
 }
@@ -302,6 +390,8 @@ METHOD_API = {
     'array': {
             'append':   StandardMethodCall('array', 'append'),
             'Length':    StandardMethodCall('array', 'len', expander=len_expander),
+            'CopyTo':   StandardMethodCall('array', 'copyto', expander=copyto_expander),
+            'Except':   StandardMethodCall('array', 'except')
     },
 
     'tuple': {

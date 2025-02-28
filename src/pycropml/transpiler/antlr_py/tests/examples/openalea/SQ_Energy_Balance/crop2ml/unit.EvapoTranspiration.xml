@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="SQ.EnergyBalance.EvapoTranspiration" name="EvapoTranspiration" timestep="1" version="1.0">
+    <Description>
+        <Title>Evapotranspiration Model</Title>
+        <Authors>Peter D. Jamieson, Glen S. Francis, Derick R. Wilson, Robert J. Martin</Authors>
+        <Institution>New Zealand Institute for Crop and Food Research Ltd.,</Institution>
+        <URI></URI>
+        <Reference>https://doi.org/10.1016/0168-1923</Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="isWindVpDefined" description="if wind and vapour pressure are defined" inputtype="parameter" parametercategory="constant" datatype="INT" max="1" min="0" default="1" unit=""/>
+        <Input name="evapoTranspirationPriestlyTaylor" description="evapoTranspiration of Priestly Taylor " inputtype="variable" variablecategory="rate" datatype="DOUBLE" max="10000" min="0" default="449.367" unit="mm"/>
+        <Input name="evapoTranspirationPenman" description="evapoTranspiration of Penman " inputtype="variable" variablecategory="rate" datatype="DOUBLE" max="10000" min="0" default="830.958" unit="mm"/></Inputs>
+    <Outputs>
+        <Output name="evapoTranspiration" description="evapoTranspiration" datatype="DOUBLE" variablecategory="rate" max="10000" min="0" unit="mm"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/EvapoTranspiration.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

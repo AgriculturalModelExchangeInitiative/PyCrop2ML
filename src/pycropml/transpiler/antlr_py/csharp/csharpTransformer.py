@@ -115,6 +115,9 @@ class DeclarationStatement(AliasNode):
 class Local_variable_declaration(AliasNode):
     _fields_spec = ["local_variable_type", "local_variable_declarator"]
 
+class Local_variable_type(AliasNode):
+    _fields_spec = ["type_", "VAR"]
+
 class Local_variable_declarator(AliasNode):
     _fields_spec = ["identifier","local_variable_initializer"]
 
@@ -230,7 +233,10 @@ class Argument_list(AliasNode):
     _fields_spec = ["argument"]
 
 class Argument(AliasNode):
-    _fields_spec = ["identifier", "type_", "expression"]
+    _fields_spec = ["identifier", "type_", "REF" , "OUT" , "IN", "expression"]
+
+class Attribute(AliasNode):
+    _fields_spec = ["namespace_or_type_name", "attribute_argument"]
 
 
 class Bracket_expression(AliasNode):
@@ -245,6 +251,9 @@ class SwitchStatement(AliasNode):
 
 class Switch_section(AliasNode):
     _fields_spec = ["switch_label", "statement_list"]
+
+class Attribute_section(AliasNode):
+    _fields_spec = ["attribute_target", "attribute_list"]
 
 class Switch_label(AliasNode):
     _fields_spec = ["expression", "case_guard"]
@@ -298,6 +307,9 @@ class Transformer(BaseNodeTransformer):
     
     def visit_Attributes(self, node) :
         return Attributes.from_spec(node)
+
+    def visit_Attribute(self, node) :
+        return Attribute.from_spec(node)
     
     def visit_Interface_definition(self, node):
         return Interface_definition.from_spec(node)
@@ -332,6 +344,9 @@ class Transformer(BaseNodeTransformer):
     
     def visit_Class_body(self, node):
         return Class_body.from_spec(node)
+    
+    def visit_Local_variable_type(self, node):
+        return Local_variable_type.from_spec(node)
     
     def visit_DefaultValueExpression(self, node):
         return DefaultValueExpression.from_spec(node)
@@ -504,6 +519,9 @@ class Transformer(BaseNodeTransformer):
     def visit_BaseAccessExpression(self, node):
         return BaseAccessExpression.from_spec(node)
 
+    def visit_Attribute_section(self, node):
+        return Attribute_section.from_spec(node)
+
     """def visit_Element_initializer(self, node):
         return Element_initializer.from_spec(node)"""
 
@@ -522,6 +540,7 @@ class AstTransformer():
         self.non_identifier=[]
         self.decl = []
         self.clas = []
+        self.label = False
         self.namespace = []
         self.top_level(self.tree)
         body = self.visit(self.tree)
@@ -606,9 +625,13 @@ class AstTransformer():
         return self.visit(node.children)
     
     def visit_breakstatement(self, node, BREAK, location):
-        return {
-            "type": "breakstatnode"
-        }
+        if self.label:
+            return {
+                "type": "breakstatnode"
+            }
+        else:
+            pass
+        
 
     def visit_switchstatement(self, node, switch_section, expression, location):
         self._if = 0
@@ -655,12 +678,8 @@ class AstTransformer():
         return r
 
     def visit_throwstatement(self, node, THROW, expression, location ):
-        print(f"visit_throwstatement not yet implemented at {location}")
-        return 
+        return {"type":"throwexception", "expression":self.visit(expression)}
         
-    
-    def visit_Attributes(self, node) :
-        return Attributes.from_spec(node)
     
     def visit_namespace_member_declaration(self,node, namespace_declaration, type_declaration, location):
         if type_declaration:
@@ -796,8 +815,24 @@ class AstTransformer():
         return z
     
     def visit_attributes(self, node,attribute_section, location):
-        print("Not implemented attributes , %s"%location[0]) 
-        return 
+        res = []
+        for attribute in attribute_section:
+            r = self.visit(attribute)
+            res.append(r)
+        return res
+    
+    def  visit_attribute_section(self, node,attribute_target, attribute_list, location):
+        linkname = None
+        attributelist = self.visit(attribute_list)
+        if attribute_target:
+            linkname = self.visit(attribute_target)     
+        res =  {"type":"link", "linkname":linkname, "attributes":attributelist}  
+        return res    
+
+
+    
+    def visit_attribute_list(self, node,attribute_name, location):
+        return self.visit(attribute_name)
 
     def visit_common_member_declaration(self, node,constant_declaration,
                                             typed_member_declaration,
@@ -811,24 +846,47 @@ class AstTransformer():
                                             enum_definition,
                                             delegate_definition,location):
         self.sel=[]
+        if throwable_expression:
+            raise PseudoCythonTypeCheckError("Not implemented throwable_expression , %s"%location[0])
         
         if VOID:
+            return_type = "Void"
             self.non_identifier = []
             self.function_name = self.visit(method_declaration.method_member_name)[0]
             param = self.visit(method_declaration.formal_parameter_list)
             ps = [p["pseudo_type"] for p in param] if param else [None]
+            block = self.visit(method_declaration.method_body)
+            modifiers = []
+            
+            if param:
+                for p in param:
+                    if "modifier" in p:
+                        modifiers.append(p)
+            if modifiers:
+                if block[-1] is None:
+                    del block[-1]
+                if block[-1] is not None and block[-1]["type"] == "implicit_return":
+                    if isinstance(block[-1]["value"], dict):
+                        block[-1]["value"] = {"type":"tuple", "elements":[block[-1]["value"]] + modifiers}
+                    else:
+                        block[-1]["value"] = {"type":"tuple", "elements":block[-1]["value"] + modifiers}
+                    return_type = ["tuple"] + [p["pseudo_type"]  for p in block[-1]["value"]["elements"] ]
+                else:
+                    if len(modifiers) == 1:
+                        block.append({"type":"implicit_return", "value":modifiers[0], "modifiers":True})
+                        return_type = modifiers[0]["pseudo_type"]
+                    else:
+                        block.append({"type":"implicit_return", "value":{"type":"tuple", "elements":modifiers}, "modifiers":True})    
+                        return_type = ["tuple"] + [p["pseudo_type"]  for p in modifiers]  
             v = {"type":"methodDef",  
                     "name":self.function_name,
                     "params":param,
-                    "return_type":"Void",
-                    "block":self.visit(method_declaration.method_body),
+                    "return_type":return_type,
+                    "block":block,
                     "pseudo_type":["function"]+ps + ["Void"],
                     "non_identifier":self.non_identifier,
                     "namespace":self.namespace[-1],
                     "class_":self.clas[-1]}
-            """domain = [a["pseudo_type"] if a is not None else None for a in v["params"] if v["params"] ]
-            self.type_env.top["functions"][v["name"]] = domain + ["Void"]"""
-            v["pseudo_type"] =  ["Void"]
             return v
 
         if constructor_declaration:
@@ -873,6 +931,10 @@ class AstTransformer():
         res = {}
         res["name"] = self.visit(member_name)
         accessors = self.visit(accessor_declarations)
+        if accessors is None:
+            if throwable_expression:
+                res["throw"] = self.visit(throwable_expression)
+                return res
         res["get"] = accessors["get"]
         res["set"] = accessors["set"]
         return res
@@ -945,11 +1007,25 @@ class AstTransformer():
             self.function_name = self.visit(method_declaration.method_member_name)[0]
             param = self.visit(method_declaration.formal_parameter_list)
             ps = [p["pseudo_type"] for p in param] if param else [None]
+            if method_declaration.right_arrow:
+                block = {"type":"implicit_return", "value":self.visit(method_declaration.throwable_expression)}
+            else: block = self.visit(method_declaration.method_body)
+            modifiers = []
+            if param:
+                for p in param:
+                    if "modifier" in p:
+                        modifiers.append(p)
+            if modifiers:
+                if isinstance(block[-1]["value"], dict):
+                    block[-1]["value"] = {"type":"tuple", "elements":[block[-1]["value"]] + modifiers}
+                else:
+                    block[-1]["value"] = {"type":"tuple", "elements":block[-1]["value"] + modifiers}
+ 
             res = {"type":"methodDef",  
                     "name":self.function_name,
                     "return_type" :typ["pseudo_type"],
                     "params":param,
-                    "block":self.visit(method_declaration.method_body),
+                    "block":block,
                     "pseudo_type":["function"] + ps + [typ["pseudo_type"]],
                     "non_identifier":self.non_identifier,
                     "namespace":self.namespace[-1],
@@ -961,6 +1037,7 @@ class AstTransformer():
             r = self.visit(property_declaration)
             pseudo = typ if isinstance(typ, str) else typ["pseudo_type"]
             self.type_env.top[r["name"]] = pseudo
+            if "throw" in r: return {"type":"propertyDef", "name":r["name"], "throw":r["throw"], "pseudo_type":pseudo}
             return {"type":"propertyDef", "name":r["name"], "get":r["get"], "set":r["set"], "pseudo_type":pseudo}
         if operator_declaration:
             res = {"type":"operator", "block":self.visit(operator_declaration)}
@@ -1233,15 +1310,16 @@ class AstTransformer():
         name = self.visit(identifier)
         value = self.visit(expression)
         pseudo_type = value["pseudo_type"]
-        if "value" in value: value = value["value"]
+        #if "value" in value: value = value["value"] # Majeur
         return {"value": value, "name": name, "pseudo_type":pseudo_type}
     
     def visit_constant_declaration(self, node, CONST ,type_, constant_declarators, SEMICOLON, location):
         return self.visit_local_constant_declaration(node, CONST, type_, constant_declarators, location)
             
     def visit_local_variable_type(self, node, VAR,  type_, location):
-        if type_: return self.visit(type_)
-        else: return "VAR"
+        if type_: res =  self.visit(type_)
+        else: res =  {"type":"var", "pseudo_type":"var"}
+        return res
         
 
     def visit_local_variable_declaration(self, 
@@ -1291,9 +1369,11 @@ class AstTransformer():
                 
             res = {"type": type_, "name":r["name"], "value":val, "pseudo_type":pseudo_type}
             if res["value"] is None: del res["value"]
+            if pseudo_type == "var" and "value" in res:
+                res["pseudo_type"] = res["value"]["pseudo_type"]
+                res["type"] = res["value"]["pseudo_type"][0] if isinstance(res["value"]["pseudo_type"], list) else res["value"]["pseudo_type"]
             z["decl"].append(res)
             self.type_env[str(res["name"])] = res["pseudo_type"]
-            
         return z
 
     def visit_local_variable_declarator(self, node, identifier, local_variable_initializer, location):
@@ -1326,6 +1406,19 @@ class AstTransformer():
                     'value': self.visit(expression),
                     'pseudo_type': 'Void'
                 }
+            if z["value"]["type"] == "custom_call":
+                arg_modifiers = []
+                args = z["value"]["args"]
+                if args and args[0]:
+                    for arg in args:
+                        if "modifiers" in arg:
+                            arg_modifiers.append(arg)
+                    if arg_modifiers:
+                        if z["target"]["type"]=="tuple":
+                            z["target"] = {"type":"tuple", "elements":z["target"]["elements"] + arg_modifiers, "pseudo_type":"unknown"}
+                        else:
+                            z["target"] = {"type":"tuple", "elements":[z["target"]] + arg_modifiers,  "pseudo_type":"unknown"}
+                    
             self.assign = False
 
 
@@ -1509,7 +1602,7 @@ class AstTransformer():
             elif STAR: op = STAR
             elif TILDE: op = TILDE
             #else: raise PseudoCythonTypeCheckError("Not implemented unary operator , %s"%location)      
-            z = self.visit(unary_expression)
+            z = self.visit(unary_expression)            
             if op =="not": z["pseudo_type"] = "bool"
             res = {
                     'type': 'unary_op',
@@ -1595,24 +1688,24 @@ class AstTransformer():
                     return z
 
         if method_invocation:
-            args = self.visit(method_invocation)  
+            args = self.visit(method_invocation) 
                    
             if member_access:
-                member = self.visit(member_access)
-                #print(member, "hhhhhh", location, m)
-                if m.find(".") == -1:
+                #m = self.visit(member_access)
+                #print("inv",location, res, args, m) 
+                if isinstance(m, dict) and m["type"] == "method_invocation":
+                    return res
+                elif m.find(".") == -1:
                     method = m
                     receiver = res["name"]
                 else:
                     method = m.split(".")[-1]
                     receiver = res["name"]+"."+".".join(m.split(".")[:-1])
-                #print(receiver)
                 receiver_type = self.type_env[receiver] 
                 receiver_type = receiver_type[0] if isinstance(receiver_type, list) else receiver_type
                 rec =  {"type":"local" , "name":receiver, "pseudo_type":self.type_env[receiver]}
                 
                 if isinstance(receiver_type, dict): receiver_type=receiver_type["typename"]
-                #print(method, location, receiver, receiver_type)
                 
                 if receiver in FUNCTION_API:
                     api = FUNCTION_API[receiver].get(method) 
@@ -1640,7 +1733,7 @@ class AstTransformer():
                     api = METHOD_API.get(receiver_type,{}).get(method)
                     if api:
                         res = api.expand([rec]+ args)
-                        if self.assign == False and res["message"] not in ("contains?", "index", "len"):
+                        if self.assign == False and "message" in res and res["message"] not in ("contains?", "index", "len"):
                             res = {"type": 'ExprStatNode', 'expr': res}
                     if not api:
                         raise translation_error('CyMLT doesn\' t support %s %s at line %s' % (receiver_type, method,location[0]),
@@ -1747,16 +1840,21 @@ class AstTransformer():
         return {"type":"local", "name": self.visit(identifier), "pseudo_type":id_type}
 
     def visit_member_access(self, node,identifier, type_argument_list,DOT,INTERR, location):
-        if type_argument_list: raise PseudoCythonTypeCheckError("Not implemented type_argument_list , %s"%location)
         res = self.visit(identifier)
+        if type_argument_list: 
+            argument_list = self.visit(type_argument_list)
+            return {"type":"method_invocation", "name":res, "args":argument_list}
+            #raise PseudoCythonTypeCheckError("Not implemented type_argument_list , %s"%location)
         return res
     
     def visit_method_invocation(self, node,argument_list, location):
         return self.visit(argument_list)
     
-    def visit_argument(self, node, location, type_, identifier, expression):
+    def visit_argument(self, node, location, type_,REF , OUT , IN, identifier, expression):
 
         r =  self.visit(expression)
+        if REF:
+            r["modifiers"] = "ref"
         if type_:   
             r2 = self.visit(type_)
             op = str(r["operator"]) if "operator" in r else str(r2["operator"])
@@ -1864,7 +1962,14 @@ class AstTransformer():
         elif (r["type"] == "unary_op" and r["operator"] == "--") or ("dec" in r): 
             res["step"] = {"type":"int", "value":"-1", "pseudo_type":"int"}
         elif (r["type"])=="assignment":
-            if r["op"]!="=": res["step"] = r["value"]
+            res["step"] = r["value"] 
+            if (r["op"]=="+=" and r["value"]["type"]=="unary_op" and r["value"]["operator"]=="-") or r["op"]=="-=":
+                res["end"]={'type': 'binary_op',
+                    'op': '-',
+                    'left': expr["right"],
+                    'right': {'type': 'int', 'value': '1', 'pseudo_type': 'int'},
+                    'pseudo_type': 'int'}
+                  
         res["index"] = init["decl"][0] if "decl" in init else init[0]["target"]
         res["index"]["type"] = "local"
         if "decl" in init: del res["index"]["value"]
@@ -1884,12 +1989,15 @@ class AstTransformer():
     
     def visit_foreachstatement(self, node, local_variable_type, identifier,expression, embedded_statement, location):
         z = self.visit(local_variable_type)
-        return {'type': 'for_statement',
+        self.label = True
+        res =  {'type': 'for_statement',
                 'sequences': {'type': 'for_sequence',
                     'sequence': self.visit(expression)},
                 'iterators': {'type': 'for_iterator',
                     'iterator': {'type':'local', 'name':self.visit(identifier), 'pseudo_type':z["pseudo_type"]}},
-                'block': self.visit(embedded_statement)}  
+                'block': self.visit(embedded_statement)} 
+        self.label = False 
+        return res
 
     def visit_parenthesisexpressions(self, node,expression, location):
         z = self.visit(expression)
@@ -1905,6 +2013,8 @@ class AstTransformer():
     def visit_fixed_parameter(self, node, attributes, parameter_modifier, arg_declaration, ARGLIST, location):
         if arg_declaration: args = self.visit(arg_declaration)
         else: args = self.visit(ARGLIST)
+        if parameter_modifier: 
+            args["modifier"] = self.visit(parameter_modifier)
         return args
     
     def visit_continuestatement(self, node, CONTINUE, SEMICOLON, location):
@@ -1923,5 +2033,18 @@ class AstTransformer():
         res = {'type':"local", "name":id, "pseudo_type": pseudo_type}
         
         if value: res["value"] =  value
+        return res
+    
+    def visit_yieldstatement(self, node, YIELD, BREAK, RETURN, expression,SEMICOLON, location):
+        if expression: return {"type":"yieldstatement", "value":self.visit(expression)}
+        elif BREAK: return {"type":"breakstatement"}
+        
+    def visit_attribute(self, node, namespace_or_type_name,attribute_argument, location):
+        type_ = self.visit(namespace_or_type_name)
+        args = []
+        if attribute_argument:
+            args = self.visit(attribute_argument)
+        if args: res =  {"type":"attribute", "name":type_, "args":args}
+        else: res =  {"type":"attribute", "name":type_}
         return res
 

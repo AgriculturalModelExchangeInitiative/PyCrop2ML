@@ -24,7 +24,8 @@ param_datatype ={"STRING":"String",
                 "INTLIST": "ListInteger",
                 "BOOLEANLIST": "ListBoolean",
                 "DOUBLEARRAY":"ArrayDouble",
-                "INTARRAY":"ArrayInteger"}
+                "INTARRAY":"ArrayInteger",
+                "STRINGARRAY":"StringInteger"}
 
 def getdefault(x, typ):
     df = "-1D"
@@ -412,22 +413,92 @@ using CRA.AgroManagement;
 
     def visit_function_definition(self, node):      
         self.newline(node)
-        self.funcname = node.name  
+        self.funcname = node.name
         if (not node.name.startswith("model_") and not node.name.startswith("init_")) :
-            self.write("public static ")
-            self.visit_decl(node.return_type) if node.return_type else self.write("void")
-            self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
-            for i, pa in enumerate(node.params):
-                self.visit_decl(pa.pseudo_type)
-                self.write(" %s"%pa.name)
-                if i!= (len(node.params)-1):
-                    self.write(', ')
+            params = [pa.name for pa in node.params]
+            if isinstance(node.block, list) and node.block[-1].type=="implicit_return" and "elements" in dir(node.block[-1].value): # 
+                tg = [elt.name for elt in node.block[-1].value.elements]
+                not_in_node = []
+                
+                for elt in node.block[-1].value.elements:
+                    if elt.name not in params:
+                        not_in_node.append(elt)
+                not_in = [elt.name for elt in not_in_node]
+                self.not_in_node = not_in_node
+                self.not_in = not_in
+                self.tg = tg
+                if len(not_in_node) != 1:
+                    self.write("public static void ")
+                    self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
+                
+                else:
+                    self.write("public static ")
+                    self.visit_decl(not_in_node[0].pseudo_type)
+                    self.write(" %s("%node.name)
+                    
+                tb = []
+                
+                
+                #self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                for i, pa in enumerate(node.params):
+                    if pa.name in tg:
+                        self.write("ref ")
+                        tb.append(pa.name)
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if i!= (len(node.params)-1):
+                        self.write(', ')
+                for elt in node.block[-1].value.elements:
+                    if elt.name not in tb and elt.name not in not_in:
+                        self.write(", out ")
+                        self.visit_decl(elt.pseudo_type)
+                        self.write(f' {elt.name}')   
+            else:
+                self.write("public static ")
+                self.visit_decl(node.return_type) if node.return_type else self.write("void")
+                self.write(" Main(") if node.name=="main" else self.write(" %s("%node.name)
+                for i, pa in enumerate(node.params):
+                    self.visit_decl(pa.pseudo_type)
+                    self.write(" %s"%pa.name)
+                    if i!= (len(node.params)-1):
+                        self.write(', ')                 
             self.write(')')
-            self.open(node)
-        else: 
-            self.write("private void CalculateModel(") if not node.name.startswith("init_") else self.write("public void Init(")
-            self.write('SiriusQuality%s.DomainClass.%sState s, SiriusQuality%s.DomainClass.%sState s1, SiriusQuality%s.DomainClass.%sRate r, SiriusQuality%s.DomainClass.%sAuxiliary a, SiriusQuality%s.DomainClass.%sExogenous ex)'%(self.name, self.name,self.name,self.name,self.name, self.name,self.name,self.name, self.name,self.name))
-            self.open(node)
+            self.newline(node)
+            self.write('{') 
+            self.newline(node)
+        else:
+            if self.node_param and not node.name.startswith("init_") :
+                for arg in self.node_param: 
+                    self.newline(node) 
+                    self.write ('private ') 
+                    self.visit_decl(arg.pseudo_type)
+                    self.write(" _")
+                    self.write(arg.name) 
+                    self.write(";")                     
+                    #self.generator.private(self.node_param)        
+                    self.newline(node)
+                    self.write("public ")
+                    self.visit_decl(arg.pseudo_type)
+                    self.write(' ' +arg.name)
+                    self.write(self.public_properties%(arg.name,arg.name))
+            self.write(self.constructor%(self.model.name,self.model.name) ) if not node.name.startswith("init_") else ""
+            self.newline(node)      
+            self.write("public void ")
+            self.write(" CalculateModel(") if not node.name.startswith("init_") else self.write("Init(")
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
+            self.newline(node)
+            self.write('{') 
+            self.newline(node)
+            if not node.name.startswith("init_"):
+                self.write(self.doc.header)
+                self.newline(node)
+                self.write(self.doc.desc)
+                self.newline(node)
+                self.write(self.doc.inputs_doc)
+                self.newline(node)
+                self.write(self.doc.outputs_doc)
+                self.newline(node)
+            self.indentation += 1 
             for arg in self.add_features(node) :
                 if "feat" in dir(arg):
                     if arg.feat in ["IN","INOUT"] :
@@ -439,29 +510,32 @@ using CRA.AgroManagement;
                             if not node.name.startswith("init_"):
                                 if arg.name in self.states and not arg.name.endswith("_t1") :
                                     self.write(" = s.%s"%arg.name)
-                                if arg.name in self.states and arg.name.endswith("_t1") :
+                                elif arg.name.endswith("_t1") and arg.name in self.states:
                                     self.write(" = s1.%s"%arg.name[:-3])
-                                if arg.name in self.rates:
+                                elif arg.name in self.rates:
                                     self.write(" = r.%s"%arg.name)
-                                if arg.name in self.auxiliary:
+                                elif arg.name in self.auxiliary:
                                     self.write(" = a.%s"%arg.name) 
-                                if arg.name in self.exogenous:
-                                    self.write(" = ex.%s"%arg.name) 
+                                elif arg.name in self.exogenous:
+                                    self.write(" = ex.%s"%arg.name)
                             else:
-                                if arg.pseudo_type[0] =="list":
+                                if arg.name in self.exogenous:
+                                    self.write(" = ex.%s"%arg.name)                                
+                                elif arg.pseudo_type[0] =="list":
                                     self.write(" = new List<%s>()"%(self.types[arg.pseudo_type[1]]))
                                 elif arg.pseudo_type[0] =="array":
-                                    if arg.elts:
-                                        length =  arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
-                                        if length:
-                                            self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], length))
+                                    if not arg.elts:
+                                        pass
+                                    else: self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
                             self.write(";")                   
-        self.indentation -= 1 
+            self.indentation -= 1 
         self.body(node.block)
         self.newline(node)
         self.visit_return(node)
-        self.close(node)
-        self.newline(extra=1)
+        self.newline(node)
+        self.indentation -= 1 
+        self.write('}') 
+        self.newline(node)
 
     def open(self, node):
         self.newline(node)

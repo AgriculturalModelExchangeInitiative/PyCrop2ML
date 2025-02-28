@@ -14,7 +14,7 @@ jobs:
       fail-fast: false
       max-parallel: 3
       matrix:
-        os: [ macos-latest, windows-latest, ubuntu-latest]
+        os: [ macos-13, windows-latest, ubuntu-latest]
         python-minor-version: [7, 8, 9]
         isMaster:
           - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
@@ -26,10 +26,10 @@ jobs:
             os: ubuntu-latest
             python-minor-version: 9
           - isMaster: false
-            os: macos-latest
+            os: macos-13
             python-minor-version: 8
           - isMaster: false
-            os: macos-latest
+            os: macos-13
             python-minor-version: 9
           - isMaster: false
             os: windows-latest
@@ -48,12 +48,26 @@ jobs:
         cond: ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/v') }}
         if_true: 'true'
         if_false: 'false'
+    - name: Determine NumPy Version
+      id: set-numpy
+      shell: bash
+      run: |
+        if [[ "${{ matrix.python-minor-version }}" == "7" ]]; then
+          echo "numpy-version=16.6" >> $GITHUB_ENV
+        elif [[ "${{ matrix.python-minor-version }}" == "8" ]]; then
+          echo "numpy-version=22" >> $GITHUB_ENV
+        elif [[ "${{ matrix.python-minor-version }}" == "9" ]]; then
+           echo "numpy-version=22" >> $GITHUB_ENV
+        else
+          echo "Unsupported Python version"
+          exit 1
+        fi
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.4
+      uses: openalea/action-build-publish-anaconda@main
       with:
         conda: conda
         mamba: true
-        numpy: '21.6'
+        numpy: ${{ env.numpy-version }}
         python: ${{ matrix.python-minor-version }}
         channels: amei, openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}

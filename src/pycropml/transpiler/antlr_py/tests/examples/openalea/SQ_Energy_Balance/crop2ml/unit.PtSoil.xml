@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="SQ.EnergyBalance.PtSoil" name="PtSoil" timestep="1" version="1.0">
+    <Description>
+        <Title>PtSoil EnergyLimitedEvaporation Model</Title>
+        <Authors>Peter D. Jamieson, Glen S. Francis, Derick R. Wilson, Robert J. Martin</Authors>
+        <Institution>New Zealand Institute for Crop and Food Research Ltd.,</Institution>
+        <URI></URI>
+        <Reference>https://doi.org/10.1016/0168-1923</Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="evapoTranspirationPriestlyTaylor" description="evapoTranspiration Priestly Taylor" inputtype="variable" variablecategory="rate" datatype="DOUBLE" max="1000" min="0" default="120" unit="g m-2 d-1"/>
+        <Input name="Alpha" description="Priestley-Taylor evapotranspiration proportionality constant" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="100" min="0" default="1.5" unit=""/>
+        <Input name="tau" description="plant cover factor" inputtype="parameter" parametercategory="species" datatype="DOUBLE" max="100" min="0" default="0.9983" unit=""/>
+        <Input name="tauAlpha" description="Fraction of the total net radiation exchanged at the soil surface when AlpaE " inputtype="parameter" parametercategory="soil" datatype="DOUBLE" max="1" min="0" default="0.3" unit=""/></Inputs>
+    <Outputs>
+        <Output name="energyLimitedEvaporation" description="energy Limited Evaporation " datatype="DOUBLE" variablecategory="auxiliary" max="5000" min="0" unit="g m-2 d-1"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/PtSoil.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">
+<ModelComposition name="SoilTemperature" id="SoilTemperature.SoilTemperature" version="001" timestep="1">
+    <Description>
+        <Title>SoilTemperature model</Title>
+        <Authors>Gunther Krauss</Authors>
+        <Institution>INRES Pflanzenbau, Uni Bonn</Institution>
+        <Reference>(&apos;http://www.simplace.net/doc/simplace_modules/&apos;,)</Reference>
+        <ExtendedDescription>as given in the documentation</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Composition>
+        <Model name="SnowCoverCalculator" id="SoilTemperature.SnowCoverCalculator" filename="unit.SnowCoverCalculator.xml"/>
+        <Model name="STMPsimCalculator" id="SoilTemperature.STMPsimCalculator" filename="unit.STMPsimCalculator.xml"/>
+        <Links>
+            <InputLink target="SnowCoverCalculator.cCarbonContent" source="cCarbonContent"/>
+            <InputLink target="SnowCoverCalculator.iTempMax" source="iAirTemperatureMax"/>
+            <InputLink target="SnowCoverCalculator.iTempMin" source="iAirTemperatureMin"/>
+            <InputLink target="SnowCoverCalculator.iRadiation" source="iGlobalSolarRadiation"/>
+            <InputLink target="SnowCoverCalculator.iRAIN" source="iRAIN"/>
+            <InputLink target="SnowCoverCalculator.iCropResidues" source="iCropResidues"/>
+            <InputLink target="SnowCoverCalculator.iPotentialSoilEvaporation" source="iPotentialSoilEvaporation"/>
+            <InputLink target="SnowCoverCalculator.iLeafAreaIndex" source="iLeafAreaIndex"/>
+            <InputLink target="SnowCoverCalculator.iSoilTempArray" source="SoilTempArray"/>
+            <InputLink target="STMPsimCalculator.cSoilLayerDepth" source="cSoilLayerDepth"/>
+            <InputLink target="STMPsimCalculator.cFirstDayMeanTemp" source="cFirstDayMeanTemp"/>
+            <InputLink target="STMPsimCalculator.cAVT" source="cAverageGroundTemperature"/>
+            <InputLink target="STMPsimCalculator.cABD" source="cAverageBulkDensity"/>
+            <InputLink target="STMPsimCalculator.cDampingDepth" source="cDampingDepth"/>
+            <InputLink target="STMPsimCalculator.iSoilWaterContent" source="iSoilWaterContent"/>
+            <InputLink target="SnowCoverCalculator.Albedo" source="Albedo"/>
+            <InputLink target="SnowCoverCalculator.SnowWaterContent" source="SnowWaterContent"/>
+            <InputLink target="SnowCoverCalculator.SoilSurfaceTemperature" source="SoilSurfaceTemperature"/>
+            <InputLink target="SnowCoverCalculator.AgeOfSnow" source="AgeOfSnow"/>
+            <InputLink target="STMPsimCalculator.pSoilLayerDepth" source="pSoilLayerDepth"/>
+            <InternalLink target="STMPsimCalculator.iSoilSurfaceTemperature" source="SnowCoverCalculator.SoilSurfaceTemperature"/>
+            <OutputLink target="SoilSurfaceTemperature" source="SnowCoverCalculator.SoilSurfaceTemperature"/>
+            <OutputLink target="SnowIsolationIndex" source="SnowCoverCalculator.SnowIsolationIndex"/>
+            <OutputLink target="SnowWaterContent" source="SnowCoverCalculator.SnowWaterContent"/>
+            <OutputLink target="SoilTempArray" source="STMPsimCalculator.SoilTempArray"/>
+            <OutputLink target="AgeOfSnow" source="SnowCoverCalculator.AgeOfSnow"/></Links></Composition></ModelComposition>

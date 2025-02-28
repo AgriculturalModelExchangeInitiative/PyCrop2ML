@@ -16,6 +16,7 @@ from pycropml.transpiler.antlr_py.bioma.run import run_bioma
 from pycropml.transpiler.antlr_py.openalea.run import run_openalea
 from pycropml.transpiler.antlr_py.fortran.run import run_fortran
 from pycropml.transpiler.antlr_py.python.run import run_python
+from pycropml.transpiler.antlr_py.apsim.run import run_apsim
 from pycropml import render_cyml, nameconvention
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
@@ -67,7 +68,7 @@ ext = {'r': 'r',
        "sirius2": 'cs'
        }
 
-cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py"]
+cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py", "apsim"]
 langs = ["cs", "cpp", "java", "f90", "r", "py"]
 
 domain_class = ["cs", "java", "sirius", "cpp", "cpp2", "bioma", "sirius2", "apsim"]

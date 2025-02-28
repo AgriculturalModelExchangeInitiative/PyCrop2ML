@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.PTQ" name="PTQ" timestep="1" version="001">
+    <Description>
+        <Title>PTQ model</Title>
+        <Authors>Pierre Martre</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>Calculate Photothermal Quaotient </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="deltaTT" description="Thermal time increase of the day" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="100.0" min="0.0" default="0.0" unit="Â°C d"/>
+        <Input name="listPARTTWindowForPTQ_t1" description="List of Daily PAR during TTWindowForPTQ thermal time period" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="MJ m2 d"/>
+        <Input name="listGAITTWindowForPTQ" description="List of daily Green Area Index in the window dedicated to average" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="m2 leaf m-2 ground"/>
+        <Input name="pAR" description="Daily Photosyntetically Active Radiation" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000.0" min="0.0" default="0.0" unit="MJ mÂ² d"/>
+        <Input name="listTTShootWindowForPTQ_t1" description="List of Daily Shoot thermal time during TTWindowForPTQ thermal time period" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="Â°C d"/>
+        <Input name="kl" description="Exctinction Coefficient" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="50.0" min="0.0" default="0.45" unit=""/>
+        <Input name="tTWindowForPTQ" description="Thermal time window in which averages are computed" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="70000.0" min="0.0" default="70.0" unit="Â°C d"/></Inputs>
+    <Outputs>
+        <Output name="listTTShootWindowForPTQ" description="List of Daily Shoot thermal time during TTWindowForPTQ thermal time period" datatype="DOUBLELIST" variablecategory="state" max="" min="" unit="Â°C d"/>
+        <Output name="listPARTTWindowForPTQ" description="List of Daily PAR during TTWindowForPTQ thermal time period" datatype="DOUBLELIST" variablecategory="state" max="" min="" unit="MJ m2 d"/>
+        <Output name="ptq" description="Photothermal quotient " datatype="DOUBLE" variablecategory="state" max="10000.0" min="0.0" unit="MJ Â°C-1 d-1 m-2)"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/PTQ.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

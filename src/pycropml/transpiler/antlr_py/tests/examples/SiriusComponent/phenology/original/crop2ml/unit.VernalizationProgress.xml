@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.VernalizationProgress" name="VernalizationProgress" timestep="1" version="001">
+    <Description>
+        <Title>VernalizationProgress model</Title>
+        <Authors>Pierre MARTRE</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>Calculate progress (VernaProg) towards vernalization, but there         			is no vernalization below minTvern         			and above maxTvern . The maximum value of VernaProg is 1.        			Progress towards full vernalization is a linear function of shoot         			temperature (soil temperature until leaf # reach MaxLeafSoil and then        			 canopy temperature)    	</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="intTvern" description="Intermediate temperature for vernalization to occur" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="60" min="-20" default="11.0" unit="Â°C"/>
+        <Input name="minTvern" description="Minimum temperature for vernalization to occur" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="60" min="-20" default="0.0" unit="Â°C"/>
+        <Input name="vBEE" description="Vernalization rate at 0Â°C" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1" min="0" default="0.01" unit="d-1"/>
+        <Input name="calendarDates_t1" description="List containing  the dates of the wheat developmental phases" inputtype="variable" variablecategory="state" datatype="DATELIST" max="" min="" default="" unit=""/>
+        <Input name="deltaTT" description="Thermal time increase of the day" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="100.0" min="0.0" default="0.0" unit="Â°C d"/>
+        <Input name="maxDL" description="Saturating photoperiod above which final leaf number is not influenced by daylength" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="24" min="0" default="15.0" unit="h"/>
+        <Input name="pNini" description="Number of primorida in the apex at emergence" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="24" min="0" default="4.0" unit="primordia"/>
+        <Input name="dayLength" description="day length" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="0" default="12.3037621834005" unit="mm2 m-2"/>
+        <Input name="cumulTT" description="cumul thermal times at currentdate" inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="10000" min="-200" default="112.330110409888" unit="Â°C d"/>
+        <Input name="calendarMoments_t1" description="List containing appearance of each stage" inputtype="variable" variablecategory="state" datatype="STRINGLIST" max="" min="" default="" unit=""/>
+        <Input name="vernaprog_t1" description="progression on a 0  to 1 scale of the vernalization" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="1" min="0" default="0.5517254187376879" unit=""/>
+        <Input name="aMXLFNO" description="Absolute maximum leaf number" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="25" min="0" default="24.0" unit="leaf"/>
+        <Input name="maxTvern" description="Maximum temperature for vernalization to occur" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="60" min="-20" default="23.0" unit="Â°C"/>
+        <Input name="calendarCumuls_t1" description="list containing for each stage occured its cumulated thermal times" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit="Â°C d"/>
+        <Input name="vAI" description="Response of vernalization rate to temperature" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1" min="0" default="0.015" unit="d-1 Â°C-1"/>
+        <Input name="leafNumber_t1" description="Actual number of phytomers" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="isVernalizable" description="true if the plant is vernalizable" inputtype="parameter" parametercategory="constant" datatype="INT" max="1" min="0" default="1" unit=""/>
+        <Input name="minDL" description="Threshold daylength below which it does influence vernalization rate" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="24" min="12" default="8.0" unit="h"/>
+        <Input name="minFinalNumber_t1" description="minimum final leaf number" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="5.5" unit="leaf"/>
+        <Input name="currentdate" description="current date " inputtype="variable" variablecategory="auxiliary" datatype="DATE" max="" min="" default="" unit=""/></Inputs>
+    <Outputs>
+        <Output name="minFinalNumber" description="minimum final leaf number" datatype="DOUBLE" variablecategory="state" max="25" min="0" unit="leaf"/>
+        <Output name="calendarCumuls" description="list containing for each stage occured its cumulated thermal times" datatype="DOUBLELIST" variablecategory="state" max="" min="" unit="Â°C d"/>
+        <Output name="vernaprog" description="progression on a 0  to 1 scale of the vernalization" datatype="DOUBLE" variablecategory="state" max="1" min="0" unit=""/>
+        <Output name="calendarMoments" description="List containing appearance of each stage" datatype="STRINGLIST" variablecategory="state" max="" min="" unit=""/>
+        <Output name="calendarDates" description="List containing  the dates of the wheat developmental phases" datatype="DATELIST" variablecategory="state" max="" min="" unit=""/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/VernalizationProgress.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>

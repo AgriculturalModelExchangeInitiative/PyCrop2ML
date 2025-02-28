@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">
+<ModelComposition name="EnergyBalance" id="Crop2ML.SQ_Energy_Balance.EnergyBalance" version="001" timestep="1">
+    <Description>
+        <Title>EnergyBalance model</Title>
+        <Authors>Peter D. Jamieson, Glen S. Francis, Derick R. Wilson, Robert J. Martin</Authors>
+        <Institution>New Zealand Institute for Crop and Food Research Ltd., New Zealand Institute for Crop and Food Research Ltd., New Zealand Institute for Crop and Food Research Ltd., New Zealand Institute for Crop and Food Research Ltd. </Institution>
+        <Reference></Reference>
+        <ExtendedDescription>Modelling energy balance in the wheat crop model SiriusQuality2: Evapotranspiration and canopy and soil temperature calculations                        see documentation at http://www1.clermont.inra.fr/siriusquality/?page_id=547    </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Composition>
+        <Model name="NetRadiation" id="Crop2ML.SQ_Energy_Balance.NetRadiation" filename="unit.NetRadiation.xml"/>
+        <Model name="SoilHeatFlux" id="Crop2ML.SQ_Energy_Balance.SoilHeatFlux" filename="unit.SoilHeatFlux.xml"/>
+        <Model name="CropHeatFlux" id="Crop2ML.SQ_Energy_Balance.CropHeatFlux" filename="unit.CropHeatFlux.xml"/>
+
+        <Links>
+            <InputLink target="NetRadiation.albedoCoefficient" source="albedoCoefficient"/>
+
+            <InputLink target="SoilHeatFlux.tau" source="tau"/>
+
+            <InternalLink target="CropHeatFlux.soilHeatFlux" source="SoilHeatFlux.soilHeatFlux"/>
+
+            <OutputLink target="netRadiation" source="NetRadiation.netRadiation"/>
+            <OutputLink target="soilHeatFlux" source="SoilHeatFlux.soilHeatFlux"/>
+
+            <OutputLink target="maxCanopyTemperature" source="CanopyTemperature.maxCanopyTemperature"/>
+        </Links>
+    </Composition>
+</ModelComposition>

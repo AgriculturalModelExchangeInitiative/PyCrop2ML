@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.Phyllochron" name="Phyllochron" timestep="1" version="001">
+    <Description>
+        <Title>Phyllochron model</Title>
+        <Authors>Pierre Martre</Authors>
+        <Institution>INRA Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>Calculate different types of phyllochron </ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="fixPhyll" description=" Phyllochron Varietal parameter " inputtype="variable" variablecategory="auxiliary" datatype="DOUBLE" max="1000" min="0" default="" unit="Â°C d leaf-1"/>
+        <Input name="lNeff" description="Leaf Number efficace" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="leaf"/>
+        <Input name="lARmin" description="LAR minimum" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="leaf-1 Â°C"/>
+        <Input name="lincr" description="Leaf number above which the phyllochron is increased by Pincr" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="30.0" min="0.0" default="8.0" unit="leaf"/>
+        <Input name="B" description="Phyllochron at PTQ equal 1" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="20.0" unit="Â°C d leaf-1"/>
+        <Input name="pdecr" description="Factor decreasing the phyllochron for leaf number less than Ldecr" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="10.0" min="0.0" default="0.4" unit="-"/>
+        <Input name="areaSS" description="Area Sheath" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="cm2"/>
+        <Input name="sowingDensity" description="Sowing Density" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="plant m-2"/>
+        <Input name="lARmax" description="LAR maximum" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="leaf-1 Â°C"/>
+        <Input name="gAImean" description="Mean Green Area Index" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="500.0" min="0.0" default="" unit="m2 leaf m-2 ground"/>
+        <Input name="ptq" description="Photothermal quotient " inputtype="variable" variablecategory="state" datatype="DOUBLE" max="10000.0" min="0.0" default="0.0" unit="MJ Â°C-1 d-1 m-2)"/>
+        <Input name="p" description="Phyllochron (Varietal parameter)" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="120.0" unit="Â°C d leaf-1"/>
+        <Input name="leafNumber" description="Actual number of phytomers" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="choosePhyllUse" description="Switch to choose the type of phyllochron calculation to be used" inputtype="parameter" parametercategory="constant" datatype="STRING" max="" min="" default="" unit="-"/>
+        <Input name="areaSL" description=" Area Leaf" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="cm2"/>
+        <Input name="ldecr" description="Leaf number up to which the phyllochron is decreased by Pdecr" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="100.0" min="0.0" default="0.0" unit="leaf"/>
+        <Input name="pTQhf" description="Slope to intercept ratio for Phyllochron  parametrization with PhotoThermal Quotient" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000.0" min="0.0" default="0.0" unit="Â°C d leaf-1"/>
+        <Input name="pincr" description="Factor increasing the phyllochron for leaf number higher than Lincr" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="10.0" min="0.0" default="1.5" unit="-"/></Inputs>
+    <Outputs>
+        <Output name="phyllochron" description="phyllochron" datatype="DOUBLE" variablecategory="state" max="1000" min="0" unit="Â°C d leaf-1"/></Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/Phyllochron.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>
