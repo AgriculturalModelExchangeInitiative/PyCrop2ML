@@ -67,13 +67,21 @@ def translateInsert(node):
 
 
 def translateContains(node):
-    return Node(type="binary_op", op="!=",
-                left=Node("custom_call", receiver=node.receiver, function="find",
-                          args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
-                                Node(type="local", name=f"{node.receiver.name}.end()"),
-                                node.args[0]]),
-                right=Node(type="local", name="%s.end()" % node.receiver.name))
-
+    if "name" in dir(node.receiver):
+        return Node(type="binary_op", op="!=",
+                    left=Node("custom_call", receiver=node.receiver, function="find",
+                              args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
+                                    Node(type="local", name=f"{node.receiver.name}.end()"),
+                                    node.args[0]]),
+                    right=Node(type="local", name="%s.end()" % node.receiver.name))
+    else:
+        if "elements" in dir(node.receiver):
+            args_str = ", ".join([str(arg.value) for arg in node.receiver.elements])
+            return Node(type="binary_op", op=">",
+                        left=Node("custom_call", receiver=node.receiver,
+                                  function=f"set<{node.receiver.pseudo_type[1]}>(\"{args_str}\").find",
+                                  args=[node.args[0]]),
+                        right=Node(type="int", value="0"))
 
 def translateIndex(node):
     return Node(type="binary_op", op="-",
@@ -113,6 +121,7 @@ class CppRules(GeneralRule):
     binary_op = {"and": "&&",
                  "or": "||",
                  "not": "!",
+                 "is_not": "!=",
                  "<": "<",
                  ">": ">",
                  "==": "==",
