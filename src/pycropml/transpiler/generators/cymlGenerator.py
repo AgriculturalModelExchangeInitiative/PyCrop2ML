@@ -353,7 +353,9 @@ class CymlGenerator(CodeGenerator, CymlRules):
         if node.comments:
             self.translate_com(node.comments)    
         if node.decl[0].type=="list" and ("elements" not in dir(node.decl[0]) or not node.decl[0].elements):
-            self.write("cdef %s "%(node.decl[0].pseudo_type[1].lower() + node.decl[0].pseudo_type[0]))
+            xx = node.decl[0].pseudo_type[1].lower()
+            if xx == "datetime": xx = "date"
+            self.write("cdef %s "%(xx + node.decl[0].pseudo_type[0]))
         elif node.decl[0].type == "array"and "elements" not in dir(node.decl[0]):
             if "elts" not in dir(node.decl[0]):
                 self.write("cdef %s "%(node.decl[0].pseudo_type[-1])) 

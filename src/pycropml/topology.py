@@ -345,12 +345,13 @@ class Topology:
                 code += '\n' + tab + 'return  ' + ', '.join(self.listab) + '\n'
         
         else:
-            code += self.generate_function_signature2(self.model) + '\n'
-            code += self.val_init2(self.model)
-            # call the initialization method of all the models in model(model.model) if it exists
-            code += self.initialization2()
-            code += self.initreturn()
-
+            z = self.initialization2()
+            if z:
+                code += self.generate_function_signature2(self.model) + '\n'
+                code += self.val_init2(self.model)
+                # call the initialization method of all the models in model(model.model) if it exists
+                code += self.initialization2()
+                code += self.initreturn()
         return code
 
     def val_init2(self, model):
