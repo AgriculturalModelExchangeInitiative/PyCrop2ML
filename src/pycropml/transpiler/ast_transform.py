@@ -1254,6 +1254,7 @@ class AstTransformer():
             "floatlist":["list", ["list", "float"]],
             "booleanlist":["list", ["list","bool"]],
             "stringlist":["list",["list","str"]],
+            "strlist":["list",["list","str"]],
             "int":["local","int"],
             "double":["local","float"],
             "float":["local","float"],
@@ -1262,7 +1263,8 @@ class AstTransformer():
             "list":["local","list"],
             "array":["array","array"],
             "datetime":["datetime", "datetime"],
-            "datelist":["list", ["list","datetime"]]}
+            "datelist":["list", ["list","datetime"]],
+            "datetimelist":["list", ["list","datetime"]]}
         return tt[name]
         
         
@@ -1272,7 +1274,7 @@ class AstTransformer():
     def checktype(self,base):
         typet = ["int", "float","bool","datetime","str","list","dict",
                  "intlist","floatlist","booleanlist","datelist","strlist","stringlist","struct",
-                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray" ]
+                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray", "datetimelist" ]
         types =  list(self.struct.keys())
         z = typet+types
         if base not in z:
@@ -1283,7 +1285,7 @@ class AstTransformer():
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
         self.checktype(base_type.name)
-        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist"]
+        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist", "datetimelist"]
         typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
