@@ -92,7 +92,8 @@ class CppGenerator(CodeGenerator, CppRules):
         pass
 
     def visit_none(self, node):
-        pass
+        self.write("null")
+        #pass
 
     def visit_cond_expr_node(self, node):
         self.visit(node.test)

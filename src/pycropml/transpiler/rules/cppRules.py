@@ -2,19 +2,19 @@ from pycropml.transpiler.rules.generalRule import GeneralRule
 from pycropml.transpiler.pseudo_tree import Node
 
 
-def translateLenList(node):
+def translate_len_list(node):
     return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 
 
-def translateLenStr(node):
+def translate_len_str(node):
     return Node("method_call", receiver=node.receiver, message=".length()", args=[], pseudo_type=node.pseudo_type)
 
 
-def translateLog(node):
+def translate_log(node):
     return Node("call", function="std::log10", args=[node.args[0]], pseudo_type=node.pseudo_type)
 
 
-def translateSum(node):
+def translate_sum(node):
     if "name" in dir(node.receiver):
         print(node.receiver.y)
         return Node("call", function="accumulate",
@@ -24,24 +24,24 @@ def translateSum(node):
                     pseudo_type=node.pseudo_type)
     
 
-def translateNotContains(node):
+def translate_not_contains(node):
     return Node("call", function="!", args=[Node("standard_method_call", receiver=node.receiver,
                                                  message="contains?", args=node.args, pseudo_type=node.pseudo_type)])
 
 
-def translateLenDict(node):
+def translate_len_dict(node):
     return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 
 
-def translateLenArray(node):
+def translate_len_array(node):
     return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
 
 
-def translatekeyDict(node):
+def translate_key_dict(node):
     return Node("method_call", receiver=node.receiver, message=".Keys", args=[], pseudo_type=node.pseudo_type)
 
 
-def translateget(node):
+def translate_get(node):
     if "value" in dir(node.args[0]):
         return Node('index', sequence=Node('local', name=node.receiver.name,
                                            pseudo_type=node.receiver.pseudo_type),
@@ -54,19 +54,19 @@ def translateget(node):
                     pseudo_type="Void")
 
 
-def translatePop(node):
+def translate_pop(node):
     return Node("custom_call", receiver=node.receiver, function="%s.erase" % node.receiver.name, args=[
         Node(type="binary_op", left=Node(type="local", name=f"{node.receiver.name}.begin()"), op="+",
              right=node.args)], pseudo_type=node.pseudo_type)
 
 
-def translateInsert(node):
+def translate_insert(node):
     return Node("custom_call", receiver=node.receiver, function=f"{node.receiver.name}.insert",
                 args=[Node(type="binary_op", left=Node(type="local", name=f"{node.receiver.name}.begin()"), op="+",
                            right=node.args[0]), node.args[1]], pseudo_type=node.pseudo_type)
 
 
-def translateContains(node):
+def translate_contains(node):
     if "name" in dir(node.receiver):
         return Node(type="binary_op", op="!=",
                     left=Node("custom_call", receiver=node.receiver, function="find",
@@ -83,13 +83,13 @@ def translateContains(node):
                                   args=[node.args[0]]),
                         right=Node(type="int", value="0"))
 
-def translateIndex(node):
+def translate_index(node):
     return Node(type="binary_op", op="-",
                 left=Node("custom_call", receiver=node.receiver, function="find",
                           args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
                                 Node(type="local", name=f"{node.receiver.name}.end()"),
                                 node.args[0]]),
-                right=Node(type="local", name="%s.begin()" % node.receiver.name))
+                right=Node(type="local", name=f"{node.receiver.name}.begin()"))
 
 
 def translate_min_max(node, f):
@@ -106,13 +106,17 @@ def translate_min_max(node, f):
     return node
 
 
-def translateMIN(node):
+def translate_min(node):
     return translate_min_max(node, "std::min")
 
 
-def translateMAX(node):
+def translate_max(node):
     return translate_min_max(node, "std::max")
 
+def translate_is_nan(node):
+    return Node(type="binary_op", op="==",
+                left=node.args[0],
+                right=Node(type="local", name="std::nan"))
 
 class CppRules(GeneralRule):
     def __init__(self):
@@ -134,10 +138,10 @@ class CppRules(GeneralRule):
                  "!=": "!="}
 
     unary_op = {
-        'not': '!',
-        '+': '+',
-        '-': '-',
-        '~': '~'
+        "not": "!",
+        "+": "+",
+        "-": "-",
+        "~": "~"
     }
 
     types = {
@@ -169,7 +173,7 @@ class CppRules(GeneralRule):
     functions = {
         'math': {
             'ln': 'std::log',
-            'log': translateLog,
+            'log': translate_log,
             'tan': 'std::tan',
             'sin': 'std::sin',
             'cos': 'std::cos',
@@ -181,8 +185,8 @@ class CppRules(GeneralRule):
             'round': 'std::round',
             'exp': 'std::exp',
             'pow': 'std::pow',
-            'floor': 'std::floor'
-
+            'floor': 'std::floor',
+            "isnan": translate_is_nan,
         },
         'io': {
             'print': "std::cout << ",
@@ -191,12 +195,12 @@ class CppRules(GeneralRule):
             'write_file': 'File.WriteAllText'
         },
         'system': {
-            'min': translateMIN,
-            'max': translateMAX,
+            'min': translate_min,
+            'max': translate_max,
             'abs': 'std::abs',
             'pow': 'std::pow'},
         'datetime': {
-            'datetime': lambda node: Node(type="str", value=argsToStr(node.args))
+            'datetime': lambda node: Node(type="str", value=args_to_str(node.args))
         }
     }
 
@@ -216,29 +220,29 @@ class CppRules(GeneralRule):
         'str': {
             'int': 'int',
             'find': '.find',
-            'len': translateLenStr
+            'len': translate_len_str
         },
         'list': {
-            'len': translateLenList,
+            'len': translate_len_list,
             'append': '.push_back',
-            'sum': translateSum,
-            'pop': translatePop,
-            'insert_at': translateInsert,
-            'contains?': translateContains,
-            'not contains?': translateNotContains,
-            'index': translateIndex,
+            'sum': translate_sum,
+            'pop': translate_pop,
+            'insert_at': translate_insert,
+            'contains?': translate_contains,
+            'not contains?': translate_not_contains,
+            'index': translate_index,
             "allocate": lambda node: Node("assignment", target=node.receiver,
                                           value=Node("list", elements=node.args,
                                                      pseudo_type=node.receiver.pseudo_type))
         },
         'dict': {
-            'len': translateLenDict,
-            'keys': translatekeyDict,
-            "get": translateget
+            'len': translate_len_dict,
+            'keys': translate_key_dict,
+            "get": translate_get
         },
         'array': {
-            'len': translateLenArray,
-            'sum': translateSum,
+            'len': translate_len_array,
+            'sum': translate_sum,
             'append': '.Add',
             "allocate": lambda node: Node("assignment", target=node.receiver,
                                           value=Node("list", elements=node.args,
@@ -306,7 +310,7 @@ void %s(%s& toCopy): this() // copy constructor
 '''
 
 
-def argsToStr(args):
+def args_to_str(args):
     t = []
     for arg in args:
         t.append(arg.value)
