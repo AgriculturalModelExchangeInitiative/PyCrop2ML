@@ -56,6 +56,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         # self.write(')')
 
     def visit_binary_op(self, node):
+        # ignore checks against none (nullptr) because we use value types for lists and arrays
+        if node.right.type == "none" and node.left.pseudo_type[0] in ["list", "array"]:
+            self.write("true")
+            return
+
         op = node.op
         prec = self.binop_precedence.get(op, 0)
         self.operator_enter(prec)
@@ -92,7 +97,8 @@ class Cpp2Generator(CodeGenerator, CppRules):
         pass
 
     def visit_none(self, node):
-        pass
+        self.write("null")
+        #pass
 
     def visit_cond_expr_node(self, node):
         self.visit(node.test)
@@ -177,7 +183,10 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(u'}')
 
     def visit_bool(self, node):
-        self.write("true") if node.value == True else self.write("false")
+        if isinstance(node.value, str):
+            self.write(node.value)
+        elif isinstance(node.value, bool):
+            self.write("true") if node.value == True else self.write("false")
 
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
@@ -247,6 +256,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(u"]")
 
     def visit_assignment(self, node):
+        dv = dir(node.value)
         if node.value.type == "binary_op" and node.value.left.type == "list":
             self.visit(node.target)
             self.write(".assign(")
@@ -254,7 +264,6 @@ class Cpp2Generator(CodeGenerator, CppRules):
             self.write(", ")
             self.visit(node.value.left.elements[0])
             self.write(");")
-
 
         elif "function" in dir(node.value) and node.value.function.split('_')[0] == "model":
             name = node.value.function.split('model_')[1]
@@ -322,6 +331,57 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
         elif node.value.type == "none":
             pass
+
+        elif node.target.type == "sliceindex" and node.value.type == "sliceindex":
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+
+        elif node.target.type == "sliceindex" and "pseudo_type" in dv and node.value.pseudo_type[0] == "array":
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < ")
+            self.visit(node.value)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif node.target.type == "sliceindex":
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[1])
+            self.write("); _i++) {")
+            self.newline(node)
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write(";")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
 
         else:
             self.newline(node)
@@ -465,6 +525,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                    '#include <algorithm>\n'
                    '#include <array>\n'
                    '#include <map>\n'
+                   '#include <set>\n'
                    '#include <tuple>\n')
         if self.model:
             self.write(f'#include "{self.model.name}.h"\n')
@@ -697,7 +758,14 @@ class Cpp2Generator(CodeGenerator, CppRules):
                             self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
                         else:
                             self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name}")
-                            self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
+                            if "name" in dir(n.elts[0]):
+                                self.write(f"({n.elts[0].name});")
+                            elif "value" in dir(n.elts[0]):
+                                self.write(f"({n.elts[0].value});")
+                            else:
+                                self.write(f"(")
+                                self.visit(n.elts[0])
+                                self.write(");")
             elif 'value' in dn and n.type in ("int", "float", "str", "bool"):
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
@@ -893,7 +961,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.write(')')
 
     def visit_standard_call(self, node):
-        node.function = self.functions[node.namespace][node.function]
+        ns = self.functions[node.namespace]
+        fn_name = node.function
+        node.function = ns[node.function] if fn_name in ns else None
+        if not node.function:  # search other namespaces
+            for ns_name, ns2 in self.functions.items():
+                if ns_name == node.namespace:
+                    continue
+                if fn_name in ns2:
+                    node.function = ns2[fn_name]
+                    break
+            if not node.function:
+                print(f"Couldn't find function {fn_name} in namespace {node.namespace}")
+                return
         self.visit_call(node)
 
     def visit_importfrom(self, node):
@@ -1564,6 +1644,14 @@ class Cpp2Compo(Cpp2Trans):
                     name = signature2(m)
                     break
             self.write(f"_{name}.Calculate_Model(s, s1, r, a, ex);")
+            self.newline(node)
+        elif "function" in dir(node.value) and node.value.function.split('_')[0]=="init":
+            name  = node.value.function.split('init_')[1]
+            for m in self.modelt.model:
+                if name.lower() == signature2(m).lower():
+                    name = signature2(m)
+                    break
+            self.write(f"_{name}.Init(s, s1, r, a, ex);")
             self.newline(node)
         else:
             self.newline(node)
