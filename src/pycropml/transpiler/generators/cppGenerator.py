@@ -56,6 +56,11 @@ class CppGenerator(CodeGenerator, CppRules):
         # self.write(')')
 
     def visit_binary_op(self, node):
+        # ignore checks against none (nullptr) because we use value types for lists and arrays
+        if node.right.type == "none" and node.left.pseudo_type[0] in ["list", "array"]:
+            self.write("true")
+            return
+
         op = node.op
         prec = self.binop_precedence.get(op, 0)
         self.operator_enter(prec)
@@ -178,7 +183,10 @@ class CppGenerator(CodeGenerator, CppRules):
         self.write(u'}')
 
     def visit_bool(self, node):
-        self.write(node.value) #if node.value == True else self.write("false")
+        if isinstance(node.value, str):
+            self.write(node.value)
+        elif isinstance(node.value, bool):
+            self.write("true") if node.value == True else self.write("false")
    
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
@@ -238,6 +246,7 @@ class CppGenerator(CodeGenerator, CppRules):
         self.write(u"]")
 
     def visit_assignment(self, node):
+        dv = dir(node.value)
         if node.value.type == "binary_op" and node.value.left.type == "list":
             self.visit(node.target)
             self.write(".assign(")
@@ -245,7 +254,6 @@ class CppGenerator(CodeGenerator, CppRules):
             self.write(", ")
             self.visit(node.value.left.elements[0])
             self.write(");")
-
 
         elif "function" in dir(node.value) and node.value.function.split('_')[0] == "model":
             name = node.value.function.split('model_')[1]
@@ -313,6 +321,57 @@ class CppGenerator(CodeGenerator, CppRules):
 
         elif node.value.type == "none":
             pass
+
+        elif node.target.type == "sliceindex" and node.value.type == "sliceindex":
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+
+        elif node.target.type == "sliceindex" and "pseudo_type" in dv and node.value.pseudo_type[0] == "array":
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < ")
+            self.visit(node.value)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif node.target.type == "sliceindex":
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[1])
+            self.write("); _i++) {")
+            self.newline(node)
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write(";")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
 
         else:
             self.newline(node)
@@ -1212,7 +1271,7 @@ class CppTrans(CppGenerator):
 
 def to_struct_cpp(models, rep, name):
     header_cpp(models, rep, name)
-    #header_mu_cpp(models, rep, name)
+    header_mu_cpp(models, rep, name)
     headerCompo(models, rep, name)
     generator = CppTrans(models)
     generator.result = [f'#include "{name}State.h"\n']

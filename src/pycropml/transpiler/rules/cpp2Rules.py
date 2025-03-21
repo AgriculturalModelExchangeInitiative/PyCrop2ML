@@ -146,7 +146,6 @@ class CppRules(GeneralRule):
     }
 
     types = {
-        "size_t": "int",
         "int": "int",
         "float": "double",
         "double": "double",

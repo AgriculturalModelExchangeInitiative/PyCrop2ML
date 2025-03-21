@@ -3,7 +3,8 @@ from pycropml.transpiler.pseudo_tree import Node
 
 
 def translate_len_list(node):
-    return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
+    return Node("call", function="int", args=[
+        Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)])
 
 
 def translate_len_str(node):
@@ -30,11 +31,13 @@ def translate_not_contains(node):
 
 
 def translate_len_dict(node):
-    return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
+    return Node("call", function="int", args=[
+        Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)])
 
 
 def translate_len_array(node):
-    return Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)
+    return Node("call", function="int", args=[
+        Node("method_call", receiver=node.receiver, message=".size()", args=[], pseudo_type=node.pseudo_type)])
 
 
 def translate_key_dict(node):
@@ -79,7 +82,7 @@ def translate_contains(node):
             args_str = ", ".join([str(arg.value) for arg in node.receiver.elements])
             return Node(type="binary_op", op=">",
                         left=Node("custom_call", receiver=node.receiver,
-                                  function=f"set<{node.receiver.pseudo_type[1]}>(\"{args_str}\").find",
+                                  function=f"std::set<{CppRules.types[node.receiver.pseudo_type[1]]}>({{\"{args_str}\"}}).count",
                                   args=[node.args[0]]),
                         right=Node(type="int", value="0"))
 
@@ -112,11 +115,6 @@ def translate_min(node):
 
 def translate_max(node):
     return translate_min_max(node, "std::max")
-
-def translate_is_nan(node):
-    return Node(type="binary_op", op="==",
-                left=node.args[0],
-                right=Node(type="local", name="std::nan"))
 
 class CppRules(GeneralRule):
     def __init__(self):
@@ -171,42 +169,43 @@ class CppRules(GeneralRule):
     }
 
     functions = {
-        'math': {
-            'ln': 'std::log',
-            'log': translate_log,
-            'tan': 'std::tan',
-            'sin': 'std::sin',
-            'cos': 'std::cos',
-            'asin': 'std::asin',
-            'acos': 'std::acos',
-            'atan': 'std::atan',
-            'sqrt': 'std::sqrt',
-            'ceil': '(int) std::ceil',
-            'round': 'std::round',
-            'exp': 'std::exp',
-            'pow': 'std::pow',
-            'floor': 'std::floor',
-            "isnan": translate_is_nan,
+        "math": {
+            "ln": "std::log",
+            "log": translate_log,
+            "tan": "std::tan",
+            "sin": "std::sin",
+            "cos": "std::cos",
+            "asin": "std::asin",
+            "acos": "std::acos",
+            "atan": "std::atan",
+            "sqrt": "std::sqrt",
+            "ceil": "(int) std::ceil",
+            "round": "std::round",
+            "exp": "std::exp",
+            "pow": "std::pow",
+            "floor": "std::floor",
+            "isnan": "std::isnan",
         },
-        'io': {
-            'print': "std::cout << ",
-            'read': 'Console.ReadLine',
-            'read_file': 'File.ReadAllText',
-            'write_file': 'File.WriteAllText'
+        "io": {
+            "print": "std::cout << ",
+            "read": "Console.ReadLine",
+            "read_file": "File.ReadAllText",
+            "write_file": "File.WriteAllText"
         },
-        'system': {
-            'min': translate_min,
-            'max': translate_max,
-            'abs': 'std::abs',
-            'pow': 'std::pow'},
-        'datetime': {
-            'datetime': lambda node: Node(type="str", value=args_to_str(node.args))
+        "system": {
+            "min": translate_min,
+            "max": translate_max,
+            "abs": "std::abs",
+            "pow": "std::pow"
+        },
+        "datetime": {
+            "datetime": lambda node: Node(type="str", value=args_to_str(node.args))
         }
     }
 
     constant = {
-        'math': {
-            'pi': 'M_PI'
+        "math": {
+            "pi": "M_PI"
         }
     }
 
