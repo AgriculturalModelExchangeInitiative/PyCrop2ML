@@ -14,6 +14,7 @@ import shutil
 from datetime import datetime
 from pycropml.modelunit import ModelUnit
 from . import error
+from . import split_function
 
 DATATYPE = {}
 DATATYPE['INT'] = "int"
@@ -22,6 +23,7 @@ DATATYPE['DOUBLE'] = "float"
 DATATYPE['DOUBLELIST'] = "list"
 DATATYPE['INTLIST'] = "list"
 DATATYPE['STRINGLIST'] = "list"
+DATATYPE['STRINGARRAY'] = "str"
 DATATYPE['CHARLIST'] = "list"
 DATATYPE['DATELIST'] = "datelist"
 DATATYPE['DOUBLEARRAY'] = "float"
@@ -70,6 +72,7 @@ class Model2Package(object):
             self.dir = directory.mkdir()
 
         files = []
+    
         count = 0
         for model in self.models:          
             self.generate_component(model) 
@@ -84,10 +87,13 @@ class Model2Package(object):
         
     def generate_component(self, model_unit):
         """Todo"""
+
+        functions = []
         if model_unit.modelid.split(".")[0] != "function":
             func_name = f"model_{signature(model_unit)}"
         else:
             func_name = signature(model_unit)
+        
         types = [inp.datatype for inp in model_unit.inputs] + [out.datatype for out in model_unit.outputs]
         self.code = "import numpy\n"
         self.code += "from math import *\n"
@@ -99,19 +105,15 @@ class Model2Package(object):
             
         self.code += self.generate_function_signature(func_name, model_unit.inputs) + "\n"
         self.code += self.generate_function_doc(model_unit) + "\n"
-        if sys.version_info[0] >= 3:
-            self.code += self.generate_algorithm(model_unit) + "\n"
-        else:
-            self.code += self.generate_algorithm(model_unit).decode("utf-8") + "\n"
+        self.code += self.generate_algorithm(model_unit) + "\n"
 
-        if model_unit.function:
-            for function in model_unit.function:
-                if function.language in ("Cyml", "cyml"):
-                    filefunc = Path(os.path.join(model_unit.path, "crop2ml", function.filename))
-                    with open(filefunc.encode('utf-8'), 'r') as f:
-                        source = f.read()
-                        self.code += source 
-                        self.code += "\n\n\n"
+        if model_unit.function: 
+            function_files = [Path(os.path.join(model_unit.path, "crop2ml", function.filename))
+                              for function in model_unit.function if function.language.lower() == "cyml"]
+
+            content = split_function.unique_functions(function_files)
+            self.code += content
+            self.code += "\n"
      
         return self.code
 
@@ -168,6 +170,8 @@ class Model2Package(object):
                 outs.append(inp)
                 if not inp.default:
                     other += tab + inp.name + " = " + default_value(inp)+"\n"
+            elif "parametercategory" in dir(inp) and inp.parametercategory == "private":
+                outs.append(inp)
         
         code = ""
         if model_unit.initialization:
@@ -447,14 +451,14 @@ def my_input(_input, defa=False):
                 default = float(default) if DATATYPE[_type] == "float" else int(default)
                 return f'{DATATYPE[_type]} {name} = {default}'
         else:
-            if _type == "DOUBLEARRAY" or _type == "INTARRAY":
+            if _type == "DOUBLEARRAY" or _type == "INTARRAY" or _type == "STRINGARRAY":
                 length = _input.len
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return (f"{DATATYPE[_type]} {name}[{length}]")
             else:
                 return (f"{DATATYPE2[_type]} {name}")
     else:
-            if _type == "DOUBLEARRAY" or _type == "INTARRAY":
+            if _type == "DOUBLEARRAY" or _type == "INTARRAY" or _type == "STRINGARRAY":
                 length = _input.len
                     #print("%s %s[%s]"%(DATATYPE[_type], name,len))
                 return (f"{DATATYPE[_type]} {name}[{length}]")
@@ -479,6 +483,7 @@ DATATYPE2['DOUBLE'] = "float"
 DATATYPE2['DOUBLELIST'] = "floatlist"
 DATATYPE2['INTLIST'] = "intlist"
 DATATYPE2['STRINGLIST'] = "stringlist"
+DATATYPE2['STRINGARRAY'] = "stringarray"
 DATATYPE2['CHARLIST'] = "stringlist"
 DATATYPE2['DATELIST'] = "datelist"
 DATATYPE2['DOUBLEARRAY'] = "floatarray"

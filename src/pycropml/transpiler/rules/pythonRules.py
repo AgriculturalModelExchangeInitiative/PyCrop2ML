@@ -34,7 +34,9 @@ class PythonRules(GeneralRule):
                  ">=": ">=",
                  "<=": "<=",
                  "!=": "!=",
-                 "%":"%"
+                 "%":"%",
+                 "is_not":"is not",
+                 "is":"is"
                  }
 
     unary_op = {
@@ -69,7 +71,8 @@ class PythonRules(GeneralRule):
             'ceil':         'ceil',
             'round':        'round',
             'exp':         'exp',
-            "floor": "floor"
+            "floor": "floor",
+            "isnan":"isnan"
 
         },
        'io': {

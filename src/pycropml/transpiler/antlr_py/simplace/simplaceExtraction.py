@@ -119,7 +119,7 @@ class SimplaceExtraction(MetaExtraction):
         outs = list(map(lambda out: out.instance.name, setouts))
         return outs
 
-    def modelunit(self, tree):
+    def modelunit(self, tree, auxiliary):
         desc = self.description(tree)
         self.model= ModelUnit({"name":desc["name"], "version":"001", "timestep":"1"})        
         description = self.model_desc(desc)
@@ -149,6 +149,9 @@ class SimplaceExtraction(MetaExtraction):
             elif att == "rate": category = "rate"
             elif att == "state": category = "state"
             else: category = att.lower()
+
+            if auxiliary[self.model.name] and name in auxiliary[self.model.name]:
+                category = "auxiliary"
             
             if name in ins and name in outnames: category = "state"
             
@@ -271,7 +274,28 @@ class SimplaceExtraction(MetaExtraction):
         return self.mc
                         
                         
-            
+    def getAuxiliary(self, xfile):
+        doc = xml.parse(xfile)
+        root = doc.getroot()
+        compositeid = root.attrib["class"]
+        name = compositeid.split(".")[-1]
+        print("composite name", name)
+        mods = []
+        res = {}
+        for el in list(root):
+            for l in list(el):
+                if l.tag=="simcomponent":
+                    mu_name = l.attrib["id"]
+                    mods.append(mu_name)
+                    res[mu_name]=[]
+                    for j in list(l):
+                        attr = j.attrib
+                        if j.tag == "input" and "source" in attr:
+                            id = attr["id"]
+                            mod = attr["source"].split(".")[0]
+                            if mod != name:
+                                res[mu_name].append(id) 
+        return res         
         
         
 

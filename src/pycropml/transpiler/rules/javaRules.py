@@ -65,7 +65,9 @@ class JavaRules(GeneralRule):
                  "/": "/",
                  ">=": ">=",
                  "<=": "<=",
-                 "!=": "!="
+                 "!=": "!=",
+                 "is":"==",
+                 "is_not":"!="
                  }
 
     unary_op = {
@@ -110,7 +112,8 @@ class JavaRules(GeneralRule):
             'round':        'Math.round',
             'exp':         'Math.exp',
             'pow':          'Math.pow',
-            'floor':  'Math.floor'
+            'floor':  'Math.floor',
+            "isnan": "Double.isNaN"
 
         },
         'io': {

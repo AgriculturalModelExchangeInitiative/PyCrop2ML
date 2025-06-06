@@ -88,7 +88,6 @@ class AstTransformer():
         self.type_env.top['__name__'] = "str"
         self.q=None
         
-        #print(self.type_env.values)
         return {'type': 'module','definition':self.signature, 'iterators':self.iterators, 'body': body if isinstance(body, list) else [body]}
 
     def visit_definitions(self):
@@ -251,14 +250,15 @@ class AstTransformer():
         
         meth = [d for m in list(self._fromimport.values()) for d in m]
         if isinstance(lhs, ExprNodes.TupleNode):
-            if isinstance(rhs, ExprNodes.SimpleCallNode) and  rhs.function.name.startswith("model_"):
+            if isinstance(rhs, ExprNodes.SimpleCallNode) and  (rhs.function.name.startswith("model_") or rhs.function.name.startswith("init_")):
                 self.units={}
-                return {
+                res =  {
                         'type': 'assignment',
                         'target': self.visit_node(lhs),
                         'value': self.visit_node(rhs),
                         'pseudo_type': 'Void'
                     }
+                return res
 
             if not isinstance(value_node["pseudo_type"], list) or (isinstance(value_node["pseudo_type"], list) and value_node["pseudo_type"][0]!="tuple") :
                 raise translation_error(
@@ -271,10 +271,15 @@ class AstTransformer():
                     location, self.lines[location[0]])
             
             for t, j in zip(lhs.args, value_node["pseudo_type"][1:]):
-                if self.type_env[t.name]!= j:
+                if "name" in dir(t) and self.type_env[t.name]!= j:
                     raise translation_error(
                         '%s type is not %s'%(t.name, j),
-                        location, self.lines[location[0]])                    
+                        location, self.lines[location[0]]) 
+                elif isinstance(t, ExprNodes.IndexNode) and self.type_env[t.base.name][-1]!= j: #TODO if the element is a list or dict or tuple
+                    raise translation_error(
+                        '%s type is not %s'%(t.base.name, j),
+                        location, self.lines[location[0]]) 
+                                  
 
             if isinstance(rhs, ExprNodes.SimpleCallNode):
                  self.units={}
@@ -470,7 +475,6 @@ class AstTransformer():
 
     def visit_indexnode(self, node, base, index, location):
         value_node = self.visit_node(base)
-        # print("val",value_node)
         if isinstance(base, ExprNodes.IndexNode):
             value_general_type = "array"
         else:
@@ -758,7 +762,7 @@ class AstTransformer():
             if message in c:
                 if len(c[message]) == 2 or len(c[message]) > 2 and c[message][1]:
                     g = self.type_env.top.values.get("functions", {}).get(message)[1:]
-                    q = self._type_check(g,message, param_types)[-1]
+                    q = self._type_check(g,message, param_types, location)[-1]
                     x = [f for f in self.signature if f.name == message]
                     if q is None: 
                         self.accessReturn(x[0])
@@ -769,8 +773,11 @@ class AstTransformer():
                     argx = [a["pseudo_type"] for a in self.visit_node(x[0].args)]
                     self._definition_index["functions"][message] = self.visit_node(x[0])
                     q = c[message][-1]
-                    if argx != param_types:
-                        raise PseudoCythonTypeCheckError("Types incompatibility at line %s"%location[0])
+                    self._type_check(argx+["N"],message,param_types, location)[-1]
+                    a = self._compatible_types(argx[0], param_types[0], "can't change the type of variable at %s"%location[0])
+
+                    '''if argx != param_types:
+                        raise PseudoCythonTypeCheckError("Types incompatibility at line %s"%location[0])'''
                     #q = self._type_check(argx+returnx,message, param_types)[-1]
                     self.function_name = v 
                 if message == self.function_name: self.recursive = True                                
@@ -783,7 +790,8 @@ class AstTransformer():
                 arg_nodes = [arg if not isinstance(arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
                 if function.name not in meth and function.name not in FUNCTION_API["math"] :
-                    print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
+                    print("err", function.name)
+                    #print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
                 else:
                     if self.retrieve_library(function.name) not in self._imports:
                         self._imports.append(
@@ -1091,7 +1099,6 @@ class AstTransformer():
         op = node.operator
         operand1 = node.operand1
         operand2 = node.operand2
-        #print(type(operand1), type(operand2))
         if isinstance(operand1, ExprNodes.AttributeNode) and operand1.obj.name=="u":
             return {
                     "type":"units",
@@ -1247,6 +1254,7 @@ class AstTransformer():
             "floatlist":["list", ["list", "float"]],
             "booleanlist":["list", ["list","bool"]],
             "stringlist":["list",["list","str"]],
+            "strlist":["list",["list","str"]],
             "int":["local","int"],
             "double":["local","float"],
             "float":["local","float"],
@@ -1255,7 +1263,8 @@ class AstTransformer():
             "list":["local","list"],
             "array":["array","array"],
             "datetime":["datetime", "datetime"],
-            "datelist":["list", ["list","datetime"]]}
+            "datelist":["list", ["list","datetime"]],
+            "datetimelist":["list", ["list","datetime"]]}
         return tt[name]
         
         
@@ -1265,7 +1274,7 @@ class AstTransformer():
     def checktype(self,base):
         typet = ["int", "float","bool","datetime","str","list","dict",
                  "intlist","floatlist","booleanlist","datelist","strlist","stringlist","struct",
-                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray" ]
+                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray", "datetimelist" ]
         types =  list(self.struct.keys())
         z = typet+types
         if base not in z:
@@ -1276,7 +1285,7 @@ class AstTransformer():
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
         self.checktype(base_type.name)
-        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist"]
+        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist", "datetimelist"]
         typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
@@ -1748,7 +1757,6 @@ class AstTransformer():
         }
 
     def visit_primarycmpnode(self, node, operand1, operand2, coerced_operand2, cascade, location):
-        #print(node.operator, location)
         if node.operator not in PSEUDO_OPS[ExprNodes.PrimaryCmpNode]:
             raise("error")
         else:
@@ -1756,7 +1764,7 @@ class AstTransformer():
             right_node = self.visit_node(operand2)
             left_node = self.visit_node(operand1)
         if node.operator not in ["in", "not_in"]:
-            if node.operator != "is": self._confirm_comparable(
+            if node.operator not in  ["is", "is_not"]: self._confirm_comparable(
                 op, left_node['pseudo_type'], right_node['pseudo_type'], location)
             result = {
                 'type': 'comparison',
@@ -1837,9 +1845,12 @@ class AstTransformer():
                 else:
                     raise PseudoCythonTypeCheckError(
                         err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
-            elif from_ == 'int' and to == 'float':
+            elif from_ == 'float' and to == 'int':
                 raise PseudoCythonTypeCheckError(
                     err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
+
+            elif from_ == 'int' and to == 'float':
+                return False
             elif silent:
                 return False
             else:
@@ -1883,18 +1894,18 @@ class AstTransformer():
                 raise PseudoCythonNotTranslatableError(
                     "%s in %s is not a part of pseudo-translatable cython" % (label if label[-1] != '_' else label[:-1], node))
 
-    def _type_check(self, g,message, types):
+    def _type_check(self, g,message, types, location=None):
         if not g:
-            raise PseudoCythonTypeCheckError("%s is not defined" % message)
+            raise PseudoCythonTypeCheckError("%s is not defined at %s" % (message, location))
 
-        return self._real_type_check(g, types, '%s#%s' % ("function", message))
+        return self._real_type_check(g, types, '%s#%s' % ("function", message), location)
 
-    def _real_type_check(self, g, types, name):
+    def _real_type_check(self, g, types, name, location=None):
         if len(g) - 1 != len(types):
-            raise PseudoCythonTypeCheckError("%s expected %d args" % (name, len(g) - 1))
+            raise PseudoCythonTypeCheckError("%s expected %d args at %s" % (name, len(g) - 1, location))
 
         for j, (a, b) in enumerate(zip(g[0:-1], types)):
-            general = self._compatible_types(b, a, "can't convert %s %dth arg" % (name, j))
+            general = self._compatible_types(b, a, "can't convert %s %dth arg at %s (%s and %s)" % (name, j, location, b, a))
 
         return g
 
@@ -1911,10 +1922,10 @@ class AstTransformer():
         else:
             return t
 
+
 # retrieve from pseudo-python
 def transform_to_syntax_tree(tree):
-    '''Generate a Node class from the tree in dict format    
-    '''
+    """Generate a Node class from the tree in dict format"""
     if isinstance(tree, dict) and 'type' in tree:
         return Node(tree['type'], **{k: transform_to_syntax_tree(v) for k, v in tree.items() if k != 'type'})
     elif isinstance(tree, dict):

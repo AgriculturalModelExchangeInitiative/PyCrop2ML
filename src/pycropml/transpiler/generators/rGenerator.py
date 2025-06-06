@@ -7,6 +7,7 @@ from pycropml.render_cyml import signature
 from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+from pycropml.nameconvention import signature2, signature2_from_name
 
 class RGenerator(CodeGenerator, RRules):
     """This class contains the specific properties of 
@@ -41,9 +42,28 @@ class RGenerator(CodeGenerator, RRules):
 
     def visit_assignment(self, node):
         self.newline(node)
-        self.visit(node.target)
-        self.write(' <- ')
-        self.visit(node.value)
+        if node.target.type=="tuple" and node.value.type=="custom_call":
+            self.write("result <-  ")
+            self.visit(node.value)
+            self.newline(node)
+            for i, n in enumerate(node.target.elements):
+                self.visit(n)
+                self.write(f" <- result[[{i+1}]]")
+                self.newline(node)
+        elif node.target.type=="tuple" and node.value.type=="tuple":
+            self.write("result <-  list(")
+            self.comma_separated_list(node.value.elements)
+            self.write(")")
+            self.newline(node)
+            for i, n in enumerate(node.target.elements):
+                self.visit(n)
+                self.write(f" <- result[[{i+1}]]")
+                self.newline(node)      
+        else:
+            self.newline(node)
+            self.visit(node.target)
+            self.write(' <- ')
+            self.visit(node.value)
 
     def visit_constant(self, node):
         self.write(self.constant[node.library][node.name]) 
@@ -102,19 +122,16 @@ class RGenerator(CodeGenerator, RRules):
         self.write(node.value)
         
     def visit_bool(self, node):
-        self.write(node.value).upper()
+        print(node.y)
+        self.write(node.value.upper())
 
     def visit_str(self, node):
         self.emit_string(node)
         #self.write("%s"%str(node.value))
     
     def visit_tuple(self, node):
-        self.write("list[")
-        for n in node.elements:
-            self.write(n.name)
-            if n!=node.elements[len(node.elements)-1]:
-                self.write(", ")
-        self.write("]")  
+        self.write("list")
+        self.emit_sequence(node.elements, u"[]")
               
     def visit_pair(self, node):
         self.visit(node.key)
@@ -184,15 +201,25 @@ class RGenerator(CodeGenerator, RRules):
         self.visit(node.receiver)
         self.write(u"[")
         if node.message=="sliceindex_from":
+            self.write("(")
             self.visit(node.args)
-            self.write(u":")
+            self.write(u" + 1):")
         if node.message=="sliceindex_to":
             self.write(u":")
-            self.visit(node.args)
+            if node.args.type=="binary_op":
+                self.write("(")
+                self.visit(node.args)
+                self.write(")")
+            else: self.visit(node.args)
         if node.message=="sliceindex":
+            self.write("(")
             self.visit(node.args[0])
-            self.write(u":")
-            self.visit(node.args[1])
+            self.write(u" + 1):")
+            if node.args[1].type=="binary_op":
+                self.write("(")
+                self.visit(node.args[1])
+                self.write(")")
+            else: self.visit(node.args[1])
         self.write(u"]")
 
 
@@ -214,17 +241,20 @@ class RGenerator(CodeGenerator, RRules):
         op = node.op
         prec = self.binop_precedence.get(op, 0)
         self.operator_enter(prec)
-        self.visit(node.left)
-        self.write(u" %s " % self.binary_op[op].replace('_', ' '))
-        if "type" in dir(node.right):
-            if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
-                self.write("(")
-                self.visit(node.right)
-                self.write(")")
+        if op in ("is_not", "is"):
+            self.visit(self.binary_op[op](node))   
+        else:
+            self.visit(node.left)
+            self.write(u" %s " % self.binary_op[op].replace('_', ' '))
+            if "type" in dir(node.right):
+                if node.right.type=="binary_op" and  self.binop_precedence.get(str(node.right.op), 0) >= prec: # and node.right.op not in ("+","-") :
+                    self.write("(")
+                    self.visit(node.right)
+                    self.write(")")
+                else:
+                    self.visit(node.right)
             else:
                 self.visit(node.right)
-        else:
-            self.visit(node.right)
         self.operator_exit()
     
     def visit_unary_op(self, node):
@@ -239,6 +269,79 @@ class RGenerator(CodeGenerator, RRules):
         self.newline(extra=1)
         self.newline(node)
         self.funcname = node.name
+        if node.name.startswith("init_"):
+            self.write(f"#' Initialization of the {self.model.description.Title}\n")
+            self.write(f"#' \n")
+            self.write(f"#' This function initialize the {self.model.description.Title}")
+            self.newline(1)
+            for arg in node.params:
+                for inp in self.model.inputs:
+                    if arg.name == inp.name:
+                        self.write(f"#' @param {inp.name} ({inp.unit}) {inp.description} {inp.parametercategory if 'parametercategory' in dir(inp) else inp.variablecategory} ({inp.default}, {inp.min}-{inp.max}) ")
+                        self.newline(1)
+            self.write(f"#'")
+            self.newline(1)
+            self.write(f"#' @return")  
+            self.newline(1)   
+            self.write(f"#' \describe{{")  
+            self.newline(1)   
+            for out in self.model.outputs:
+                if out.variablecategory=="state":
+                    self.write(f"#'   \item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}}")
+                    self.newline(1)
+            self.newline(1)
+            self.write(f"#' }}")
+            self.newline(1)                
+            self.write(f"#' @export")
+            self.newline(1)
+            
+        if self.model and  node.name.startswith("model_") and node.name.split("model_")[1]==signature(self.model):
+                """self.write(f"#' @Title {self.model.description.Title}")
+                self.newline(1)
+                self.write(f"#' @Description {self.model.description.ExtendedDescription}")
+                self.newline(1)
+                self.write(f"#' @Authors {self.model.description.Authors} ")
+                self.newline(1)
+                self.write(f"#' @Institutions {self.model.description.Institution}")    
+                self.newline(1)
+                self.write(f"#' @Reference {self.model.description.Reference}")
+                self.newline(1)
+                self.write(f"#' @Version {self.model.version}")"""
+                self.write(f"#' {self.model.description.Title}")
+                self.newline(1)
+                self.write(f"#'")
+                self.newline(1)
+                self.write(f"#' This function compute the {self.model.description.Title}")
+                self.newline(1)
+                for inp in self.model.inputs:
+                    self.write(f"#' @param {inp.name} ({inp.unit}) {inp.description} {inp.parametercategory if 'parametercategory' in dir(inp) else inp.variablecategory} ({inp.default}, {inp.min}-{inp.max}) ")
+                    self.newline(1)
+                self.write(f"#'")
+                self.newline(1)
+                self.write(f"#' @return")
+                self.newline(1)
+                self.write(f"#' \describe{{")
+                self.newline(1)
+                for out in self.model.outputs:
+                    self.write(f"#'   \item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}} ")
+                    self.newline(1)
+                self.newline(1)   
+                self.write(f"#' }}") 
+                self.newline(1)            
+                self.write(f"#' @export")
+                self.newline(1)
+                
+                
+                
+                """self.write(self.doc.header)
+                self.newline(node)
+                self.write(self.doc.desc)
+                self.newline(node)
+                self.write(self.doc.inputs_doc)
+                self.newline(node)
+                self.write(self.doc.outputs_doc)
+                self.newline(node)
+                self.model = None"""
         self.write('%s <- function (' % node.name)
         for i, pa in enumerate(node.params): 
             self.write(pa.name)
@@ -249,16 +352,6 @@ class RGenerator(CodeGenerator, RRules):
                 self.write(',\n         ')
         self.write('){')
         self.newline(node)
-        if self.model and  node.name.startswith("model_") and node.name.split("model_")[1]==signature(self.model):
-            self.write(self.doc.header)
-            self.newline(node)
-            self.write(self.doc.desc)
-            self.newline(node)
-            self.write(self.doc.inputs_doc)
-            self.newline(node)
-            self.write(self.doc.outputs_doc)
-            self.newline(node)
-            self.model = None
         self.body(node.block)
         self.newline(node)
         self.write("}")
@@ -293,16 +386,36 @@ class RGenerator(CodeGenerator, RRules):
                 self.write(n.name)
                 self.write(" <- ")                 
                 self.write(n.value)
+            elif "value" not in dir(n) and n.type =="int":
+                self.newline(node)
+                self.write(n.name)
+                self.write(" <- ") 
+                self.write("0")
+            elif "value" not in dir(n) and n.type =="float":
+                self.newline(node)
+                self.write(n.name)
+                self.write(" <- ") 
+                self.write("0.0")
             elif 'value' in dir(n) and n.type=="bool":
                 self.newline(node)
                 self.write(n.name)
                 self.write(" <- ") 
-                self.write(str(n.value).upper())        
+                self.write(str(n.value).upper()) 
+            elif "value" not in dir(n) and n.type =="bool":
+                self.newline(node)
+                self.write(n.name)
+                self.write(" <- ") 
+                self.write("FALSE")       
             elif 'value' in dir(n) and n.type=="str":
                 self.newline(node)
                 self.write(n.name)
                 self.write(" <- ") 
                 self.emit_string(n) 
+            elif "value" not in dir(n) and n.type =="str":
+                self.newline(node)
+                self.write(n.name)
+                self.write(" <- ") 
+                self.write("''")
             elif 'elements' in dir(n) and n.type in ("list", "tuple"):
                 self.newline(node)
                 self.write(n.name)
@@ -331,6 +444,7 @@ class RGenerator(CodeGenerator, RRules):
                     else:
                         
                         self.write("<- vector()")
+            
     
     def visit_empty(self, node):
         pass              
@@ -396,7 +510,7 @@ class RGenerator(CodeGenerator, RRules):
         
     def visit_for_sequence(self, node):
         self.visit(node.sequence)
-        self.write(":")
+        #self.write(":")
         
     
     def visit_for_range_statement(self, node):
@@ -432,27 +546,15 @@ class RCompo(RGenerator):
         for C# languages.
     """
     def __init__(self, tree, model=None, name=None):
+        RGenerator.__init__(self,tree, model, name)
         self.tree = tree
         self.model = model
-        self.name = name
-        RGenerator.__init__(self,tree, model, self.name)
-        x = os.path.split(self.model.aPath)[0]
-        z=x.split('\\')#.pop()
-        z.pop()
-        sourcePath = "/".join(z)+"/src/r"
-        self.write("library (gsubfn) ")
-        self.newline()
-        self.write("setwd('%s')"%sourcePath)
-        self.newline()
-        for m in self.model.model:
-            self.write("source('%s.r')"%m.name.lower().capitalize())
-            self.newline()
+        self.name = name   
 
-    def visit_tuple(self,node):
-        self.write("list[")
-        for n in node.elements:
-            self.write(n.name)
-            if n!=node.elements[len(node.elements)-1]:
-                self.write(", ")
-        self.write("]")           
+    def visit_module(self, node):
+        self.newline(extra=1)
+        self.newline(node)
+        self.visit(node.body)
+
+   
         

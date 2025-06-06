@@ -435,12 +435,17 @@ class BiomaExtraction(MetaExtraction):
         m_in = set(inps) - set(outs)
         z = {}
         internallink= []
+        inp_=[]
+        ins_ = []
         for m in md:
             vi = list(set([n.name for n in m.inputs ]).intersection(m_in))
             vo = [n.name for n in m.outputs]
             for v in vi:
                 inputlink.append({"target": m.name + "." + v, "source":v})
-            for v in vo: z.update({v:m.name})
+                inp_.append(v+"_"+m.name)
+            for v in vo: 
+                z.update({v:m.name})
+                #inp_.append(v+"_"+m.name)
 
         for k, v in z.items():
             outputlink.append({"source": v + "." + k, "target":k})
@@ -452,7 +457,17 @@ class BiomaExtraction(MetaExtraction):
                 if vi: 
                     for k in vi:
                         internallink.append({"source": mi.name + "." + k, "target":mj.name + "." + k})
-
+                        ins_.append(k+"_"+mj.name)
+        for m in md:
+            states_in = [n.name for n in m.inputs if "variablecategory" in dir(n) and n.variablecategory == "state"]
+            states_out = [n.name for n in m.outputs if n.variablecategory == "state"]
+            for s_in in states_in:
+                for s_out in states_out:
+                    if s_in ==  s_out and s_in + '_' + m.name not in inp_ and s_in + '_' + m.name not in ins_:
+                        inputlink.append({"target": m.name + "." + v, "source":v})
+                        inp_.append(s_in+"_"+m.name)
+                        
+                        
         self.mc.inputlink = inputlink
         self.mc.outputlink = outputlink
         self.mc.internallink = internallink

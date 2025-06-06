@@ -71,3 +71,10 @@ nosetests.xml
 
 # Jupyter
 .ipynb_checkpoints
+
+# VS Code
+.vscode
+
+# R
+.Rproj.user
+.Rhistory

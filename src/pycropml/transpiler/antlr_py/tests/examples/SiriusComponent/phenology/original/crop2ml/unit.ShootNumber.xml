@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Crop2ML.original.ShootNumber" name="ShootNumber" timestep="1" version="001">
+    <Description>
+        <Title>ShootNumber model</Title>
+        <Authors>Pierre MARTRE</Authors>
+        <Institution>INRA/LEPSE Montpellier</Institution>
+        <URI></URI>
+        <Reference>(&apos;&apos;,)</Reference>
+        <ExtendedDescription>calculate the shoot number and update the related variables if needed</ExtendedDescription>
+        <ShortDescription></ShortDescription></Description>
+    <Inputs>
+        <Input name="tilleringProfile_t1" description=" store the amount of new tiller created at each time a new tiller appears" inputtype="variable" variablecategory="state" datatype="DOUBLELIST" max="" min="" default="" unit=""/>
+        <Input name="sowingDensity" description="number of plant /mÂ²" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="500" min="0" default="288.0" unit="plant m-2"/>
+        <Input name="leafNumber" description="Actual number of phytomers" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="25" min="0" default="0" unit="leaf"/>
+        <Input name="leafTillerNumberArray_t1" description="store the number of tiller for each leaf layer" inputtype="variable" variablecategory="state" datatype="INTLIST" max="" min="" default="" unit="leaf"/>
+        <Input name="targetFertileShoot" description="max value of shoot number for the canopy" inputtype="parameter" parametercategory="constant" datatype="DOUBLE" max="1000" min="280" default="600.0" unit="shoot"/>
+        <Input name="canopyShootNumber_t1" description="shoot number for the whole canopy" inputtype="variable" variablecategory="state" datatype="DOUBLE" max="10000" min="0" default="288.0" unit="shoot m-2"/></Inputs>
+    <Outputs>
+        <Output name="averageShootNumberPerPlant" description="average shoot number per plant in the canopy" datatype="DOUBLE" variablecategory="state" max="10000" min="0" unit="shoot m-2"/>
+        <Output name="leafTillerNumberArray" description="store the number of tiller for each leaf layer" datatype="INTLIST" variablecategory="state" max="" min="" unit="leaf"/>
+        <Output name="canopyShootNumber" description="shoot number for the whole canopy" datatype="DOUBLE" variablecategory="state" max="10000" min="0" unit="shoot m-2"/>
+        <Output name="numberTillerCohort" description="Number of tiller which appears" datatype="INT" variablecategory="state" max="10000" min="0" unit="dimensionless"/>
+        <Output name="tilleringProfile" description=" store the amount of new tiller created at each time a new tiller appears" datatype="DOUBLELIST" variablecategory="state" max="" min="" unit=""/></Outputs>
+    <Initialization name="init" language="cyml" filename="algo/pyx/init.ShootNumber.pyx"/>
+    <Function name="fibonacci" description="" language="cyml" type="external" filename="algo/pyx/fibonacci.pyx"/>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/ShootNumber.pyx"/>
+    <Parametersets/>
+    <Testsets/></ModelUnit>
