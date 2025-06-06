@@ -1,0 +1,152 @@
+
+{
+  "function": [
+    {
+      "name": "process",
+      "description": "Calculates the daily soil temperature in multiple soil layers based on previous temperatures, soil properties, water content, and surface temperature inputs using a damping depth concept.",
+      "inputs": [
+        {
+          "name": "pSoilLayerDepth",
+          "description": "Depth of soil layer plus additional depth (m)",
+          "inputtype": "Variable",
+          "category": "privat",
+          "datatype": "DOUBLEARRAY",
+          "len": null,
+          "min": 0.03,
+          "max": 20,
+          "default": null,
+          "unit": "metre",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/metre"
+        },
+        {
+          "name": "cABD",
+          "description": "Mean bulk density of soil (average soil bulk density) (t m-3)",
+          "inputtype": "Parameter",
+          "category": "constant",
+          "datatype": "DOUBLE",
+          "len": 1,
+          "min": 1,
+          "max": 4,
+          "default": 2,
+          "unit": "tonne_per_cubic_metre",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/tonne_per_cubic_metre"
+        },
+        {
+          "name": "cAVT",
+          "description": "Long-term average annual air temperature, used as constant temperature at deepest soil layer (°C)",
+          "inputtype": "Parameter",
+          "category": "constant",
+          "datatype": "DOUBLE",
+          "len": 1,
+          "min": -10,
+          "max": 20,
+          "default": null,
+          "unit": "degree_Celsius",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"
+        },
+        {
+          "name": "cSoilLayerDepth",
+          "description": "Depth of soil layers (m)",
+          "inputtype": "Parameter",
+          "category": "constant",
+          "datatype": "DOUBLEARRAY",
+          "len": null,
+          "min": 0.03,
+          "max": 20,
+          "default": null,
+          "unit": "metre",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/metre"
+        },
+        {
+          "name": "iSoilWaterContent",
+          "description": "Water content, sum of whole soil profile (mm)",
+          "inputtype": "Variable",
+          "category": "input",
+          "datatype": "DOUBLE",
+          "len": 1,
+          "min": 1.5,
+          "max": 20,
+          "default": 5,
+          "unit": "millimetre",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/millimetre"
+        },
+        {
+          "name": "iSoilSurfaceTemperature",
+          "description": "Temperature at soil surface (°C)",
+          "inputtype": "Variable",
+          "category": "input",
+          "datatype": "DOUBLE",
+          "len": 1,
+          "min": 1.5,
+          "max": 20,
+          "default": null,
+          "unit": "degree_Celsius",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"
+        },
+        {
+          "name": "SoilTempArray",
+          "description": "Array of soil temperatures in layers (°C)",
+          "inputtype": "Variable",
+          "category": "state",
+          "datatype": "DOUBLEARRAY",
+          "len": null,
+          "min": -40,
+          "max": 50,
+          "default": null,
+          "unit": "degree_Celsius",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"
+        },
+        {
+          "name": "rSoilTempArrayRate",
+          "description": "Array of daily soil temperature changes (°C per day)",
+          "inputtype": "Variable",
+          "category": "rate",
+          "datatype": "DOUBLEARRAY",
+          "len": null,
+          "min": -20,
+          "max": 20,
+          "default": null,
+          "unit": "degree_Celsius_per_day",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius_per_day"
+        },
+        {
+          "name": "iDoInitialize",
+          "description": "Switch to re-initialize the model with initial values",
+          "inputtype": "Variable",
+          "category": "input",
+          "datatype": "BOOLEAN",
+          "len": 1,
+          "min": null,
+          "max": null,
+          "default": false,
+          "unit": "one",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/one"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "SoilTempArray",
+          "description": "Updated array of soil temperatures in layers after computation (°C)",
+          "datatype": "DOUBLEARRAY",
+          "len": null,
+          "min": -40,
+          "max": 50,
+          "default": null,
+          "unit": "degree_Celsius",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius"
+        },
+        {
+          "name": "rSoilTempArrayRate",
+          "description": "Updated array of daily temperature change rates for each soil layer (°C per day)",
+          "datatype": "DOUBLEARRAY",
+          "len": null,
+          "min": -20,
+          "max": 20,
+          "default": null,
+          "unit": "degree_Celsius_per_day",
+          "uri": "http://www.wurvoc.org/vocabularies/om-1.8/degree_Celsius_per_day"
+        }
+      ]
+    }
+  ]
+}
