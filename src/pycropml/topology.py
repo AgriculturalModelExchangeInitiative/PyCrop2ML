@@ -355,16 +355,15 @@ class Topology:
         return code
 
     def val_init2(self, model):
-        inputs = model.inputs
         statenames = [st.name for st in model.states]
+        inouts = model.inputs + model.outputs
         #inout = inputs + outputs
         tab = ' '*4
         code = ""
-        inps = []
-        for inp in inputs:
-            if inp.name not in inps and inp.name in statenames:
-                name = inp.name
-                inps.append(name)
+        outs = []
+        for inp in inouts:
+            if inp.name not in outs and inp.name in statenames:
+                outs.append(inp.name)
                 code += tab+"cdef "+my_input(inp, defa=False)+"\n"
         return code
     
