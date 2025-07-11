@@ -319,7 +319,6 @@ def run_bioma(component, output):
         var =  z.totalvar(st)
         algo = z.getAlgo(st)
         init_ = z.getInit(st)
-        print("uuuuuuuuuuu", init_)
         funcs = z.externFunction(st, algo.block, False)  
         funcs = [f for f in funcs if f]
         strat_var = z.getStrategyVar(st)

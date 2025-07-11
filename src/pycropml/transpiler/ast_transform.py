@@ -88,7 +88,6 @@ class AstTransformer():
         self.type_env.top['__name__'] = "str"
         self.q=None
         
-        #print(self.type_env.values)
         return {'type': 'module','definition':self.signature, 'iterators':self.iterators, 'body': body if isinstance(body, list) else [body]}
 
     def visit_definitions(self):
@@ -476,7 +475,6 @@ class AstTransformer():
 
     def visit_indexnode(self, node, base, index, location):
         value_node = self.visit_node(base)
-        # print("val",value_node)
         if isinstance(base, ExprNodes.IndexNode):
             value_general_type = "array"
         else:
@@ -1047,7 +1045,6 @@ class AstTransformer():
                 }
 
     def visit_subnode(self, node, operand1, operand2, location):
-        print(node.py_result, node.target_code, location)
         op = node.operator
         operand1 = node.operand1
         operand2 = node.operand2
@@ -1102,7 +1099,6 @@ class AstTransformer():
         op = node.operator
         operand1 = node.operand1
         operand2 = node.operand2
-        #print(type(operand1), type(operand2))
         if isinstance(operand1, ExprNodes.AttributeNode) and operand1.obj.name=="u":
             return {
                     "type":"units",
@@ -1258,6 +1254,7 @@ class AstTransformer():
             "floatlist":["list", ["list", "float"]],
             "booleanlist":["list", ["list","bool"]],
             "stringlist":["list",["list","str"]],
+            "strlist":["list",["list","str"]],
             "int":["local","int"],
             "double":["local","float"],
             "float":["local","float"],
@@ -1266,7 +1263,8 @@ class AstTransformer():
             "list":["local","list"],
             "array":["array","array"],
             "datetime":["datetime", "datetime"],
-            "datelist":["list", ["list","datetime"]]}
+            "datelist":["list", ["list","datetime"]],
+            "datetimelist":["list", ["list","datetime"]]}
         return tt[name]
         
         
@@ -1276,7 +1274,7 @@ class AstTransformer():
     def checktype(self,base):
         typet = ["int", "float","bool","datetime","str","list","dict",
                  "intlist","floatlist","booleanlist","datelist","strlist","stringlist","struct",
-                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray" ]
+                 "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray", "datetimelist" ]
         types =  list(self.struct.keys())
         z = typet+types
         if base not in z:
@@ -1287,7 +1285,7 @@ class AstTransformer():
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
         self.checktype(base_type.name)
-        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist"]
+        typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist", "datetimelist"]
         typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
