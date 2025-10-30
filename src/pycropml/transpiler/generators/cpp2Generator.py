@@ -91,7 +91,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_breakstatnode(self, node):
         self.newline(node)
-        self.write('break;')
+        self.write("break;")
 
     def visit_import(self, node):
         pass
@@ -109,20 +109,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_if_statement(self, node):
         self.newline(node)
-        self.write('if (')
+        self.write("if (")
         self.visit(node.test)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.newline(node)
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
+        self.newline(node)
         while True:
             else_ = node.otherwise
             if len(else_) == 0:
                 break
-            elif len(else_) == 1 and else_[0].type == 'elseif_statement':
+            elif len(else_) == 1 and else_[0].type == "elseif_statement":
                 self.visit(else_[0])
             else:
                 self.visit(else_)
@@ -131,23 +130,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_elseif_statement(self, node):
         self.newline()
-        self.write('else if ( ')
+        self.write("else if (")
         self.visit(node.test)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
 
     def visit_else_statement(self, node):
         self.newline()
-        self.write('else')
-        self.newline(node)
-        self.write('{')
+        self.write("else {")
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
 
     def visit_print(self, node):
         pass
@@ -621,7 +616,6 @@ class Cpp2Generator(CodeGenerator, CppRules):
             self.write("[_k];")
             self.newline(node)
             self.write("}")
-            self.newline(node)
             self.newline(node)
 
         elif (node.target.type == "sliceindex" and node.target.message == "slice_"
@@ -1168,7 +1162,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                                 self.write(f"(")
                                 self.visit(n.elts[0])
                                 self.write(");")
-            elif 'value' in dn and n.type in ("int", "float", "str", "bool"):
+            elif "value" in dn and n.type in ("int", "float", "str", "bool"):
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
                 else:
@@ -1178,7 +1172,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 else:
                     self.visit(n)
                 self.write(";")
-            elif n.type == 'datetime':
+            elif n.type == "datetime":
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     self.write(f"{self.struct_name_for(n.name)}.{n.name}")
                 else:
@@ -1187,40 +1181,40 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     self.write(" = ")
                     self.visit(n.elts)
                 self.write(";")
-            elif 'elements' in dn and n.type in ("list", "tuple"):
+            elif "elements" in dn and n.type in ("list", "tuple"):
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     if n.type == "list":
                         self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
-                        self.write(u'{')
+                        self.write("{")
                         self.comma_separated_list(n.elements)
-                        self.write(u'};')
+                        self.write("};")
                 else:
                     if n.type == "list":
                         self.visit_decl(n.pseudo_type)
                         self.write(n.name)
                         self.write(" = ")
-                        self.write(u'{')
+                        self.write("{")
                         self.comma_separated_list(n.elements)
-                        self.write(u'};')
-                    if n.type == 'tuple':
+                        self.write("};")
+                    if n.type == "tuple":
                         pass
-            elif 'pairs' in dn and n.type == "dict":
+            elif "pairs" in dn and n.type == "dict":
                 self.visit_decl(n.pseudo_type)
                 self.write(n.name)
-                self.write(u' = {')
+                self.write(" = {")
                 self.comma_separated_list(n.pairs)
-                self.write(u'};')
+                self.write("};")
 
         self.newline(node)
 
     def visit_list_decl(self, node, pa=None):
         if not isinstance(node[1], list):
             self.write(self.types[node[1]])
-            self.write('>')
+            self.write(">")
         else:
             node = node[1]
             self.visit_decl(node, pa)
-            self.write('>')
+            self.write(">")
         if pa and "name" in dir(pa):
             self.write(f" {pa.name}")
 
@@ -1229,11 +1223,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(",")
         if not isinstance(node[2], list):
             self.write(self.types[node[2]])
-            self.write('>')
+            self.write(">")
         else:
             node = node[2]
             self.visit_decl(node)
-            self.write('>')
+            self.write(">")
 
     def visit_tuple_decl(self, node):
         self.visit_decl(node[0])
@@ -1241,7 +1235,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
             self.visit_decl(n)
             self.write(",")
         self.visit_decl(node[-1])
-        self.write('>')
+        self.write(">")
 
     def visit_float_decl(self, node, pa=None):
         self.write(self.types[node])
@@ -1300,23 +1294,23 @@ class Cpp2Generator(CodeGenerator, CppRules):
         else:"""
         node = node[1]
         self.visit_decl(node)
-        self.write('> ')
+        self.write("> ")
         if pa:
             self.write(pa.name)
 
     def visit_decl(self, node, pa=None):
         if isinstance(node, list):
             if node[0] == "list":
-                self.write('std::vector<')
+                self.write("std::vector<")
                 self.visit_list_decl(node, pa)
             elif node[0] == "dict":
                 self.write("std::map<")
                 self.visit_dict_decl(node)
             elif node[0] == "tuple":
-                self.write('std::tuple<')
+                self.write("std::tuple<")
                 self.visit_tuple_decl(node)
             elif node[0] == "array":
-                self.write('std::vector<')
+                self.write("std::vector<")
                 self.visit_array_decl(node, pa)
         else:
             if node == "float":
@@ -1331,11 +1325,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.visit_datetime_decl(node)
 
     def visit_pair(self, node):
-        self.write(u'{')
+        self.write("{")
         self.visit(node.key)
-        self.write(u", ")
+        self.write(", ")
         self.visit(node.value)
-        self.write(u'}')
+        self.write("}")
 
     def visit_call(self, node):
         want_comma = []
@@ -1353,14 +1347,14 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.visit(node.function(node))
             else:
                 self.write(node.function)
-                self.write('(')
+                self.write("(")
                 if isinstance(node.args, list):
                     for arg in node.args:
                         write_comma()
                         self.visit(arg)
                 else:
                     self.visit(node.args)
-                self.write(')')
+                self.write(")")
 
     def visit_standard_call(self, node):
         ns = self.functions[node.namespace]
@@ -1383,14 +1377,12 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_for_statement(self, node):
         self.newline(node)
-        self.write("for(")
+        self.write("for (")
         if "iterators" in dir(node):
             self.visit(node.iterators)
         if "sequences" in dir(node):
             self.visit(node.sequences)
-            self.write(')')
-        self.newline(node)
-        self.write('{')
+            self.write(") {")
         if "iterators" in dir(node):
             self.newline(node)
             self.indentation += 1
@@ -1399,10 +1391,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.body(node.block)
         self.newline(node)
         self.write('}')
+        self.newline(node)
 
     def visit_for_iterator_with_index(self, node):
         self.visit(node.index)
-        self.write(' , ')
+        self.write(', ')
         self.visit(node.iterator)
 
     def visit_for_sequence_with_index(self, node):
@@ -1422,34 +1415,31 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.visit(node.index)
         self.write("=")
         self.visit(node.start)
-        self.write(' ; ')
+        self.write("; ")
         self.visit(node.index)
         self.write("!=")
         self.visit(node.end)
-        self.write(' ; ')
+        self.write("; ")
         self.visit(node.index)
         self.write("+=")
         if "value" in dir(node.step) and node.step.value == 1:
             self.write("1")
         else:
             self.visit(node.step)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
+        self.newline(node)
 
     def visit_while_statement(self, node):
         self.newline(node)
-        self.write('while ( ')
+        self.write("while ( ")
         self.visit(node.test)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.body_or_else(node)
         self.newline(node)
-        self.write('}')
+        self.write("}")
 
 
 class Cpp2Trans(Cpp2Generator):
