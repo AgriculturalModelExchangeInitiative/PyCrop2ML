@@ -18,6 +18,7 @@ class TreeInterface():
         self.functions=[]
         self.alloc = alloc
         self.allocated_var_s = []
+        self.contains = None
 
     def transform(self, tree,  in_block=False):
         self.nameIndex=[]
@@ -58,6 +59,10 @@ class TreeInterface():
                             self.dependencies.append("list")                   
             if tree.type=="importfrom":
                 self.dependencies.append(tree.name[0])
+            
+            if tree.type=="standard_method_call" and tree.message in ["contains?", "not contains?"]:
+                self.contains =  Node(type="declaration",decl =[Node(type="list", name = "excluded", elements=tree.receiver.elements,
+                                                  pseudo_type=tree.receiver.pseudo_type)])
             
             if tree.type=="implicit_return":
                 self.returns.append(tree)

@@ -71,6 +71,14 @@ def translateInsert(node):
 
 
 def translateContains(node):
+    # Need to declare excluded list before using contains?
+    if "elements" in dir(node.receiver):
+        return Node(type="binary_op", op="!=",
+                    left=Node("custom_call", receiver=Node(type="local", name="excluded"), function="find",
+                              args=[Node(type="local", name=f"excluded.begin()"),
+                                Node(type="local", name=f"excluded.end()"),
+                                node.args[0]]), right=Node(type="local", name="excluded.end()"))
+        
     return Node(type="binary_op", op="!=",
                 left=Node("custom_call", receiver=node.receiver, function="find",
                           args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
@@ -176,7 +184,8 @@ class CppRules(GeneralRule):
             'round': 'std::round',
             'exp': 'std::exp',
             'pow': 'std::pow',
-            'floor': 'std::floor'
+            'floor': 'std::floor',
+            'isnan': 'std::isnan'
 
         },
         'io': {
@@ -189,7 +198,8 @@ class CppRules(GeneralRule):
             'min': translateMIN,
             'max': translateMAX,
             'abs': 'std::abs',
-            'pow': 'std::pow'},
+            'pow': 'std::pow',
+            'round': 'std::round'},
         'datetime': {
             'datetime': lambda node: Node(type="str", value=argsToStr(node.args))
         }
