@@ -11,6 +11,6 @@ pydot
 #pyyaml
 unyt
 IPython
-antlr4-python3-runtime==4.8
+antlr4-python3-runtime==4.13.0
 xmlformatter
 pandas==2.2.3
