@@ -1,6 +1,6 @@
-# Generated from Documents\THESE\pycropml_pheno\src\pycropml\antlr_grammarV4\java\java8\Java8Parser.g4 by ANTLR 4.8
+# Generated from Java8Parser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .Java8Parser import Java8Parser
 else:
     from Java8Parser import Java8Parser
