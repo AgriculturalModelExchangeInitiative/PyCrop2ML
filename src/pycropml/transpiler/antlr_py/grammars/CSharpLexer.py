@@ -1243,10 +1243,10 @@ class CSharpLexer(Lexer):
         self._actions = None
         self._predicates = None
 
-    private int interpolatedStringLevel;
-    private Stack<Boolean> interpolatedVerbatiums = new Stack<Boolean>();
-    private Stack<Integer> curlyLevels = new Stack<Integer>();
-    private boolean verbatium;
+    # private int interpolatedStringLevel;
+    # private Stack<Boolean> interpolatedVerbatiums = new Stack<Boolean>();
+    # private Stack<Integer> curlyLevels = new Stack<Integer>();
+    # private boolean verbatium;
 
 
     def action(self, localctx:RuleContext, ruleIndex:int, actionIndex:int):
