@@ -184,6 +184,11 @@ class CSharpParserVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by CSharpParser#cast_expression.
+    def visitCast_expression(self, ctx:CSharpParser.Cast_expressionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by CSharpParser#primary_expression.
     def visitPrimary_expression(self, ctx:CSharpParser.Primary_expressionContext):
         return self.visitChildren(ctx)

@@ -323,6 +323,15 @@ class CSharpParserListener(ParseTreeListener):
         pass
 
 
+    # Enter a parse tree produced by CSharpParser#cast_expression.
+    def enterCast_expression(self, ctx:CSharpParser.Cast_expressionContext):
+        pass
+
+    # Exit a parse tree produced by CSharpParser#cast_expression.
+    def exitCast_expression(self, ctx:CSharpParser.Cast_expressionContext):
+        pass
+
+
     # Enter a parse tree produced by CSharpParser#primary_expression.
     def enterPrimary_expression(self, ctx:CSharpParser.Primary_expressionContext):
         pass
