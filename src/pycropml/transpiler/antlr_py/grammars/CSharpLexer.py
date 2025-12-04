@@ -1,9 +1,12 @@
 # Generated from Documents\THESE\pycropml_pheno\src\pycropml\antlr_grammarV4\csharp\CSharpLexer.g4 by ANTLR 4.8
 from antlr4 import *
 from io import StringIO
-from typing.io import TextIO
 import antlr4
 import sys
+if sys.version_info[1] > 5:
+    from typing import TextIO
+else:
+    from typing.io import TextIO
 
 def serializedATN():
     with StringIO() as buf:
