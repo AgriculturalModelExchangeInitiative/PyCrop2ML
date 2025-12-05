@@ -72,24 +72,24 @@ def translate_insert(node):
                            right=node.args[0]), node.args[1]], pseudo_type=node.pseudo_type)
 
 
-def translate_contains(node):
-    if "name" in dir(node.receiver):
+def translateContains(node):
+    # Need to declare excluded list before using contains?
+    if "elements" in dir(node.receiver):
         return Node(type="binary_op", op="!=",
-                    left=Node("custom_call", receiver=node.receiver, function="find",
-                              args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
-                                    Node(type="local", name=f"{node.receiver.name}.end()"),
-                                    node.args[0]]),
-                    right=Node(type="local", name="%s.end()" % node.receiver.name))
-    else:
-        if "elements" in dir(node.receiver):
-            args_str = ", ".join([str(arg.value) for arg in node.receiver.elements])
-            return Node(type="binary_op", op=">",
-                        left=Node("custom_call", receiver=node.receiver,
-                                  function=f"std::set<{CppRules.types[node.receiver.pseudo_type[1]]}>({{\"{args_str}\"}}).count",
-                                  args=[node.args[0]]),
-                        right=Node(type="int", value="0"))
+                    left=Node("custom_call", receiver=Node(type="local", name="excluded"), function="find",
+                              args=[Node(type="local", name=f"excluded.begin()"),
+                                Node(type="local", name=f"excluded.end()"),
+                                node.args[0]]), right=Node(type="local", name="excluded.end()"))
+        
+    return Node(type="binary_op", op="!=",
+                left=Node("custom_call", receiver=node.receiver, function="find",
+                          args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
+                                Node(type="local", name=f"{node.receiver.name}.end()"),
+                                node.args[0]]),
+                right=Node(type="local", name="%s.end()" % node.receiver.name))
 
-def translate_index(node):
+
+def translateIndex(node):
     return Node(type="binary_op", op="-",
                 left=Node("custom_call", receiver=node.receiver, function="find",
                           args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
@@ -172,28 +172,23 @@ class CppRules(GeneralRule):
     }
 
     functions = {
-        "math": {
-            "ln": "std::log",
-            "log": translate_log,
-            "tan": "std::tan",
-            "sin": "std::sin",
-            "cos": "std::cos",
-            "asin": "std::asin",
-            "acos": "std::acos",
-            "atan": "std::atan",
-            "sqrt": "std::sqrt",
-            "ceil": "(int) std::ceil",
-            "round": "std::round",
-            "exp": "std::exp",
-            "pow": "std::pow",
-            "floor": "std::floor",
-            "isnan": "std::isnan",
-        },
-        "io": {
-            "print": "std::cout << ",
-            "read": "Console.ReadLine",
-            "read_file": "File.ReadAllText",
-            "write_file": "File.WriteAllText"
+        'math': {
+            'ln': 'std::log',
+            'log': translateLog,
+            'tan': 'std::tan',
+            'sin': 'std::sin',
+            'cos': 'std::cos',
+            'asin': 'std::asin',
+            'acos': 'std::acos',
+            'atan': 'std::atan',
+            'sqrt': 'std::sqrt',
+            'ceil': '(int) std::ceil',
+            'round': 'std::round',
+            'exp': 'std::exp',
+            'pow': 'std::pow',
+            'floor': 'std::floor',
+            'isnan': 'std::isnan'
+
         },
         "system": {
             "min": translate_min,
@@ -201,8 +196,14 @@ class CppRules(GeneralRule):
             "abs": "std::abs",
             "pow": "std::pow"
         },
-        "datetime": {
-            "datetime": lambda node: Node(type="str", value=args_to_str(node.args))
+        'system': {
+            'min': translateMIN,
+            'max': translateMAX,
+            'abs': 'std::abs',
+            'pow': 'std::pow',
+            'round': 'std::round'},
+        'datetime': {
+            'datetime': lambda node: Node(type="str", value=argsToStr(node.args))
         }
     }
 

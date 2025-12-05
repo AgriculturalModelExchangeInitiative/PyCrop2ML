@@ -62,20 +62,48 @@ class Cpp2Generator(CodeGenerator, CppRules):
             return
 
         op = node.op
+        r= False
+        if op == "is_not":
+            self.write("!(")
+            self.visit(node.left)
+            self.write(".empty())")
+            return
         prec = self.binop_precedence.get(op, 0)
         self.operator_enter(prec)
-        self.visit(node.left)
+        if node.left.type == "standard_method_call" and node.left.message == "len":
+            self.write("static_cast<")
+            self.write(self.types[node.right.type])
+            self.write(">(")
+            self.visit(node.left)
+            self.write(")")
+        else: self.visit(node.left)
         self.write(f" {self.binary_op[op].replace('_', ' ')} ")
+        
         if "type" in dir(node.right):
+            if node.right.type == "standard_method_call" and node.right.message == "len":
+                r = True
+                self.write("static_cast<")
+                self.write(self.types[node.left.pseudo_type])
+                self.write(">(")
             if node.right.type == "binary_op" and self.binop_precedence.get(str(node.right.op),
                                                                             0) >= prec:  # and node.right.op not in ("+","-") :
                 self.write("(")
                 self.visit(node.right)
                 self.write(")")
             else:
-                self.visit(node.right)
+                if r is True:
+                    self.visit(node.right)
+                    self.write(")")
+                    r = False
+                else: self.visit(node.right)
         else:
-            self.visit(node.right)
+            if node.right.type == "standard_method_call" and node.right.message == "len":
+                self.write("static_cast<")
+                self.write(self.types[node.left.type])
+                self.write(">(")
+                self.visit(node.right)
+                self.write(")")
+            else: self.visit(node.right)
         self.operator_exit()
 
     def visit_constant(self, node):
@@ -254,12 +282,14 @@ class Cpp2Generator(CodeGenerator, CppRules):
         dv = dir(node.value)
         dt = dir(node.target)
         if node.value.type == "binary_op" and node.value.left.type == "list":
+            self.newline(node)
             self.visit(node.target)
             self.write(".assign(")
             self.visit(node.value.right)
             self.write(", ")
             self.visit(node.value.left.elements[0])
             self.write(");")
+            self.newline(node)
 
         elif "function" in dir(node.value) and node.value.function.split('_')[0] == "model":
             name = node.value.function.split('model_')[1]
@@ -269,7 +299,38 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     break
             self.write(f"_{name}.Calculate_Model(s, s1, r, a);")
             self.newline(node)
-
+        
+        elif node.target.type=="sliceindex" and node.target.message=="sliceindex" \
+                and node.value.type=="sliceindex" and node.value.message=="sliceindex":
+            self.newline(node)
+            self.write("std::copy(")
+            self.visit(node.value.receiver)
+            self.write(".begin() + ")
+            self.visit(node.value.args[0])
+            self.write(", ")
+            self.visit(node.value.receiver)
+            self.write(".begin()+ ")
+            self.visit(node.value.args[1])
+            self.write(", ")
+            self.visit(node.target.receiver)
+            self.write(".begin() + ")
+            self.visit(node.target.args[0])
+            self.write(");")
+            self.newline(node)
+            
+        elif node.target.type=="sliceindex" and node.target.message=="sliceindex" \
+                and "name" in dir(node.value):
+            self.newline(node)
+            self.write("std::copy(")
+            self.visit(node.value)
+            self.write(".begin(), ")
+            self.visit(node.value)
+            self.write(".end(), ")
+            self.visit(node.target.receiver)
+            self.write(".begin() + ")
+            self.visit(node.target.args[0])
+            self.write(");")
+                    
         elif node.value.type == "standard_call" and node.value.function == "copy":
             self.newline(node)
             self.write(f"{node.target.name} = {node.value.args.name};")
@@ -290,6 +351,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.write(");")
 
         elif node.value.type == "standard_method_call" and node.value.message in ["keys", "values"]:
+            self.newline(node)
             target_name = node.target.name
             self.write(f"{target_name}.reserve({node.value.receiver.name}.size());")
             self.newline(node)
@@ -305,6 +367,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
         elif node.value.type == "array" and "elements" in dir(node.value):
             if "right" in dir(node.value.elements):
+                self.newline(node)
                 self.visit(node.target)
                 self.write(f" = std::move(std::vector<{self.types[node.value.pseudo_type[1]]}>(")
                 self.visit(node.value.elements.right)
@@ -313,8 +376,10 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.write("));")
                 self.newline(node)
             else:
+                self.newline(node)
                 self.visit(node.target)
                 self.write(f" = std::move(std::vector<{self.types[node.value.pseudo_type[1]]}>());")
+                self.newline(node)
 
             # self.write("fill(")
             # self.visit(node.target)
@@ -925,7 +990,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                    '#include <tuple>\n')
         if self.model:
             self.write(f'#include "{self.model.name}.h"\n')
-        self.write(f"using namespace {Path(self.model.path).name};")
+            self.write(f"using namespace {Path(self.model.path).name};")
 
         # self.write("using namespace std;\n")
         self.visit(node.body)
@@ -1035,6 +1100,10 @@ class Cpp2Generator(CodeGenerator, CppRules):
                             #        self.write(f" = {self.cpp_struct_names['ex']}.get{arg.name}()")
                             #self.write(";")
             #self.indentation -= 1
+        nd = middleware(node)
+        nd.transform(node)
+        if nd.contains:
+            node.block.insert(0, nd.contains)
         self.body(node.block)
         self.newline(node)
         self.visit_return(node)
@@ -1134,6 +1203,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
     def visit_declaration(self, node):
         self.newline(node)
         is_init_or_model_func = self.funcname.startswith("model_") or self.funcname.startswith("init_")
+        
         for n in node.decl:
             dn = dir(n)
             self.newline(node)
@@ -1333,6 +1403,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_call(self, node):
         want_comma = []
+        r = False
 
         def write_comma():
             if want_comma:
@@ -1351,7 +1422,12 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 if isinstance(node.args, list):
                     for arg in node.args:
                         write_comma()
+                        if r and arg.type == "standard_method_call" and arg.message=="len":
+                            self.write("static_cast<int>(")
                         self.visit(arg)
+                        if r and arg.type == "standard_method_call" and arg.message=="len":
+                            self.write(")")
+                            
                 else:
                     self.visit(node.args)
                 self.write(")")
@@ -2037,14 +2113,16 @@ class Cpp2Compo(Cpp2Trans):
                     break
             self.write(f"_{name}.Calculate_Model(s, s1, r, a, ex);")
             self.newline(node)
+
         elif "function" in dir(node.value) and node.value.function.split('_')[0]=="init":
             name  = node.value.function.split('init_')[1]
             for m in self.modelt.model:
                 if name.lower() == signature2(m).lower():
                     name = signature2(m)
                     break
-            self.write(f"_{name}.Init(s, s1, r, a, ex);")
+            self.write(f"_{name}.Init(s,s1, r, a, ex);")
             self.newline(node)
+            
         else:
             self.newline(node)
             if node.value.name not in self.modeltparams:
