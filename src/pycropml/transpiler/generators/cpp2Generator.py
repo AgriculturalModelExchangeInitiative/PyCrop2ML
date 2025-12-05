@@ -56,6 +56,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         # self.write(')')
 
     def visit_binary_op(self, node):
+        # ignore checks against none (nullptr) because we use value types for lists and arrays
+        if node.right.type == "none" and node.left.pseudo_type[0] in ["list", "array"]:
+            self.write("true")
+            return
+
         op = node.op
         r= False
         if op == "is_not":
@@ -114,13 +119,14 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_breakstatnode(self, node):
         self.newline(node)
-        self.write('break;')
+        self.write("break;")
 
     def visit_import(self, node):
         pass
 
     def visit_none(self, node):
-        pass
+        self.write("null")
+        #pass
 
     def visit_cond_expr_node(self, node):
         self.visit(node.test)
@@ -131,20 +137,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_if_statement(self, node):
         self.newline(node)
-        self.write('if (')
+        self.write("if (")
         self.visit(node.test)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.newline(node)
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
+        self.newline(node)
         while True:
             else_ = node.otherwise
             if len(else_) == 0:
                 break
-            elif len(else_) == 1 and else_[0].type == 'elseif_statement':
+            elif len(else_) == 1 and else_[0].type == "elseif_statement":
                 self.visit(else_[0])
             else:
                 self.visit(else_)
@@ -153,23 +158,19 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_elseif_statement(self, node):
         self.newline()
-        self.write('else if ( ')
+        self.write("else if (")
         self.visit(node.test)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
 
     def visit_else_statement(self, node):
         self.newline()
-        self.write('else')
-        self.newline(node)
-        self.write('{')
+        self.write("else {")
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
 
     def visit_print(self, node):
         pass
@@ -205,7 +206,10 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(u'}')
 
     def visit_bool(self, node):
-        self.write("true") if node.value == True else self.write("false")
+        if isinstance(node.value, str):
+            self.write(node.value)
+        elif isinstance(node.value, bool):
+            self.write("true") if node.value == True else self.write("false")
 
     def visit_standard_method_call(self, node):
         l = node.receiver.pseudo_type
@@ -275,6 +279,8 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(u"]")
 
     def visit_assignment(self, node):
+        dv = dir(node.value)
+        dt = dir(node.target)
         if node.value.type == "binary_op" and node.value.left.type == "list":
             self.newline(node)
             self.visit(node.target)
@@ -386,6 +392,457 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
         elif node.value.type == "none":
             pass
+
+        # all combinations of copies between slices
+        # assumes right now that the slices have the same size
+        # so no contraction or expansion of the target slice/array
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex"
+              and node.value.type == "sliceindex" and node.value.message == "sliceindex"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_from"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_to"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < (")
+            self.visit(node.value.args[0])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex"
+              and node.value.type == "sliceindex" and node.value.message == "slice_"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex" and
+              "pseudo_type" in dv and node.value.pseudo_type[0] == "array"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < (")
+            self.visit(node.target.args[1])
+            self.write(") && _k < ")
+            self.visit(node.value)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_from" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_from" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_from"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_from" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_to"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < (")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < (")
+            self.visit(node.value.args[0])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_from" and
+              node.value.type == "sliceindex" and node.value.message == "slice_"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_from" and
+              "pseudo_type" in dv and node.value.pseudo_type[0] == "array"):
+            self.write("for (int _i=")
+            self.visit(node.target.args[0])
+            self.write(", _k=0; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < ")
+            self.visit(node.value)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_to" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex"):
+            self.write("for (int _i=0, _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[0])
+            self.write(") && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_to" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_from"):
+            self.write("for (int _i=0, _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < (")
+            self.visit(node.target.args[0])
+            self.write(") && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_to" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_to"):
+            self.write("for (int _i=0, _k=0; _i < (")
+            self.visit(node.target.args[0])
+            self.write(") && _k < (")
+            self.visit(node.value.args[0])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_to" and
+              node.value.type == "sliceindex" and node.value.message == "slice_"):
+            self.write("for (int _i=0, _k=0; _i < (")
+            self.visit(node.target.args[0])
+            self.write(") && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "sliceindex_to" and
+              "pseudo_type" in dv and node.value.pseudo_type[0] == "array"):
+            self.write("for (int _i=0, _k=0; _i < (")
+            self.visit(node.target.args[0])
+            self.write(") && _k < ")
+            self.visit(node.value)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "slice_"
+              and node.value.type == "sliceindex" and node.value.message == "sliceindex"):
+            self.write("for (int _i=0, _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "slice_" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_from"):
+            self.write("for (int _i=0, _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "slice_" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_to"):
+            self.write("for (int _i=0, _k=0; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < (")
+            self.visit(node.value.args[0])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "slice_"
+              and node.value.type == "sliceindex" and node.value.message == "slice_"):
+            self.write("for (int _i=0, _k=0; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif (node.target.type == "sliceindex" and node.target.message == "slice_" and
+              "pseudo_type" in dv and node.value.pseudo_type[0] == "array"):
+            self.write("for (int _i=0, _k=0; _i < ")
+            self.visit(node.target.receiver)
+            self.write(".size() && _k < ")
+            self.visit(node.value)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target.receiver)
+            self.write("[_i] = ")
+            self.visit(node.value)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif ("pseudo_type" in dt and node.target.pseudo_type[0] == "array" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex"):
+            self.write("for (int _i=0, _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < ")
+            self.visit(node.target)
+            self.write(".size() && _k < (")
+            self.visit(node.value.args[1])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif ("pseudo_type" in dt and node.target.pseudo_type[0] == "array" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_from"):
+            self.write("for (int _i=0, _k=")
+            self.visit(node.value.args[0])
+            self.write("; _i < ")
+            self.visit(node.target)
+            self.write(".size() && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif ("pseudo_type" in dt and node.target.pseudo_type[0] == "array" and
+              node.value.type == "sliceindex" and node.value.message == "sliceindex_to"):
+            self.write("for (int _i=0, _k=0; _i < ")
+            self.visit(node.target)
+            self.write(".size() && _k < (")
+            self.visit(node.value.args[0])
+            self.write("); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
+
+        elif ("pseudo_type" in dt and node.target.pseudo_type[0] == "array" and
+              node.value.type == "sliceindex" and node.value.message == "slice_"):
+            self.write("for (int _i=0, _k=0; _i < ")
+            self.visit(node.target)
+            self.write(".size() && _k < ")
+            self.visit(node.value.receiver)
+            self.write(".size(); _i++, _k++) {")
+            self.newline(node)
+            self.write("    ")
+            self.visit(node.target)
+            self.write("[_i] = ")
+            self.visit(node.value.receiver)
+            self.write("[_k];")
+            self.newline(node)
+            self.write("}")
+            self.newline(node)
 
         else:
             self.newline(node)
@@ -529,6 +986,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                    '#include <algorithm>\n'
                    '#include <array>\n'
                    '#include <map>\n'
+                   '#include <set>\n'
                    '#include <tuple>\n')
         if self.model:
             self.write(f'#include "{self.model.name}.h"\n')
@@ -766,14 +1224,15 @@ class Cpp2Generator(CodeGenerator, CppRules):
                             self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name};")
                         else:
                             self.write(f"std::vector<{self.types[n.pseudo_type[1]]}> {n.name}")
-                            if 'name' in dir(n.elts[0]):
+                            if "name" in dir(n.elts[0]):
                                 self.write(f"({n.elts[0].name});")
+                            elif "value" in dir(n.elts[0]):
+                                self.write(f"({n.elts[0].value});")
                             else:
-                                self.write('(')
+                                self.write(f"(")
                                 self.visit(n.elts[0])
-                                self.write(');')
-                                #self.write(f"({n.elts[0].name if 'name' in dir(n.elts[0]) else n.elts[0].value});")
-            elif 'value' in dn and n.type in ("int", "float", "str", "bool"):
+                                self.write(");")
+            elif "value" in dn and n.type in ("int", "float", "str", "bool"):
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
                 else:
@@ -783,7 +1242,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 else:
                     self.visit(n)
                 self.write(";")
-            elif n.type == 'datetime':
+            elif n.type == "datetime":
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     self.write(f"{self.struct_name_for(n.name)}.{n.name}")
                 else:
@@ -792,40 +1251,40 @@ class Cpp2Generator(CodeGenerator, CppRules):
                     self.write(" = ")
                     self.visit(n.elts)
                 self.write(";")
-            elif 'elements' in dn and n.type in ("list", "tuple"):
+            elif "elements" in dn and n.type in ("list", "tuple"):
                 if "feat" in dn and n.feat in ("OUT", "INOUT") and is_init_or_model_func:
                     if n.type == "list":
                         self.write(f"{self.struct_name_for(n.name)}.{n.name} = ")
-                        self.write(u'{')
+                        self.write("{")
                         self.comma_separated_list(n.elements)
-                        self.write(u'};')
+                        self.write("};")
                 else:
                     if n.type == "list":
                         self.visit_decl(n.pseudo_type)
                         self.write(n.name)
                         self.write(" = ")
-                        self.write(u'{')
+                        self.write("{")
                         self.comma_separated_list(n.elements)
-                        self.write(u'};')
-                    if n.type == 'tuple':
+                        self.write("};")
+                    if n.type == "tuple":
                         pass
-            elif 'pairs' in dn and n.type == "dict":
+            elif "pairs" in dn and n.type == "dict":
                 self.visit_decl(n.pseudo_type)
                 self.write(n.name)
-                self.write(u' = {')
+                self.write(" = {")
                 self.comma_separated_list(n.pairs)
-                self.write(u'};')
+                self.write("};")
 
         self.newline(node)
 
     def visit_list_decl(self, node, pa=None):
         if not isinstance(node[1], list):
             self.write(self.types[node[1]])
-            self.write('>')
+            self.write(">")
         else:
             node = node[1]
             self.visit_decl(node, pa)
-            self.write('>')
+            self.write(">")
         if pa and "name" in dir(pa):
             self.write(f" {pa.name}")
 
@@ -834,11 +1293,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(",")
         if not isinstance(node[2], list):
             self.write(self.types[node[2]])
-            self.write('>')
+            self.write(">")
         else:
             node = node[2]
             self.visit_decl(node)
-            self.write('>')
+            self.write(">")
 
     def visit_tuple_decl(self, node):
         self.visit_decl(node[0])
@@ -846,7 +1305,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
             self.visit_decl(n)
             self.write(",")
         self.visit_decl(node[-1])
-        self.write('>')
+        self.write(">")
 
     def visit_float_decl(self, node, pa=None):
         self.write(self.types[node])
@@ -905,23 +1364,23 @@ class Cpp2Generator(CodeGenerator, CppRules):
         else:"""
         node = node[1]
         self.visit_decl(node)
-        self.write('> ')
+        self.write("> ")
         if pa:
             self.write(pa.name)
 
     def visit_decl(self, node, pa=None):
         if isinstance(node, list):
             if node[0] == "list":
-                self.write('std::vector<')
+                self.write("std::vector<")
                 self.visit_list_decl(node, pa)
             elif node[0] == "dict":
                 self.write("std::map<")
                 self.visit_dict_decl(node)
             elif node[0] == "tuple":
-                self.write('std::tuple<')
+                self.write("std::tuple<")
                 self.visit_tuple_decl(node)
             elif node[0] == "array":
-                self.write('std::vector<')
+                self.write("std::vector<")
                 self.visit_array_decl(node, pa)
         else:
             if node == "float":
@@ -936,11 +1395,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.visit_datetime_decl(node)
 
     def visit_pair(self, node):
-        self.write(u'{')
+        self.write("{")
         self.visit(node.key)
-        self.write(u", ")
+        self.write(", ")
         self.visit(node.value)
-        self.write(u'}')
+        self.write("}")
 
     def visit_call(self, node):
         want_comma = []
@@ -959,9 +1418,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.visit(node.function(node))
             else:
                 self.write(node.function)
-                if node.function in ["std::max", "std::min"]:
-                    r = True
-                self.write('(')
+                self.write("(")
                 if isinstance(node.args, list):
                     for arg in node.args:
                         write_comma()
@@ -973,10 +1430,22 @@ class Cpp2Generator(CodeGenerator, CppRules):
                             
                 else:
                     self.visit(node.args)
-                self.write(')')
+                self.write(")")
 
     def visit_standard_call(self, node):
-        node.function = self.functions[node.namespace][node.function]
+        ns = self.functions[node.namespace]
+        fn_name = node.function
+        node.function = ns[node.function] if fn_name in ns else None
+        if not node.function:  # search other namespaces
+            for ns_name, ns2 in self.functions.items():
+                if ns_name == node.namespace:
+                    continue
+                if fn_name in ns2:
+                    node.function = ns2[fn_name]
+                    break
+            if not node.function:
+                print(f"Couldn't find function {fn_name} in namespace {node.namespace}")
+                return
         self.visit_call(node)
 
     def visit_importfrom(self, node):
@@ -984,14 +1453,12 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
     def visit_for_statement(self, node):
         self.newline(node)
-        self.write("for(")
+        self.write("for (")
         if "iterators" in dir(node):
             self.visit(node.iterators)
         if "sequences" in dir(node):
             self.visit(node.sequences)
-            self.write(')')
-        self.newline(node)
-        self.write('{')
+            self.write(") {")
         if "iterators" in dir(node):
             self.newline(node)
             self.indentation += 1
@@ -1000,10 +1467,11 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.body(node.block)
         self.newline(node)
         self.write('}')
+        self.newline(node)
 
     def visit_for_iterator_with_index(self, node):
         self.visit(node.index)
-        self.write(' , ')
+        self.write(', ')
         self.visit(node.iterator)
 
     def visit_for_sequence_with_index(self, node):
@@ -1023,34 +1491,31 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.visit(node.index)
         self.write("=")
         self.visit(node.start)
-        self.write(' ; ')
+        self.write("; ")
         self.visit(node.index)
         self.write("!=")
         self.visit(node.end)
-        self.write(' ; ')
+        self.write("; ")
         self.visit(node.index)
         self.write("+=")
         if "value" in dir(node.step) and node.step.value == 1:
             self.write("1")
         else:
             self.visit(node.step)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.body(node.block)
         self.newline(node)
-        self.write('}')
+        self.write("}")
+        self.newline(node)
 
     def visit_while_statement(self, node):
         self.newline(node)
-        self.write('while ( ')
+        self.write("while ( ")
         self.visit(node.test)
-        self.write(')')
-        self.newline(node)
-        self.write('{')
+        self.write(") {")
         self.body_or_else(node)
         self.newline(node)
-        self.write('}')
+        self.write("}")
 
 
 class Cpp2Trans(Cpp2Generator):
