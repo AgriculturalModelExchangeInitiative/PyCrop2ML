@@ -1,4 +1,4 @@
-# Generated from Comments.g4 by ANTLR 4.8
+# Generated from Comments.g4 by ANTLR 4.13.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -8,19 +8,15 @@ if sys.version_info[1] > 5:
 else:
 	from typing.io import TextIO
 
-
 def serializedATN():
-    with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\7")
-        buf.write("\26\4\2\t\2\4\3\t\3\4\4\t\4\3\2\3\2\3\2\3\2\3\2\3\3\6")
-        buf.write("\3\17\n\3\r\3\16\3\20\3\4\3\4\3\4\3\4\2\2\5\2\4\6\2\2")
-        buf.write("\2\23\2\b\3\2\2\2\4\16\3\2\2\2\6\22\3\2\2\2\b\t\7\3\2")
-        buf.write("\2\t\n\5\4\3\2\n\13\7\4\2\2\13\f\7\2\2\3\f\3\3\2\2\2\r")
-        buf.write("\17\5\6\4\2\16\r\3\2\2\2\17\20\3\2\2\2\20\16\3\2\2\2\20")
-        buf.write("\21\3\2\2\2\21\5\3\2\2\2\22\23\7\6\2\2\23\24\7\5\2\2\24")
-        buf.write("\7\3\2\2\2\3\20")
-        return buf.getvalue()
-
+    return [
+        4,1,5,20,2,0,7,0,2,1,7,1,2,2,7,2,1,0,1,0,1,0,1,0,1,0,1,1,4,1,13,
+        8,1,11,1,12,1,14,1,2,1,2,1,2,1,2,0,0,3,0,2,4,0,0,17,0,6,1,0,0,0,
+        2,12,1,0,0,0,4,16,1,0,0,0,6,7,5,1,0,0,7,8,3,2,1,0,8,9,5,2,0,0,9,
+        10,5,0,0,1,10,1,1,0,0,0,11,13,3,4,2,0,12,11,1,0,0,0,13,14,1,0,0,
+        0,14,12,1,0,0,0,14,15,1,0,0,0,15,3,1,0,0,0,16,17,5,4,0,0,17,18,5,
+        3,0,0,18,5,1,0,0,0,1,14
+    ]
 
 class CommentsParser ( Parser ):
 
@@ -52,7 +48,7 @@ class CommentsParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.8")
+        self.checkVersion("4.13.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -60,6 +56,7 @@ class CommentsParser ( Parser ):
 
 
     class DocumentationContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -116,6 +113,7 @@ class CommentsParser ( Parser ):
 
 
     class DocumentationContentContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -164,7 +162,7 @@ class CommentsParser ( Parser ):
                 self.state = 14 
                 self._errHandler.sync(self)
                 _la = self._input.LA(1)
-                if not (_la==CommentsParser.Symbol):
+                if not (_la==4):
                     break
 
         except RecognitionException as re:
@@ -177,6 +175,7 @@ class CommentsParser ( Parser ):
 
 
     class Comment_lineContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)

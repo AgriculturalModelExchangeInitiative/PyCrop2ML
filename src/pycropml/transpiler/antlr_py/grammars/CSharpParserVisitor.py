@@ -1,6 +1,6 @@
-# Generated from Documents\THESE\pycropml_pheno\src\pycropml\antlr_grammarV4\csharp\CSharpParser.g4 by ANTLR 4.8
+# Generated from CSharpParser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .CSharpParser import CSharpParser
 else:
     from CSharpParser import CSharpParser
@@ -181,6 +181,11 @@ class CSharpParserVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by CSharpParser#unary_expression.
     def visitUnary_expression(self, ctx:CSharpParser.Unary_expressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by CSharpParser#cast_expression.
+    def visitCast_expression(self, ctx:CSharpParser.Cast_expressionContext):
         return self.visitChildren(ctx)
 
 
