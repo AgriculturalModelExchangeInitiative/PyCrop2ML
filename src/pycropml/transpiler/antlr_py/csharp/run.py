@@ -2,11 +2,17 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-from os.path import isdir 
-from path import Path
 import os
+from os.path import isdir
+from copy import deepcopy
+from typing import *
+from path import Path
+
+import networkx as nx
+import itertools
+
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
-from pycropml.transpiler.antlr_py.apsim.apsimExtraction import ApsimExtraction
+from pycropml.transpiler.antlr_py.csharp.csharpExtraction import CsharpExtraction
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.antlr_py.csharp import cs_cyml
 from pycropml.transpiler.generators.cymlGenerator import CymlGenerator
@@ -14,23 +20,21 @@ from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
 from pycropml.transpiler.antlr_py import repowalk
-from pycropml.transpiler.antlr_py.to_specification import createObjectCompo
-
-from copy import deepcopy, copy
-from typing import *
-import networkx as nx
-import itertools
-import xml.etree.ElementTree as xml
 
 from pycropml.transpiler.antlr_py.csharp.csharp_preprocessing import *
 from pycropml.transpiler.antlr_py.codeExtraction import extraction
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import extract
 from pycropml.transpiler.antlr_py.api_declarations import Middleware
+from pycropml.transpiler.antlr_py.to_specification import extractMetaInfo, createObjectModel, extractcomments, createObjectCompo
 
-from pycropml.transpiler import lib
-from pycropml.pparse import ModelParser
+from copy import deepcopy, copy
 
-types = ["int", "float", "str", "list", "array", "bool"]
+description_tags = ["//%%CyML Description Begin%%", "//%%CyML Description End%%"]
+
+
+""" Read BioMA component and extract metadata
+
+"""
 
 type_={
     "DOUBLE":"double",
@@ -43,144 +47,24 @@ type_={
      "DATELIST":"List",
     "BOOLEAN":"bool",
     "DOUBLEARRAY":"array",
-    "STRINGARRAY":"array",
-    "INTARRAY":"array"}
+    "INTARRAY":"array",
+    "STRINGARRAY":"array"}
 
-pseudo_={
+pseudo_type_={
     "DOUBLE":"double",
     "INT":"int",
     "STRING":"string",
     "DATE":"date",
     "DOUBLELIST":["List", "double"],
     "INTLIST":["List", "int"],
-     "STRINGLIST":["List", 'string'],
-     "DATELIST":["List", "date"],
+    "STRINGLIST":["List", "string"],
+    "DATELIST":["List", "date"],
     "BOOLEAN":"bool",
     "DOUBLEARRAY":["array", "double"],
     "INTARRAY":["array", "int"],
-    "STRINGARRAY":["array", "string"],}
-
-
-
-
-def redefine_params(m:Node, var_:Dict, member_category, inputs, outputs, extfunc, instance_dclass)->List[Node]:
-    """It allows to change all parameters which are instance of domain class with the explicit attributes required
-
-    Args:
-        m (Node): Auxiliary function ASG
-        var_ (dict): Metadata from strategy classes and varinfo files: (inputs, parameters, outputs) 
-        member_category (_type_): _description_
-        inputs (List[str]): Parameter names of the auxiliary function. It can be an instance of domain class
-
-    Returns:
-        List[Node]: New parameters nodes
-    """
-    res = []
-    name = m.name
-    inputs_p_node = []
-    outputs_p_node = []
-    inps = list(set(inputs))
-    pseudo_name = []
-    pos = 0
-    reso = []
-    inpnames = {p.name:p.pseudo_type for p in m.params}
-    for p in m.params:
-        pos = pos + 1
-        if p.pseudo_type not in list(pseudo_.values()) :
-            pseudo = p.pseudo_type.pseudo_type if isinstance(p.pseudo_type, Node) else p.pseudo_type
-            pseudo_name.append(pseudo)
-            # find the inputs whose instance is p.name
-            inputs_p = [key for key, val in member_category[name].items() if val==p.name]
-            #inputs_p = inps
-                        # find its datatype
-            for p_ in inps:
-                if p_ in inputs_p:
-                    vn = p_[:-3] if (len(p_)>3 and p_.endswith("_t1")) else p_
-                    for k, m_inp in var_.items():
-                        if k == vn or (k == p_):
-                            inputs_p_node.append(Node(type=type_[m_inp['ValueType']], name=p_, pseudo_type=pseudo_[m_inp['ValueType']], position_args = pos))
-                            res.append(name)
-                            break
-                else:
-                    indice = 1 if pseudo_name.count(pseudo)>1 else 0
-                    for f in extfunc:
-                        test = False
-                        dclass = deepcopy(instance_dclass[f.name])
-                        meth_member_category = member_category[f.name]
-                        if meth_member_category:
-                            var = dclass[pseudo][indice]
-                            inputs_names = [key for key, val in meth_member_category.items() if val==var]
-                            if p_ in inputs_names:
-                                vn = p_[:-3] if (len(p_)>3 and p_.endswith("_t1")) else p_
-                                for k, m_inp in var_.items():
-                                    if k == vn or (k == p_):
-                                        test = True
-                                        res.append(name)
-                                        inputs_p_node.append(Node(type=type_[m_inp['ValueType']], name=p_, pseudo_type=pseudo_[m_inp['ValueType']], position_args = pos))
-                                        break
-                        if test: break
-        else:
-            if p.name not in res and p.name in inputs:
-                inputs_p_node.append(p) 
-                res.append(p.name)
-            if isinstance(p.pseudo_type, list) and p.pseudo_type[0] in ("array", "List", "list") and p.name in outputs and p.name not in reso:
-                outputs_p_node.append(Node(type= "local", name=p.name, pseudo_type=p.pseudo_type))
-                reso.append(p.name) # This case because in C# an input with datatype list or array is passed by reference
-            
-
-    outs = list(set(outputs))
-    for p_ in outs:
-        vn = p_[:-3] if (len(p_)>3 and p_.endswith("_t1")) else p_
-        for k, m_inp in var_.items():
-            if (k == vn or (k == p_)) and p_ not in reso:
-                outputs_p_node.append(Node(type= "local", name=p_, pseudo_type=pseudo_[m_inp]))
-                reso.append(p_)
-                break
-        if p_ not in reso and p_ in inpnames:
-            outputs_p_node.append(Node(type= "local", name=p_, pseudo_type=inpnames[p_]))
-            reso.append(p_)
-    return  inputs_p_node, outputs_p_node
-
-# extract inputs and outputs name and datatype from the xml file
-
-def extract_io(xfile):
-    """Extract inputs and outputs name and datatype from the xml file
-
-    Args:
-        xfile (_type_): xml file path
-
-    Returns:
-        Tuple: inputs, outputs
-    """
-    # read the xml file and extract the inputs and outputs by each tag "Input" and "Output"
-    doc = xml.parse(xfile)
-    root = doc.getroot()
-    res = {}
-    for el in list(root):
-        for l in list(el):
-            if l.tag=="Input" or l.tag=="Output":
-                attr = l.attrib
-                name = attr.get("name")
-                dtype = attr.get("datatype")
-                res[name] = dtype
-    return res
-
-# transform each inputs into Node type with type provided by res dictionary
-def transform_io(inputs, res, out=False):
-    ret = []
-    for i in inputs:
-        pseudo_type = res.get(i)
-        if pseudo_type in type_: 
-            dtype = type_[pseudo_type]
-            pseudo_type = pseudo_[pseudo_type]
-        else: dtype = pseudo_type
-        if isinstance(dtype, list): dtype = dtype[0]
-        if dtype is not None and pseudo_type is not None:
-            if out: dtype="local"      
-            ret.append(Node(type=dtype, name=i, pseudo_type=pseudo_type))
-    return ret
-        
-        
+    "STRINGARRAY":["array", "string"]}
+    
+    
 class Custom_call2(Middleware):
     
     def __init__(self, vars, extfunc = [], not_declared={},  ext_func_inout={}, member_category={}):
@@ -220,7 +104,7 @@ class Custom_call2(Middleware):
                 if f.name == method:
                     trees = copy(tree)
                     args = []
-                    z = ApsimExtraction()
+                    z = CsharpExtraction()
                     inps = self.ext_func_inout[f.name]["inputs"]
                     if not isinstance(inps, list): inps = [inps]
                     meth_member_category = self.member_category[f.name]
@@ -296,7 +180,7 @@ class CheckingInOut2(Middleware):
               
     def process(self, tree):
         self.current_scope = self.current()
-        self.name = tree.name
+        #self.name = tree.name
         return self.transform(tree,in_block=False)
     
     def current(self):
@@ -351,14 +235,14 @@ class CheckingInOut2(Middleware):
         self.current_scope = self.current()
         return tree
     
-    def action_member_access(self, tree):
+    '''def action_member_access(self, tree):
         newvar = tree.name + "_" + tree.member
         tree = Node(type="local", name=newvar, pseudo_type=tree.pseudo_type)
         if tree.name not in self.current_scope:# and tree.name  not in self.outputs:
             self.inputs.append(tree.name)
             self.env[-1][tree.name] = tree.type 
             self.current_scope = self.current()  
-        return tree
+        return tree'''
     
     def action_custom_call(self, tree):
         if "namespace" in dir(tree):
@@ -423,17 +307,6 @@ class CheckingInOut2(Middleware):
         self.transform(tree.right)
         return tree
     
-    #def action_elseif_statement(self, tree):
-        #print("oooooooooooooooo")
-        #return self.workflow(tree)
-
-    #def action_else_statement(self, tree):
-        #return self.workflow(tree)
-        """type': 'for_statement', 
-        'sequences': {'type': 'for_sequence', 
-        'sequence': {'type': 'local', 'name': 'Values', 'pseudo_type': ['array', 'double']}}, 
-        'iterators': {'type': 'for_iterator', 'iterator': {'type': 'local', 'name': 'Value', 'pseudo_type': 'double'
-        """
     def action_for_iterator(self, tree):
         iterator = tree.iterator.name
         if iterator not in self.current_scope:
@@ -477,21 +350,21 @@ class Local2(Middleware):
 
 class Member_access2(Middleware):
     
-    def __init__(self, totaltree, all_var):
+    def __init__(self, totaltree, prec_cur=[]):
         self.totaltree = totaltree
-        self.all_var = all_var
         self.members = []
+        self.prec_cur = prec_cur
         self.m_cat = {}
         Middleware.__init__(self)
               
     def process(self, tree):
         return self.transform(tree,in_block=False)
     
-    def action_member_access(self, tree):
+    def test_action_member_access(self, tree):
         if "." in tree.member and tree.name + "_" + tree.member.split(".")[0] in self.all_var :
             propert = tree.member.split(".")[-1]
             name = tree.name + "_" + tree.member.split(".")[0]
-            type_ = pseudo_[self.all_var[name]]
+            type_ = pseudo_type[self.all_var[name]]
             if isinstance(type_, list):
                 type_ = type_[0]
             pseudo_type = self.all_var[name]
@@ -516,8 +389,62 @@ class Member_access2(Middleware):
         if pseudo is None:
             return Node(type="local", name= name)
         else:
-            return Node(type = "local", name =name, pseudo_type = pseudo_[self.all_var[name]])
+            return Node(type = "local", name =name, pseudo_type = pseudo_type_[self.all_var[name]])
+
+    def action_member_access(self, tree):
+        name = tree.member
+        if "." in name: 
+            name = name.split('.')[0]
+            print("member accessssssssssssssssssssssss", tree.y)
+        pseudo = tree.pseudo_type
+        self.members.append(tree)
+        # retrieve the class name
+        # retrieve the corresponding node in the totaltree
+        # dtype: retrieve the datatype wwith the variable name
+        # return {"type":"local", "name":name, "pseudo_type":dtype}
+        if pseudo is None:
+            return Node(type="local", name= tree.member.split(".")[-1])
+        classname = pseudo.pseudo_type if isinstance(pseudo, Node) else pseudo
+        z = BiomaExtraction()
+        z.getTypeNode(self.totaltree, "classDef")
+        classNode = [m for m in z.getTree if m.name == classname]
+        z.getTypeNode(classNode[0], "propertyDef")
+        propNode = [m for m in z.getTree if m.name == name]
         
+        if not propNode: return Node(type = "local", name =name, pseudo_type = pseudo)
+        
+        pseudo_prop = propNode[0].pseudo_type
+        if isinstance(pseudo_prop, Node):
+            pseudo_type = pseudo_prop.pseudo_type
+        else:
+            pseudo_type = pseudo_prop
+        if isinstance(pseudo_type, list):
+            type_ = pseudo_type[0]
+        else: type_ = pseudo_type       
+        
+        if "." in tree.member: 
+            v = tree.member.split('.')
+            propert = v[1]
+            name = from_attr_to_var(tree.name, v[0], self.prec_cur)
+            self.m_cat[name] = tree.name
+            if type_ in PROPERTY_API:
+                rec = {"type":"local", "name": name, "pseudo_type":pseudo_type}
+                api = PROPERTY_API[type_].get(propert)      
+                if not api:
+                    raise PseudoCythonTypeCheckError("Not implemented property , %s"%propert)  
+
+                elif not isinstance(api, dict):
+                    z = api.expand([rec])
+                    return transform_to_syntax_tree(z)
+        else:
+            if self.prec_cur:
+                name = from_attr_to_var(tree.name, tree.member, self.prec_cur)
+                self.m_cat[name] = tree.name
+            else: name = tree.member 
+            return Node(type = "local", name =name, pseudo_type = pseudo_type)
+        
+        return tree
+            
 class For_statement2(Middleware):
     
     def __init__(self):
@@ -557,17 +484,7 @@ class For_statement2(Middleware):
         if iterator_pseudo_type == "var":
             tree.iterators.iterator.pseudo_type = tree.sequences.sequence.pseudo_type[-1]
         self.declared.append(tree.iterators.iterator.name)
-        return tree
-
-dir_lib = Path(os.path.dirname(lib.__file__))
-modelpath = ""
-f_src=dir_lib/"apsim"
-# get all csharp files in f_src directory
-files = repowalk.walk(f_src, "cs" )
-pkg = "" 
-f_dest = os.path.join(modelpath,"src","f90",pkg,"list_sub.f90") 
-
-
+        return tree 
 
 def create_package(output):
     crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
@@ -580,13 +497,13 @@ def create_package(output):
     if not isdir(cyml_rep):
         cyml_rep.mkdir()
     return crop2ml_rep, cyml_rep    
-                  
                 
+
 
 
 def function_dependency(st, f):
     r = [f]
-    z = ApsimExtraction()
+    z = CsharpExtraction()
     while True:
         f = f if  isinstance(f, list) else [f]
         f_exts = [z.externFunction(st, n, False, n.name) for n in f]
@@ -598,7 +515,116 @@ def function_dependency(st, f):
             f = exs
         else:
             break
-    return r 
+    return r
+
+   
+
+
+
+def redefine_params(m:Node, var_:Dict, member_category, inputs, outputs, extfunc, instance_dclass)->List[Node]:
+    """It allows to change all parameters which are instance of domain class with the explicit attributes required
+
+    Args:
+        m (Node): Auxiliary function ASG
+        var_ (dict): Metadata from strategy classes and varinfo files: (inputs, parameters, outputs) 
+        member_category (_type_): _description_
+        inputs (List[str]): Parameter names of the auxiliary function. It can be an instance of domain class
+
+    Returns:
+        List[Node]: New parameters nodes
+    """
+    res = []
+    name = m.name
+    inputs_p_node = []
+    outputs_p_node = []
+    inps = list(set(inputs))
+    pseudo_name = []
+    pos = 0
+    reso = []
+    inpnames = {p.name:p.pseudo_type for p in m.params}
+    for p in m.params:
+        pos = pos + 1
+        if p.pseudo_type not in list(pseudo_type_.values()) :
+            pseudo = p.pseudo_type.pseudo_type if isinstance(p.pseudo_type, Node) else p.pseudo_type
+            pseudo_name.append(pseudo)
+            # find the inputs whose instance is p.name
+            inputs_p = [key for key, val in member_category[name].items() if val==p.name]
+            #inputs_p = inps
+                        # find its datatype
+            for p_ in inps:
+                if p_ in inputs_p:
+                    vn = p_[:-3] if (len(p_)>3 and p_.endswith("_t1")) else p_
+                    for k, m_inp in var_.items():
+                        if k == vn or (k == p_):
+                            inputs_p_node.append(Node(type=type_[m_inp['ValueType']], name=p_, pseudo_type=pseudo_type_[m_inp['ValueType']], position_args = pos))
+                            res.append(name)
+                            break
+                else:
+                    indice = 1 if pseudo_name.count(pseudo)>1 else 0
+                    for f in extfunc:
+                        test = False
+                        dclass = deepcopy(instance_dclass[f.name])
+                        meth_member_category = member_category[f.name]
+                        if meth_member_category:
+                            var = dclass[pseudo][indice]
+                            inputs_names = [key for key, val in meth_member_category.items() if val==var]
+                            if p_ in inputs_names:
+                                vn = p_[:-3] if (len(p_)>3 and p_.endswith("_t1")) else p_
+                                for k, m_inp in var_.items():
+                                    if k == vn or (k == p_):
+                                        test = True
+                                        res.append(name)
+                                        inputs_p_node.append(Node(type=type_[m_inp.datatype], name=p_, pseudo_type=pseudo_type_[m_inp.datatype], position_args = pos))
+                                        break
+                        if test: break
+        else:
+            if p.name not in res and p.name in inputs:
+                inputs_p_node.append(p) 
+                res.append(p.name)
+            if isinstance(p.pseudo_type, list) and p.pseudo_type[0] in ("array", "List", "list") and p.name in outputs and p.name not in reso:
+                outputs_p_node.append(Node(type= "local", name=p.name, pseudo_type=p.pseudo_type))
+                reso.append(p.name) # This case because in C# an input with datatype list or array is passed by reference
+            
+
+    outs = list(set(outputs))
+    for p_ in outs:
+        vn = p_[:-3] if (len(p_)>3 and p_.endswith("_t1")) else p_
+        for k, m_inp in var_.items():
+            if (k == vn or (k == p_)) and p_ not in reso:
+                outputs_p_node.append(Node(type= "local", name=p_, pseudo_type=pseudo_type_[m_inp.datatype]))
+                reso.append(p_)
+                break
+        if p_ not in reso and p_ in inpnames:
+            outputs_p_node.append(Node(type= "local", name=p_, pseudo_type=inpnames[p_]))
+            reso.append(p_)
+    return  inputs_p_node, outputs_p_node
+
+
+
+
+
+from collections import defaultdict
+
+def inst_dclass(meth):
+    params = meth.params
+    lst = []
+    for p in params:
+        if isinstance(p.pseudo_type, Node) and "typename" in dir(p.pseudo_type):
+            pname = str(p.name)
+            lst.append((p.pseudo_type.pseudo_type, pname))
+        elif isinstance(p.pseudo_type, str):
+            lst.append((p.pseudo_type, str(p.name)))    
+        else:
+            lst.append((p.pseudo_type[1].upper() + p.pseudo_type[0].upper(), str(p.name))) 
+    
+    orDict = defaultdict(list)
+    # iterating over list of tuples
+    for key, val in lst:
+        orDict[key].append(val)      
+    dclassdict = dict(orDict)
+    return dclassdict
+
+
 
 
 def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_category={}, pa={}):
@@ -612,11 +638,10 @@ def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_cat
     Returns:
         ASG: transform algo
     """
-    z = ApsimExtraction()
+    z = CsharpExtraction()
     funcs = z.externFunction(total_tree, algo)  
     funcs = [f for f in funcs if f]
     
-
     rr1 = Member_access2(total_tree, varinfo)
     vv1 = rr1.process(algo)
     
@@ -631,12 +656,9 @@ def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_cat
 
     rr3 = Assignment()
     vv3 = rr3.process(vv2)
-    
+
     rr = Declarations()
     vv = rr.process(vv3)
-
-    """rr = rr3 #Declarations()
-    vv = vv3 #rr.process(vv3)"""
 
     rr4 = Custom_call2(total_tree, funcs, not_declared,  res_inout, member_category)
     vv4 = rr4.process(vv)
@@ -647,33 +669,31 @@ def translate(total_tree, varinfo, algo, not_declared,  res_inout={}, member_cat
     return  rr, expr_
 
 
-from collections import defaultdict
+def translate_(f, pa):
+    res = []
+    res_ = []
+    dr = Declarations()
+    dv = dr.process(f)
+    lr = Local(dr.declnames)
+    lv = lr.process(dv)
+    params = [str(p.name) for p in f.params]
+    args = params + dr.declnames
+    not_declared = list(set(lr.not_declared) - set(args))
+    for n in not_declared:
+        for m in pa:
+            if m["Name"].decode("utf-8") == n:
+                r = Node(type=type_[m['ValueType']], name=n, pseudo_type=pseudo_type_[m['ValueType']])
+                res.append(r)
+                r.type = "local"
+                res_.append(r)
+                break
+    return lv, dr.declarations, res_
 
-def inst_dclass(meth):
-    params = meth.params
-    lst = []
-    if params:
-        for p in params:
-            if isinstance(p.pseudo_type, Node) and "typename" in dir(p.pseudo_type):
-                pname = str(p.name)
-                lst.append((p.pseudo_type.pseudo_type, pname))
-            elif isinstance(p.pseudo_type, str):
-                lst.append((p.pseudo_type, str(p.name)))    
-            else:
-                lst.append((p.pseudo_type[1].upper() + p.pseudo_type[0].upper(), str(p.name))) 
-    
-    orDict = defaultdict(list)
-    # iterating over list of tuples
-    for key, val in lst:
-        orDict[key].append(val)      
-    dclassdict = dict(orDict)
-    return dclassdict
-
-def run_apsim(component, output):
-    """Transform an APSIM component in Crop2ML
+def run_csharp(component, output):
+    """Transform a CSharp component in Crop2ML
 
     Args:
-        component (_type_): Apsim component path
+        component (_type_): csharp component path
         output (_type_): Crop2ML package path
     """
     crop2ml_rep, cyml_rep = create_package(output)
@@ -681,21 +701,18 @@ def run_apsim(component, output):
     pkg = os.path.split(component)[-1].replace('-', '_')
     
     files = repowalk.walk(component, "cs" )
-    xfiles = repowalk.walk(component, "xml" )
     res = {}
     stra = {}
     straNames = []
     varinfo = {}
     dclass = []
-    domclass = []
     compo = {}
     source_codes=[]
-    print(xfiles)
+    compo_codes = []
     for  k, v in files.items():
-        print(v, "pmmmmmm")
         with open(v, 'r') as f:
             code = f.read()
-        if code : # and k=="WheatLAIState.cs":
+        if code :
             if code.startswith("ï»¿"): code = code[3:]
             splitcode = code.split('\n')
             zz = map(lambda x: x.lstrip(), splitcode)
@@ -704,42 +721,44 @@ def run_apsim(component, output):
             dictasgt = to_dictASG(code,"cs")
             strAsg = to_CASG(dictasgt)
             res[k] = strAsg
-            #print(dictasgt)
-            m = ApsimExtraction()
+            print("Processing file:", v)
+            print("===================================" )
+            m = CsharpExtraction()
             m.getTypeNode(strAsg, "classDef")
             g= m.getTree
-            n = m.getmethod( g, "OnProcess")
-            if g and g[0].base and  m.getmethod( g[0], "OnProcess"):
-                if m.getmethod( g[0],"EstimateOfAssociatedClasses"):
+            n = m.getmethod( g, "CalculateModel")
+            if n:
+                if "Component" in v.split(os.sep)[-1]:
                     compo[k] = strAsg
+                    compo_codes.append(code)
                 else: 
                     stra[k]=strAsg
                     straNames.append(g[0].name)
-                    source_codes.append(code)
-                    print("strat", straNames)
-            else:
-                m.getTypeNode(strAsg, "interface")
-                varinfo[k] = strAsg
-
-
+                    source_codes.append(code)  
     total_tree = list(res.values())
-    vinfo = list(varinfo.values())
+    #vinfo = list(varinfo.values())
     strats = list(stra.values())
     compos = list(compo.values())
     models = []
     func_names = []
-    kk = ApsimExtraction()
-    #all_var = kk.getAllVar(vinfo)
-    all_var = extract_io(list(xfiles.values())[0])
+    kk = CsharpExtraction()
+    all_var = kk.getAllVar(source_codes)
     for k, st in enumerate(strats):
         print(k, st)
         mod = source_codes[k]
-        #st_ = deepcopy(st)
-        z = ApsimExtraction() 
+        z = CsharpExtraction(code=mod) 
+        var =  z.totalvar(st)
         algo = z.getAlgo(st)
         init_ = z.getInit(st)
         funcs = z.externFunction(st, algo.block + init_.block, False) 
         funcs = [f for f in funcs if f]
+        commentsPart = extraction(mod, description_tags[0], description_tags[1])
+        mdata = extract(commentsPart[0]+"\n\n")
+        strat_var = z.getStrategyVar()
+        pa = strat_var[0]
+        dict_pa = {f.name:f for f in pa}
+        all_var_pa = {**dict_pa, **all_var}   # all the variable from all varinfo files and parameters of the specific strategy.
+        #pa = mdata.inputs
         params_not_declared = {}
         params_not_declared_ = {}
         decl = {}
@@ -769,34 +788,31 @@ def run_apsim(component, output):
                         for rr in extfunc:
                             if ex.class_!= rr.class_:
                                 rr.name = "_" + rr.class_ + "__" + rr.name +"_" 
-                                params_not_declared[rr.name]   = []     
+                                params_not_declared[rr.name]   = [] 
                         res = []
                         res_ = []
                         res_inout[ex.name] = {"inputs":None, "outputs":None}
                         dclassdict = inst_dclass(ex)
-                        #print("dclassdict", dclassdict)
-                        f_rr1 = Member_access2(total_tree, all_var)
-                        f1 = f_rr1.process(ex)
+                        f_rr1 = Member_access2(total_tree, dclassdict)
+                        f_vv1 = f_rr1.process(ex)
                         member_category[ex.name] = f_rr1.m_cat
-                        #print("member_category", member_category)
                         ri2 = Index()
-                        vi2= ri2.process(f1)
+                        vi2= ri2.process(f_vv1)
                         dr = Declarations()
                         dv = dr.process(vi2)
                         lr = Local2(dr.declnames)
                         lv = lr.process(dv)
-                        
-                        lr1 = For_statement2()
-                        lv1 = lr1.process(lv)
-                        params = [] if lv1.params is None  else lv1.params
-                        args = dr.declnames + [p.name for p in params] if params else dr.declnames
-                        not_declared = list(set(lr.not_declared) - set(args) - set(lr1.declared)) 
+                        params = [str(p.name) for p in lv.params]
+                        args = params + dr.declnames
+                        not_declared = list(set(lr.not_declared) - set(args))
                         for n in not_declared:
-                            if n in all_var:
-                                tt = Node(type=type_[all_var[n]], name=n, pseudo_type=pseudo_[all_var[n]])
-                                res.append(tt)
-                                tt.type = "local"
-                                res_.append(tt)
+                            for m in pa:
+                                if m.name.encode("utf-8") == n:
+                                    tt = Node(type=type_[m.datatype], name=n, pseudo_type=pseudo_type_[m.datatype])
+                                    res.append(tt)
+                                    tt.type = "local"
+                                    res_.append(tt)
+                                    break
                         
                         params_names_not_declared = [p.name for p in res]
                         for fc in extfunc:
@@ -805,46 +821,29 @@ def run_apsim(component, output):
                                  if p.name not in params_names_not_declared:
                                      res.append(p)
                                      res_.append(p)
-                        #print("mmmmmmmmmmmmmmmmmmm",lv1.name,[r.name for r in res] )
 
-
-                        params_not_declared[lv1.name] = res 
-                        params_not_declared_[lv1.name] = res_ 
-                        decl[lv1.name] = dr.declarations
-                                  
-                        name = lv1.name
-                        instance_dclass[name]  = inst_dclass(lv1)  # before changing the signature
-
-                        lv1.params =  params_not_declared[name] if lv1.params is None else lv1.params + params_not_declared[name]
-                        if isinstance(lv1.block, Node): 
-                            lv1.block = [decl[name], lv1.block]
-                        else: lv1.block.insert(0,decl[name])
-                        
+                        params_not_declared[lv.name] = res 
+                        params_not_declared_[lv.name] = res_ 
+                        decl[lv.name] = dr.declarations      
+                        name = lv.name
+                        instance_dclass[name]  = inst_dclass(lv)  # before changing the signature
+                        lv.params = lv.params + params_not_declared[name]
+                        lv.block.insert(0,decl[name])
                         trans_local = TransformLocal(params_not_declared[name])
-                        r_trans_local = trans_local.process(lv1)
+                        r_trans_local = trans_local.process(lv)
                         rr2 = Binary_op()
                         vv2= rr2.process(r_trans_local)
-                        
                         rr4 = Custom_call2(total_tree, extfunc, params_not_declared_,  res_inout, member_category)
-                        #rr4 = Custom_call(total_tree, extfunc, params_not_declared_,  res_inout, member_category)
-                        p_cust = rr4.process(vv2)
-                        
+                        p_cust = rr4.process(vv2)       
                         env = {xx.name:xx.pseudo_type for j in decl[name] for xx in j.decl}
-                        zz = CheckingInOut2( env,isAlgo = False)
-                        rch = zz.process(p_cust)
-                                   
-                        inputs_p_node, outputs_p_node = redefine_params(p_cust,all_var,member_category,zz.inputs, zz.outputs,extfunc, instance_dclass)
-                        
-                        p_cust.params = inputs_p_node# p_cust.params #+ transform_io(zz.inputs, all_var) if p_cust.params else transform_io(zz.inputs, all_var)
+                        zz = CheckingInOut2(env)
+                        r_ch = zz.process(p_cust)                       
+                        inputs_p_node, outputs_p_node = redefine_params(p_cust,all_var_pa, member_category,zz.inputs, zz.outputs,extfunc, instance_dclass)
+                        p_cust.params = inputs_p_node  
                         res_inout[name]["inputs"] = inputs_p_node 
-                        
-                        #name = rch.name
-                        params = {p.name:p.pseudo_type for p in p_cust.params}
-                        
+                        params = {p.name:p.pseudo_type for p in p_cust.params}  
                         lr = Local2(declnames=[], params=params)
                         lv = lr.process(p_cust)
-                        #print("p_cust", lv.name, [p.name for p in lv.params])
-
                         outputs_node = outputs_p_node # transform_io(zz.outputs, all_var, True)
                         newinps = {p.name:i for i,p in enumerate(inputs_p_node)}
                         if lv.return_type == "Void":
@@ -861,15 +860,12 @@ def run_apsim(component, output):
                         else:
                             if "modifiers" in dir(lv.block[-1]):
                                 return_ = lv.block[-1].value
-                                #print(lv.block[-1].y)
                                 if return_.type == "local" and return_.name in newinps.keys():
                                     elts = []
                                     elts.append(Node(type = "local", pseudo_type = lv.return_type, name = return_.name, pos = newinps[return_.name]))
-                                    #print("ggggggggggggggggggggggggggggggggggggggM", lv.name, newinps[return_.name], return_.name)
                                     for o in outputs_node:
                                         if o.name in newinps.keys() and o.name != return_.name and o.name in all_var and o.name not in dr.declnames:
                                             elts.append(Node(type = "local", pseudo_type = o.pseudo_type, name = o.name, pos = newinps[o.name]))
-                                            #print("gggggggggggggggggggggggggggggggggggggg", lv.name, newinps[o.name], o.name)
                                         elif o.name != return_.name and o.name in all_var and o.name not in dr.declnames:
                                             elts.append(o)
                                     if len(elts) == 1:
@@ -877,7 +873,6 @@ def run_apsim(component, output):
                                     else:
                                         return_ = Node(type = "Tuple", pseudo_type = ["Tuple"]+[e.pseudo_type for e in elts], elements = elts)
                                     lv.block[-1] = Node(type = "implicit_return", value = return_)
-                                    #print("################################", o.name, lv.block[-1].y)
                                 else:
                                     elts = []
                                     r_outs = [o.name for o in return_.elements]
@@ -891,15 +886,9 @@ def run_apsim(component, output):
                                     return_ = Node(type = "Tuple", pseudo_type = lv.return_type, elements = elts)
                                     lv.block[-1] = Node(type = "implicit_return", value = return_)
                                     lv.return_type = ["Tuple"] + [n.pseudo_type for n in outputs_node]                                    
-                                res_inout[name]["outputs"] = return_
-                        """else:
-                            res_inout[name]["outputs"] = outputs_node"""
-                            
-                                     
+                                res_inout[name]["outputs"] = return_                   
                         r.append(lv)
-                        func_names.append(p_cust.name)
-                        
-
+                        func_names.append(lv.name)
                 cd = cs_cyml.Cs_Cyml_ast(r)
                 h = cd.transform()
                 nd = transform_to_syntax_tree(h)
@@ -907,48 +896,100 @@ def run_apsim(component, output):
                 filename = Path(os.path.join(cyml_rep, "%s.pyx"%(name)))
                 with open(filename, "wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
-
-        rr, vv = translate(total_tree, all_var, algo.block, params_not_declared_, res_inout, member_category)
-              
-        cd = cs_cyml.Cs_Cyml_ast(vv)
+                    
+        rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category, dict_pa)
+        zz = CheckingInOut2( {},isAlgo = True)
+        r_ch = zz.process(vv)
+        cd = cs_cyml.Cs_Cyml_ast(rr.declarations + vv, var =var)
         h = cd.transform()
         nd = transform_to_syntax_tree(h)
         code = writeCyml(nd)
+         
         filename = Path(os.path.join(cyml_rep, "%s.pyx"%(straNames[k])))
         with open(filename, "wb") as tg_file:
-            tg_file.write(code.encode('utf-8'))
+            tg_file.write(code.encode('utf-8'))        
 
+        dict_init = {}
+        inps_init = []
+        outs_init = []
+        
         if init_:
-            rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category)
+            rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category, dict_pa)
             dict_init = {}
             name_i = "init."+straNames[k]
             dict_init["name"] = "init"
             dict_init["filename"] = "algo/pyx/" + name_i + ".pyx"
             #z.model.initialization = [dict_init]
-            cd = cs_cyml.Cs_Cyml_ast(rr_.declarations + init_pseudo,  var =all_var)
+            cd = cs_cyml.Cs_Cyml_ast(rr_.declarations + init_pseudo,  var =var)
             h = cd.transform()
             nd = transform_to_syntax_tree(h)
             initcode = writeCyml(nd)
-            filename = Path(os.path.join(cyml_rep, "init_%s.pyx"%(straNames[k])))
+            filename = Path(os.path.join(cyml_rep, "init.%s.pyx"%(straNames[k])))
             with open(filename, "wb") as tg_file:
-                tg_file.write(initcode.encode('utf-8'))
+                tg_file.write(initcode.encode('utf-8'))         
+            zz2 = CheckingInOut2( {},isAlgo = True)
+            r_ch = zz2.process(init_pseudo)
+            inps_init = zz2.inputs
+            outs_init = zz2.outputs
+               
+        inps_str = zz.inputs + inps_init
+        outs_str = zz.outputs + outs_init
         
-    description = {"Title":"model of soil", "Authors":"Cyrille", "Institution":"INRAE" } 
-    description["name"]= "Soiltemp"
-    description["version"]="2.0"
-    description["timestep"]="1.0"
-    description["url"] = ""
-    description["ExtendedDescription"]="Soil Temperature"
-    description["ShortDescription"]="Soil Temperature"
-    
-    modelp = ModelParser()
-    mp = modelp.parse(output)
-    mc = createObjectCompo(description,mp)
+        z.modelunit(mdata, strat_var, all_var_pa,var,  list(set(inps_str)), list(set(outs_str)))
+        z.model.function = [n.name for n in funcs if f]
+        if dict_init: z.model.initialization = [dict_init]
 
-    xml_ = Pl2Crop2ml(mc, "APSIM_").run_compo()
-    filename = os.path.join(output, "crop2ml", "composition.%s.xml"%(mp[0].name))
-    with open(filename, "wb") as xml_file:
-        r = '<?xml version="1.0" encoding="UTF-8"?>\n'
-        r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
-        r += xml_.unicode(indent=4)#.encode('utf-8')
-        xml_file.write(r.encode())
+        models.append(z.model)
+
+        xml_ = Pl2Crop2ml(z.model, "Crop2ML."+pkg).run_unit() 
+        filename = Path(os.path.join(crop2ml_rep, "unit.%s.xml"%(straNames[k])))
+        with open(filename, "wb") as xml_file:
+            #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
+            r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            r += '<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">\n'
+            r += xml_.unicode(indent=4)#.encode('utf-8')
+            xml_file.write(r.encode()) 
+    for k, compo in enumerate(compos):
+        mod = compo_codes[k]
+        commentsPart = extraction(mod, description_tags[0], description_tags[1])
+        mdatac = extract(commentsPart[0]+"\n\n")
+        z.modelcomposition(models,compo, mdatac)
+        xml_ = Pl2Crop2ml(z.mc, "Crop2ML."+pkg).run_compo()
+        name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
+        filename = Path(os.path.join(crop2ml_rep, "composition.%s.xml"%(name)))
+        with open(filename, "wb") as xml_file:
+            #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
+            r = '<?xml version="1.0" encoding="UTF-8"?>\n'
+            r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'
+            r += xml_.unicode(indent=4)#.encode('utf-8')
+            xml_file.write(r.encode())
+        
+        
+        
+import io
+
+def is_filehandle(x):
+    return isinstance(x, io.IOBase)  # catches TextIOWrapper, BufferedReader, etc.
+
+def find_filehandles(obj, path="root", seen=None):
+    if seen is None:
+        seen = set()
+    oid = id(obj)
+    if oid in seen:
+        return
+    seen.add(oid)
+
+    if is_filehandle(obj):
+        print("FILEHANDLE at", path, "->", repr(obj), "name=", getattr(obj, "name", None))
+        return
+
+    # Recurse
+    if hasattr(obj, "__dict__"):
+        for k, v in vars(obj).items():
+            find_filehandles(v, f"{path}.{k}", seen)
+    elif isinstance(obj, dict):
+        for k, v in obj.items():
+            find_filehandles(v, f"{path}[{k!r}]", seen)
+    elif isinstance(obj, (list, tuple, set)):
+        for i, v in enumerate(obj):
+            find_filehandles(v, f"{path}[{i}]", seen)

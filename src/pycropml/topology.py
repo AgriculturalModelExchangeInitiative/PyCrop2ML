@@ -97,19 +97,23 @@ class Topology:
                 self.pkg = input(f"Give the path of package {self.name}")
         self.data = Path(self.pkg)/"crop2ml"
         self.diff_in, self.diff_out = {}, {}
-        composite_file = self.data.glob("composition*.xml")[0]
-        self.mu = model_parser(self.pkg)
-        self.model, = composition.model_parser(composite_file)
-        self.pkgs[self.name] = [self.pkg, self.model]
-        self.model.inputs = self.meta_inp(self.name)
-        self.model.outputs = self.meta_out(self.name)
-        self.model.ext = self.meta_ext(self.name)
-        self.model.states = self.findstates(self.model.inputs, self.model.outputs)
-        self.model.path = Path(self.pkg)
-        self.minout()
-        self.path_pkg = None
-        self.model.diff_in = self.diff_in
-        self.model.diff_out = self.diff_out
+        composite_file = None
+        composite_files = self.data.glob("composition*.xml")
+        if composite_files:
+            composite_file = composite_files[0]
+            self.mu = model_parser(self.pkg)
+            self.model, = composition.model_parser(composite_file)
+            self.pkgs[self.name] = [self.pkg, self.model]
+            self.model.inputs = self.meta_inp(self.name)
+            self.model.outputs = self.meta_out(self.name)
+            self.model.ext = self.meta_ext(self.name)
+            self.model.states = self.findstates(self.model.inputs, self.model.outputs)
+            self.model.path = Path(self.pkg)
+            self.minout()
+            self.path_pkg = None
+            self.model.diff_in = self.diff_in
+            self.model.diff_out = self.diff_out
+        self.composite_file = composite_file
          
     def isPackage(self, name):
         if sys.version_info[0] >= 3:

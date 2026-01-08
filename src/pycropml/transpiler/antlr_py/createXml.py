@@ -112,7 +112,7 @@ class Pl2Crop2ml:
     def run_compo(self):
         """ Generate Crop2ML specification of a CompositeModel from a workflow. """
         md = self.md
-        name = md.name[:-9] if md.name.endswith("Component") else md.name
+        name = md.name.replace("Component", "") if md.name.endswith("Component") else md.name
         # ModelComposition name id version timestep
         xml = ns.ModelComposition(name=name, id=self.pkgname + "." + name, version=md.version, timestep=md.timestep)
 

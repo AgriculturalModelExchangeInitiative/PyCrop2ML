@@ -43,7 +43,8 @@ type_={
      "DATELIST":"List",
     "BOOLEAN":"bool",
     "DOUBLEARRAY":"array",
-    "INTARRAY":"array"}
+    "INTARRAY":"array",
+    "STRINGARRAY":["array", "string"]}
 
 pseudo_type_={
     "DOUBLE":"double",
