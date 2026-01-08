@@ -326,7 +326,8 @@ FUNCTION_API = {
 
     },
     'array':{
-        'array': StandardMethodCall('numpy', 'array', expander = array_expander )
+        'array': StandardMethodCall('numpy', 'array', expander = array_expander ),
+        'ConstrainedCopy': StandardMethodCall('array', 'constrained_copy', expander = constrained_copy_expander)
     } ,
     'Array':{
         'Copy': StandardMethodCall('array', 'copy', expander = copyarray_expander ),
@@ -391,7 +392,8 @@ METHOD_API = {
             'append':   StandardMethodCall('array', 'append'),
             'Length':    StandardMethodCall('array', 'len', expander=len_expander),
             'CopyTo':   StandardMethodCall('array', 'copyto', expander=copyto_expander),
-            'Except':   StandardMethodCall('array', 'except')
+            'Except':   StandardMethodCall('array', 'except')#,
+            #'ConstrainedCopy':      StandardMethodCall('array', 'ConstrainedCopy')
     },
 
     'tuple': {
@@ -404,6 +406,9 @@ PROPERTY_API = {
         "Count": StandardMethodCall("List", "len", expander=len_expander)
     },
     "array":{
+        "Length": StandardMethodCall("array", "len", expander=len_expander)
+    },
+    "Array":{
         "Length": StandardMethodCall("array", "len", expander=len_expander)
     }
     

@@ -283,11 +283,11 @@ class RGenerator(CodeGenerator, RRules):
             self.newline(1)
             self.write(f"#' @return")  
             self.newline(1)   
-            self.write(f"#' \describe{{")  
+            self.write(f"#' \\describe{{")  
             self.newline(1)   
             for out in self.model.outputs:
                 if out.variablecategory=="state":
-                    self.write(f"#'   \item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}}")
+                    self.write(f"#'   \\item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}}")
                     self.newline(1)
             self.newline(1)
             self.write(f"#' }}")
@@ -320,10 +320,10 @@ class RGenerator(CodeGenerator, RRules):
                 self.newline(1)
                 self.write(f"#' @return")
                 self.newline(1)
-                self.write(f"#' \describe{{")
+                self.write(f"#' \\describe{{")
                 self.newline(1)
                 for out in self.model.outputs:
-                    self.write(f"#'   \item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}} ")
+                    self.write(f"#'   \\item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}} ")
                     self.newline(1)
                 self.newline(1)   
                 self.write(f"#' }}") 
