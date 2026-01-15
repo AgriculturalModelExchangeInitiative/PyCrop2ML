@@ -72,7 +72,7 @@ def translate_insert(node):
                            right=node.args[0]), node.args[1]], pseudo_type=node.pseudo_type)
 
 
-def translateContains(node):
+def translate_contains(node):
     # Need to declare excluded list before using contains?
     if "elements" in dir(node.receiver):
         return Node(type="binary_op", op="!=",
@@ -89,7 +89,7 @@ def translateContains(node):
                 right=Node(type="local", name="%s.end()" % node.receiver.name))
 
 
-def translateIndex(node):
+def translate_index(node):
     return Node(type="binary_op", op="-",
                 left=Node("custom_call", receiver=node.receiver, function="find",
                           args=[Node(type="local", name=f"{node.receiver.name}.begin()"),
@@ -174,7 +174,7 @@ class CppRules(GeneralRule):
     functions = {
         'math': {
             'ln': 'std::log',
-            'log': translateLog,
+            'log': translate_log,
             'tan': 'std::tan',
             'sin': 'std::sin',
             'cos': 'std::cos',
@@ -194,14 +194,9 @@ class CppRules(GeneralRule):
             "min": translate_min,
             "max": translate_max,
             "abs": "std::abs",
-            "pow": "std::pow"
+            "pow": "std::pow",
+            'round': 'std::round'
         },
-        'system': {
-            'min': translateMIN,
-            'max': translateMAX,
-            'abs': 'std::abs',
-            'pow': 'std::pow',
-            'round': 'std::round'},
         'datetime': {
             'datetime': lambda node: Node(type="str", value=argsToStr(node.args))
         }
