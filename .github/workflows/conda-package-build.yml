@@ -63,7 +63,7 @@ jobs:
           exit 1
         fi
     - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@main
+      uses: openalea/action-build-publish-anaconda@v0.1.5
       with:
         conda: conda
         mamba: true
