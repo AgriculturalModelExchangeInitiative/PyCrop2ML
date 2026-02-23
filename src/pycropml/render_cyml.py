@@ -66,7 +66,7 @@ class Model2Package(object):
         # Create a directory (mymodel)
         
         directory = Path(os.path.join(self.cwd, 'pyx'))
-        if isdir(directory):
+        if directory.is_dir():
             self.dir = directory
         else:
             self.dir = directory.mkdir()
@@ -340,7 +340,7 @@ class Model2Package(object):
         TODO: Manage several models rather than just one.
         """
         self.rep = Path(os.path.join(self.rep, 'test', 'pyx'))
-        if not isdir(self.rep):
+        if not self.rep.is_dir():
             self.rep.mkdir()
         files = []
         count = 0
