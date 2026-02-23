@@ -5,6 +5,7 @@ Created on Tue Mar 19 22:59:23 2019
 @author: pradal
 """
 # coding: utf8
+
 from __future__ import absolute_import
 from __future__ import print_function
 
@@ -20,8 +21,6 @@ from pycropml.cyml import transpile_file, transpile_package, transpile_component
 from pycropml.transpiler.main import languages
 
 def main():
-
-
     usage = """Usage: %prog [options] package language1 [languages]
 
 cyml transpiler translate a cyml source code or a Crop2ML package with algo in cyml

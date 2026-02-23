@@ -73,10 +73,13 @@ def parser(module):
     
     Scanning.FileSourceDescriptor: Represents a code source. Only file sources for Cython code supported
     """
+    print(module)
+    print(isinstance(module, Path))
     options = opt(**options_defaults)
     if isinstance(module, Path):
         context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
         scope = context.find_submodule(module)
+        print(module)
         with open(module.encode('utf-8'), 'r') as f:
             source = f.read()
         source_desc = Scanning.FileSourceDescriptor(module, source)

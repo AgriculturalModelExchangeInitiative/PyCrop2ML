@@ -72,15 +72,15 @@ def transpile_package(package, language):
     dir_doc = Path(os.path.join(pkg, 'doc'))
 
     # Generate packages if the directories does not exists.
-    if not output.isdir():
+    if not output.is_dir():
         output.mkdir()
-    if not dir_test.isdir():
+    if not dir_test.is_dir():
         dir_test.mkdir()
-    if not dir_doc.isdir():
+    if not dir_doc.is_dir():
         dir_doc.mkdir()
         
     dir_images = Path(os.path.join(dir_doc, 'images'))
-    if not dir_images.isdir():
+    if not dir_images.is_dir():
         dir_images.mkdir()
 
     m2p = render_cyml.Model2Package(models, dir=output)
@@ -88,15 +88,15 @@ def transpile_package(package, language):
     tg_rep1 = Path(os.path.join(output, language))  # target language models  directory in output
     dir_test_lang = Path(os.path.join(dir_test, language))
     
-    if not tg_rep1.isdir():
+    if not tg_rep1.is_dir():
         tg_rep1.mkdir()
     
     namep_ = namep.replace("-", "_")    
     tg_rep = Path(os.path.join(tg_rep1, namep_))
-    if not tg_rep.isdir():
+    if not tg_rep.is_dir():
         tg_rep.mkdir()
 
-    if not dir_test_lang.isdir():  #Create if it doesn't exist
+    if not dir_test_lang.is_dir():  #Create if it doesn't exist
         dir_test_lang.mkdir()
 
     m2p.write_tests()

@@ -58,13 +58,13 @@ pseudo_type_={
 
 def create_package(output):
     crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-    if not crop2ml_rep.isdir():
+    if not crop2ml_rep.is_dir():
         crop2ml_rep.mkdir()
     algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not algo_rep.isdir():
+    if not algo_rep.is_dir():
         algo_rep.mkdir()
     cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not cyml_rep.isdir():
+    if not cyml_rep.is_dir():
         cyml_rep.mkdir()
     return crop2ml_rep, cyml_rep    
                 

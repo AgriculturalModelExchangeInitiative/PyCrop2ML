@@ -13,6 +13,8 @@ from copy import copy
 from pycropml.render_cyml import my_input, DATATYPE
 import pandas as pd
 import importlib
+from graphviz import Source
+import networkx as nx
 
  
 class Package:
@@ -281,12 +283,14 @@ class Topology:
     
     def write_png(self, dir_images):
         G = self.createGraph()
-        a = to_pydot(G)
+        #a = to_pydot(G)
         img = Path(os.path.join(dir_images, f"{self.model.name}.png"))
         print(img)
         df = pd.DataFrame(G.edges(data=True), columns=['Source', 'Target', 'Weight'])
-        df['Weight'] = df['Weight'].map(lambda x: x['weight'] if 'weight' in x else 0)
-        a.write_png(img)
+        df['Weight'] = df['Weight'].map(lambda x: x['weight'] if 'weight' in x else 0)    
+        #a.write_png(img)
+        dot_string = nx.nx_pydot.to_pydot(G).to_string()
+        Source(dot_string).render(str(img), format="png", cleanup=True)
         df.to_csv(os.path.join(os.path.dirname(dir_images), 'graphe.csv'), index=False)
     
     def writeSVG(self):
