@@ -87,13 +87,10 @@ class Model2Package(object):
         
     def generate_component(self, model_unit):
         """Todo"""
-
-        functions = []
         if model_unit.modelid.split(".")[0] != "function":
             func_name = f"model_{signature(model_unit)}"
         else:
             func_name = signature(model_unit)
-        
         types = [inp.datatype for inp in model_unit.inputs] + [out.datatype for out in model_unit.outputs]
         self.code = "import numpy\n"
         self.code += "from math import *\n"
@@ -105,17 +102,22 @@ class Model2Package(object):
             
         self.code += self.generate_function_signature(func_name, model_unit.inputs) + "\n"
         self.code += self.generate_function_doc(model_unit) + "\n"
-        self.code += self.generate_algorithm(model_unit) + "\n"
+        if sys.version_info[0] >= 3:
+            self.code += self.generate_algorithm(model_unit) + "\n"
+        else:
+            self.code += self.generate_algorithm(model_unit).decode("utf-8") + "\n"
 
-        if model_unit.function: 
-            function_files = [Path(os.path.join(model_unit.path, "crop2ml", function.filename))
-                              for function in model_unit.function if function.language.lower() == "cyml"]
+        if model_unit.function:
+            for function in model_unit.function:
+                if function.language in ("Cyml", "cyml"):
+                    filefunc = Path(os.path.join(model_unit.path, "crop2ml", function.filename))
+                    with open(filefunc.encode('utf-8'), 'r') as f:
+                        source = f.read()
+                        self.code += source 
+                        self.code += "\n\n\n"
 
-            content = split_function.unique_functions(function_files)
-            self.code += content
-            self.code += "\n"
-     
         return self.code
+
 
     def generate_algorithm(self, model_unit):
         outputs = model_unit.outputs
@@ -475,6 +477,7 @@ def default_value(inp):
     elif type_.endswith("ARRAY") and inp.len:
         if type_=="INTARRAY": return f"array('i', [0]*{inp.len})"
         if type_=="DOUBLEARRAY": return f"array('f', [0.0]*{inp.len})"
+    elif type_ == "STRING": return "\'\'"
 
 DATATYPE2 = {}
 DATATYPE2['INT'] = "int"

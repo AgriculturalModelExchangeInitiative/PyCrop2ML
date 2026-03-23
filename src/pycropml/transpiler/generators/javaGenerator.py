@@ -1508,7 +1508,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
             if arg.name in self.getRealInputs():
                 if isinstance(arg.pseudo_type, list):
                     if arg.pseudo_type[0] =="list":
-                        self.write("    this.%s"%self.copy_constrList%(arg.name,arg.name,arg.name))
+                        self.write("    this.%s"%self.copy_constrList%(arg.name,self.types2[arg.pseudo_type[1]],arg.name,arg.name,arg.name,arg.name))
                     if arg.pseudo_type[0] =="array":
                         self.write("    %s"%self.copy_constrArray%(arg.elts[0].value if "value" in dir(arg.elts[0]) else f'toCopy.get{arg.name}().length',arg.name,arg.name))
                 else:

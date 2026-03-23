@@ -5,7 +5,8 @@ from Cython.Compiler import Scanning
 from Cython.Compiler import Main
 from Cython.Compiler import Options
 from path import Path
-import sys
+from Cython.Compiler.TreeFragment import parse_from_strings
+
 
 options_defaults = dict(
     show_version = 0,
@@ -73,19 +74,15 @@ def parser(module):
     
     Scanning.FileSourceDescriptor: Represents a code source. Only file sources for Cython code supported
     """
-    print(module)
-    print(isinstance(module, Path))
     options = opt(**options_defaults)
     if isinstance(module, Path):
         context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
         scope = context.find_submodule(module)
-        print(module)
         with open(module.encode('utf-8'), 'r') as f:
             source = f.read()
         source_desc = Scanning.FileSourceDescriptor(module, source)
         tree = context.parse(source_desc, scope, pxd=None, full_module_name=module)
     else:
-        from Cython.Compiler.TreeFragment import parse_from_strings
         #if sys.version_info[0]<3: module = unicode(module)
         tree = parse_from_strings("module",module)
     return tree
