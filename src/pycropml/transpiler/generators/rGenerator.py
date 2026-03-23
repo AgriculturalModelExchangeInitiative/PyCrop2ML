@@ -385,7 +385,11 @@ class RGenerator(CodeGenerator, RRules):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" <- ")                 
-                self.write(n.value)
+                if isinstance(n.value, str):
+                    self.write(n.value)
+                else:
+                    # n.value is a Node (e.g., unary_op for -999), so visit it
+                    self.visit(n.value)
             elif "value" not in dir(n) and n.type =="int":
                 self.newline(node)
                 self.write(n.name)
