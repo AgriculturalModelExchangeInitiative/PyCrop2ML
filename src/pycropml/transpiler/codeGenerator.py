@@ -13,6 +13,22 @@ class CodeGenerator(NodeVisitor):
         self.precedence = [0]
 
     def write(self, x):
+        if not isinstance(x, str):
+            import traceback
+            print(f"\n*** NODE LEAK: write() received {type(x).__name__} instead of str ***")
+            print(f"    value: {x!r}")
+            print("the ast", x.y)
+            if hasattr(x, 'type'):
+                print(f"    node.type: {x.type}")
+            if hasattr(x, '__dict__'):
+                print(f"    attrs: {list(x.__dict__.keys())}")
+            traceback.print_stack(limit=10)
+            # Convert to string to let execution continue and find all leaks
+            #x = str(x)
+            # write an error message in the output to make it clear something went wrong and raise
+            raise TypeError(f"write() expected str but got {type(x).__name__} with value {x!r}")
+            
+            
         if self.new_lines:
             if self.result:
                 self.result.append('\n' * self.new_lines)
