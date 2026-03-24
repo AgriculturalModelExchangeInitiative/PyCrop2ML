@@ -1,6 +1,6 @@
-# Generated from Fortran90Parser.g4 by ANTLR 4.8
+# Generated from Fortran90Parser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .Fortran90Parser import Fortran90Parser
 else:
     from Fortran90Parser import Fortran90Parser

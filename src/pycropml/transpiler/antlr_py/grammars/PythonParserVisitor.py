@@ -1,6 +1,6 @@
-# Generated from PythonParser.g4 by ANTLR 4.8
+# Generated from PythonParser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .PythonParser import PythonParser
 else:
     from PythonParser import PythonParser

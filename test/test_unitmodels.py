@@ -4,16 +4,16 @@
 """
 from __future__ import absolute_import
 from __future__ import print_function
-from path import Path
+from pathlib import Path
 
 from pycropml import pparse, render_cyml
 from pycropml.cyml import transpile_package
 
 
-cwd = Path(__file__).dirname()
+cwd = Path(__file__).parent
 data = cwd/'Tutorial'
 
-packages = [p for p in data.listdir() if (p/'crop2ml').isdir()]
+packages = [str(p) for p in data.iterdir() if (p/'crop2ml').is_dir()]
 pkg_nrj, pkg_pheno, snow_pkg = packages
 
 ##############################################################################
