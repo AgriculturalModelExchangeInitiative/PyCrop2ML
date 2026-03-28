@@ -229,11 +229,11 @@ class AstTransformer():
             elif e:
                 if e in ("list", "dict", "tuple", "array", "intlist", "floatlist", "intarray", "floatarray"):
                     a = self._compatible_types(
-                        e, value_node['pseudo_type'], "can't change the type of variable %s in %s " % (name, self.function_name))
+                        e, value_node['pseudo_type'], "Type error for variable '%s' in function '%s' at line %s: expected type does not match assigned type" % (name, self.function_name, location[0]))
                 else:
                     #if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
                     if value_node["type"] != "none":
-                        a = self._compatible_types(e, value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
+                        a = self._compatible_types(e, value_node['pseudo_type'], "Type error for variable '%s' in function '%s' at line %s: expected type does not match assigned type" % (
                         name, self.function_name, location[0])) 
             z =  {
                 'type': 'assignment',
@@ -337,7 +337,7 @@ class AstTransformer():
             
         elif isinstance(lhs, ExprNodes.AttributeNode):
             z = self.visit_node(lhs)
-            a = self._compatible_types(z["pseudo_type"], value_node['pseudo_type'], "can't change the type of variable %s in %s at %s " % (
+            a = self._compatible_types(z["pseudo_type"], value_node['pseudo_type'], "Type error for attribute '%s' in function '%s' at line %s: expected type does not match assigned type" % (
             z["name"], self.function_name, location[0]))
             self.units={}
             return {
@@ -414,6 +414,10 @@ class AstTransformer():
                 'right': right_node,
                 'pseudo_type': binop_type
                 }
+
+    # IntBinopNode is a Cython AST subclass of BinopNode — same handling
+    def visit_intbinopnode(self, node, operand1, operand2, location):
+        return self.visit_binopnode(node, operand1, operand2, location)
 
     def visit_namenode(self, node, location):
         id = node.name
@@ -493,7 +497,10 @@ class AstTransformer():
                     value_node['pseudo_type'][1], value_general_type, z['pseudo_type']))
             if value_general_type == 'str':
                 pseudo_type = 'str'
-            elif value_general_type in ('list', 'array', "tuple", "dict", "unknown"):
+            elif value_general_type == 'dict':
+                # For dict[key_type, value_type], indexing returns the value_type (index 2)
+                pseudo_type = value_node['pseudo_type'][2]
+            elif value_general_type in ('list', 'array', "tuple", "unknown"):
                 pseudo_type = value_node['pseudo_type'][1]
             result = {
                 'type': 'index',
@@ -523,7 +530,9 @@ class AstTransformer():
                 v = eval(val["value"])
             v = v + 1
             val["name"]= it.name  
-            z.append(val)  
+            z.append(val)
+            # Register each enum value as int in type_env so they're resolvable by name
+            self.type_env.top[it.name] = 'int'
         self.type_env.top[node.name] = ["enum", val["pseudo_type"]]
         
         return {"type":"enum",
@@ -620,10 +629,38 @@ class AstTransformer():
             return {"type":"units", "name":node.attribute, "pseudo_type":"int"}
         if self.struct and value_node["pseudo_type"] in self.struct.keys():
             attr_name = node.attribute
+            # Look up the field type from the struct definition
+            struct_name = value_node["pseudo_type"]
+            struct_def = self.struct[struct_name]
+            field_type = None
+            for elem in struct_def["elements"]:
+                if elem['type'] == 'declaration':
+                    for decl in elem['decl']:
+                        if decl['name'] == attr_name:
+                            field_type = decl['pseudo_type']
+                            break
+                if field_type:
+                    break
+            
+            # If field not found in struct, raise error
+            if field_type is None:
+                # Get list of valid fields for error message
+                valid_fields = []
+                for elem in struct_def["elements"]:
+                    if elem['type'] == 'declaration':
+                        for decl in elem['decl']:
+                            valid_fields.append(decl['name'])
+                
+                raise PseudoCythonTypeCheckError(
+                    "Attribute '%s' is not declared for structure '%s' in function '%s' at line %s. "
+                    "Valid fields are: %s" % 
+                    (attr_name, struct_name, self.function_name, location[0], ', '.join(valid_fields))
+                )
+            
             return  {'type': 'attr',
                     'object': value_node,
                     'name': node.attribute,
-                    'pseudo_type': self.type_env[attr_name]}
+                    'pseudo_type': field_type}
 
         if isinstance(value_node["pseudo_type"], list) and value_node["pseudo_type"][0]=="enum":         
             return  {'type': 'attr',
@@ -790,8 +827,11 @@ class AstTransformer():
                 arg_nodes = [arg if not isinstance(arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
                 if function.name not in meth and function.name not in FUNCTION_API["math"] :
-                    print("err", function.name)
-                    #print("err", function.name, FUNCTION_API["math"].keys(),[n.name for n in args])
+                    raise PseudoCythonNotTranslatableError(
+                        "Function '%s' is not defined in function '%s' at line %s. "
+                        "This function is not a built-in function or has not been imported." % 
+                        (function.name, self.function_name, location[0])
+                    )
                 else:
                     if self.retrieve_library(function.name) not in self._imports:
                         self._imports.append(
@@ -1261,48 +1301,192 @@ class AstTransformer():
             "str":["local","str"],
             "bool":["local","bool"],
             "list":["local","list"],
+            "tuple":["local","tuple"],
             "array":["array","array"],
             "datetime":["datetime", "datetime"],
             "datelist":["list", ["list","datetime"]],
             "datetimelist":["list", ["list","datetime"]]}
-        return tt[name]
+        
+        # Check if it's a defined enum type
+        if name in self._enum_names():
+            return ["local", name]
+
+        # Check if it's a defined struct type
+        if name in self.struct.keys():
+            return ["local", name]
+        
+        # Check if it's in the basic types dictionary
+        if name in tt:
+            return tt[name]
+        
+        # Type not recognized - provide helpful error message
+        basic_types = ["int", "float", "bool", "str", "datetime"]
+        collection_types = ["list", "tuple", "array", "intlist", "floatlist", "intarray", "floatarray"]
+        struct_types = list(self.struct.keys()) if self.struct else []
+        
+        error_msg = (
+            f"Type '{name}' is not supported by CyML. "
+            f"Supported types include:\n"
+            f"  Basic types: {', '.join(basic_types)}\n"
+            f"  Collection types: {', '.join(collection_types)}"
+        )
+        
+        if struct_types:
+            error_msg += f"\n  Defined structs: {', '.join(struct_types)}"
+        
+        raise PseudoCythonTypeCheckError(error_msg)
         
         
     def visit_csimplebasetypenode(self, node, location):
         return self.newtype(node.name)[0], self.newtype(node.name)[1]
     
+    def visit_templatedtypenode(self, node, base_type_node, positional_args,  keyword_args, dtype_node, location, **kwargs):
+        """Handle templated types like dict[str, int]"""
+        # Get the base type name (e.g., 'dict')
+        base_type_name = base_type_node.name
+        
+        # For dict[key_type, value_type], extract the type parameters
+        if base_type_name == 'dict' and positional_args and len(positional_args) == 2:
+            # Get key type
+            key_arg = positional_args[0]
+            if hasattr(key_arg, 'name'):
+                key_type = key_arg.name
+            else:
+                key_type = None
+            
+            # Get value type
+            value_arg = positional_args[1]
+            if hasattr(value_arg, 'base_type_node'):
+                # CComplexBaseTypeNode - extract the base type name
+                value_type = value_arg.base_type_node.name
+            elif hasattr(value_arg, 'name'):
+                value_type = value_arg.name
+            else:
+                value_type = None
+            
+            # Return the full dict type specification
+            return 'dict', ['dict', key_type, value_type]
+        
+        # For other templated types, return the base type
+        return base_type_name, base_type_name
+    
+    def _enum_names(self):
+        """Return set of enum type names defined so far in type_env."""
+        result = set()
+        for k, v in self.type_env.top.values.items():
+            if isinstance(v, list) and len(v) == 2 and v[0] == 'enum':
+                result.add(k)
+        return result
+
     def checktype(self,base):
-        typet = ["int", "float","bool","datetime","str","list","dict",
+        typet = ["int", "float","bool","datetime","str","list","dict","tuple",
                  "intlist","floatlist","booleanlist","datelist","strlist","stringlist","struct",
                  "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray", "datetimelist" ]
         types =  list(self.struct.keys())
-        z = typet+types
+        enum_types = list(self._enum_names())
+        z = typet + types + enum_types
         if base not in z:
-            raise PseudoCythonTypeCheckError(
-                        "%s is not defined" % base)
+            # Create a helpful error message
+            basic_types = ["int", "float", "bool", "str", "datetime"]
+            collection_types = ["list", "dict", "tuple", "array", "intlist", "floatlist", "booleanlist", "strlist", "intarray", "floatarray"]
+            struct_types = types if types else []
+            
+            error_msg = (
+                f"Type '{base}' is not supported by CyML. "
+                f"Supported types include:\n"
+                f"  Basic types: {', '.join(basic_types)}\n"
+                f"  Collection types: {', '.join(collection_types)}"
+            )
+            
+            if struct_types:
+                error_msg += f"\n  Defined structs: {', '.join(struct_types)}"
+            if enum_types:
+                error_msg += f"\n  Defined enums: {', '.join(enum_types)}"
+            
+            raise PseudoCythonTypeCheckError(error_msg)
         
 
     def visit_cvardefnode(self, node, base_type, declarators, location):
         x = []
-        self.checktype(base_type.name)
+        # Handle TemplatedTypeNode (e.g., dict[str, int])
+        # For templated types, the base_type.name is None and the actual type is in base_type_node
+        if hasattr(base_type, 'base_type_node') and base_type.name is None:
+            # This is a templated type like dict[str, int]
+            actual_type_name = base_type.base_type_node.name
+        else:
+            # Regular simple type
+            actual_type_name = base_type.name
+        
+        self.checktype(actual_type_name)
         typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist", "datetimelist"]
         typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
+        is_enum_type = actual_type_name in self._enum_names()
         for de in declarators:
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if not self.isattr and self.type_env[de.name]:
                     raise PseudoCythonTypeCheckError(
                         "%s is already declared" % de.name)
                 decl = {"name": de.name,
-                        "type": self.visit_node(base_type)[0] if base_type.name in typet + typearray else base_type.name, "lineno": location}
-                if base_type.name in typet + typearray:
+                        "type": self.visit_node(base_type)[0] if actual_type_name in typet + typearray else actual_type_name, "lineno": location}
+                if is_enum_type:
+                    # Enum variables are represented as int at runtime
+                    if not self.isattr: self.type_env[de.name] = 'int'
+                    decl["pseudo_type"] = 'int'
+                    if de.default is not None:
+                        value_node = self.visit_node(de.default)
+                        decl["value"] = value_node
+                    x.append(decl)
+                    continue
+                if actual_type_name in typet + typearray:
                     if not self.isattr:  self.type_env[de.name] = self.visit_node(base_type)[1]
                     decl["pseudo_type"] = self.visit_node(base_type)[1]
-                elif base_type.name in typearray:
+                elif actual_type_name in typearray:
                     decl["dim"] = 1
                     decl["elts"] = []
                 elif de.default is None:
-                    if not self.isattr : self.type_env[de.name] = base_type.name
-                    decl["pseudo_type"] = decl["type"]
+                    # Handle templated types like dict[str, int] without default value
+                    if hasattr(base_type, 'base_type_node') and base_type.name is None:
+                        # Extract type parameters for templated types
+                        if actual_type_name == 'dict' and hasattr(base_type, 'positional_args'):
+                            # For dict[key_type, value_type], extract the two type parameters
+                            if len(base_type.positional_args) == 2:
+                                # Get key type
+                                key_arg = base_type.positional_args[0]
+                                if hasattr(key_arg, 'name'):
+                                    key_type = key_arg.name
+                                else:
+                                    key_type = None
+                                
+                                # Get value type  
+                                value_arg = base_type.positional_args[1]
+                                if hasattr(value_arg, 'base_type_node'):
+                                    # CComplexBaseTypeNode - extract the base type name
+                                    value_type = value_arg.base_type_node.name
+                                elif hasattr(value_arg, 'name'):
+                                    value_type = value_arg.name
+                                else:
+                                    value_type = None
+                                
+                                # Store full dict type with key and value types
+                                full_type = ['dict', key_type, value_type]
+                                if not self.isattr:
+                                    self.type_env[de.name] = full_type
+                                decl["pseudo_type"] = full_type
+                            else:
+                                # Fallback if wrong number of type parameters
+                                if not self.isattr:
+                                    self.type_env[de.name] = actual_type_name
+                                decl["pseudo_type"] = decl["type"]
+                        else:
+                            # For other templated types  or simple types
+                            if not self.isattr:
+                                self.type_env[de.name] = actual_type_name
+                            decl["pseudo_type"] = decl["type"]
+                    else:
+                        # Regular simple type without default
+                        if not self.isattr:
+                            self.type_env[de.name] = actual_type_name
+                        decl["pseudo_type"] = decl["type"]
                 
                 """if type(de.default) in (ExprNodes.IntNode,ExprNodes.UnaryMinusNode, ExprNodes.FloatNode, ExprNodes.UnicodeNode, ExprNodes.StringNode, ExprNodes.BoolNode):
                     value_node = self.visit_node(de.default)
@@ -1356,7 +1540,7 @@ class AstTransformer():
                     decl["pseudo_type"] = default["pseudo_type"]
                     if not self.isattr: self.type_env[de.name] = default["pseudo_type"]
                     a = self._compatible_types(
-                        base_type.name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
+                        actual_type_name, decl["pseudo_type"][0], "can't change the type of variable %s in %s " % (de.name, self.function_name))
 
                 elif de.default:
                     
@@ -1390,7 +1574,7 @@ class AstTransformer():
                     if not isinstance(elts, list): elts = [elts] 
                 dim = len(elts)
                 decl = {"name": de.base.name, "type": "array", "dim": dim, "elts": elts,
-                        "pseudo_type": ["array", base_type.name], "lineno": location}
+                        "pseudo_type": ["array", actual_type_name], "lineno": location}
                 if not self.isattr: self.type_env[de.base.name] = decl["pseudo_type"]
             self.declarations.append(decl)
             x.append(decl)
@@ -1819,13 +2003,20 @@ class AstTransformer():
             to[0] = from_[0]    # to manage comparison between float and array
         if from_ == "unknown" or to == "unknown":
             return to
+        
+        # Special case: generic list/array/dict can accept any typed variant
+        # e.g., list can accept list[str], array can accept array[int], dict can accept dict[str, int]
+        if isinstance(from_, str) and isinstance(to, list):
+            if from_ in ['list', 'array', 'dict', 'tuple'] and len(to) > 0 and to[0] == from_:
+                return to
+        
         if isinstance(from_, str) or isinstance(from_, EncodedString):
             if not isinstance(to, str) and not isinstance(to, EncodedString):
                 if silent:
                     return False
                 else:
                     raise PseudoCythonTypeCheckError(
-                        err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
+                        err + ': variable declared as %s but assigned value of type %s' % (serialize_type(from_), serialize_type(to)))
 
             elif from_ == to:
                 return to
@@ -1844,10 +2035,10 @@ class AstTransformer():
                     return False
                 else:
                     raise PseudoCythonTypeCheckError(
-                        err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
+                        err + ': variable declared as %s but assigned value of type %s' % (serialize_type(from_), serialize_type(to)))
             elif from_ == 'float' and to == 'int':
                 raise PseudoCythonTypeCheckError(
-                    err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
+                    err + ': variable declared as %s but assigned value of type %s' % (serialize_type(from_), serialize_type(to)))
 
             elif from_ == 'int' and to == 'float':
                 return False
@@ -1855,14 +2046,14 @@ class AstTransformer():
                 return False
             else:
                 raise PseudoCythonTypeCheckError(
-                    err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
+                    err + ': variable declared as %s but assigned value of type %s' % (serialize_type(from_), serialize_type(to)))
         else:
             if not isinstance(to, list) or len(from_) != len(to) or from_[0] != to[0] or from_[1] != to[1] :
                 if silent:
                     return False
                 else:
                     raise PseudoCythonTypeCheckError(
-                        err + ' from %s to %s' % (serialize_type(from_), serialize_type(to)))
+                        err + ': variable declared as %s but assigned value of type %s' % (serialize_type(from_), serialize_type(to)))
             for f, t in zip(from_[1:-1], to[1:-1]):
                 self._compatible_types(f, t, err)
             return to

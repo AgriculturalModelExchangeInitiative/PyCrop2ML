@@ -88,9 +88,10 @@ class OpenaleaCompo(PythonCompo):
         names = split_name[:-1] if len(split_name) >2 else split_name
         names.insert(0, 'amei')
         name = '.'.join(names).lower()
-        wra_path = mc.path.split(os.path.sep)[-1]
+        wra_path = mc.path.split(os.path.sep)[-1].replace('-', '_')
         path = Path(os.path.join(mc.path,"src","openalea", wra_path))
         _package = package.UserPackage(name, metainfo, path)
+        print(name, path)
         for model in mc.model:
             if not model.package_name or model.package_name=="unit":		
                 _factory = self.generate_factory(model)
@@ -98,12 +99,11 @@ class OpenaleaCompo(PythonCompo):
                 _package.add_factory(_factory)
             else:
                 pass
-        print(_package, _package.name)
         _package.write() 
         writer = XmlToWf(mc, path, name)
         writer.run()
         writer.pkg.name = name
-        writer.pkg.write() 
+        writer.pkg.write()
 
 
 
@@ -119,7 +119,7 @@ class OpenaleaCompo(PythonCompo):
             dtype = input.datatype
             interface = openalea_interface(input)
             if dtype not in ('STRING', 'BOOLEAN' ,'DATE') and 'default' in dir(input):
-                print(input.default)
+                #print(input.default)
                 value = eval(input.default) if input.default else 0
                 _in = dict(name=name, interface=interface, value=value)
             elif 'default' in dir(input):
@@ -127,9 +127,9 @@ class OpenaleaCompo(PythonCompo):
                 _in = dict(name=name, interface=interface, value=value)
             elif 'default' not in dir(input):
                 _in = dict(name=name, interface=interface)
+                value = None
 
             #value = eval(input.default) if dtype != 'string'else input.default
-
             inputs.append(_in)
 
         outputs = []
@@ -173,13 +173,15 @@ def openalea_interface(inout):
 
     if dtype in ('int', 'float', 'double') :
         interface =inter.IInt if dtype == 'int' else inter.IFloat
-        if ('min' in kwds) and ('max' in kwds):
+        if ('min' in kwds) and ('max' in kwds) and (eval(inout.min)!=None) and (eval(inout.max)!=None):
             #print(inout)
             interface = interface(min=eval(inout.min), max=eval(inout.max))
-        elif 'min' in kwds:
+        elif 'min' in kwds and (eval(inout.min)!=None):
             interface = interface (min=eval(inout.min))
-        elif 'max' in kwds:
+        elif 'max' in kwds and (eval(inout.max)!=None):
             interface = interface(max=eval(inout.max))
+        elif 'default' in dir(inout):
+            interface = interface(min=eval(inout.default), max=eval(inout.default))
 
     elif dtype == 'string':
         interface = inter.IStr

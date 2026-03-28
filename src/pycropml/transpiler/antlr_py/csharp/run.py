@@ -750,7 +750,7 @@ def run_csharp(component, output):
         var =  z.totalvar(st)
         algo = z.getAlgo(st)
         init_ = z.getInit(st)
-        funcs = z.externFunction(st, algo.block + init_.block, False) 
+        funcs = z.externFunction(st, algo.block + init_.block, False) if init_ else  z.externFunction(st, algo.block, False) 
         funcs = [f for f in funcs if f]
         commentsPart = extraction(mod, description_tags[0], description_tags[1])
         mdata = extract(commentsPart[0]+"\n\n")
