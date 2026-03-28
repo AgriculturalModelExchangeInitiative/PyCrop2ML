@@ -583,8 +583,9 @@ class SimplaceCompo(JavaGenerator):
         JavaGenerator.__init__(self, tree, model, self.name)
     
     def visit_module(self, node):
-        xml_ = Pl2Crop2ml(self.model, "Simplace.SoilTemp").run_simplace()             
-        filename = os.path.join(self.model.model[0].path,  "src", "simplace",  self.model.path, "%s.xml"%(self.model.name)) # "unit.%s.xml"%(strat.basename().split(".")[0])
+        xml_ = Pl2Crop2ml(self.model, "Simplace.SoilTemp").run_simplace()    
+        print("iiiiiiiiiiiii", xml_)         
+        filename = os.path.join(self.model.model[0].path,  "src", "simplace",  self.model.path.replace("-","_"), "%s.xml"%(self.model.name)) # "unit.%s.xml"%(strat.basename().split(".")[0])
         with open(filename, "wb") as xml_file:
             r = '<?xml version="1.0" encoding="UTF-8"?>\n'
             r += '<!DOCTYPE configuration PUBLIC "-//SIMPLACE/DTD GRP 1.0//EN" "http://simplace.net/dtd/GroupComponent.dtd">\n'
