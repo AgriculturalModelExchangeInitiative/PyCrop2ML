@@ -55,6 +55,13 @@ setup_kwds = dict(
     setup_requires=[
         ],
     install_requires=[
+        "pyyaml",
+        "six",
+        "cython",
+        "numpy",
+        "networkx",
+        "antlr4-python3-runtime",
+        "xmlformatter",
         ],
     tests_require=[
         "pytest",
