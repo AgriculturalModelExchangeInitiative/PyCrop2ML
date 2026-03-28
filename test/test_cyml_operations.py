@@ -10,7 +10,6 @@ import unittest
 import tempfile
 import os
 from unittest.main import main
-from path import Path
 from pycropml.transpiler.main import Main
 
 
