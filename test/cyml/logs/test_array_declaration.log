@@ -1,0 +1,6 @@
+DEBUG [pycropml.transpiler.main] Parsing source input
+DEBUG [pycropml.transpiler.parser] Starting parse for module type=str
+DEBUG [pycropml.transpiler.parser] Parse succeeded for module type=str
+DEBUG [pycropml.transpiler.main] Parsing completed
+DEBUG [pycropml.transpiler.main] Building AST
+DEBUG [pycropml.transpiler.main] AST build completed
