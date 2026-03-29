@@ -47,3 +47,28 @@ From Crop2ML to Platforms
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
     cyml -p name_of_the_Crop2ML_package target_language_or_platform
+
+Testing
+=======
+
+Run the test suite using pytest or unittest:
+
+Using pytest
+~~~~~~~~~~~~
+::
+
+    # Run all tests
+    python -m pytest test/test_cyml_operations.py -v
+    
+    # Run a specific test class
+    python -m pytest test/test_cyml_operations.py::TestCyMLOperations -v
+    
+    # Run a single test
+    python -m pytest test/test_cyml_operations.py::TestCyMLOperations::test_modulo_operation -v
+
+Using unittest
+~~~~~~~~~~~~~~
+::
+
+    cd test
+    python -m unittest test_cyml_operations

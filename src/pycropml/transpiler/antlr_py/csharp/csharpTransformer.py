@@ -885,7 +885,7 @@ class AstTransformer():
                     "block":block,
                     "pseudo_type":["function"]+ps + ["Void"],
                     "non_identifier":self.non_identifier,
-                    "namespace":self.namespace[-1],
+                    "namespace":self.namespace[-1] if self.namespace else None,
                     "class_":self.clas[-1]}
             return v
 
@@ -1028,7 +1028,7 @@ class AstTransformer():
                     "block":block,
                     "pseudo_type":["function"] + ps + [typ["pseudo_type"]],
                     "non_identifier":self.non_identifier,
-                    "namespace":self.namespace[-1],
+                    "namespace":self.namespace[-1] if self.namespace else None,
                     "class_":self.clas[-1]}
             #domain = [a["pseudo_type"] for a in res["params"] if res["params"] ]
             self.type_env.top["functions"][res["name"]] = [res["return_type"]]
@@ -1402,7 +1402,7 @@ class AstTransformer():
             z =  {
                     'type': 'assignment',
                     'target':self.visit(unary_expression),
-                    'op':assignment_operator,
+                    'op':str(assignment_operator),
                     'value': self.visit(expression),
                     'pseudo_type': 'Void'
                 }
@@ -1583,7 +1583,6 @@ class AstTransformer():
             x['pseudo_type'], y['pseudo_type'])[-1]}, list(args))
 
     def visit_unary_expression(self, node, primary_expression,PLUS,type_, BANG, MINUS,OP_INC,OP_DEC, unary_expression,STAR,TILDE, location):
-        
         if primary_expression:
             z =  self.visit(primary_expression)
             return z
@@ -1661,19 +1660,21 @@ class AstTransformer():
             m = self.translate(member_access)
             if isinstance(res, str): res = {"type":"member_access", "name":res, "member":m, "pseudo_type":"unknown"}
             elif isinstance(res, dict) and "name" in res: res = {"type":"member_access", "name":res["name"], "member":m, "pseudo_type":res["pseudo_type"]}
+            elif isinstance(res, dict) and "init" in res and "name" not in res: 
+                res = {"type":"member_access", "init":res["init"], "member":m, "pseudo_type":res["pseudo_type"]}
             elif "class_type" in res: res = {"type":"member_access", "name":res["class_type"], "member":m, "pseudo_type":"unknown"}
             else: return None
-            
-            if res["name"] in CONSTANT_API and res["member"] in CONSTANT_API[res["name"]]:
+            if "name" in dir(res) and res["name"] in CONSTANT_API and res["member"] in CONSTANT_API[res["name"]]:
                 return CONSTANT_API.get(res["name"]).get(res["member"]) 
             
             receiver = res["pseudo_type"][0] if isinstance(res["pseudo_type"], list) else res["pseudo_type"]
+            if "name" in res and res["name"] =="Array" and res["pseudo_type"] is None: 
+                receiver = "array"
             if isinstance(receiver, dict): receiver = receiver["pseudo_type"]
             if isinstance(receiver, list): 
                 receiver = receiver[0] 
-                m = res["member"]
-            
-            if receiver in PROPERTY_API and not method_invocation:
+                m = res["member"]   
+            if "name" in res and receiver in PROPERTY_API and not method_invocation:
                 rec = {"type":"local", "name": res["name"], "pseudo_type":res["pseudo_type"]}
                 api = PROPERTY_API[receiver].get(m)      
                 if not api:
@@ -1688,25 +1689,35 @@ class AstTransformer():
                     return z
 
         if method_invocation:
-            args = self.visit(method_invocation) 
-                   
+            args = self.visit(method_invocation)            
             if member_access:
-                #m = self.visit(member_access)
-                #print("inv",location, res, args, m) 
                 if isinstance(m, dict) and m["type"] == "method_invocation":
                     return res
                 elif m.find(".") == -1:
                     method = m
-                    receiver = res["name"]
+                    if "name" in res:
+                        receiver = res["name"]
+                    elif "init" in res:
+                        receiver = res["init"]
                 else:
                     method = m.split(".")[-1]
                     receiver = res["name"]+"."+".".join(m.split(".")[:-1])
-                receiver_type = self.type_env[receiver] 
-                receiver_type = receiver_type[0] if isinstance(receiver_type, list) else receiver_type
-                rec =  {"type":"local" , "name":receiver, "pseudo_type":self.type_env[receiver]}
-                
-                if isinstance(receiver_type, dict): receiver_type=receiver_type["typename"]
-                
+                    
+                if isinstance(receiver, str):
+                    receiver_type = self.type_env[receiver] 
+                    receiver_type = receiver_type[0] if isinstance(receiver_type, list) else receiver_type
+                    if isinstance(receiver_type, dict) and "typename" in receiver_type: 
+                        receiver_type=receiver_type["typename"]
+                    rec =  {"type":"local" , "name":receiver, "pseudo_type":self.type_env[receiver]} 
+                    
+                elif "type" in receiver and receiver["type"] == "initCollection":
+                    receiver_type=res["pseudo_type"][0] if isinstance(res["pseudo_type"], list) else res["pseudo_type"]
+                    rec = {"type":receiver_type , "init":receiver, "pseudo_type":res["pseudo_type"]}
+                    receiver = receiver_type
+                else:
+                    raise PseudoCythonTypeCheckError("Not implemented receiver type , %s"%location[0])
+                #else: rec =  {"type":"local" , "name":receiver, "pseudo_type":self.type_env[receiver]}               
+                                    
                 if receiver in FUNCTION_API:
                     api = FUNCTION_API[receiver].get(method) 
                     if not api:
@@ -1728,9 +1739,9 @@ class AstTransformer():
                             'pseudo-cython doesn\'t support %s%s with %d args' % (
                                 receiver, method, len(args)),
                             location, self.lines[location[0]])
-                          
+                
                 elif receiver_type in METHOD_API:
-                    api = METHOD_API.get(receiver_type,{}).get(method)
+                    api = METHOD_API.get(receiver_type,{}).get(method)  
                     if api:
                         res = api.expand([rec]+ args)
                         if self.assign == False and "message" in res and res["message"] not in ("contains?", "index", "len"):
@@ -1889,7 +1900,7 @@ class AstTransformer():
             if '"' in val:
                 val = val.replace('"', '')
                 val = val.encode('utf-8')
-            return {'type': 'string', 'value': val, 'pseudo_type': 'string'}
+            return {'type': 'string', 'value': ensure_text(val), 'pseudo_type': 'string'}
         if NULL:
             return {'type':"none", "value":"none", "pseudo_type":"none"}
   
@@ -2048,3 +2059,9 @@ class AstTransformer():
         else: res =  {"type":"attribute", "name":type_}
         return res
 
+
+
+def ensure_text(v):
+    if isinstance(v, bytes):
+        return v.decode("utf-8")
+    return v

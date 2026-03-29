@@ -119,7 +119,7 @@ class SimplaceExtraction(MetaExtraction):
         outs = list(map(lambda out: out.instance.name, setouts))
         return outs
 
-    def modelunit(self, tree, auxiliary):
+    def modelunit(self, tree, auxiliary={}):
         desc = self.description(tree)
         self.model= ModelUnit({"name":desc["name"], "version":"001", "timestep":"1"})        
         description = self.model_desc(desc)
@@ -150,7 +150,7 @@ class SimplaceExtraction(MetaExtraction):
             elif att == "state": category = "state"
             else: category = att.lower()
 
-            if auxiliary[self.model.name] and name in auxiliary[self.model.name]:
+            if auxiliary and auxiliary[self.model.name] and name in auxiliary[self.model.name]:
                 category = "auxiliary"
             
             if name in ins and name in outnames: category = "state"

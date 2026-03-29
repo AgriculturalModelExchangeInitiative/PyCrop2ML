@@ -78,3 +78,5 @@ nosetests.xml
 # R
 .Rproj.user
 .Rhistory
+*.code-workspace
+example/apsimcomponent

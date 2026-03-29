@@ -283,11 +283,11 @@ class RGenerator(CodeGenerator, RRules):
             self.newline(1)
             self.write(f"#' @return")  
             self.newline(1)   
-            self.write(f"#' \describe{{")  
+            self.write(f"#' \\describe{{")  
             self.newline(1)   
             for out in self.model.outputs:
                 if out.variablecategory=="state":
-                    self.write(f"#'   \item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}}")
+                    self.write(f"#'   \\item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}}")
                     self.newline(1)
             self.newline(1)
             self.write(f"#' }}")
@@ -320,10 +320,10 @@ class RGenerator(CodeGenerator, RRules):
                 self.newline(1)
                 self.write(f"#' @return")
                 self.newline(1)
-                self.write(f"#' \describe{{")
+                self.write(f"#' \\describe{{")
                 self.newline(1)
                 for out in self.model.outputs:
-                    self.write(f"#'   \item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}} ")
+                    self.write(f"#'   \\item{{{out.name} ({out.unit})}}{{{out.description} {out.variablecategory} ({out.min}-{inp.max})}} ")
                     self.newline(1)
                 self.newline(1)   
                 self.write(f"#' }}") 
@@ -385,7 +385,11 @@ class RGenerator(CodeGenerator, RRules):
                 self.newline(node)
                 self.write(n.name)
                 self.write(" <- ")                 
-                self.write(n.value)
+                if isinstance(n.value, str):
+                    self.write(n.value)
+                else:
+                    # n.value is a Node (e.g., unary_op for -999), so visit it
+                    self.visit(n.value)
             elif "value" not in dir(n) and n.type =="int":
                 self.newline(node)
                 self.write(n.name)

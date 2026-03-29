@@ -252,7 +252,7 @@ FUNCTION_API = {
         'ceil':     StandardCall('math', 'ceil', expander=ceil_expander),
         'abs':      StandardCall('global', 'abs', expander = abs_expander),
         'exp':      StandardCall('math', 'exp'),
-        'round':      StandardCall('System', 'round'),
+        'round':      StandardCall('math', 'round'),
         'pow':      StandardCall('math', 'pow'),
         'floor':      StandardCall('math', 'floor', expander=floor_expander),
         'min':      StandardCall('system', 'min', expander=min_expander)

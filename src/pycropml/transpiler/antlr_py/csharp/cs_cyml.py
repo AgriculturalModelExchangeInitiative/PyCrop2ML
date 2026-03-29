@@ -234,7 +234,7 @@ class Cs_Cyml_ast():
         return res
     
     def visit_List(self, node):
-        if "value" not in dir(node) and "elements" not in dir(node):
+        if "init" not in dir(node) and "value" not in dir(node) and "elements" not in dir(node):
             z = []
         elif "elements" in dir(node):
             z = self.visit(node.elements)

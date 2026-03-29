@@ -98,7 +98,7 @@ def len_expander(type, message, args):
         return {'type': 'standard_call', 'namespace': 'system', 'function': 'arg_count', 'args': [], 'pseudo_type': 'Int'}
     else:
         q = builtin_type_check(a, message, args[0], args[1:])
-        if a =="str" and message =="float" and args[0]["value"]==b"nan":
+        if a =="str" and message =="float" and args[0].get("value")==b"nan":
             return {"type":'notAnumber', 'value' : 'nan', 'pseudo_type':'float'}
         else: 
             return {'type': 'standard_method_call', 'receiver':args[0], 'args': [], 'message': message, 'pseudo_type': q[-1]}
@@ -258,6 +258,7 @@ METHOD_API = {
         'lower':      StandardMethodCall('str', 'lower'),
         'title':      StandardMethodCall('str', 'title'),
         'center':     StandardMethodCall('str', 'center', default={1: [{'type': 'str', 'value': ' ', 'pseudo_type': 'str'}]}),
+        'index':      StandardMethodCall('str', 'index'),
         'find':      {
             1:        StandardMethodCall('str', 'find'),
             2:        StandardMethodCall('str', 'find_from')

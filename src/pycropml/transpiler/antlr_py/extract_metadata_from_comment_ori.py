@@ -42,14 +42,14 @@ def ExtractComments(filename, c_st_single, c_st_multi, c_end_multi):
                 all_text = all_text[end_pos + 1:]
     return comments
 
-#pattern_attr_val = r"(\*\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\-\(\)\w+\s:,ï\[\]\\_\./\'\*]*))"
-pattern_attr_val = r"(\*\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>.*))"
+pattern_attr_val = r"(\*\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\-\(\)\w+\s:,ï\[\]\\_\./\'\*]*))"
+#pattern_attr_val = r"(\*\*?\s*(?P<attribute>\w+)\s*:\s*(?P<value>.*))"
 
 def ensure_text(v):
     if isinstance(v, bytes):
         return v.decode("utf-8")
     return v
-
+'''
 def _search_group(pattern, text, group=1, flags=0, default=None):
     """Return match.group(group) or default if no match."""
     m = re.search(pattern, text, flags)
@@ -189,6 +189,83 @@ def extract(comment):
     munit.outputs = outList  # empty if missing
 
     return munit
+
+'''
+def extract(comment):
+    keywords = ["name", "version", "timestep" ]
+    patterns = [r'(\s*-?\s*Name:\s*(?P<name>\w+))',
+                r'(\s*-?\s*Version:\s*(?P<version>\d+\.*\d+))',
+                r'(\s*-?\s*Time step:\s*(?P<timestep>\d+\.*\d*))'] 
+    
+    # header of modelUnit name, version, timestep
+    head = {}
+    i = 0
+    for p in patterns:
+        if re.search(p, comment):
+            head[keywords[i]] = re.search(p, comment).group(keywords[i])   
+        i = i + 1
+    m = ModelUnit(head)
+
+    # description element of modelUnit (Title, Authors, Reference, Institution, Abstract)
+    pat_description = r'-\s*Description:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*inputs|\n\s*[#!/]*\s*-\s*outputs|$)'
+    text_description = re.search(pat_description, comment, re.DOTALL).group(1)
+    description = attval(text_description)
+    d = Description()
+    for k, v in description.items(): setattr(d, k, v) 
+    m.add_description(d)
+
+    # inputs
+    pat_inputs = r'-\s*inputs:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*outputs|\n\s*[#!/]*\n)'
+    inputs_part = re.search(pat_inputs, comment, re.DOTALL).group(1)
+    pat_input = r'\*\s*name:\s*(.*?)(?=\n\s*[#!/]*\s*\*\s*name:|\n\n)'
+    input_parts = re.findall(pat_input, inputs_part+"\n\n", re.DOTALL)
+    inpList = []
+    if input_parts:
+        for inp in input_parts:
+            input={}
+            name = inp.split("\n")[0].strip()
+            inp = "\n".join(inp.split("\n")[1:])
+            input["name"] = ensure_text(name)
+            input.update(attval(inp))
+            inpList.append(Input(input))
+    m.inputs = inpList
+
+    # outputs
+    pat_outputs = r'-\s*outputs:\s*(.*?)(?=\n\s*[#!/]*\s*-\s*inputs|\n\s*[#!/]*\s*\n)'
+    outputs_part = re.search(pat_outputs, comment, re.DOTALL).group(1)
+    pat_output = r'\*\s*name:\s*(.*?)(?=\n\s*[#!/]*\s*\*\s*name:|\n\n)'
+    output_parts = re.findall(pat_output, outputs_part+'\n\n', re.DOTALL)
+    outList = []
+    if output_parts:
+        for out in output_parts:
+            output={}
+            name = out.split("\n")[0].strip()
+            out = "\n".join(out.split("\n")[1:])
+            output["name"] = ensure_text(name)
+            output.update(attval(out))
+            outList.append(Output(output))
+    m.outputs = outList
+    
+    return m
+
+def attval(text):  
+    space = "    "
+    lines = text.split('\n')
+    dic = {}
+    last_attr = None
+    for line in lines:
+        if not line: continue
+        obj = re.search(pattern_attr_val, line)
+        if not obj: attribute = last_attr
+        else: attribute = obj.group("attribute")
+        obj = re.search(pattern_attr_val, line, re.ASCII)
+        if not obj:
+            value =  '\n' + space*3 + line.strip()
+        else: value = obj.group("value").replace('\r', "").strip()
+        if attribute in dic : dic[attribute] += str(value)
+        else: dic[attribute] = value
+        last_attr = attribute
+    return dic
 
 
 

@@ -25,19 +25,43 @@ def builtin_type_check(namespace, function, receiver, args):
         fs = TYPED_API['_%s' % namespace]
     # print(namespace, function, receiver, args, TYPED_API[namespace])
     # input(0)
-    if function not in fs:        
-        raise  PseudoCythonTypeCheckError('wrong usage of %s' % str(function))
+    if function not in fs:
+        # Create a more informative error message
+        if receiver:
+            # This is a method call on a specific type
+            receiver_type = receiver.get('pseudo_type', 'unknown')
+            if isinstance(receiver_type, list):
+                receiver_type = receiver_type[0]  # e.g., ['list', 'int'] -> 'list'
+            error_msg = f"Method '{function}' is not defined for type '{receiver_type}'. " \
+                       f"Available methods: {', '.join(sorted(fs.keys()))}"
+        else:
+            # This is a function call in a namespace
+            error_msg = f"Function '{function}' is not defined in namespace '{namespace}'. " \
+                       f"Available functions: {', '.join(sorted(fs.keys()))}"
+        raise PseudoCythonTypeCheckError(error_msg)
     x = fs[function]
 
     a = namespace + '#' + function if receiver else namespace + ':' + function
-    if namespace == 'list' or namespace == 'array':
-        if not isinstance(receiver['pseudo_type'], list):
+    if namespace in ('list', 'array', 'tuple'):
+        receiver_type = receiver['pseudo_type'] if receiver else None
+        if isinstance(receiver_type, list) and len(receiver_type) > 1:
+            generics = {'@t': receiver_type[1]}
+        elif args:
             generics = {'@t': args[0]['pseudo_type']}
-            if receiver['pseudo_type']=="list": receiver["pseudo_type"]=["list",args[0]['pseudo_type']]
+            if receiver_type == 'list':
+                receiver['pseudo_type'] = ['list', args[0]['pseudo_type']]
+            elif receiver_type == 'array':
+                receiver['pseudo_type'] = ['array', args[0]['pseudo_type']]
+            elif receiver_type == 'tuple':
+                receiver['pseudo_type'] = ['tuple', args[0]['pseudo_type']]
         else:
-            generics = {'@t': receiver['pseudo_type'][1]}
+            generics = {'@t': 'Any'}
     elif namespace == 'dict':
-        generics = {'@k': receiver['pseudo_type'][1], '@v': receiver['pseudo_type'][2]}
+        receiver_type = receiver['pseudo_type'] if receiver else None
+        if isinstance(receiver_type, list) and len(receiver_type) > 2:
+            generics = {'@k': receiver_type[1], '@v': receiver_type[2]}
+        else:
+            generics = {'@k': 'Any', '@v': 'Any'}
     else:
         generics = {}
 
@@ -49,8 +73,21 @@ def builtin_type_check(namespace, function, receiver, args):
             s.append(simplify(e, generics))
             arg_check(s[-1], arg, a)
     else:
-        if len(x) - 1 != len(args):   
-            raise PseudoCythonTypeCheckError("%s expects %d args not %d" % (a, len(x) - 1, args))
+        if len(x) - 1 != len(args):
+            # Parse the function signature 'a' to create a better error message
+            if '#' in a:
+                # Method call: "str#index" -> method 'index' on type 'str'
+                parts = a.split('#')
+                error_msg = f"Method '{parts[1]}' on type '{parts[0]}' expects {len(x) - 1} argument(s), but got {len(args)}"
+            elif ':' in a:
+                # Function call: "math:sin" -> function 'sin' in namespace 'math'
+                parts = a.split(':')
+                error_msg = f"Function '{parts[1]}' in namespace '{parts[0]}' expects {len(x) - 1} argument(s), but got {len(args)}"
+            else:
+                # Fallback to original format
+                error_msg = "%s expects %d args not %d" % (a, len(x) - 1, len(args))
+            
+            raise PseudoCythonTypeCheckError(error_msg)
         for e, arg in zip(x[:-1], args):
             s.append(simplify(e, generics))
             arg_check(s[-1], arg, a)
@@ -59,7 +96,20 @@ def builtin_type_check(namespace, function, receiver, args):
 
 def arg_check(expected_type, args, a):
     if expected_type != args['pseudo_type'] and expected_type != 'Any' and not(expected_type == 'Number' and (args['pseudo_type'] == 'int' or args['pseudo_type'] == 'float')):
-        raise PseudoCythonTypeCheckError('%s expected %s not %s' % (a, serialize_type(expected_type), serialize_type(args['pseudo_type'])))
+        # Parse the function signature 'a' to create a better error message
+        if '#' in a:
+            # Method call: "str#index" -> method 'index' on type 'str'
+            parts = a.split('#')
+            error_msg = f"Method '{parts[1]}' on type '{parts[0]}' expects argument of type {serialize_type(expected_type)}, but got {serialize_type(args['pseudo_type'])}"
+        elif ':' in a:
+            # Function call: "math:sin" -> function 'sin' in namespace 'math'
+            parts = a.split(':')
+            error_msg = f"Function '{parts[1]}' in namespace '{parts[0]}' expects argument of type {serialize_type(expected_type)}, but got {serialize_type(args['pseudo_type'])}"
+        else:
+            # Fallback to original format
+            error_msg = '%s expected %s not %s' % (a, serialize_type(expected_type), serialize_type(args['pseudo_type']))
+        
+        raise PseudoCythonTypeCheckError(error_msg)
 
 def simplify(kind, generics):
     if not generics:
@@ -157,13 +207,13 @@ def or_(l, r):
 
 def binary_and(l, r):
     if l == r == 'int':
-        return l
+        return [l, r, l]
     else:
         raise PseudoCythonTypeCheckError("wrong types for &: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 def binary_or(l, r):
     if l == r == 'int' or l == r == 'Set':
-        return l
+        return [l, r, l]
     else:
         raise PseudoCythonTypeCheckError("wrong types for |: %s and %s" % (serialize_type(l), serialize_type(r)))
 
@@ -231,6 +281,70 @@ TYPED_API = {
         'allocate': ['int',['list', '@t']]
     },
 
+    # Typed list variants (floatlist, intlist, etc.) - same methods as list
+    'floatlist': {
+        'append':       ['float', ['list', 'float']],
+        'pop':        ['int','float'],
+        'insert':     ['float', ['list', 'float']],
+        'insert_at':  ['int', 'float', ['list', 'float']],
+        'concat':     [['list', 'float'], ['list', 'float']],
+        'repeat':     ['int', ['list', 'float']],
+        'extend':  [['list', 'float'], 'Void'],
+        'remove':     ['float', 'Void'],
+        'len':     ['int'],
+        'index':      ['float','int'],
+        'copy':[['list','float'],['list','float']],
+        'allocate': ['int',['list', 'float']]
+    },
+    'intlist': {
+        'append':       ['int', ['list', 'int']],
+        'pop':        ['int','int'],
+        'insert':     ['int', ['list', 'int']],
+        'insert_at':  ['int', 'int', ['list', 'int']],
+        'concat':     [['list', 'int'], ['list', 'int']],
+        'repeat':     ['int', ['list', 'int']],
+        'extend':  [['list', 'int'], 'Void'],
+        'remove':     ['int', 'Void'],
+        'len':     ['int'],
+        'index':      ['int','int'],
+        'copy':[['list','int'],['list','int']],
+        'allocate': ['int',['list', 'int']]
+    },
+    'booleanlist': {
+        'append':       ['bool', ['list', 'bool']],
+        'pop':        ['int','bool'],
+        'insert':     ['bool', ['list', 'bool']],
+        'insert_at':  ['int', 'bool', ['list', 'bool']],
+        'concat':     [['list', 'bool'], ['list', 'bool']],
+        'repeat':     ['int', ['list', 'bool']],
+        'extend':  [['list', 'bool'], 'Void'],
+        'remove':     ['bool', 'Void'],
+        'len':     ['int'],
+        'index':      ['bool','int'],
+        'copy':[['list','bool'],['list','bool']],
+        'allocate': ['int',['list', 'bool']]
+    },
+    'strlist': {
+        'append':       ['str', ['list', 'str']],
+        'pop':        ['int','str'],
+        'insert':     ['str', ['list', 'str']],
+        'insert_at':  ['int', 'str', ['list', 'str']],
+        'concat':     [['list', 'str'], ['list', 'str']],
+        'repeat':     ['int', ['list', 'str']],
+        'extend':  [['list', 'str'], 'Void'],
+        'remove':     ['str', 'Void'],
+        'len':     ['int'],
+        'join':       ['str'],
+        'index':      ['str','int'],
+        'copy':[['list','str'],['list','str']],
+        'allocate': ['int',['list', 'str']]
+    },
+
+    'tuple': {
+        'len':     ['int'],
+        'index':      ['@t','int']
+    },
+
     'dict': {
         'keys':       [['list','@k']],
         'values':     [['list', '@v']],
@@ -253,6 +367,7 @@ TYPED_API = {
 
     'str': {
         'find':       ['str', 'int'],
+        'index':      ['str', 'int'],
         'int':     ['int'],
         'split':      ['str', ['list', 'str']],
         'c_format':   [['array', 'str'], 'str'],
@@ -274,6 +389,50 @@ TYPED_API = {
         'count':       ['@t', 'int'],
         'append':       ['@t', ['array', '@t']],
         'allocate': ['int',['array', '@t']]
+    },
+
+    # Typed array variants (floatarray, intarray, etc.) - same methods as array
+    'floatarray': {
+        'len':      ['int'],
+        'index':       ['float', 'int'],
+        'count':       ['float', 'int'],
+        'append':       ['float', ['array', 'float']],
+        'allocate': ['int',['array', 'float']]
+    },
+    'intarray': {
+        'len':      ['int'],
+        'index':       ['int', 'int'],
+        'count':       ['int', 'int'],
+        'append':       ['int', ['array', 'int']],
+        'allocate': ['int',['array', 'int']]
+    },
+    'doublearray': {
+        'len':      ['int'],
+        'index':       ['float', 'int'],
+        'count':       ['float', 'int'],
+        'append':       ['float', ['array', 'float']],
+        'allocate': ['int',['array', 'float']]
+    },
+    'booleanarray': {
+        'len':      ['int'],
+        'index':       ['bool', 'int'],
+        'count':       ['bool', 'int'],
+        'append':       ['bool', ['array', 'bool']],
+        'allocate': ['int',['array', 'bool']]
+    },
+    'stringarray': {
+        'len':      ['int'],
+        'index':       ['str', 'int'],
+        'count':       ['str', 'int'],
+        'append':       ['str', ['array', 'str']],
+        'allocate': ['int',['array', 'str']]
+    },
+    'strarray': {
+        'len':      ['int'],
+        'index':       ['str', 'int'],
+        'count':       ['str', 'int'],
+        'append':       ['str', ['array', 'str']],
+        'allocate': ['int',['array', 'str']]
     },
 
     '_generic_list':    ['list', '@t'],
@@ -331,6 +490,7 @@ ORIGINAL_METHODS = {
     },
     'str': {
         'find':       'index(substr)',
+        'index':      'index(substr)',
         'join':       'join(elements)',
         'split':      'split(delimiter)',
         'c_format':   '%',

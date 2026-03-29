@@ -214,7 +214,7 @@ TYPED_API = {
         'PI': 'PI',
         'Max':          ['Number','Number'],
         'Min':          ['Number','Number'],
-        'Round':          ['double','double'],
+        'round':          ['double','double'],
         'floor':        ["double", "int"],
         'pow': ["Number", "Number", "int"]
     },

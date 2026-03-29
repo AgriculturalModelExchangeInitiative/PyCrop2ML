@@ -11,6 +11,7 @@ class MetaExtraction():
 
     def getFromComment(self, file, c_st_single, c_st_multi, c_end_multi):
         comments = ExtractComments(file, c_st_single, c_st_multi, c_end_multi)
+        print("bababab", comments)
         model_mdata = extract(comments)
         return model_mdata
     
