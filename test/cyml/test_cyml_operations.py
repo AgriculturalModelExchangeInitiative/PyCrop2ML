@@ -223,7 +223,7 @@ def test_list():
     cdef int length, total
     length = len(numbers)
     total = sum(numbers)
-    numbers.append(6)
+    numbers.append(4)
     return total
 """
         result = self._transpile_code(code)
@@ -235,7 +235,7 @@ def test_list():
 from tata import toto
 def test_array(int s=5):
     cdef float temps[10] # declare a C-style array of 10 floats
-    cdef floatarray[10]
+    cdef floatarray a
     cdef int size
     size = len(temps)
     return size

@@ -231,14 +231,25 @@ class AstTransformer():
             if e is None:
                 self.notdeclared(name, location)
             elif e:
-                if e in ("list", "dict", "tuple", "array", "intlist", "floatlist", "intarray", "floatarray"):
-                    a = self._compatible_types(
-                        e, value_node['pseudo_type'], "Type error for variable '%s' in function '%s' at line %s: expected type does not match assigned type" % (name, self.function_name, location[0]))
-                else:
-                    #if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
-                    if value_node["type"] != "none":
-                        a = self._compatible_types(e, value_node['pseudo_type'], "Type error for variable '%s' in function '%s' at line %s: expected type does not match assigned type" % (
-                        name, self.function_name, location[0])) 
+                # if value_node["type"] =="custom_call" and value_node["pseudo_type"] is None: value_node["pseudo_type"] = e
+                if value_node["type"] != "none":
+                    err_msg = (
+                        "Type error for variable '%s' in function '%s' at line %s: "
+                        "expected type does not match assigned type"
+                    ) % (name, self.function_name, location[0])
+                    compatibility = self._compatible_types(
+                        e,
+                        value_node['pseudo_type'],
+                        err_msg,
+                        silent=True
+                    )
+                    if compatibility is False:
+                        raise type_check_error(
+                            err_msg,
+                            location,
+                            self.lines[location[0]],
+                            wrong_type=value_node['pseudo_type']
+                        )
             z =  {
                 'type': 'assignment',
                 'target': {
@@ -908,11 +919,25 @@ class AstTransformer():
             if base["pseudo_type"] =="list":
                 self.type_env.top[base["name"]] = [
                     "list", args[0]["pseudo_type"]]
-            return api.expand([base] + args)
+            try:
+                return api.expand([base] + args)
+            except PseudoCythonTypeCheckError as exc:
+                raise type_check_error(
+                    str(exc),
+                    location,
+                    self.lines[location[0]]
+                ) from None
         else:
             for count, b in api.items():
                 if len(args) == count:
-                    return b.expand([base] + args)
+                    try:
+                        return b.expand([base] + args)
+                    except PseudoCythonTypeCheckError as exc:
+                        raise type_check_error(
+                            str(exc),
+                            location,
+                            self.lines[location[0]]
+                        ) from None
             raise translation_error(
                 'pseudo-cython doesn\'t support %s%s with %d args' % (
                     serialize_type(class_type), message, len(args)),
@@ -1437,6 +1462,24 @@ class AstTransformer():
         typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
         is_enum_type = actual_type_name in self._enum_names()
         for de in declarators:
+            # Every declaration must define an explicit variable name.
+            if isinstance(de, Nodes.CArrayDeclaratorNode):
+                if hasattr(de, 'base') and hasattr(de.base, 'base') and hasattr(de.base.base, 'name'):
+                    declared_name = de.base.base.name
+                elif hasattr(de, 'base') and hasattr(de.base, 'name'):
+                    declared_name = de.base.name
+                else:
+                    declared_name = None
+            else:
+                declared_name = getattr(de, 'name', None)
+
+            if not declared_name:
+                raise type_check_error(
+                    "invalid declaration: missing variable name",
+                    location,
+                    self.lines[location[0]] if location and getattr(self, 'lines', None) else None
+                )
+
             if not isinstance(de, Nodes.CArrayDeclaratorNode):
                 if not self.isattr and self.type_env[de.name]:
                     raise PseudoCythonTypeCheckError(

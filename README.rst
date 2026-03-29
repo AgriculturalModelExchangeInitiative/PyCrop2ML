@@ -58,17 +58,17 @@ Using pytest
 ::
 
     # Run all tests
-    python -m pytest test/test_cyml_operations.py -v
+    python -m pytest test/cyml/test_cyml_operations.py -v
     
     # Run a specific test class
-    python -m pytest test/test_cyml_operations.py::TestCyMLOperations -v
+    python -m pytest test/cyml/test_cyml_operations.py::TestCyMLOperations -v
     
     # Run a single test
-    python -m pytest test/test_cyml_operations.py::TestCyMLOperations::test_modulo_operation -v
+    python -m pytest test/cyml/test_cyml_operations.py::TestCyMLOperations::test_modulo_operation -v
 
 Using unittest
 ~~~~~~~~~~~~~~
 ::
 
-    cd test
+    cd test/cyml
     python -m unittest test_cyml_operations
