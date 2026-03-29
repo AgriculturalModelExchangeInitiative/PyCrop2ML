@@ -3,7 +3,10 @@ version: 2
 build:
   os: "ubuntu-22.04"
   tools:
-    python: "mambaforge-22.9"
+    python: "3.11"
+
+sphinx:
+  configuration: doc/conf.py
 
 conda:
   environment: doc/environment.yml
