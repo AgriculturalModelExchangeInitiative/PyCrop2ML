@@ -18,6 +18,7 @@ from path import Path
 from pycropml.cyml import transpile_file, transpile_package, transpile_component
 
 from pycropml.transpiler.main import languages
+from pycropml.transpiler.logger import configure_logging, get_logger
 
 
 def main():
@@ -64,8 +65,13 @@ Example
     parser.add_option("-l", "--languages", dest="languages", action="append",
                       choices=languages,
                       help="Target languages : " + ','.join(languages))
+    parser.add_option("--log-level", dest="log_level", default="WARNING",
+                      help="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: WARNING)")
 
     (opts, args) = parser.parse_args()
+    configure_logging(opts.log_level)
+    cli_logger = get_logger('cli')
+    cli_logger.debug('CLI started with args=%s options=%s', args, opts)
 
     sourcef = None
     pyx_filename = None
@@ -125,12 +131,15 @@ Example
             return
 
         for language in langs:
+            cli_logger.info('Transpiling file %s to %s', sourcef, language)
             status = transpile_file(sourcef, language)
     elif package:
         for language in langs:
+            cli_logger.info('Transpiling package %s to %s', sourcef, language)
             status = transpile_package(sourcef, language)
     else:
         for language in langs:
+            cli_logger.info('Transpiling component %s to %s', sourcef, language)
             status = transpile_component(sourcef, newpackage, language)
 
 

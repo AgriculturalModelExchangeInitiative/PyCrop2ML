@@ -6,6 +6,11 @@ from Cython.Compiler import Main
 from Cython.Compiler import Options
 from path import Path
 import sys
+from pycropml.transpiler.errors import PseudoCythonParseError
+from pycropml.transpiler.logger import get_logger
+
+
+logger = get_logger('transpiler.parser')
 
 options_defaults = dict(
     show_version = 0,
@@ -43,6 +48,71 @@ options_defaults["compiler_directives"] = Options.get_directive_defaults()
 class opt:
     def __init__(self, **kwds):
         self.__dict__.update(kwds)
+
+
+def _extract_position(exception):
+    """Try to extract (line, column, detail) from Cython parser exceptions."""
+    line = None
+    column = None
+    detail = None
+
+    if getattr(exception, 'args', None):
+        first = exception.args[0]
+        if isinstance(first, tuple) and len(first) >= 3:
+            try:
+                line = int(first[1])
+                column = int(first[2])
+            except Exception:
+                line = None
+                column = None
+
+        if len(exception.args) > 1 and exception.args[1]:
+            detail = str(exception.args[1])
+
+    if not detail:
+        text = str(exception).strip()
+        if text:
+            detail = text.splitlines()[-1]
+        else:
+            detail = repr(exception)
+
+    return line, column, detail
+
+
+def _source_excerpt(source, line, radius=2):
+    """Return numbered source excerpt around a target line."""
+    if not source:
+        return ""
+
+    lines = source.splitlines()
+    if not line or line < 1 or line > len(lines):
+        return "\n".join(["%4d: %s" % (i + 1, l) for i, l in enumerate(lines[:8])])
+
+    start = max(1, line - radius)
+    end = min(len(lines), line + radius)
+    out = []
+    for idx in range(start, end + 1):
+        marker = " >>" if idx == line else "   "
+        out.append("%s %4d: %s" % (marker, idx, lines[idx - 1]))
+    return "\n".join(out)
+
+
+def _build_parse_error_message(module, source, exception):
+    line, column, detail = _extract_position(exception)
+    location = "unknown location"
+    if line and column:
+        location = "line %s, column %s" % (line, column)
+    elif line:
+        location = "line %s" % line
+
+    label = module if isinstance(module, Path) else "inline source"
+    excerpt = _source_excerpt(source, line)
+
+    return (
+        "PyCrop2ML parse error in %s at %s.\n"
+        "Reason: %s\n"
+        "Source excerpt:\n%s"
+    ) % (label, location, detail, excerpt)
   
 def parser(module):
     
@@ -74,15 +144,27 @@ def parser(module):
     Scanning.FileSourceDescriptor: Represents a code source. Only file sources for Cython code supported
     """
     options = opt(**options_defaults)
-    if isinstance(module, Path):
-        context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
-        scope = context.find_submodule(module)
-        with open(module.encode('utf-8'), 'r') as f:
-            source = f.read()
-        source_desc = Scanning.FileSourceDescriptor(module, source)
-        tree = context.parse(source_desc, scope, pxd=None, full_module_name=module)
-    else:
-        from Cython.Compiler.TreeFragment import parse_from_strings
-        #if sys.version_info[0]<3: module = unicode(module)
-        tree = parse_from_strings("module",module)
-    return tree
+    source = None
+
+    try:
+        logger.debug('Starting parse for module type=%s', type(module).__name__)
+        if isinstance(module, Path):
+            context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
+            scope = context.find_submodule(module)
+            with open(module.encode('utf-8'), 'r') as f:
+                source = f.read()
+            source_desc = Scanning.FileSourceDescriptor(module, source)
+            tree = context.parse(source_desc, scope, pxd=None, full_module_name=module)
+        else:
+            from Cython.Compiler.TreeFragment import parse_from_strings
+            source = module
+            #if sys.version_info[0]<3: module = unicode(module)
+            tree = parse_from_strings("module", module)
+        logger.debug('Parse succeeded for module type=%s', type(module).__name__)
+        return tree
+    except PseudoCythonParseError:
+        raise
+    except Exception as exception:
+        message = _build_parse_error_message(module, source, exception)
+        logger.error('Parse failed: %s', message)
+        raise PseudoCythonParseError(message)

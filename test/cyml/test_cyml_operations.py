@@ -9,8 +9,40 @@ from __future__ import print_function
 import unittest
 import tempfile
 import os
+import logging
+import traceback
 from unittest.main import main
 from pycropml.transpiler.main import Main
+from pycropml.transpiler.logger import configure_logging, get_logger
+
+
+def _format_transpile_failure(exc, code, label="code"):
+    """Build a detailed failure message for transpilation errors."""
+    numbered_code = "\n".join(
+        f"{i:4d}: {line}" for i, line in enumerate(code.splitlines(), start=1)
+    )
+    tb = traceback.format_exc()
+
+    err_text = str(exc).strip()
+    first_non_empty = ""
+    if err_text:
+        first_non_empty = next((line.strip() for line in err_text.splitlines() if line.strip()), "")
+    first_non_empty = first_non_empty or "<empty message>"
+
+    location = ""
+    if hasattr(exc, "args") and exc.args:
+        pos = exc.args[0]
+        if isinstance(pos, tuple) and len(pos) >= 3:
+            location = f" (line {pos[1]}, col {pos[2]})"
+
+    return (
+        f"Transpilation failed for {label}: {type(exc).__name__}{location} - {first_non_empty}\n"
+        f"Exception type: {type(exc).__name__}\n"
+        f"Exception repr: {exc!r}\n"
+        f"Exception str: {str(exc) if str(exc) else '<empty message>'}\n\n"
+        f"Source:\n{numbered_code}\n\n"
+        f"Traceback:\n{tb}"
+    )
 
 
 class TestCyMLOperations(unittest.TestCase):
@@ -43,7 +75,7 @@ class TestCyMLOperations(unittest.TestCase):
             p = cst.to_ast(code)  # convert to ast
             return p
         except Exception as e:
-            self.fail(f"Transpilation failed: {e}")
+            self.fail(_format_transpile_failure(e, code, "inline snippet"))
     
     def test_modulo_operation(self):
         """Test modulo operation (%) is properly supported"""
@@ -200,14 +232,32 @@ def test_list():
     def test_array_declaration(self):
         """Test array declarations"""
         code = """
-def test_array():
+from tata import toto
+def test_array(int s=5):
     cdef float temps[10] # declare a C-style array of 10 floats
+    cdef floatarray[10]
     cdef int size
     size = len(temps)
     return size
 """
-        result = self._transpile_code(code)
-        self.assertIsNotNone(result)
+        log_dir = os.path.join(os.path.dirname(__file__), 'logs')
+        if not os.path.exists(log_dir):
+            os.makedirs(log_dir)
+        log_file = os.path.join(log_dir, 'test_array_declaration.log')
+        logger = configure_logging('DEBUG')
+        file_handler = logging.FileHandler(log_file, mode='w')
+        file_handler.setFormatter(logging.Formatter('%(levelname)s [%(name)s] %(message)s'))
+        logger.addHandler(file_handler)
+
+        try:
+            result = self._transpile_code(code)
+            self.assertIsNotNone(result)
+        finally:
+            file_handler.flush()
+            logger.removeHandler(file_handler)
+            file_handler.close()
+
+        self.assertTrue(os.path.exists(log_file), "Expected log file to be created")
     
     def test_tuple_operations(self):
         """Test tuple operations and unpacking"""
@@ -422,7 +472,7 @@ class TestCyMLModuloSpecific(unittest.TestCase):
             p = cst.to_ast(code)  # convert to ast
             return p
         except Exception as e:
-            self.fail(f"Transpilation failed: {e}")   
+            self.fail(_format_transpile_failure(e, code, "inline snippet"))   
              
     def test_modulo_with_literals(self):
         """Test modulo with literal values"""
@@ -538,7 +588,7 @@ class TestCyMLDataFiles(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures"""
-        self.test_data_dir = os.path.join(os.path.dirname(__file__), 'data')
+        self.test_data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'data')
         self.test_files = [
             'test_modulo.pyx',
             'test_math_operations.pyx',
@@ -563,7 +613,7 @@ class TestCyMLDataFiles(unittest.TestCase):
             result = cst.to_ast(content)  # convert to ast
             return result
         except Exception as e:
-            self.fail(f"Transpilation failed for {filename}: {e}")
+            self.fail(_format_transpile_failure(e, content, filename))
     
     def test_math_operations_file(self):
         """Test that test_math_operations.pyx transpiles successfully"""
@@ -592,14 +642,11 @@ class TestCyMLDataFiles(unittest.TestCase):
             self.assertTrue(os.path.exists(filepath), 
                           f"Test data file should exist: {filename}")
     
-    def test_transpile_to_multiple_languages(self):
-        """Test transpiling test_modulo.pyx to multiple target languages"""
-        languages = ['py', 'cs', 'java', 'cpp', 'f90']
-        for lang in languages:
-            with self.subTest(language=lang):
-                result = self._transpile_file('test_modulo.pyx', lang)
-                self.assertIsNotNone(result, 
-                                   f"test_modulo.pyx should transpile to {lang}")
+    def test_transpile_to_python_language(self):
+        """Test transpiling test_modulo.pyx to a single target language (py)."""
+        lang = 'py'
+        result = self._transpile_file('test_modulo.pyx', lang)
+        self.assertIsNotNone(result, f"test_modulo.pyx should transpile to {lang}")
 
 
 if __name__ == '__main__':

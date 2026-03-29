@@ -7,11 +7,15 @@ from pycropml.transpiler.env import Env
 from pycropml.transpiler.builtin_typed_api import *
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError, PseudoCythonNotTranslatableError, translation_error, type_check_error
 from pycropml.transpiler.api_transform import FUNCTION_API,CONSTANT_API, METHOD_API, Standard
+from pycropml.transpiler.logger import get_logger
 from Cython.Compiler.StringEncoding import EncodedString
 from pycropml.transpiler.helpers import *
 import unyt as u
 from six.moves import map
 from six.moves import zip
+
+
+logger = get_logger('transpiler.ast_transform')
 
 
 
@@ -225,7 +229,7 @@ class AstTransformer():
             name = lhs.name
             e = self.type_env[name]
             if e is None:
-                self.notdeclared(name, location[0])
+                self.notdeclared(name, location)
             elif e:
                 if e in ("list", "dict", "tuple", "array", "intlist", "floatlist", "intarray", "floatarray"):
                     a = self._compatible_types(
@@ -428,10 +432,11 @@ class AstTransformer():
         
         id_type = self.type_env[id]
         if id_type is None:
+            # Pass the full source lines so error formatting can map line/column correctly.
             raise type_check_error(
                 '%s is not defined' % id,
-                location, self.lines[:location[1]])
-                  
+                location, self.lines)
+
         else:
             z = {'type': 'local', 'name': id, 'pseudo_type': id_type, "lineno": location}
             if id in self.inp_unit:
@@ -827,11 +832,18 @@ class AstTransformer():
                 arg_nodes = [arg if not isinstance(arg, ExprNodes.Node) else self.visit_node(arg) for arg in args]
                 meth = [d for m in list(self._fromimport.values()) for d in m]
                 if function.name not in meth and function.name not in FUNCTION_API["math"] :
-                    raise PseudoCythonNotTranslatableError(
-                        "Function '%s' is not defined in function '%s' at line %s. "
-                        "This function is not a built-in function or has not been imported." % 
-                        (function.name, self.function_name, location[0])
+                    from pycropml.transpiler.errors import format_code_block
+                    _loc = (location[0], location[1]) if location else None
+                    _block = format_code_block(self.lines, _loc) if _loc else ''
+                    _msg = (
+                        "Function '%s' is not defined in function '%s' at line %d, column %d.\n"
+                        "This function is not a built-in function or has not been imported."
+                        % (function.name, self.function_name, location[0], location[1])
                     )
+                    if _block:
+                        _msg += '\n' + _block
+                    logger.error(_msg)
+                    raise PseudoCythonNotTranslatableError(_msg)
                 else:
                     if self.retrieve_library(function.name) not in self._imports:
                         self._imports.append(
@@ -1205,8 +1217,8 @@ class AstTransformer():
         else:
             name = declarator.name
         if base_type.name is None:
-            self.notdeclared(name, location[0])
-        self.checktype(base_type.name)
+            self.notdeclared(name, location)
+        self.checktype(base_type.name, location)
         typet = ["intlist","floatlist","booleanlist","datetime","datelist"]
         typearray = ["intarray"]
         
@@ -1378,7 +1390,7 @@ class AstTransformer():
                 result.add(k)
         return result
 
-    def checktype(self,base):
+    def checktype(self, base, location=None):
         typet = ["int", "float","bool","datetime","str","list","dict","tuple",
                  "intlist","floatlist","booleanlist","datelist","strlist","stringlist","struct",
                  "double", "doublelist", "doublearray","floatarray", "intarray", "array", "strarray", "datetimelist" ]
@@ -1386,23 +1398,26 @@ class AstTransformer():
         enum_types = list(self._enum_names())
         z = typet + types + enum_types
         if base not in z:
-            # Create a helpful error message
+            from pycropml.transpiler.errors import format_code_block
             basic_types = ["int", "float", "bool", "str", "datetime"]
             collection_types = ["list", "dict", "tuple", "array", "intlist", "floatlist", "booleanlist", "strlist", "intarray", "floatarray"]
             struct_types = types if types else []
-            
-            error_msg = (
-                f"Type '{base}' is not supported by CyML. "
-                f"Supported types include:\n"
-                f"  Basic types: {', '.join(basic_types)}\n"
-                f"  Collection types: {', '.join(collection_types)}"
-            )
-            
+
+            loc_str = " at line %d, column %d" % (location[0], location[1]) if location else ""
+            error_msg = "Type '%s' is not supported by CyML%s.\n" % (base, loc_str)
+            error_msg += "Supported types include:\n"
+            error_msg += "  Basic types: %s\n" % ', '.join(basic_types)
+            error_msg += "  Collection types: %s" % ', '.join(collection_types)
             if struct_types:
-                error_msg += f"\n  Defined structs: {', '.join(struct_types)}"
+                error_msg += "\n  Defined structs: %s" % ', '.join(struct_types)
             if enum_types:
-                error_msg += f"\n  Defined enums: {', '.join(enum_types)}"
-            
+                error_msg += "\n  Defined enums: %s" % ', '.join(enum_types)
+            if location and getattr(self, 'lines', None):
+                code_block = format_code_block(self.lines, location)
+                if code_block:
+                    error_msg += "\n" + code_block
+
+            logger.error(error_msg)
             raise PseudoCythonTypeCheckError(error_msg)
         
 
@@ -1417,7 +1432,7 @@ class AstTransformer():
             # Regular simple type
             actual_type_name = base_type.name
         
-        self.checktype(actual_type_name)
+        self.checktype(actual_type_name, location)
         typet = ["intlist","floatlist","booleanlist","stringlist","strlist","datetime","datelist", "datetimelist"]
         typearray = ["intarray","floatarray","booleanarray","stringarray", "strarray"]
         is_enum_type = actual_type_name in self._enum_names()
@@ -1992,9 +2007,28 @@ class AstTransformer():
                 location, self.lines[location[0]],
                 suggestions='comparable types in pseudo-cython: %s' % ' '.join(COMPARABLE_TYPES))
 
-    def notdeclared(self, name, line):
-        raise PseudoCythonTypeCheckError("variable %s is not declared at line %s\n" % (name, line),
-                                         )
+    def notdeclared(self, name, location=None):
+        from pycropml.transpiler.errors import format_code_block
+        if location and len(location) >= 2:
+            line, col = location[0], location[1]
+            msg = "Variable '%s' is not declared at line %d, column %d." % (name, line, col)
+        elif location and len(location) == 1:
+            line = location[0]
+            msg = "Variable '%s' is not declared at line %d." % (name, line)
+        else:
+            msg = "Variable '%s' is not declared." % name
+
+        # Improve diagnostics for malformed declarations like def f(2):
+        if isinstance(name, (int, float)) or (isinstance(name, str) and name.isdigit()):
+            msg += " The declaration looks invalid (a literal appears where an identifier/type was expected)."
+
+        if location and getattr(self, 'lines', None):
+            code_block = format_code_block(self.lines, location)
+            if code_block:
+                msg += "\n" + code_block
+
+        logger.error(msg)
+        raise PseudoCythonTypeCheckError(msg)
 
     def _compatible_types(self, from_, to, err, silent=False):
         '''if from_[0] == "array":

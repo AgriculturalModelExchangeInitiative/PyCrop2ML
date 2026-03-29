@@ -35,7 +35,7 @@ Complex Types
 
 The following complex types are supported:
 
-- ``list`` - Dynamic list container (e.g., ``list`` for int list, ``floatlist`` for float list)
+- ``list`` - Dynamic list container (e.g., ``intlist`` for int list, ``floatlist`` for float list)
 - ``array`` - Fixed-size array container (e.g., ``intarray``, ``floatarray``)
 - ``tuple`` - Immutable sequence of elements
 - ``dict`` - Dictionary/hash map (key-value pairs)

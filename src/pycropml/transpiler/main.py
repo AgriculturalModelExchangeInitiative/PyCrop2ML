@@ -22,8 +22,12 @@ import pycropml.transpiler.generators.openaleaGenerator
 
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
+from pycropml.transpiler.logger import get_logger
 import os
 from path import Path
+
+
+logger = get_logger('transpiler.main')
 
 languages = [
     'r', 'cs', 'cpp', "cpp2", 'py', 'f90', 'java', 'simplace', 'sirius',  # 'sirius','sirius2',
@@ -129,13 +133,17 @@ class Main:
         self.nodeAst = None
 
     def parse(self):
+        logger.debug('Parsing source input')
         self.tree = parser(self.file)
+        logger.debug('Parsing completed')
         return self.tree
 
     def to_ast(self, source):
+        logger.debug('Building AST')
         self.newtree = AstTransformer(self.tree, source, self.models)
         self.dictAst = self.newtree.transformer()
         self.nodeAst = transform_to_syntax_tree(self.dictAst)
+        logger.debug('AST build completed')
         return self.nodeAst
 
     def to_source(self):
