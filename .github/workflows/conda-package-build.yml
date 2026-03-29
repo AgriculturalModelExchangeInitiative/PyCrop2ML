@@ -21,22 +21,22 @@ jobs:
         exclude:
           - isMaster: false
             os: ubuntu-latest
-            python-minor-version: 8
+            python-minor-version: 10
           - isMaster: false
             os: ubuntu-latest
-            python-minor-version: 9
+            python-minor-version: 11
           - isMaster: false
             os: macos-15-intel
-            python-minor-version: 8
+            python-minor-version: 10
           - isMaster: false
             os: macos-15-intel
-            python-minor-version: 9
+            python-minor-version: 11
           - isMaster: false
             os: windows-latest
-            python-minor-version: 8
+            python-minor-version: 10
           - isMaster: false
             os: windows-latest
-            python-minor-version: 9            
+            python-minor-version: 11            
 
     steps:
     - name: Chekout
@@ -48,26 +48,12 @@ jobs:
         cond: ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/v') }}
         if_true: 'true'
         if_false: 'false'
-    - name: Determine NumPy Version
-      id: set-numpy
-      shell: bash
-      run: |
-        if [[ "${{ matrix.python-minor-version }}" == "7" ]]; then
-          echo "numpy-version=16.6" >> $GITHUB_ENV
-        elif [[ "${{ matrix.python-minor-version }}" == "8" ]]; then
-          echo "numpy-version=22" >> $GITHUB_ENV
-        elif [[ "${{ matrix.python-minor-version }}" == "9" ]]; then
-           echo "numpy-version=22" >> $GITHUB_ENV
-        else
-          echo "Unsupported Python version"
-          exit 1
-        fi
     - name: Build and Publish
       uses: openalea/action-build-publish-anaconda@v0.1.5
       with:
         conda: conda
         mamba: true
-        numpy: ${{ env.numpy-version }}
+        numpy: 22
         python: ${{ matrix.python-minor-version }}
         channels: amei, openalea3, conda-forge
         token: ${{ secrets.ANACONDA_TOKEN }}
