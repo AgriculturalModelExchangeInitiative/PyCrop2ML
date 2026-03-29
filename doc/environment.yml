@@ -5,6 +5,8 @@ channels:
   - conda-forge
 
 dependencies:
-  - python
+  - python=3.11
+  - pip
   - sphinx_rtd_theme
-  - pycropml
+  - pip:
+      - -e ..
