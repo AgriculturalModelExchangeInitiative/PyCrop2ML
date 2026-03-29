@@ -59,7 +59,7 @@ setup_kwds = dict(
         "six",
         "nbformat",
         "numpy==2.0.2; python_version >= '3.9'",
-        "Cython==0.29.21",
+        "Cython>=0.29.37,<3",
         "networkx",
         "graphviz",
         "pydot",

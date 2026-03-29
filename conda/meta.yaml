@@ -23,7 +23,7 @@ requirements:
   run:
     - python {{PY_VER}}
     - antlr4-python3-runtime  ==4.8
-    - cython ==0.29.21
+    - cython >=0.29.37,<3
     - xmlformatter
     - path
     {% if PY_VER.startswith("3.9") %}
