@@ -58,8 +58,6 @@ setup_kwds = dict(
         "path",
         "six",
         "nbformat",
-        "numpy==1.16.6; python_version == '3.7'",
-        "numpy==1.22.4; python_version == '3.8'",
         "numpy==2.0.2; python_version >= '3.9'",
         "Cython==0.29.21",
         "networkx",
@@ -70,8 +68,6 @@ setup_kwds = dict(
         "IPython",
         "antlr4-python3-runtime==4.8",
         "xmlformatter",
-        "pandas==1.3.5; python_version == '3.7'",
-        "pandas==1.5.3; python_version == '3.8'",
         "pandas==2.2.3; python_version >= '3.9'",
         ],
     tests_require=[
