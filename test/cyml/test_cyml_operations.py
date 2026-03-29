@@ -246,7 +246,7 @@ def test_array(int s=5):
         log_file = os.path.join(log_dir, 'test_array_declaration.log')
         logger = configure_logging('DEBUG')
         file_handler = logging.FileHandler(log_file, mode='w')
-        file_handler.setFormatter(logging.Formatter('%(levelname)s [%(name)s] %(message)s'))
+        file_handler.setFormatter(logging.Formatter('%(asctime)s %(levelname)s [%(name)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S'))
         logger.addHandler(file_handler)
 
         try:

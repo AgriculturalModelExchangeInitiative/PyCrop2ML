@@ -147,7 +147,7 @@ def parser(module):
     source = None
 
     try:
-        logger.debug('Starting parse for module type=%s', type(module).__name__)
+        logger.debug('Starting parse (input type=%s)', type(module).__name__)
         if isinstance(module, Path):
             context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
             scope = context.find_submodule(module)
@@ -160,7 +160,7 @@ def parser(module):
             source = module
             #if sys.version_info[0]<3: module = unicode(module)
             tree = parse_from_strings("module", module)
-        logger.debug('Parse succeeded for module type=%s', type(module).__name__)
+        logger.debug('Parse succeeded')
         return tree
     except PseudoCythonParseError:
         raise
