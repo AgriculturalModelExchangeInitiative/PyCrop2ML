@@ -11,13 +11,14 @@ build:
   #noarch: python  [unix]
   preserve_egg_dir: True
   number: 0
-  script: {{PYTHON}} setup.py install 
+  script: {{ PYTHON }} -m pip install . --no-deps -vv
   entry: 
     - cyml = pycropml.main:main
 
 requirements:
   build:
     - python {{PY_VER}}
+    - pip
     - setuptools
   run:
     - python {{PY_VER}}
