@@ -8,5 +8,8 @@ build:
 sphinx:
   configuration: doc/conf.py
 
-conda:
-  environment: doc/environment.yml
+python:
+  install:
+    - requirements: doc/requirements-rtd.txt
+    - method: pip
+      path: .
