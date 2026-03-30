@@ -1,0 +1,75 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+        {
+            "name": "Python: Current File with Args",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pycropml/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-p", "C:\\Users\\raihauti\\Documents\\These\\LLM_II\\Results\\pcse\\evapotranspiration",
+                "r"
+            ]
+        },
+        {
+            "name": "PS",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pycropml/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-p", "C:\\Users\\raihauti\\Documents\\These\\LLM_II\\Results\\BiomaSurfacePartonSoilSWATC\\SurfacePartonSoilSWATC",
+                "r"
+            ]
+        },
+        {
+            "name": "SW",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pycropml/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-p", "C:\\Users\\raihauti\\Documents\\These\\LLM_II\\Results\\BiomaSurfaceSWATSoilSWATC\\SurfaceSWATSoilSWATC",
+                "cs"
+            ]
+        },
+        {
+            "name": "DS",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pycropml/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-p", "C:\\Users\\raihauti\\Documents\\These\\LLM_II\\Results\\DSSAT_ST_standalone\\STEMP",
+                "cs"
+            ]
+        },
+        {
+            "name": "Ecrops",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pycropml/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-p", "C:\\Users\\raihauti\\Documents\\These\\LLM_II\\Results\\Ecrops_wofost\\Phenology",
+                "f90"
+            ]
+        },
+         {
+            "name": "ST",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/pycropml/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "-p", "C:\\Users\\raihauti\\Documents\\These\\LLM_II\\Results\\Stics_soil_temperature\\SoilTempComponent",
+                "f90"
+            ]
+        }
+    ]
+}
