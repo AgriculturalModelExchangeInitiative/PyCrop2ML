@@ -17,12 +17,14 @@ def translateIndex(node): return  Node("custom_call",receiver = node.receiver, f
 def translatePrint(node): return Node(type="combine", args=[Node("local", name="print *, "),\
                                                             node.args if "elements" not in dir(node.args[0]) else [arg for arg in node.args[0].elements]])
 
-def translateLog(node):  return Node("binary_op", op = "/", left = Node("call", function='LOG', args=node.args[0]),right = Node("call", function='LOG', args=Node("call", function="REAL", args=node.args[1])), pseudo_type="float")
+def translateLog(node):  return Node("binary_op", op = "/", left = Node("call", function='LOG', args=Node("call", function="REAL", args=node.args[0])),right = Node("call", function='LOG', args=Node("call", function="REAL", args=node.args[1])), pseudo_type="float")
 
 def translateCopy(node):
     return Node("local", name = node.args.name)
 def translateMIN(node):
     args=[]
+    if len(node.args)==1:
+        return Node("call", function="MINVAL", args=node.args[0], pseudo_type=node.pseudo_type)
     if len(node.args)>=2:
         for i in range(len(node.args)):
             if node.args[i].pseudo_type!=node.pseudo_type:
@@ -35,6 +37,8 @@ def translateMIN(node):
 
 def translateMAX(node):
     args=[]
+    if len(node.args)==1:
+        return Node("call", function="MAXVAL", args=node.args[0], pseudo_type=node.pseudo_type)
     if len(node.args)>=2:
         for i in range(len(node.args)):
             if node.args[i].pseudo_type!=node.pseudo_type:
@@ -53,7 +57,7 @@ def translateList(node):
 def translate_isnot(node): 
     print(node.y)
     if node.type=="array":
-        return Node("assignment", op="!=",value=Node("int", value="0", pseudo_type="int"), target=Node("call", function="SIZE", args=Node(type=node.type, left = node.name,pseudo_type=node.pseudo_type)))    
+        return Node("bool", value="true", pseudo_type="boolean")
         #return Node("call", function="SIZE", args=Node(type=node.type, left = node.name,pseudo_type=node.pseudo_type))
     return  Node("call", function="ALLOCATED", args=Node(type=node.type, left = node.name,pseudo_type=node.pseudo_type))
 

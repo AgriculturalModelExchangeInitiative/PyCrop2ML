@@ -241,7 +241,7 @@ def translate_(f, pa):
     not_declared = list(set(lr.not_declared) - set(args))
     for n in not_declared:
         for m in pa:
-            if m["Name"].decode("utf-8") == n:
+            if m["Name"] == n:
                 r = Node(type=type_[m['ValueType']], name=n, pseudo_type=pseudo_type_[m['ValueType']])
                 res.append(r)
                 r.type = "local"
@@ -261,6 +261,8 @@ def run_bioma(component, output):
     pkg = os.path.split(component)[-1].replace('-', '_')
     
     files = repowalk.walk(component, "cs" )
+    # Exclude files from 'obj' directories (build artifacts)
+    files = {k: v for k, v in files.items() if '/obj/' not in v and '\\obj\\' not in v}
     res = {}
     stra = {}
     straNames = []
@@ -324,7 +326,7 @@ def run_bioma(component, output):
         funcs = [f for f in funcs if f]
         strat_var = z.getStrategyVar(st)
         pa = strat_var[0]
-        dict_pa = {f["Name"].decode("utf-8"):f for f in pa}
+        dict_pa = {f["Name"]:f for f in pa}
         all_var_pa = {**dict_pa, **all_var}   # all the variable from all varinfo files and parameters of the specific strategy.
         params_not_declared = {}
         params_not_declared_ = {}
@@ -374,7 +376,7 @@ def run_bioma(component, output):
                         not_declared = list(set(lr.not_declared) - set(args))
                         for n in not_declared:
                             for m in pa:
-                                if m["Name"].decode("utf-8") == n:
+                                if m["Name"] == n:
                                     tt = Node(type=type_[m['ValueType']], name=n, pseudo_type=pseudo_type_[m['ValueType']])
                                     res.append(tt)
                                     tt.type = "local"

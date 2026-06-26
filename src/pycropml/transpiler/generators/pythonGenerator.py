@@ -30,8 +30,124 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.name = name
         self.indent_with=' '*4 
         self.imp=True
+        self.initialized_arrays = {}
         if self.model: 
             self.doc=DocGenerator(self.model, " ")
+
+    def _array_decl_length(self, name):
+        params = getattr(self, "current_params", [])
+        param_names = [p.name for p in params if "name" in dir(p)]
+        preferred = name + "Length"
+        if preferred in param_names:
+            return preferred
+        length_params = [p for p in param_names if p.lower().endswith("length")]
+        if len(length_params) == 1:
+            return length_params[0]
+        return None
+
+    def _same_local_name(self, node, name):
+        return "type" in dir(node) and node.type == "local" and "name" in dir(node) and node.name == name
+
+    def _default_value_for_type(self, type_name):
+        if type_name == "float":
+            return "0.0"
+        if type_name == "int":
+            return "0"
+        if type_name == "bool":
+            return "False"
+        return None
+
+    def _node_value_text(self, node):
+        if "type" not in dir(node):
+            return str(node)
+        if node.type in ("float", "int", "bool"):
+            return str(node.value).capitalize() if node.type == "bool" else str(node.value)
+        return None
+
+    def _is_redundant_array_init_loop(self, node):
+        block = node.block if isinstance(node.block, list) else [node.block]
+        if len(block) != 1:
+            return False
+        stmt = block[0]
+        if "type" not in dir(stmt) or stmt.type != "assignment":
+            return False
+        target = stmt.target
+        if "type" not in dir(target) or target.type != "index":
+            return False
+        if not self._same_local_name(target.index, node.index.name):
+            return False
+        if "type" not in dir(target.sequence) or target.sequence.type != "local":
+            return False
+        array_name = target.sequence.name
+        if array_name not in self.initialized_arrays:
+            return False
+        length_name, default_value = self.initialized_arrays[array_name]
+        if not self._same_local_name(node.end, length_name):
+            return False
+        if self._node_value_text(stmt.value) != default_value:
+            return False
+        return True
+
+    def _collect_return_names(self, node):
+        if not isinstance(node.block, list) or not node.block:
+            return set()
+        last = node.block[-1]
+        if "type" not in dir(last) or last.type != "implicit_return" or last.value is None:
+            return set()
+        value = last.value
+        if "elements" in dir(value):
+            return {elt.name for elt in value.elements if "name" in dir(elt)}
+        if "name" in dir(value):
+            return {value.name}
+        return set()
+
+    def _collect_skipped_loop_indices(self, node):
+        if not isinstance(node.block, list):
+            return set()
+        initialized_arrays = {}
+        for stmt in node.block:
+            if "type" not in dir(stmt) or stmt.type != "declaration":
+                continue
+            for decl in stmt.decl:
+                if "type" not in dir(decl) or decl.type != "array" or "elements" in dir(decl):
+                    continue
+                c = decl.pseudo_type[1][0]
+                default_value = str(initVal(c))
+                length_name = None
+                if "elts" in dir(decl) and decl.elts:
+                    if isinstance(decl.elts, list) and len(decl.elts) == 1 and "type" in dir(decl.elts[0]) and decl.elts[0].type == "local":
+                        length_name = decl.elts[0].name
+                    elif "type" in dir(decl.elts) and decl.elts.type == "local":
+                        length_name = decl.elts.name
+                else:
+                    length_name = self._array_decl_length(decl.name)
+                if length_name:
+                    initialized_arrays[decl.name] = (length_name, default_value)
+
+        skipped = set()
+        for stmt in node.block:
+            if "type" not in dir(stmt) or stmt.type != "for_range_statement":
+                continue
+            block = stmt.block if isinstance(stmt.block, list) else [stmt.block]
+            if len(block) != 1:
+                continue
+            assignment = block[0]
+            if "type" not in dir(assignment) or assignment.type != "assignment":
+                continue
+            target = assignment.target
+            if "type" not in dir(target) or target.type != "index":
+                continue
+            if not self._same_local_name(target.index, stmt.index.name):
+                continue
+            if "type" not in dir(target.sequence) or target.sequence.type != "local":
+                continue
+            array_name = target.sequence.name
+            if array_name not in initialized_arrays:
+                continue
+            length_name, default_value = initialized_arrays[array_name]
+            if self._same_local_name(stmt.end, length_name) and self._node_value_text(assignment.value) == default_value:
+                skipped.add(stmt.index.name)
+        return skipped
 
     def comment(self,doc):
         list_com = [self.indent_with + '#'+x for x in doc.split('\n')]
@@ -248,6 +364,10 @@ class PythonGenerator(CodeGenerator, PythonRules):
         self.newline(extra=1)
         self.newline(node)
         self.funcname = node.name
+        self.current_params = node.params
+        self.initialized_arrays = {}
+        self.current_return_names = self._collect_return_names(node)
+        self.skip_declaration_names = self._collect_skipped_loop_indices(node)
         if self.model and self.funcname.startswith("model_") and self.funcname.split("model_")[1]==signature(self.model):
             self.write("#%%CyML Model Begin%%")
             self.newline(node)
@@ -308,9 +428,20 @@ class PythonGenerator(CodeGenerator, PythonRules):
     def visit_declaration(self, node):
         self.newline(node)
         for n in node.decl  : 
+            if n.type in ("int", "float", "bool", "str") and "value" not in dir(n) and n.name in getattr(self, "skip_declaration_names", set()):
+                continue
             if n.type in ("int", "float", "bool", "str") and "value" not in dir(n):
                 self.newline(node)
-                self.write("%s:%s"%(n.name, n.pseudo_type))       
+                self.write("%s:%s"%(n.name, n.pseudo_type))
+                needs_init_default = self.funcname.startswith("init_") and n.name in self.current_return_names
+                if needs_init_default and n.type == "int":
+                    self.write(" = 0")
+                elif needs_init_default and n.type == "float":
+                    self.write(" = 0.0")
+                elif needs_init_default and n.type == "bool":
+                    self.write(" = False")
+                elif needs_init_default and n.type == "str":
+                    self.write(' = ""')
             elif n.type in ("int", "float") and "value" in dir(n):
                 self.newline(node)
                 self.write("%s:%s"%(n.name, n.pseudo_type))
@@ -359,8 +490,20 @@ class PythonGenerator(CodeGenerator, PythonRules):
                     self.write("[%s]*("%initVal(c))
                     self.visit(n.elts[0]) if isinstance(n.elts, list) else self.visit(n.elts)
                     self.write("))")   
+                    if isinstance(n.elts, list) and len(n.elts) == 1 and "type" in dir(n.elts[0]) and n.elts[0].type == "local":
+                        self.initialized_arrays[n.name] = (n.elts[0].name, str(initVal(c)))
+                    elif "type" in dir(n.elts) and n.elts.type == "local":
+                        self.initialized_arrays[n.name] = (n.elts.name, str(initVal(c)))
                 else:
-                    self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))           
+                    length_name = self._array_decl_length(n.name)
+                    if length_name:
+                        c = n.pseudo_type[1][0]
+                        self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))
+                        self.write(" = array('%s',"%n.pseudo_type[1][0])
+                        self.write("[%s]*(%s))"%(initVal(c), length_name))
+                        self.initialized_arrays[n.name] = (length_name, str(initVal(c)))
+                    else:
+                        self.write("%s:'%s[%s]'"%(n.name, n.pseudo_type[0],  n.pseudo_type[1]))           
                 self.newline(node)
             elif n.type in ("list"):
                 self.newline(node)
@@ -473,6 +616,8 @@ class PythonGenerator(CodeGenerator, PythonRules):
         
     
     def visit_for_range_statement(self, node):
+        if self._is_redundant_array_init_loop(node):
+            return
         self.newline(node)
         self.write("for ")
         self.visit(node.index)

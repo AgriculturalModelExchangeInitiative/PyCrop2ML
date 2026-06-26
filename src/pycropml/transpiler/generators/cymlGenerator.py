@@ -356,11 +356,14 @@ class CymlGenerator(CodeGenerator, CymlRules):
             xx = node.decl[0].pseudo_type[1].lower()
             if xx == "datetime": xx = "date"
             self.write("cdef %s "%(xx + node.decl[0].pseudo_type[0]))
-        elif node.decl[0].type == "array"and "elements" not in dir(node.decl[0]):
+        elif node.decl[0].type == "array" and "elements" not in dir(node.decl[0]):
+            pt = node.decl[0].pseudo_type
             if "elts" not in dir(node.decl[0]):
-                self.write("cdef %s "%(node.decl[0].pseudo_type[-1])) 
+                # no explicit size: use floatarray/intarray notation so the CyML parser infers array type
+                type_str = (pt[-1] + pt[0]) if isinstance(pt, list) else pt
+                self.write("cdef %s " % type_str)
             else:
-                self.write("cdef %s "%(node.decl[0].pseudo_type[-1]))
+                self.write("cdef %s " % (pt[-1] if isinstance(pt, list) else pt))
         else:
             self.write("cdef %s "%node.decl[0].type)
             
@@ -398,7 +401,7 @@ class CymlGenerator(CodeGenerator, CymlRules):
                 self.write(" %s"%(n.name))   
             elif n.type == "array" :
                 if "elts" not in dir(n):
-                    self.write("%s[]"%( n.name)) 
+                    self.write("%s" % n.name)  # type already includes 'array' (e.g. floatarray)
                 else:
                     self.write("%s["%(n.name))
                     self.comma_separated_list(n.elts) if isinstance(n.elts, list) else self.visit(n.elts)

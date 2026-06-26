@@ -80,9 +80,12 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_comparison(self, node):
         if node.op == "is":
             if node.right.type == "none":
-                self.write("NULL(")
-                self.visit(node.left)
-                self.write(")")
+                if isinstance(node.left.pseudo_type, list) and node.left.pseudo_type[0]=="array":
+                    self.write(".FALSE.")
+                else:
+                    self.write("NULL(")
+                    self.visit(node.left)
+                    self.write(")")
         else:
             self.visit_binary_op(node)
 
@@ -160,18 +163,32 @@ class FortranGenerator(CodeGenerator, FortranRules):
                 pass
         elif node.value.type=="cond_expr_node":
             self.visit_cond_expr_node(node)
+        elif node.value.type=="index" and node.value.sequence.type in ("call", "custom_call", "standard_call"):
+            self.newline(node)
+            self.write("ASSOCIATE(res_cyml_idx => ")
+            self.visit(node.value.sequence)
+            self.write(")")
+            self.indentation += 1
+            self.newline(node)
+            self.visit(node.target)
+            self.write(" = res_cyml_idx(")
+            if node.value.index.type=="int":
+                self.write(str(int(node.value.index.value) + 1))
+            else:
+                self.visit(node.value.index)
+                self.write("+1")
+            self.write(")")
+            self.indentation -= 1
+            self.newline(node)
+            self.write("END ASSOCIATE")
+            self.newline(node)
         elif node.value.type=="local" and isinstance(node.value.pseudo_type, list) and node.value.pseudo_type[0]=="array" \
             and node.target.type=="local" and isinstance(node.target.pseudo_type, list) and node.target.pseudo_type[0]=="array":
             self.newline(node)
-            self.write(f"IF (ALLOCATED({node.value.name})) THEN")
-            self.newline(node)
-            self.write(f"    ALLOCATE({node.target.name}(SIZE({node.value.name})))")
-            self.newline(node)
-            self.write(f"    {node.target.name} = {node.value.name}")
-            self.newline(node)
-            if node.value.name not in self.parameters: self.write(f"    DEALLOCATE({node.value.name})")
-            self.newline(node)
-            self.write("END IF")
+            if node.target.name in self.z.allocated_var or node.target.name in self.allocatable.get(self.funcname, []):
+                self.write(f"ALLOCATE({node.target.name}(SIZE({node.value.name})))")
+                self.newline(node)
+            self.write(f"{node.target.name} = {node.value.name}")
             self.newline(node)
 
         elif node.value.type == "standard_call" and node.value.function=="integr":
@@ -181,7 +198,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write("call Add(%s,"%node.target.name)
             self.visit( node.value.args[1])
             self.write(")")
-        elif (node.target.type=="tuple" and node.value.type == "custom_call") or (node.value.type == "custom_call" and not self.recursive and node.value.pseudo_type=="tuple") or (node.value.type == "custom_call" and node.value.function.startswith('model_')):
+        elif (node.target.type=="tuple" and node.value.type == "custom_call") or (node.value.type == "custom_call" and not self.recursive and node.value.pseudo_type=="tuple") or (node.value.type == "custom_call" and (node.value.function.startswith('model_') or node.value.function.startswith('init_'))):
             self.newline(node)
             node =Node("subroutine", receiver = node.target,function=node.value.function, args=node.value.args ) 
             self.write('call ')
@@ -190,7 +207,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
             self.write("\n        deallocate(%s)\n"%transf_var_name(node.target.name))
         elif node.value.type == "notAnumber":
             self.visit_notAnumber(node)
-        elif node.target.type=="local" and node.value.type=="array" and "elements" in dir(node.value) and node.value.elements.type == "binary_op" and node.value.elements.op=="*" and node.value.elements.left.type=="list":
+        elif node.target.type=="local" and node.value.type=="array" and "elements" in dir(node.value) and "type" in dir(node.value.elements) and node.value.elements.type == "binary_op" and node.value.elements.op=="*" and node.value.elements.left.type=="list":
             self.newline(node)
             self.write(f"ALLOCATE({node.target.name}(")
             self.visit(node.value.elements.right)
@@ -507,11 +524,15 @@ class FortranGenerator(CodeGenerator, FortranRules):
         self.visit_declaration(node_params) #self.visit_decl(node)
         rname = self.transform_return(node)[0]
         if rname and rname[0] not in pnames:
-            self.visit_declaration(self.transform_return(node)[1]) 
+            return_decl = self.transform_return(node)[1]
+            for return_node in return_decl:
+                if "feat" in dir(return_node):
+                    del return_node.feat
+            self.visit_declaration(return_decl) 
         var_range = check_range_function()
         var_range.process(node)
         if var_range.res : self.visit_declaration([Node(type="int", name="i_cyml_r", pseudo_type="int")])
-        interVar = [i for i in newNode if "feat" not in dir(i)]
+        interVar = [i for i in newNode if "feat" not in dir(i) and i.name not in rname]
         self.visit_declaration(interVar)
         if len(self.z.returns)>=1 or "name" not in dir(self.z.returns[0].value): 
             self.visit_declaration([Node(type="local", name="res_cyml", pseudo_type=node.return_type)])
@@ -677,6 +698,13 @@ class FortranGenerator(CodeGenerator, FortranRules):
                 if "name" in dir(returnvalues): 
                     output = [returnvalues.name]
                     node_output = [returnvalues]
+                    local_decls = self.internal_declaration(node)
+                    if local_decls is not None:
+                        local_decls = local_decls if isinstance(local_decls, list) else [local_decls]
+                        for decl in local_decls:
+                            if decl.name == returnvalues.name:
+                                node_output = [decl]
+                                break
                 else:                  
                     output = []
                     node_output = []  
@@ -809,18 +837,23 @@ class FortranGenerator(CodeGenerator, FortranRules):
     def visit_array_decl(self, node): 
         self.write(self.types[node.pseudo_type[1]])
         self.write(" , DIMENSION(")
-        if node.name in self.z.allocated_var: self.write(":")
-        elif "elts" not in dir(node) or not node.elts or len(node.elts)==0: self.write(":")
-        else: self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
+        has_fixed_shape = "elts" in dir(node) and node.elts and len(node.elts)>0
+        is_output_array = "feat" in dir(node) and node.feat in ("OUT", "INOUT")
+        needs_allocatable = node.name in self.z.allocated_var or (
+            not has_fixed_shape and (
+                (node.name=="res_cyml") or
+                (node.name in self.z.allocated_var_s and node.name in self.parameters) or
+                ((self.funcname.startswith("model_") or self.funcname.startswith("init_")) and (node.name in self.privates or node.name in self.states_arr))
+            )
+        ) or ((self.funcname.startswith("model_") or self.funcname.startswith("init_")) and is_output_array)
+        if needs_allocatable or not has_fixed_shape:
+            self.write(":")
+        else:
+            self.comma_separated_list(node.elts) if isinstance(node.elts, list) else self.visit(node.elts)
         self.write(" )") 
-        if node.name in self.z.allocated_var or (node.name=="res_cyml" and ("elts" not in dir(node) or not node.elts or len(node.elts)==0)):
+        if needs_allocatable:
             self.write(", ALLOCATABLE ")
-        elif node.name in self.z.allocated_var_s and node.name in self.parameters:
-            self.write(", ALLOCATABLE ")
-            
-        elif self.funcname.startswith("model_") or self.funcname.startswith("init_") :
-            if node.name in self.privates or node.name in self.states_arr:
-                self.write(", ALLOCATABLE ")
+            if self.funcname.startswith("model_") or self.funcname.startswith("init_"):
                 self.allocatable[self.funcname].append(node.name)
 
         '''else:    

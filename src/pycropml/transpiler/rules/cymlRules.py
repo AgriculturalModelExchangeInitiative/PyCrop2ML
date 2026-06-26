@@ -144,6 +144,8 @@ class CymlRules(GeneralRule):
             'append': '.append',
             'allocate':".allocate",
             'sum': 'sum',
+            'min': 'min',
+            'max': 'max',
         },
         'dict': {
 			'len': 'len',

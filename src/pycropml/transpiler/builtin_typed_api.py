@@ -208,6 +208,8 @@ def or_(l, r):
 def binary_and(l, r):
     if l == r == 'int':
         return [l, r, l]
+    elif l == 'bool' and r == 'bool':
+        return [l, r, 'bool']
     else:
         raise PseudoCythonTypeCheckError("wrong types for &: %s and %s" % (serialize_type(l), serialize_type(r)))
 

@@ -50,6 +50,16 @@ def translateCopy(node):
 def translateLog(node):
     return Node(type="call", function = "Math.log10", args=[node.args[0]])
 
+def translateMIN(node):
+    if len(node.args) == 1:
+        return Node(type="call", function="Collections.min", args=[Node(type="call", function="Arrays.asList", args=node.args)])
+    return Node(type="call", function="Math.min", args=node.args)
+
+def translateMAX(node):
+    if len(node.args) == 1:
+        return Node(type="call", function="Collections.max", args=[Node(type="call", function="Arrays.asList", args=node.args)])
+    return Node(type="call", function="Math.max", args=node.args)
+
 class JavaRules(GeneralRule):
     def __init__(self):
         GeneralRule.__init__(self)
@@ -123,8 +133,8 @@ class JavaRules(GeneralRule):
             'write_file': 'File.WriteAllText'
         },
         'system': {
-            'min': 'Math.min',
-            'max': 'Math.max',
+            'min': translateMIN,
+            'max': translateMAX,
             'abs': 'Math.abs',
             'pow': translatePow,
             'copy':translateCopy,

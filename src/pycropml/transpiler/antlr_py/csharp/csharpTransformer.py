@@ -652,6 +652,9 @@ class AstTransformer():
     
     def visit_switch_section(self, node, switch_label, statement_list, location):
         casebody = self.visit(statement_list)
+        # Filter out break statements from switch case bodies
+        # In Python if-elif-else, break statements are not needed and would cause errors
+        casebody = [stmt for stmt in casebody if stmt and stmt.get("type") != "breakstatnode"]
         res = self.translate_list(switch_label)
         r = []
         if len(res)>=1 and res[0]["type"]!="else_statement":

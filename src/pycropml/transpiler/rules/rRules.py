@@ -17,13 +17,41 @@ def translatePow(node): return Node(type="binary_op", op="**", left=node.args[0]
 def translateCopy(node):
     return Node("local", name = node.args.name)
 
+'''def translateIs(node):
+    return Node("call", function="is.null", args=[node.left])
+
 def translateAllocate(node):
     typ = node.pseudo_type[-1]
     newtyp = changetyp(typ)
     return Node("assignment", target = node.receiver, value=Node("call", function = "vector", args=[Node("empty"),node.args]), pseudo_type=node.pseudo_type)
 
 def translateIsNot(node):
-    return Node("call", function="!is.null", args=[node.left])
+    return Node("call", function="!is.null", args=[node.left])'''
+
+def _translate_is(node, negate):
+    right = node.right
+    if right.type == "none":
+        fn = "!is.null" if negate else "is.null"
+        return Node("call", function=fn, args=[node.left])
+    if right.type == "bool":
+        truthy = str(right.value).lower() == "true"
+        if negate:
+            truthy = not truthy
+        return node.left if truthy else Node("unary_op", operator="not", value=node.left)
+    fn = "!identical" if negate else "identical"
+    return Node("call", function=fn, args=[node.left, right])
+
+def translateIs(node):
+    return _translate_is(node, negate=False)
+
+def translateAllocate(node):
+    typ = node.pseudo_type[-1]
+    newtyp = changetyp(typ)
+    return Node("assignment", target = node.receiver, value=Node("call", function = "vector", args=[Node("empty"),node.args]), pseudo_type=node.pseudo_type)
+
+def translateIsNot(node):
+    return _translate_is(node, negate=True)
+
 
 class RRules(GeneralRule):
 
@@ -45,7 +73,8 @@ class RRules(GeneralRule):
                  "!=": "!=",
                  "%":"%%",
                  "**":"^",
-                 "is_not":translateIsNot
+                 "is_not":translateIsNot,
+                 "is": translateIs
                  }
 
     unary_op = {
