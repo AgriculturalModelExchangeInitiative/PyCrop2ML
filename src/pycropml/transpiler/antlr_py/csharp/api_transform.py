@@ -130,6 +130,18 @@ def max_expander(type, message, args):
 
 
   
+def array_min_expander(type, message, args):
+    receiver = args[0]
+    pseudo_type = receiver["pseudo_type"]
+    element_type = pseudo_type[1] if isinstance(pseudo_type, list) else pseudo_type
+    return {'type': 'standard_method_call', 'receiver': receiver, 'message': 'min', 'args': [], 'pseudo_type': element_type}
+
+def array_max_expander(type, message, args):
+    receiver = args[0]
+    pseudo_type = receiver["pseudo_type"]
+    element_type = pseudo_type[1] if isinstance(pseudo_type, list) else pseudo_type
+    return {'type': 'standard_method_call', 'receiver': receiver, 'message': 'max', 'args': [], 'pseudo_type': element_type}
+
 def abs_expander(type, message, args):
     return {'type': 'standard_call', 'namespace': 'system', 'function': 'abs', 'args': args, 'pseudo_type': args[0]["pseudo_type"]}
 
@@ -392,8 +404,9 @@ METHOD_API = {
             'append':   StandardMethodCall('array', 'append'),
             'Length':    StandardMethodCall('array', 'len', expander=len_expander),
             'CopyTo':   StandardMethodCall('array', 'copyto', expander=copyto_expander),
-            'Except':   StandardMethodCall('array', 'except')#,
-            #'ConstrainedCopy':      StandardMethodCall('array', 'ConstrainedCopy')
+            'Except':   StandardMethodCall('array', 'except'),
+            'Min':      StandardMethodCall('array', 'min', expander=array_min_expander),
+            'Max':      StandardMethodCall('array', 'max', expander=array_max_expander),
     },
 
     'tuple': {

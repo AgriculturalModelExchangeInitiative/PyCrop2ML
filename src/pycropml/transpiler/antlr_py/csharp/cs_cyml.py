@@ -135,6 +135,11 @@ class Cs_Cyml_ast():
         a = self.translate_decl(node.pseudo_type)
         r = {"type":"local", "name":str(node.name), "pseudo_type": a}
         return r
+
+    def visit_unknown(self, node):
+        # var declarations not resolved to a concrete type by preprocessing
+        a = self.translate_decl(node.pseudo_type)
+        return {"type": "local", "name": str(node.name), "pseudo_type": a}
     
     def visit_declaration(self, node):
         res = []
@@ -238,8 +243,12 @@ class Cs_Cyml_ast():
             z = []
         elif "elements" in dir(node):
             z = self.visit(node.elements)
-        elif "name" not in dir(node):
-            z = self.visit(node.init.value)
+        elif "init"  in dir(node):
+            if isinstance(node.init, list):
+                z = self.visit(node.init)
+            else: 
+                print(node.init)
+                z = self.visit(node.init.value)
         else:
             z = self.visit(node.value.init.value)
         res =   {'type': 'list',

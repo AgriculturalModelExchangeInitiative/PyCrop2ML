@@ -66,7 +66,7 @@ class BiomaExtraction(MetaExtraction):
                         vi[att] = n[0].value.value
                         if isinstance(vi[att] , Node): vi[att] = "%s%s"%(n[0].value.operator,vi[att].value)
                     else: 
-                        vi[att] = mapType[n[0].value.args[0].value.decode("utf-8")]
+                        vi[att] = mapType[n[0].value.args[0].value]#]
             vi["category"] = "constant"     # "TODOOOOOOOO"   
             pa.append(vi) 
         def inout_att(pd_name):
@@ -126,7 +126,7 @@ class BiomaExtraction(MetaExtraction):
             for p in inps:
                 vi = {}
                 for b in block:
-                    if b.target.name.split(".")[0] == prop[p["Name"].decode("utf-8")]: #endswith(p["Name"].decode("utf-8") ):
+                    if b.target.name.split(".")[0] == prop[p["Name"]]:#]: #endswith(p["Name"] ):
                         for att in listatt:
                             if att == b.target.member and att!="ValueType":
                                 if b.value.type == "binary_op":
@@ -135,10 +135,10 @@ class BiomaExtraction(MetaExtraction):
                                     vi[att] = b.value.value
                                 if b.value.type == "unary_op": vi[att] = "%s%s"%(b.value.operator, b.value.value.value)
                             if att == "ValueType" and b.target.member == "ValueType" :
-                                vi[att] = mapType[b.value.args[0].value.decode('utf-8')]
+                                vi[att] = mapType[b.value.args[0].value]#.decode('utf-8')]
                                 break
                 vi["category"] = p["category"]
-                if isinstance(prop3[p["Name"].decode("utf-8")], list): vi["len"] = prop3[p["Name"].decode("utf-8")][0]
+                if isinstance(prop3[p["Name"]], list): vi["len"] = prop3[p["Name"]][0]
                 var_in.append(vi)
             return var_in
         var_in = attV(inp)
@@ -207,7 +207,7 @@ class BiomaExtraction(MetaExtraction):
                                     vi[att] = b.value.value
                                 if b.value.type == "unary_op": vi[att] = "%s%s"%(b.value.operator, b.value.value.value)
                             if att == "ValueType" and b.target.member == "ValueType" :
-                                vi[att] = mapType[b.value.args[0].value.decode('utf-8')]
+                                vi[att] = mapType[b.value.args[0].value]#.decode('utf-8')]
                         vi["category"] = category
                         if isinstance(prop3[k], list): 
                             vi["len"] = prop3[k][0]
@@ -223,9 +223,10 @@ class BiomaExtraction(MetaExtraction):
         ass = self.getAttNode(meth.block,**{"type":"assignment"})
         target = ass[0].target.name
         addMeth = self.getAttNode(meth.block, **{"type":"custom_call"})
+        print("ppppppppppppppppppppppppppp", [v.args[0].value for v in addMeth])
         for v in addMeth:
-            if v.args[0].value==b"Creator": desc["authors"] = v.args[1].value
-            if v.args[0].value==b"Publisher": desc["institution"] = v.args[1].value
+            if v.args[0].value=="Creator": desc["authors"] = v.args[1].value
+            if v.args[0].value=="Publisher": desc["institution"] = v.args[1].value
         property = self.getTypeNode(tree, "propertyDef")
         pro = self.getAttNode(self.getTree,**{"name":"Description"} )
         desc["description"] = pro[0].get[0].value.value
@@ -283,8 +284,8 @@ class BiomaExtraction(MetaExtraction):
         if past_current:
             algo = self.getAlgo(tree)
             p = self.getStrategyVar(tree)
-            inputs = [st["Name"].decode("utf-8") for st in p[1]]
-            outputs = [st["Name"].decode("utf-8") for st in p[2]]
+            inputs = [st["Name"] for st in p[1]]
+            outputs = [st["Name"] for st in p[2]]
             self.getTypeNode(algo.block,"member_access")
             v = self.getAttNode(self.getTree, name =past_current[1])
             precedent_v = list(set([vi.member if "." not in vi.member else vi.member.split(".")[0]  for vi in v]))
@@ -307,13 +308,13 @@ class BiomaExtraction(MetaExtraction):
         var = []
         for inp in p:
             #if not inp["category"].lower().endswith("state"):
-            var.append(inp["Name"].decode("utf-8"))
+            var.append(inp["Name"])
         var = var + pc 
         for out in p2:                                 
-            s = out["Name"].decode("utf-8")
+            s = out["Name"]
             if not (s in var and s+"_t1" in var): # I suppose that we could not have a current and past state in input and current state in output
                 var.append(s)
-        var = var + [v["Name"].decode("utf-8") for v in  val[0] if v]
+        var = var + [v["Name"] for v in  val[0] if v]
         return var
 
 
@@ -321,11 +322,12 @@ class BiomaExtraction(MetaExtraction):
         name = desc["name"][:-9] if desc["name"].endswith("Component") else desc["name"]
         description = Description()
         description.Title = name+" model" 
-        description.Authors = desc["authors"].decode("utf-8")
-        description.Institution=desc["institution"].decode("utf-8")
-        description.Reference = desc["reference"].decode("utf-8"), 
-        description.ExtendedDescription = desc["description"].decode("utf-8")
-        description.Url = desc["url"].decode("utf-8")
+        print(desc)
+        description.Authors = desc["authors"]
+        description.Institution=desc["institution"]
+        description.Reference = desc["reference"], 
+        description.ExtendedDescription = desc["description"]
+        description.Url = desc["url"]
         return description
 
     def modelunit(self, desc, var, all_var_pa, tvar, inps, outs):
@@ -337,10 +339,10 @@ class BiomaExtraction(MetaExtraction):
         #past_cur = self.instancePastCurrent(tree)
         inp = var[0]
         out = var[2]
-        inp_names = [p["Name"].decode("utf-8") for p in inp]
+        inp_names = [p["Name"] for p in inp]
         param = var[1]
-        out_names = [p["Name"].decode("utf-8") for p in out]
-        param_names = [p["Name"].decode("utf-8") for p in param]
+        out_names = [p["Name"] for p in out]
+        param_names = [p["Name"] for p in param]
         #pc = self.prec_cur_states(tree, past_cur)
 
         inp = inp+param+out
@@ -357,34 +359,34 @@ class BiomaExtraction(MetaExtraction):
                 #vn = v[:-3] if (len(v)>3 and v not in param_names and v.endswith("_t1")) else v
                 v_inputtype = "parameter" if v in param_names else "variable"
                 v_categ = "parametercategory" if v in param_names else "variablecategory"
-                #description = [s["Description"].decode("utf-8") for s in inp if s["Name"].decode("utf-8") == vn][0]
-                description = mdata["Description"].decode("utf-8")
-                #category = [categorize(s["category"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
+                #description = [s["Description"] for s in inp if s["Name"] == vn][0]
+                description = mdata["Description"]
+                #category = [categorize(s["category"]) for s in inp if s["Name"] == vn][0]
                 category = categorize(mdata["category"])
-                #datatype = [s["ValueType"] for s in inp if s["Name"].decode("utf-8") == vn][0]
+                #datatype = [s["ValueType"] for s in inp if s["Name"] == vn][0]
                 datatype = mdata["ValueType"]
-                #max = [modVal(s["MaxValue"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
+                #max = [modVal(s["MaxValue"]) for s in inp if s["Name"] == vn][0]
                 max = modVal(mdata["MaxValue"])
                 if max: 
-                    #max = max.decode("utf-8")
+                    #max = max
                     if max.endswith("D"):  max = max.replace("D", "")
                 
-                #min = [modVal(s["MinValue"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
+                #min = [modVal(s["MinValue"]) for s in inp if s["Name"] == vn][0]
                 min = modVal(mdata["MinValue"])
                 if min:
-                    #min = min.decode("utf-8")
+                    #min = min
                     if "D" in min: min = min.replace("D", "")
                     
-                #default = [modVal(s["DefaultValue"]) for s in inp if s["Name"].decode("utf-8") == vn][0]
+                #default = [modVal(s["DefaultValue"]) for s in inp if s["Name"] == vn][0]
                 default = modVal(mdata["DefaultValue"])
                 if default:
-                    #default = default.decode("utf-8")
+                    #default = default
                     if  datatype != "STRING" and default.endswith("D"): default = default.replace("D", "")
                     
-                #unit = [s["Units"].decode("utf-8") for s in inp if s["Name"].decode("utf-8") == vn][0]
-                unit = mdata["Units"].decode("utf-8")
+                #unit = [s["Units"] for s in inp if s["Name"] == vn][0]
+                unit = mdata["Units"]
                 
-                #len_ = [s["len"] for s in inp if s["Name"].decode("utf-8") == vn and "len" in s]
+                #len_ = [s["len"] for s in inp if s["Name"] == vn and "len" in s]
                 len_ = [mdata["len"]] if "len" in mdata else None
                 desc_dict = {"name":v, "description":description, 
                                     v_categ:category,
@@ -464,7 +466,7 @@ class BiomaExtraction(MetaExtraction):
             for s_in in states_in:
                 for s_out in states_out:
                     if s_in ==  s_out and s_in + '_' + m.name not in inp_ and s_in + '_' + m.name not in ins_:
-                        inputlink.append({"target": m.name + "." + v, "source":v})
+                        inputlink.append({"target": m.name + "." + s_in, "source":s_in})
                         inp_.append(s_in+"_"+m.name)
                         
                         

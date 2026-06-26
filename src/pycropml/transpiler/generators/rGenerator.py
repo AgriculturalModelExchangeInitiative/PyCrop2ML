@@ -454,17 +454,24 @@ class RGenerator(CodeGenerator, RRules):
         pass              
 
 
-    def visit_array(self,node): 
-        if node.elements.type != "list":
-            self.write(" rep(")  
-            self.visit(node.elements.left.elements[0])
-            self.write(",")
-            self.visit(node.elements.right) 
-            self.write(")")            
-        else: 
+    def visit_array(self, node):
+        if isinstance(node.elements, list):
+            # liste littérale : array('f', [0.98, 0.91, ...])
             self.write("c(")
             self.comma_separated_list(node.elements)
             self.write(")")
+        elif node.elements.type != "list":
+            # pattern "rep" : array(typecode, [x]*n)
+            self.write(" rep(")
+            self.visit(node.elements.left.elements[0])
+            self.write(",")
+            self.visit(node.elements.right)
+            self.write(")")
+        else:
+            self.write("c(")
+            self.comma_separated_list(node.elements)
+            self.write(")")
+
 
     
     

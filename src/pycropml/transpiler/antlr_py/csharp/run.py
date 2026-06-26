@@ -32,6 +32,18 @@ from copy import deepcopy, copy
 description_tags = ["//%%CyML Description Begin%%", "//%%CyML Description End%%"]
 
 
+def _flatten_extfunc(funcs):
+    extfunc = []
+    for func in funcs:
+        if not func:
+            continue
+        if isinstance(func, list):
+            extfunc.extend(func)
+        else:
+            extfunc.append(func)
+    return extfunc
+
+
 """ Read BioMA component and extract metadata
 
 """
@@ -740,18 +752,19 @@ def run_csharp(component, output):
     strats = list(stra.values())
     compos = list(compo.values())
     models = []
-    func_names = []
     kk = CsharpExtraction()
     all_var = kk.getAllVar(source_codes)
     for k, st in enumerate(strats):
+        func_names = []
         print(k, st)
         mod = source_codes[k]
         z = CsharpExtraction(code=mod) 
         var =  z.totalvar(st)
         algo = z.getAlgo(st)
         init_ = z.getInit(st)
-        funcs = z.externFunction(st, algo.block + init_.block, False) if init_ else  z.externFunction(st, algo.block, False) 
-        funcs = [f for f in funcs if f]
+        funcs = z.externFunction(st, algo.block + init_.block, False) if (init_ and init_.block is not None) else  z.externFunction(st, algo.block, False)
+        funcs = [f for f in funcs if f and f.name not in func_names]
+        print("funcs", [f.name for f in funcs])
         commentsPart = extraction(mod, description_tags[0], description_tags[1])
         mdata = extract(commentsPart[0]+"\n\n")
         strat_var = z.getStrategyVar()
@@ -769,6 +782,8 @@ def run_csharp(component, output):
                  
         if funcs:
             for f in funcs:
+                print("function dependency for ", f.name)
+                #func_names.append(f.name)
                 r = []
                 # order of function dependency
                 f_dep = function_dependency(st, f)
@@ -781,14 +796,18 @@ def run_csharp(component, output):
                         dep_names.append(d.name)   
                 for ex in dep:  # dep is the list of external function in the order of dependency
                     if ex.name not in func_names:  # to avoid duplicating dependent functions in different auxiliary functions
-                        func = z.externFunction(total_tree, ex, False, ex.name)  
-                        extfunc = [p for p in func if p]
-                        if extfunc and isinstance(extfunc[0], list):
-                            extfunc = list(itertools.chain(*extfunc)) 
-                        for rr in extfunc:
+                        func = z.externFunction(st, ex, False, ex.name)
+                        if not any(func):
+                            func = z.externFunction(total_tree, ex, False, ex.name)
+                        extfunc = _flatten_extfunc(func)
+                        renamed_extfunc = []
+                        for rro in extfunc:
+                            rr = copy(rro)
                             if ex.class_!= rr.class_:
                                 rr.name = "_" + rr.class_ + "__" + rr.name +"_" 
                                 params_not_declared[rr.name]   = [] 
+                            renamed_extfunc.append(rr)
+                        extfunc = renamed_extfunc
                         res = []
                         res_ = []
                         res_inout[ex.name] = {"inputs":None, "outputs":None}
@@ -913,7 +932,7 @@ def run_csharp(component, output):
         inps_init = []
         outs_init = []
         
-        if init_:
+        if init_ and init_.block is not None:
             rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category, dict_pa)
             dict_init = {}
             name_i = "init."+straNames[k]
@@ -936,7 +955,7 @@ def run_csharp(component, output):
         outs_str = zz.outputs + outs_init
         
         z.modelunit(mdata, strat_var, all_var_pa,var,  list(set(inps_str)), list(set(outs_str)))
-        z.model.function = [n.name for n in funcs if f]
+        z.model.function = [n.name for n in funcs if n]
         if dict_init: z.model.initialization = [dict_init]
 
         models.append(z.model)

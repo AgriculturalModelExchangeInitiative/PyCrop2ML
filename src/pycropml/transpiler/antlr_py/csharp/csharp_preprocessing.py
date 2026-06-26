@@ -419,13 +419,14 @@ class Declarations(Middleware):
             else:
                  
                 if decl.type=="array" and "init" in dir(decl.value):
+                    elts = decl.value.elts if "elts" in dir(decl.value) else decl.value.size
                     if decl.value.init.value is None:
-                        r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
-                        self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
+                        r = Node(name = decl.name, type="array", dim=1, elts=elts, pseudo_type=decl.pseudo_type)
+                        self.declarations.append(Node(type="declaration", decl=[r], comments = []))
                         self.declnames.append(decl.name)
                     else:
-                        r = Node(name = decl.name, type="array", dim=1, elts=decl.value.elts, pseudo_type=decl.pseudo_type)
-                        self.declarations.append(Node(type="declaration", decl=[r], comments = [])) 
+                        r = Node(name = decl.name, type="array", dim=1, elts=elts, pseudo_type=decl.pseudo_type)
+                        self.declarations.append(Node(type="declaration", decl=[r], comments = []))
                         self.declnames.append(decl.name)
                         tree = Node(type ="assignment", target = Node(type="local", name=decl.name, pseudo_type=decl.pseudo_type), op = "=", value = Node(type="array", init= decl.value.init), comments = tree.comments)
                         res.append(self.transform_default(tree))

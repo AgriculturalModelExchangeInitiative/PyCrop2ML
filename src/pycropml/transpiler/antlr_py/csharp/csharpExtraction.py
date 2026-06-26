@@ -232,15 +232,22 @@ class CsharpExtraction(MetaExtraction):
         inputs = []
         outputs = []
         par_var = list(set(inps + outs))
-        
-        for v in par_var : #pc+param_names+out_names:
-            vn = v[:-3] if (len(v)>3 and v not in param_names and v.endswith("_t1")) else v
-            if vn in inpname: # I suppose that we could not have a current and past state in input and current state in output
-                input  = getInput(mdata, vn)
-                inputs.append(input)
-            if vn in outname:
+
+        for v in par_var:
+            is_past = len(v) > 3 and v not in param_names and v.endswith("_t1")
+            vn = v[:-3] if is_past else v
+            if vn in inpname:
+                inp = getInput(mdata, vn)
+                if inp:
+                    if is_past:
+                        inp = copy.copy(inp)
+                        inp.name = v  # preserve _t1 suffix: e.g. cumulTT_t1
+                    inputs.append(inp)
+            if vn in outname and not is_past:
+                # past-state variables (_t1) are never outputs
                 output = getOutput(mdata, vn)
-                outputs.append(output)
+                if output:
+                    outputs.append(output)
         self.model.inputs = inputs
         self.model.outputs = outputs
     """        
@@ -309,86 +316,87 @@ class CsharpExtraction(MetaExtraction):
 
 
     def modelcomposition(self, models, tree, mcdata):
-        inputlink = []
-        outputlink = []
-        inp = {}
         algo = self.getmethod(tree, "CalculateModel")
         self.mc = ModelComposition({"name":mcdata.name, "version":mcdata.version, "timestep":mcdata.timestep})        
         self.mc.add_description(mcdata.description)
-        self.getTypeNode(algo.block,"custom_call")
-        call = self.getAttNode(self.getTree, **{"function":"CalculateModel"})
-        self.mc.model = [c.namespace.name[1:] for c in call]
-        inps, outs = [], []
-        md = []
-        for m in self.mc.model:
-            for n in models:
-                if m.lower() == n.name.lower():
-                    md.append(n)
-                    break
-        self.mc.model = [n.name for n in md]
-        inps = [n.name for m in md for n in m.inputs ]
-        outs = [n.name for m in md for n in m.outputs ]
-        m_in = set(inps) - set(outs)
-        z = {}
-        internallink= []
-        inp_=[]
-        
+
         inputlink = []
         internallink = []
         outputlink = []
-
-        producer = {}           # var -> "ModelUnit.var" (dernier producteur)
-        inferred_inputs = set()
+        input_keys = set()
+        internal_keys = set()
+        output_keys = set()
 
         consumed = set()
         produced = set()
         state_outputs = set()
+        producer = {}           # var -> "ModelUnit.var" (last producer in execution order)
+        aliases = {}            # var assigned in the composite -> source var
 
-        composite_inputs = None
+        models_by_name = {m.name.lower(): m for m in models}
+        md = []
 
-        # PASS 1: InputLink + InternalLink + producer
-        for m in md:
-            # inputs
+        def add_input(source, target):
+            key = (source, target)
+            if key not in input_keys:
+                inputlink.append({"source": source, "target": target})
+                input_keys.add(key)
+
+        def add_internal(source, target):
+            key = (source, target)
+            if key not in internal_keys:
+                internallink.append({"source": source, "target": target})
+                internal_keys.add(key)
+
+        def add_output(source, target):
+            key = (source, target)
+            if key not in output_keys:
+                outputlink.append({"source": source, "target": target})
+                output_keys.add(key)
+
+        for stmt in algo.block:
+            if stmt.type == "assignment" and stmt.target.type == "member_access" and stmt.value.type == "member_access":
+                aliases[stmt.target.member] = stmt.value.member
+                continue
+
+            if stmt.type != "custom_call" or stmt.function != "CalculateModel":
+                continue
+
+            model_name = stmt.namespace.name[1:] if stmt.namespace.name.startswith("_") else stmt.namespace.name
+            m = models_by_name.get(model_name.lower())
+            if not m:
+                continue
+            md.append(m)
+
             for inp in m.inputs:
                 v = inp.name
-                consumed.add(v)
+                upstream_var = aliases.get(v, v)
+                consumed.add(upstream_var)
 
-                if v in producer:
-                    internallink.append({
-                        "source": producer[v],      # ModelA.x
-                        "target": f"{m.name}.{v}"   # ModelB.x
-                    })
+                if upstream_var in producer:
+                    add_internal(producer[upstream_var], f"{m.name}.{v}")
                 else:
-                    inferred_inputs.add(v)
-                    inputlink.append({
-                            "source": v,            # composite input
-                            "target": f"{m.name}.{v}"
-                        })
+                    add_input(upstream_var, f"{m.name}.{v}")
 
-            # outputs
             for out in m.outputs:
                 v = out.name
                 produced.add(v)
-
-                # dernier producteur (pipeline semantics)
                 producer[v] = f"{m.name}.{v}"
 
                 if getattr(out, "variablecategory", None) == "state":
                     state_outputs.add(v)
 
-        # PASS 2: composite outputs = sinks U state_outputs (TA règle)
+        self.mc.model = [n.name for n in md]
+
+        # Composite outputs = sinks U state outputs.
         sinks = produced - consumed
         composite_outputs = sinks | state_outputs
 
-        # IMPORTANT: on garde uniquement celles qui ont un producteur (donc un ModelUnit source)
         composite_outputs = {v for v in composite_outputs if v in producer}
 
-        # PASS 3: OutputLink (toujours depuis un ModelUnit)
         for v in composite_outputs:
-            outputlink.append({
-                "source": producer[v],   # "ModelUnit.var"
-                "target": v
-            })
+            add_output(producer[v], v)
+
         self.mc.inputlink = inputlink
         self.mc.outputlink = outputlink
         self.mc.internallink = internallink        

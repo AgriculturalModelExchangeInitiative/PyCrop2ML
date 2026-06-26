@@ -345,9 +345,6 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.visit(node.value.elements.left.elements[0])  
                     self.write(");")  
                 else:
-                    self.visit(node.target)
-                    self.write(' = ')
-                    self.write("new %s[] "%self.types2[node.value.pseudo_type[1]])
                     self.write(u'{')
                     self.comma_separated_list(node.value.elements)
                     self.write(u'};') 

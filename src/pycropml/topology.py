@@ -253,16 +253,9 @@ class Topology:
         return inout
 
     def algorithm(self):
-        if not self.topologicalSort():
-            code = ""
-            for mod in self.model.model:
-                res = ', '.join(self.minout()[mod.name][1])
-                fn = mod.name.strip().replace(' ', '_').lower()
-                ps = ','.join(self.minout()[mod.name][0])
-                code += f"{res} = model_{fn}({ps})\n"
-            return code
         code = ""
-        W = self.topologicalSort()
+        W = [mod.name for mod in self.model.model]
+        self.model.ord = W
         edge = self.create_edgeInOut()
         for v in W:
             res = ', '.join(self.minout()[v][1])
