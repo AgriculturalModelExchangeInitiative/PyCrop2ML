@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Package PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/package.dtd">
+<!-- crop2mlversion : used to specify which version of crop2ml DTD models are conformed to-->
+<Package name="Monica_SoilTemp.SoilTemp" version="1.0" license="MIT" crop2mlVersion="1.0.0">
+    <Authors>
+        <FirstAndLastName>Michael Berg-Mohnicke</FirstAndLastName>
+        <Institution>ZALF e.V.</Institution>
+    </Authors>
+    <Encoders>
+        <FirstAndLastName>Michael Berg-Mohnicke</FirstAndLastName>
+        <Institution>ZALF e.V.</Institution>  
+        <Email>michael.berg-mohnicke@zalf.de</Email>
+    </Encoders>
+    <Features>
+        <TypeOfModel type="Single"/>
+        <IsPartOfLargerModel YesOrNo="Yes" name = "MONICA"/>
+        <ValidatedWithCropMStudio YesOrNo="Yes" />
+        <SourceRepository src="https://github.com/Crop2ML-Catalog/MONICA_SoilTemp" />
+    </Features>
+    <Doc>
+        <file></file>
+    </Doc>
+   <Transformation path="/src">
+        <Languages>
+            <pyx />
+            <py />
+            <cs />
+            <java />
+            <f90 />                
+            <cpp />
+            <r />
+        </Languages>
+        <Platforms>
+            <openalea />
+            <bioma />
+            <simplace/>
+            <dssat />
+            <stics />
+            <sirius /> 
+            <apsim/>			
+        </Platforms>
+    </Transformation>
+</Package>
+

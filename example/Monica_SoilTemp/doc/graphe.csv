@@ -1,0 +1,3 @@
+Source,Target,Weight
+NoSnowSoilSurfaceTemperature,WithSnowSoilSurfaceTemperature,1
+WithSnowSoilSurfaceTemperature,SoilTemperature,1

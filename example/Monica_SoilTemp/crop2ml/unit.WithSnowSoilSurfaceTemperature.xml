@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " "
+        "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Monica_SoilTemp.WithSnowSoilSurfaceTemperature" name="WithSnowSoilSurfaceTemperature" timestep="1"
+           version="1">
+    <Description>
+        <Title>Soil surface temperature with potential snow cover</Title>
+        <Authors>Michael Berg-Mohnicke</Authors>
+        <Institution>ZALF e.V.</Institution>
+        <URI></URI>
+        <Reference></Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription>It calculates the soil surface temperature taking a potential snow cover into account
+        </ShortDescription>
+    </Description>
+    <Inputs>
+        <Input name="noSnowSoilSurfaceTemperature" description="soilSurfaceTemperature without snow"
+               inputtype="variable" variablecategory="state" datatype="DOUBLE" max="" min="" default="0.0" unit="°C"/>
+        <Input name="soilSurfaceTemperatureBelowSnow" description="soilSurfaceTemperature below snow cover"
+               inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="0.0" unit="°C"/>
+        <Input name="hasSnowCover" description="is soil covered by snow" inputtype="variable" variablecategory="exogenous"
+               datatype="BOOLEAN" max="" min="" default="false" unit="dimensionless"/>
+    </Inputs>
+    <Outputs>
+        <Output name="soilSurfaceTemperature" description="soilSurfaceTemperature" variablecategory="state"
+                datatype="DOUBLE" max="" min="" unit="°C"/>
+    </Outputs>
+    <Algorithm language="cyml" platform="" filename="algo/pyx/WithSnowSoilSurfaceTemperature.pyx"/>
+    <Parametersets/>
+    <Testsets/>
+</ModelUnit>
