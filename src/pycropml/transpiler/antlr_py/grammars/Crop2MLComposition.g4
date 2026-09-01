@@ -38,8 +38,8 @@ modelCall
 /*
  * Supplies a ModelUnit input.
  *
- * External composition input:
- *     SoilTemperature.timeStep = timeStep
+ * External composition input. ``self`` denotes the current composition:
+ *     SoilTemperature.timeStep = self.timeStep
  *
  * Internal connection:
  *     SoilTemperature.surfaceTemperature =
@@ -50,7 +50,9 @@ modelInputAssignment
     ;
 
 /*
- * Publishes a ModelUnit output as a composition output.
+ * Legacy syntax for publishing a ModelUnit output as a composition output.
+ * New algorithms should use ``self.output = Model.output``, which is parsed
+ * as a modelInputAssignment and distinguished semantically.
  *
  * Example:
  *     surfaceTemperature =
@@ -61,8 +63,9 @@ compositionOutputAssignment
     ;
 
 /*
- * A bare identifier is a composition input.
- * A qualified port is the output of another ModelUnit.
+ * A bare identifier is a legacy composition input. ``self.port`` is an
+ * explicit composition input. Any other qualified port is the output of a
+ * called component.
  */
 source
     : identifier
