@@ -79,7 +79,7 @@ setup_kwds = dict(
 # #}
 # change setup_kwds below before the next pkglts tag
 
-setup_kwds["entry_points"] = {"console_scripts": ["cyml = pycropml.main:main"]}
+setup_kwds["entry_points"] = {"console_scripts": ["cyml = pycropml.main:main", "cyml-check-composition = pycropml.transpiler.antlr_py.validate_composition:main"]}
 
 # do not change things below
 # {# pkglts, pysetup.call
