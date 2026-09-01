@@ -13,6 +13,7 @@ REQUIRED_METADATA = {"type", "name", "id", "description"}
 ALLOWED_METADATA = {"type", "name", "id", "version", "timestep", "description"}
 REQUIRED_DESCRIPTION = {"title", "authors", "institution", "extended_description"}
 ALLOWED_DESCRIPTION = REQUIRED_DESCRIPTION | {"reference", "short_description"}
+SELF_NAMESPACE = "self"
 
 
 class CompositionSemanticError(ValueError):
@@ -132,6 +133,10 @@ class SemanticCompositionVisitor(Crop2MLCompositionVisitor):
 
     def visitModelInputAssignment(self, ctx):
         target = self._model_port(ctx.modelPort())
+        if target.model == SELF_NAMESPACE:
+            self._publish_output(target.port, ctx.source(), ctx)
+            return
+
         interface = self._require_model(target.model, ctx)
         self._require_port(interface.inputs, target, "input", ctx)
         if target.model in self.called_models:
@@ -143,9 +148,14 @@ class SemanticCompositionVisitor(Crop2MLCompositionVisitor):
 
         source_ctx = ctx.source()
         if source_ctx.modelPort() is None:
+            # Backward compatibility with the original bare-input syntax.
             source = source_ctx.identifier().getText()
         else:
             source = self._model_port(source_ctx.modelPort())
+            if source.model == SELF_NAMESPACE:
+                source = source.port
+                bindings[target.port] = source
+                return
             source_interface = self._require_model(source.model, ctx)
             source_definition = self._require_port(
                 source_interface.outputs, source, "output", ctx
@@ -176,8 +186,19 @@ class SemanticCompositionVisitor(Crop2MLCompositionVisitor):
         self.called_models.add(model)
 
     def visitCompositionOutputAssignment(self, ctx):
+        # Backward compatibility with: output = Model.output
         target = ctx.identifier().getText()
-        source = self._model_port(ctx.modelPort())
+        self._publish_output(target, ctx.modelPort(), ctx)
+
+    def _publish_output(self, target, source_ctx, ctx):
+        if source_ctx.modelPort() is None:
+            self._error(
+                ctx,
+                f"Composition output self.{target} must come from a component output",
+            )
+        source = self._model_port(source_ctx.modelPort())
+        if source.model == SELF_NAMESPACE:
+            self._error(ctx, "A composition output cannot be assigned from self")
         interface = self._require_model(source.model, ctx)
         self._require_port(interface.outputs, source, "output", ctx)
         if source.model not in self.called_models:
