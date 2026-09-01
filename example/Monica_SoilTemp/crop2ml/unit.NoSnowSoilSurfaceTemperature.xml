@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelUnit PUBLIC " "
+        "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">
+<ModelUnit modelid="Monica_SoilTemp.NoSnowSoilSurfaceTemperature" name="NoSnowSoilSurfaceTemperature" timestep="1"
+           version="1">
+    <Description>
+        <Title>Soil surface temperature</Title>
+        <Authors>Michael Berg-Mohnicke</Authors>
+        <Institution>ZALF e.V.</Institution>
+        <URI></URI>
+        <Reference></Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription>It calculates the soil surface temperature without snow cover</ShortDescription>
+    </Description>
+    <Inputs>
+        <Input name="tmin" description="the days min air temperature" inputtype="variable" variablecategory="exogenous"
+               datatype="DOUBLE" max="70.0" min="-50.0" default="" unit="°C"/>
+        <Input name="tmax" description="the days max air temperature" inputtype="variable" variablecategory="exogenous"
+               datatype="DOUBLE" max="70.0" min="-50.0" default="" unit="°C"/>
+        <Input name="globrad" description="the days global radiation" inputtype="variable" variablecategory="exogenous"
+               datatype="DOUBLE" max="30.0" min="0.0" default="0.0" unit="MJ/m**2/d"/>
+
+        <Input name="soilCoverage" description="soilCoverage" inputtype="variable" variablecategory="exogenous"
+               datatype="DOUBLE" max="" min="0.0" default="0.0" unit="dimensionless"/>
+        <Input name="dampingFactor" description="dampingFactor" inputtype="parameter" parametercategory="constant"
+               datatype="DOUBLE" max="" min="" default="0.8" unit="dimensionless"/>
+
+        <Input name="soilSurfaceTemperature" description="soilSurfaceTemperature of previous day"
+               inputtype="variable" variablecategory="state" datatype="DOUBLE" max="" min="" default="0.0" unit="°C"/>
+    </Inputs>
+    <Outputs>
+        <Output name="soilSurfaceTemperature" description="soilSurfaceTemperature" variablecategory="state"
+                datatype="DOUBLE" max="" min="" unit="°C"/>
+    </Outputs>
+    <!--<Initialization name="init.SoilTemp" language="cyml" filename="algo/pyx/init.SoilTemp.pyx"/>-->
+    <Algorithm language="cyml" platform="" filename="algo/pyx/NoSnowSoilSurfaceTemperature.pyx"/>
+    <Parametersets/>
+    <Testsets/>
+</ModelUnit>

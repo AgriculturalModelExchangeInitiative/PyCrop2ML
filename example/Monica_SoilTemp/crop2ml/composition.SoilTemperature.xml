@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ModelComposition PUBLIC " "
+        "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">
+<ModelComposition name="SoilTemperatureComp" id="Monica_SoilTemp.SoilTemperatureComp" version="1" timestep="1">
+    <Description>
+        <Title>SoilTemperature model</Title>
+        <Authors>Michael Berg-Mohnicke</Authors>
+        <Institution>ZALF e.V.</Institution>
+        <Reference></Reference>
+        <ExtendedDescription></ExtendedDescription>
+        <ShortDescription>Calculates the soil temperature in all layers and soil surface temperature</ShortDescription>
+    </Description>
+    <Composition>
+        <Model name="SoilTemperature" id="Monica_SoilTemp.SoilTemperature" filename="unit.SoilTemperature.xml"/>
+        <Model name="NoSnowSoilSurfaceTemperature" id="Monica_SoilTemp.NoSnowSoilSurfaceTemperature"
+               filename="unit.NoSnowSoilSurfaceTemperature.xml"/>
+        <Model name="WithSnowSoilSurfaceTemperature" id="Monica_SoilTemp.WithSnowSoilSurfaceTemperature"
+               filename="unit.WithSnowSoilSurfaceTemperature.xml"/>
+        <Links>
+            <InputLink source="tmin" target="NoSnowSoilSurfaceTemperature.tmin"/>
+            <InputLink source="tmax" target="NoSnowSoilSurfaceTemperature.tmax"/>
+            <InputLink source="globrad" target="NoSnowSoilSurfaceTemperature.globrad"/>
+            <InputLink source="dampingFactor" target="NoSnowSoilSurfaceTemperature.dampingFactor"/>
+            <InputLink source="soilCoverage" target="NoSnowSoilSurfaceTemperature.soilCoverage"/>
+            <!--<InputLink source="soilSurfaceTemperature"
+                       target="NoSnowSoilSurfaceTemperature.soilSurfaceTemperature"/>-->
+
+            <InputLink source="soilSurfaceTemperatureBelowSnow"
+                       target="WithSnowSoilSurfaceTemperature.soilSurfaceTemperatureBelowSnow"/>
+            <InputLink source="hasSnowCover" target="WithSnowSoilSurfaceTemperature.hasSnowCover"/>
+
+            <InputLink source="timeStep" target="SoilTemperature.timeStep"/>
+            <InputLink source="soilMoistureConst" target="SoilTemperature.soilMoistureConst"/>
+            <InputLink source="baseTemp" target="SoilTemperature.baseTemp"/>
+            <InputLink source="initialSurfaceTemp" target="SoilTemperature.initialSurfaceTemp"/>
+            <InputLink source="densityAir" target="SoilTemperature.densityAir"/>
+            <InputLink source="specificHeatCapacityAir" target="SoilTemperature.specificHeatCapacityAir"/>
+            <InputLink source="densityHumus" target="SoilTemperature.densityHumus"/>
+            <InputLink source="specificHeatCapacityHumus" target="SoilTemperature.specificHeatCapacityHumus"/>
+            <InputLink source="densityWater" target="SoilTemperature.densityWater"/>
+            <InputLink source="specificHeatCapacityWater" target="SoilTemperature.specificHeatCapacityWater"/>
+            <InputLink source="quartzRawDensity" target="SoilTemperature.quartzRawDensity"/>
+            <InputLink source="specificHeatCapacityQuartz" target="SoilTemperature.specificHeatCapacityQuartz"/>
+            <InputLink source="nTau" target="SoilTemperature.nTau"/>
+            <!--<InputLink source="soilAlbedo" target="SoilTemperature.soilAlbedo"/>-->
+            <InputLink source="noOfTempLayers" target="SoilTemperature.noOfTempLayers"/>
+            <InputLink source="noOfTempLayersPlus1" target="SoilTemperature.noOfTempLayersPlus1"/>
+            <InputLink source="noOfSoilLayers" target="SoilTemperature.noOfSoilLayers"/>
+
+            <InputLink source="layerThickness" target="SoilTemperature.layerThickness"/>
+            <InputLink source="soilBulkDensity" target="SoilTemperature.soilBulkDensity"/>
+            <InputLink source="saturation" target="SoilTemperature.saturation"/>
+            <InputLink source="soilOrganicMatter" target="SoilTemperature.soilOrganicMatter"/>
+            <!--<InputLink source="prevDaySoilTemperature" target="SoilTemperature.soilTemperature"/>-->
+            <InputLink source="V" target="SoilTemperature.V"/>
+            <InputLink source="B" target="SoilTemperature.B"/>
+            <InputLink source="volumeMatrix" target="SoilTemperature.volumeMatrix"/>
+            <InputLink source="volumeMatrixOld" target="SoilTemperature.volumeMatrixOld"/>
+            <InputLink source="matrixPrimaryDiagonal" target="SoilTemperature.matrixPrimaryDiagonal"/>
+            <InputLink source="matrixSecondaryDiagonal" target="SoilTemperature.matrixSecondaryDiagonal"/>
+            <InputLink source="heatConductivity" target="SoilTemperature.heatConductivity"/>
+            <InputLink source="heatConductivityMean" target="SoilTemperature.heatConductivityMean"/>
+            <InputLink source="heatCapacity" target="SoilTemperature.heatCapacity"/>
+
+            <InputLink source="solution" target="SoilTemperature.solution"/>
+            <InputLink source="matrixDiagonal" target="SoilTemperature.matrixDiagonal"/>
+            <InputLink source="matrixLowerTriangle" target="SoilTemperature.matrixLowerTriangle"/>
+            <InputLink source="heatFlow" target="SoilTemperature.heatFlow"/>
+
+            <InternalLink source="NoSnowSoilSurfaceTemperature.soilSurfaceTemperature"
+                          target="WithSnowSoilSurfaceTemperature.noSnowSoilSurfaceTemperature"/>
+            <InternalLink source="WithSnowSoilSurfaceTemperature.soilSurfaceTemperature"
+                          target="SoilTemperature.soilSurfaceTemperature"/>
+
+            <OutputLink source="WithSnowSoilSurfaceTemperature.soilSurfaceTemperature" target="soilSurfaceTemperature"/>
+            <OutputLink source="SoilTemperature.soilTemperature" target="soilTemperature"/>
+        </Links>
+    </Composition>
+</ModelComposition>
