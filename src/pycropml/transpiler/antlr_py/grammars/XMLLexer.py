@@ -1,7 +1,10 @@
 # Generated from gram\xml\XMLLexer.g4 by ANTLR 4.8
 from antlr4 import *
 from io import StringIO
-from typing.io import TextIO
+try:
+    from typing import TextIO
+except ImportError:    
+    from typing.io import TextIO
 import sys
 
 
