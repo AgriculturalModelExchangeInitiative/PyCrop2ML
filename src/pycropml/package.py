@@ -7,8 +7,7 @@ from IPython.display import Image, display
 from networkx.drawing.nx_pydot import to_pydot
 from pycropml.render_cyml import signature"""
 
-from pkg_resources import iter_entry_points
-from path import Path
+from pathlib import Path
 import os
 import sys
 import time
@@ -698,14 +697,14 @@ class PackageManager():
             # self.log.add("%s Not a directory"%repr(directory))
             return []
 
-        p = Path(directory).abspath()
+        p = Path(directory).absolute()
 
         # search for wralea.py
         if recursive and SEARCH_OUTSIDE_ENTRY_POINTS:
-            for f in p.walkfiles("*model*.py"):
+            for f in p.rglob("*model*.py"):
                 crop2ml_files.add(str(f))
         else:
-            crop2ml_files.update(p.glob("*model*.py"))
+            crop2ml_files.update(list(p.glob("*model*.py")))
 
         for f in crop2ml_files:
             print("Package Manager : found %s" % f)
