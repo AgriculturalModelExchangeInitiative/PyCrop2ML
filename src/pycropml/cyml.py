@@ -5,8 +5,7 @@ Created on Tue Mar 19 22:59:23 2019
 @author: midingoy
 """
 import os
-from os.path import isdir
-from path import Path
+from pathlib import Path
 import pycropml
 from pycropml.transpiler.main import Main
 from pycropml.transpiler.antlr_py.dssat.run import run_dssat
@@ -79,14 +78,14 @@ platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "st
 def transpile_file(source, language):
     sourcef = source
     file = Path(sourcef)
-    with open(file, 'r') as fi:
+    with file.open('r') as fi:
         source = fi.read()
-    name = sourcef.split(".")[0]
+    name = file.stem
     test = Main(file, language)
     test.parse()
     test.to_ast(source)
     code = test.to_source()
-    filename = "%s.%s" % (name, language)
+    filename = f"{name}.{language}"
     with open(filename, "wb") as tg_file:
         tg_file.write(code.encode('utf-8'))
     return 0
@@ -100,45 +99,40 @@ def prefix(model):
 def transpile_package(package, language):
     """ translate from crop2ml package"""
     sourcef = package
-    namep = sourcef.split(os.path.sep)[-1]
-    pkg = Path(sourcef)
+    pkg = Path(package)
+    namep = pkg.name
+
     models = model_parser(pkg)  # parse xml files and create python model object
-    output = Path(os.path.join(pkg, 'src'))
-    dir_test = Path(os.path.join(pkg, 'test'))
-    dir_doc = Path(os.path.join(pkg, 'doc'))
+    output = pkg / "src"
+    dir_test = pkg / "test"
+    dir_doc = pkg / "doc"
 
     # Generate packages if the directories does not exists.
-    if not output.is_dir():
-        output.mkdir()
-    if not dir_test.is_dir():
-        dir_test.mkdir()
-    if not dir_doc.is_dir():
-        dir_doc.mkdir()
+    output.mkdir(exist_ok=True)
+    dir_test.mkdir(exist_ok=True)
+    dir_doc.mkdir(exist_ok=True)
 
-    dir_images = Path(os.path.join(dir_doc, 'images'))
-    if not dir_images.is_dir():
-        dir_images.mkdir()
+    dir_images = dir_doc / 'images'
+    dir_images.mkdir(exist_ok=True)
+
 
     m2p = render_cyml.Model2Package(models, dir=output)
     m2p.generate_package()  # generate cyml models in "pyx" directory
-    tg_rep1 = Path(os.path.join(output, language))  # target language models  directory in output
-    dir_test_lang = Path(os.path.join(dir_test, language))
+    tg_rep1 = output / language  # target language models  directory in output
+    dir_test_lang = dir_test / language
     
-    if not tg_rep1.is_dir():
-        tg_rep1.mkdir()
+    tg_rep1.mkdir(exist_ok=True)
 
     namep_ = namep.replace("-", "_")
-    tg_rep = Path(os.path.join(tg_rep1, namep_))
-    if not tg_rep.is_dir():
-        tg_rep.mkdir()
+    tg_rep = tg_rep1 / namep_
+    tg_rep.mkdir(exist_ok=True)
 
-    if not dir_test_lang.is_dir():  #Create if it doesn't exist
-        dir_test_lang.mkdir()
+    dir_test_lang.mkdir(exist_ok=True)
 
     m2p.write_tests()
 
     # generate cyml functions
-    cyml_rep = Path(os.path.join(output, 'pyx'))  # cyml model directory in output
+    cyml_rep = output / 'pyx'  # cyml model directory in output
 
     # create topology of composite model
     T = Topology(namep, package)
@@ -159,10 +153,10 @@ def transpile_package(package, language):
                 f'to_wrapper_{language}')(T.model, tg_rep, mc_name)
 
     # Transform model unit to languages and platforms
-    for k, file in enumerate(cyml_rep.files()):
-        with open(file, 'r') as fi:
+    for k, file in enumerate(p for p in cyml_rep.iterdir() if p.is_file()):
+        with file.open('r') as fi:
             source = fi.read()
-        name = os.path.split(file)[1].split(".")[0]
+        name = file.stem
         for model in models:  # in the case we haven't the same order
             if name.lower() == model.name.lower() and prefix(model) != "function":
                 #getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
@@ -172,9 +166,8 @@ def transpile_package(package, language):
                 test.parse()
                 test.to_ast(source)
                 code = test.to_source()
-                filename = Path(
-                    os.path.join(tg_rep, f"{nameconvention.signature(model, ext[language])}.{ext[language]}"))
-                with open(filename, "wb") as tg_file:
+                filename = tg_rep / f"{nameconvention.signature(model, ext[language])}.{ext[language]}"
+                with filename.open("wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                 if language in langs:
                     Model2Nb(model, code, name, dir_test_lang).generate_nb(language, tg_rep, namep, mc_name)
@@ -182,14 +175,14 @@ def transpile_package(package, language):
 
     # Create Cyml Composite model
     T_pyx = T.algo2cyml(dir_images)
-    fileT = Path(os.path.join(cyml_rep, f"{mc_name}Component.pyx"))
-    with open(fileT, "wb") as tg_file:
+    fileT = cyml_rep / f"{mc_name}Component.pyx"
+    with fileT.open("wb") as tg_file:
         tg_file.write(T_pyx.encode('utf-8'))
 
-    filename = Path(os.path.join(tg_rep, f"{mc_name}Component.{ext[language]}"))
+    filename = tg_rep / f"{mc_name}Component.{ext[language]}"
     code = T.compotranslate(language).encode('utf-8')
     if code:
-        with open(filename, "wb") as tg_file:
+        with filename.open("wb") as tg_file:
             tg_file.write(code)
 
     # create computing algorithm
@@ -197,20 +190,19 @@ def transpile_package(package, language):
         simulation = PythonSimulation(T.model, package_name=namep)
         simulation.generate()
         code = ''.join(simulation.result)
-        filename = Path(os.path.join(tg_rep, "simulation.py"))
-        initfile = Path(os.path.join(tg_rep, "__init__.py"))
-        with open(filename, "wb") as tg_file:
+        filename = tg_rep / "simulation.py"))
+        initfile = tg_rep / "__init__.py"))
+        with filename.open("wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
-        with open(initfile, "wb") as tg_file:
+        with initfile.open("wb") as tg_file:
             tg_file.write("".encode("utf-8"))
 
         setup = PythonSimulation(T.model, package_name=namep)
         #setup.generate_setup()
         setup.generate_pyproject()
         code = ''.join(setup.result)
-        #setupfile = Path(os.path.join(tg_rep1, "setup.py"))
-        setupfile = Path(os.path.join(tg_rep1, "pyproject.toml"))
-        with open(setupfile, "wb") as tg_file:
+        setupfile = tg_rep1 / "pyproject.toml"
+        with setupfile.open("wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
 
     status = 0
