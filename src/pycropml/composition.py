@@ -3,22 +3,21 @@
 """
 from __future__ import absolute_import
 from __future__ import print_function
-from path import Path
+from pathlib import Path
 import xml.etree.ElementTree as xml
-import six
 from pycropml.modelunit import ModelUnit
 from . import parameterset as pset
 from pycropml import pparse
 import os
 from . import initialization
 
-class ModelDefinition(object):
+class ModelDefinition:
     """
     Model name, id, version and step
     """
     def __init__(self, kwds):
         self._attributes = kwds
-        for k, v in six.iteritems(kwds):
+        for k, v in kwds.items():
             self.__setattr__(k,v)
 
     def __repr__(self):
@@ -51,7 +50,7 @@ class ModelComposition(ModelDefinition):
     def __repr__(self):
         return 'ModelComposition'
     
-class Description(object):
+class Description:
     """ Model Composition Description.
 
     A description is defined by:
@@ -87,7 +86,7 @@ class Models(ModelComposition, ModelUnit):
 
  
  
-class Parser(object):
+class Parser:
     """ Read an XML file and transform it in our object model.
     """
 
@@ -245,5 +244,4 @@ def model_parser(fn):
     
 
 def retrieve_path(fn):
-    path_ = Path.splitpath(Path(fn))[0]
-    return os.path.dirname(path_)
+    return str(Path(fn).parent.parent)
