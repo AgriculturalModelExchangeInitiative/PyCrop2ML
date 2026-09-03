@@ -1,0 +1,76 @@
+# FB 2025-04-14: based on ADEL and hydroshoot, sphinx pkg in environment.yml
+[build-system]
+requires = [
+    "setuptools",
+    "six",
+  ]
+build-backend = "setuptools.build_meta"
+
+# allow openalea to be a namespace package
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[project]
+name = "pycropml"
+dynamic = ["version", "readme"]
+authors = [
+  { name = "Cyrille Ahmed Midingoyi", email="cyrille_ahmed.midingoyi@cirad.fr" },
+]
+description = "A Python library to generate components from Crop2ML declarative language"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.8"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+  "Framework :: OpenAlea",
+  "Framework :: Crop2ML",
+]
+
+dependencies = [
+    "ipykernel",
+    "configobj",
+    "six",
+    "setuptools",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "pycropml.version.__version__"}
+readme = {file = ["README.rst"]}
+
+# section specific to conda-only distributed package (not used by pip yet)
+[tool.conda.environment]
+channels = [
+  "openalea3",
+  "conda-forge"
+]
+dependencies = [
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+doc = [
+  "sphinx-favicon",
+  "sphinx-rtd-theme",
+  "pydata-sphinx-theme",
+  "myst-parser",
+  "nbsphinx",
+]
+
+[project.urls]
+Homepage = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML"
+"Bug Tracker" = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/issues"
+Discussions = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/discussions"
+Changelog = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/releases"
+
+#[tool.setuptools.package-data]
+#"pycropml_data" = ["*"]
+
+[project.scripts]
+cyml = " pycropml.main:main"
