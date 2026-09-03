@@ -103,7 +103,7 @@ class ModelParser(Parser):
 
     def parse(self, fn):
         self.modelcompos = []
-        self.aPath = os.path.abspath(fn)
+        self.aPath = os.path.abspath(str(fn))
         self.path_mc = retrieve_path(fn)
           
         # Current proxy node for managing properties

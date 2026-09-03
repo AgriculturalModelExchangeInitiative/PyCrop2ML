@@ -8,9 +8,7 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from path import Path
-import six
-import os
+from pathlib import Path
 from pycropml.composition import model_parser
 
 class Model2Package(object):
@@ -38,8 +36,8 @@ class Model2Package(object):
         inputs = m.inputs
         outputs=m.outputs
         num=0  
-        dir_crop2ml = Path(os.path.join(m.path,"crop2ml"))
-        dir_compo = dir_crop2ml.glob("composition*.xml")[0]
+        dir_crop2ml = Path(m.path) / "crop2ml"
+        dir_compo = next(dir_crop2ml.glob("composition*.xml"))
         name_mc = model_parser(dir_compo)[0].name            
         psets = m.parametersets
         self.codetest = ""
@@ -95,7 +93,7 @@ class Model2Package(object):
                     """for testinp in inputs:
                         if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)"""
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         code_ = setval(type_v, categ(k, inputs), k, v, tab, inputs)   
                         if m.initialization:
@@ -105,7 +103,7 @@ class Model2Package(object):
                             code += code_ 
 
                     test_codes2 = ""            
-                    for k, v in six.iteritems(ins):
+                    for k, v in ins.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         code_ = code_ = setval(type_v, categ(k, inputs), k, v, tab, inputs)
                         if v and categ(k, inputs) == "s" :
@@ -117,7 +115,7 @@ class Model2Package(object):
                         code += test_codes2 
                     
                     code+=tab*2+"mod.Calculate_%s(s,s1, r, a, ex);\n"%(m.name.lower())
-                    for k, v in six.iteritems(outs):
+                    for k, v in outs.items():
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
                         code += 2*tab + "//%s: %s;\n"%(k, v[0]) 
                         code += 2*tab + 'System.out.println("%s estimated :");\n'%(k)
