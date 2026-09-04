@@ -1828,7 +1828,7 @@ def header_mu_cpp(models, rep, name):
         param = generator.node_param
         generator.generate_hpp(param, f"{m.name}", mc=mc, h=h, init=init, ns=rep.name)
         z = ''.join(generator.result)
-        filename = Path(rep) / f"{m.name}.h"))
+        filename = Path(rep) / f"{m.name}.h"
         with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
         h = []
@@ -1891,7 +1891,7 @@ def headerCompo(models, rep, name):
     param = generator.node_param
     generator.generate_hpp(param, f"{mc}Component", mc=mc, h=h, init=True, iscompo=True, ns=rep.name)
     z = ''.join(generator.result)
-    filename = Path(rep) / f"{mc}Component.h"))
+    filename = Path(rep) / f"{mc}Component.h"
     with filename.open("wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
 
