@@ -1,8 +1,6 @@
-# FB 2025-04-14: based on ADEL and hydroshoot, sphinx pkg in environment.yml
 [build-system]
 requires = [
-    "setuptools",
-    "six",
+    "setuptools>=61",
   ]
 build-backend = "setuptools.build_meta"
 
@@ -16,6 +14,8 @@ name = "pycropml"
 dynamic = ["version", "readme"]
 authors = [
   { name = "Cyrille Ahmed Midingoyi", email="cyrille_ahmed.midingoyi@cirad.fr" },
+  { name = "Christophe Pradal", email="christophe.pradal@cirad.fr" },
+
 ]
 description = "A Python library to generate components from Crop2ML declarative language"
 license-files = ["LICEN[CS]E*"]
@@ -28,6 +28,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Scientific/Engineering",
   "Framework :: OpenAlea",
   "Framework :: Crop2ML",
@@ -36,13 +37,16 @@ classifiers = [
 dependencies = [
     "ipykernel",
     "configobj",
-    "six",
     "setuptools",
 ]
 
 [tool.setuptools.dynamic]
 version = {attr = "pycropml.version.__version__"}
 readme = {file = ["README.rst"]}
+
+
+[tool.setuptools.package-data]
+pycropml = ["**/*.json", "**/*.xml", "**/*.ini"]
 
 # section specific to conda-only distributed package (not used by pip yet)
 [tool.conda.environment]
@@ -51,6 +55,18 @@ channels = [
   "conda-forge"
 ]
 dependencies = [
+  "nbformat",
+  "numpy",
+  "Cython>=0.29.37,<3",
+  "networkx",
+  "graphviz",
+  "pydot",
+  "pyyaml",
+  "unyt",
+  "IPython",
+  "antlr4-python3-runtime==4.8",
+  "xmlformatter",
+  "pandas"
 ]
 
 [project.optional-dependencies]
@@ -74,3 +90,4 @@ Changelog = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/re
 
 [project.scripts]
 cyml = " pycropml.main:main"
+cyml-check-composition = "pycropml.transpiler.antlr_py.validate_composition:main"
