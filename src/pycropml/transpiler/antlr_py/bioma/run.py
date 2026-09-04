@@ -3,10 +3,9 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os
-from os.path import isdir
 from copy import deepcopy
 from typing import *
-from path import Path
+from pathlib import Path
 
 import networkx as nx
 import itertools
@@ -63,15 +62,12 @@ pseudo_type_={
     
 
 def create_package(output):
-    crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-    if not crop2ml_rep.is_dir():
-        crop2ml_rep.mkdir()
-    algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not algo_rep.is_dir():
-        algo_rep.mkdir()
-    cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not cyml_rep.is_dir():
-        cyml_rep.mkdir()
+    crop2ml_rep = Path(output) / 'crop2ml'
+    crop2ml_rep.mkdir(exist_ok=True)
+    algo_rep = crop2ml_rep / 'algo'
+    algo_rep.mkdir(exists_ok=True)
+    cyml_rep = algo_rep / 'pyx'
+    cyml_rep.mkdir(exist_ok=True)
     return crop2ml_rep, cyml_rep    
                 
 
@@ -432,8 +428,8 @@ def run_bioma(component, output):
                 h = cd.transform()
                 nd = transform_to_syntax_tree(h)
                 code = writeCyml(nd) 
-                filename = Path(os.path.join(cyml_rep, "%s.pyx"%(name)))
-                with open(filename, "wb") as tg_file:
+                filename = Path(cyml_rep) / "%s.pyx"%(name)
+                with filename.open("wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                     
         rr, vv = translate(total_tree, z.dclassdict, algo.block, params_not_declared_, res_inout, member_category, dict_pa)
@@ -466,8 +462,8 @@ def run_bioma(component, output):
             h = cd.transform()
             nd = transform_to_syntax_tree(h)
             initcode = writeCyml(nd)
-            filename = Path(os.path.join(cyml_rep, "init.%s.pyx"%(z.model.name)))
-            with open(filename, "wb") as tg_file:
+            filename = Path(cyml_rep) / "init.%s.pyx"%(z.model.name)
+            with filename.open("wb") as tg_file:
                 tg_file.write(initcode.encode('utf-8'))   
                
         models.append(z.model)
@@ -477,13 +473,13 @@ def run_bioma(component, output):
         nd = transform_to_syntax_tree(h)
         code = writeCyml(nd)
          
-        filename = Path(os.path.join(cyml_rep, "%s.pyx"%(straNames[k])))
-        with open(filename, "wb") as tg_file:
+        filename = Path(cyml_rep) / "%s.pyx"%(straNames[k])
+        with filename.open("wb") as tg_file:
             tg_file.write(code.encode('utf-8'))
         
         xml_ = Pl2Crop2ml(z.model, "Crop2ML."+pkg).run_unit() 
-        filename = Path(os.path.join(crop2ml_rep, "unit.%s.xml"%(straNames[k])))
-        with open(filename, "wb") as xml_file:
+        filename = Path(crop2ml_rep) / "unit.%s.xml"%(straNames[k])
+        with filename.open("wb") as xml_file:
             #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
             r = '<?xml version="1.0" encoding="UTF-8"?>\n'
             r += '<!DOCTYPE ModelUnit PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelUnit.dtd">\n'
@@ -494,8 +490,8 @@ def run_bioma(component, output):
         z.modelcomposition(models,compo)
         xml_ = Pl2Crop2ml(z.mc, "Crop2ML."+pkg).run_compo()
         name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
-        filename = Path(os.path.join(crop2ml_rep, "composition.%s.xml"%(name)))
-        with open(filename, "wb") as xml_file:
+        filename = Path(crop2ml_rep) / "composition.%s.xml"%(name)
+        with filename.open("wb") as xml_file:
             #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
             r = '<?xml version="1.0" encoding="UTF-8"?>\n'
             r += '<!DOCTYPE ModelComposition PUBLIC " " "https://raw.githubusercontent.com/AgriculturalModelExchangeInitiative/crop2ml/master/ModelComposition.dtd">\n'

@@ -4,12 +4,14 @@
     information extraction over structured documentation or comments
 
 """
+import os
+import re
+
 from pycropml.composition import ModelComposition
 from pycropml.modelunit import ModelUnit
 from pycropml.description import Description
 from pycropml.inout import Input, Output
-import os
-import re
+
 # Return a file's comments.
 def ExtractComments(filename, c_st_single, c_st_multi, c_end_multi):
     # If a language has no block comment style, be sure that the default c_st_multi and c_end_multi will never be met.
@@ -220,7 +222,7 @@ def extract_compo(comment):
 
 """
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import ExtractComments, extract
-from path import Path
+from pathlib import Path
 file = Path("C:/Users/midingoy/Documents/SQ_Wheat_Phenology/src/f90/vernalizationprogress.f90")
 r = ExtractComments(file, "!", '"""', '"""') 
 v = extract(r)

@@ -1,11 +1,12 @@
 # coding: utf8
 from __future__ import absolute_import
 import os
+from pathlib import Path
+
 from Cython.Compiler import Scanning
 from Cython.Compiler import Main
 from Cython.Compiler import Options
-from path import Path
-import sys
+
 from pycropml.transpiler.errors import PseudoCythonParseError
 from pycropml.transpiler.logger import get_logger
 

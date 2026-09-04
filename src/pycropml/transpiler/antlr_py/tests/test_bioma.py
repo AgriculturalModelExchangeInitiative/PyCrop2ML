@@ -3,7 +3,8 @@ from __future__ import absolute_import
 from __future__ import print_function
 import os
 from os.path import isdir
-from path import Path
+from pathlib import Path
+
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
 from pycropml.transpiler.antlr_py.bioma.biomaExtraction import BiomaExtraction
 from pycropml.transpiler.pseudo_tree import Node
@@ -17,25 +18,22 @@ from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
 
 """
 
-cwd = Path(__file__).dirname()
+cwd = Path(__file__).parent
 data = cwd/'examples'/'SiriusComponent'/'phenology'/'Strategies'
 
-compositeStrat= data.glob('*Component.cs')[0]
+compositeStrat= next(data.glob('*Component.cs'))
 simpleStrat = [f for f in data.glob('*.cs')  if f not in compositeStrat]
 
 data = cwd/'examples'/'SiriusComponent'/'phenology'/'DomainClass'
 varInfo = data.glob('*VarInfo.cs')
 
 output = cwd/'examples'/'SiriusComponent'/'phenology'
-crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-if not isdir(crop2ml_rep):
-    crop2ml_rep.mkdir()
-algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-if not isdir(algo_rep):
-    algo_rep.mkdir()
-cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-if not isdir(cyml_rep):
-    cyml_rep.mkdir()
+crop2ml_rep = output / 'crop2ml'
+crop2ml_rep.mkdir(exist_ok=True)
+algo_rep = crop2ml_rep / 'algo'
+algo_rep.mkdir(exist_ok=True)
+cyml_rep = algo_rep / 'pyx'
+cyml_rep.mkdir(exist_ok=True)
 
 
 vinfoAsg = []

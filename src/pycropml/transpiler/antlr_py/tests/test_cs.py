@@ -2,12 +2,11 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from functools import total_ordering
-from path import Path
-import os
+from pathlib import Path
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
 
 
-cwd = Path(__file__).dirname()
+cwd = Path(__file__).parent
 data = cwd/'examples'/'cs'
 
 simpleStrat = [f for f in data.glob('*.cs')]

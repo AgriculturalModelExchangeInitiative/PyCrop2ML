@@ -1,5 +1,6 @@
-from path import Path
 import os
+from pathlib import Path
+
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
 from pycropml.transpiler.antlr_py.apsim.apsimExtraction import ApsimExtraction
 from pycropml.transpiler.antlr_py.apsim.run import run_apsim

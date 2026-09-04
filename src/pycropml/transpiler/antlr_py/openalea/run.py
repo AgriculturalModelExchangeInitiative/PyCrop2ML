@@ -1,6 +1,8 @@
 
-from path import Path
 import os
+from pathlib import Path
+import re
+
 from pycropml.transpiler.antlr_py import repowalk
 from pycropml.transpiler.antlr_py.codeExtraction import extraction
 from pycropml.transpiler.antlr_py.generateCyml import writeCyml
@@ -10,8 +12,6 @@ from pycropml.transpiler.antlr_py.openalea.openaleaExtraction import OpenaleaExt
 from pycropml.transpiler.antlr_py.python.python_preprocessing import RemImplicit_return, Declarations
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import extract
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml, generate_compositefile, generate_unitfile, create_repo
-import xmlformatter
-import re
 
 class NotAuthorizedException(Exception):
     pass
@@ -42,8 +42,8 @@ def run_openalea(components, package):
     
     create_repo(package)    
     files = repowalk.walk(components, 'py')
-    composite= Path(components).glob('*Component.py')[0]
-    wralea= Path(components).glob('__wralea__.py')[0]
+    composite= next(Path(components).glob('*Component.py'))
+    wralea= next(Path(components).glob('__wralea__.py'))
     op_extr = OpenaleaExtraction()
     op_extr.pm.clear()
     wf =  op_extr.retrievePackage(components)  

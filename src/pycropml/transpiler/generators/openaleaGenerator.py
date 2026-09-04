@@ -1,8 +1,8 @@
 
-from pycropml.transpiler.generators.pythonGenerator import PythonGenerator, PythonCompo
 import os
+from pathlib import Path
+from pycropml.transpiler.generators.pythonGenerator import PythonGenerator, PythonCompo
 from pycropml.composition import model_parser
-from path import Path
 
 try:
     from openalea.core import interface as inter
@@ -89,13 +89,11 @@ class OpenaleaCompo(PythonCompo):
         names.insert(0, 'amei')
         name = '.'.join(names).lower()
         wra_path = mc.path.split(os.path.sep)[-1].replace('-', '_')
-        path = Path(os.path.join(mc.path,"src","openalea", wra_path))
+        path = Path(mc.path) / "src" / "openalea" / wra_path
         _package = package.UserPackage(name, metainfo, path)
-        print(name, path)
         for model in mc.model:
             if not model.package_name or model.package_name=="unit":		
                 _factory = self.generate_factory(model)
-                print(_factory.name)
                 _package.add_factory(_factory)
             else:
                 pass
