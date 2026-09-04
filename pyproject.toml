@@ -15,7 +15,6 @@ dynamic = ["version", "readme"]
 authors = [
   { name = "Cyrille Ahmed Midingoyi", email="cyrille_ahmed.midingoyi@cirad.fr" },
   { name = "Christophe Pradal", email="christophe.pradal@cirad.fr" },
-
 ]
 description = "A Python library to generate components from Crop2ML declarative language"
 license-files = ["LICEN[CS]E*"]
@@ -89,5 +88,5 @@ Changelog = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/re
 #"pycropml_data" = ["*"]
 
 [project.scripts]
-cyml = " pycropml.main:main"
+cyml = "pycropml.main:main"
 cyml-check-composition = "pycropml.transpiler.antlr_py.validate_composition:main"

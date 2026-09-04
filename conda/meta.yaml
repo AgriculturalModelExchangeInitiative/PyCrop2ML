@@ -1,22 +1,16 @@
-{% set data = load_file_data('../pyproject.toml') %}
-{% set version = data.get('project', {}).get('version', '2.2.0') %}
-
 package:
   name: pycropml
-  version: {{ 'version' }}
+  version: 2.2.0
 
 source:
   path: ..
 
 build:
   #noarch: python  [unix]
-  preserve_egg_dir: True
   number: 0
+  preserve_egg_dir: True
+  
   script: {{ PYTHON }} -m pip install . --no-deps -vv
-  entry: 
-    - cyml = pycropml.main:main
-    - cyml-check-composition = pycropml.transpiler.antlr_py.validate_composition:main
-
 
 requirements:
   host:
@@ -44,8 +38,10 @@ requirements:
 test:
   imports:
     - pycropml
+
   commands:
     - cyml -h
+    - cyml-check-composition --help
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
