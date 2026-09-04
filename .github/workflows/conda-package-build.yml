@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-version: ["3.12", "3.13", "3.14"]
+        python-minor-version: [12, 13, 14]
 
     steps:
       - name: Checkout
@@ -26,7 +26,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: build
-          python-version: ${{ matrix.python-version }}
+          python-version: "3.${{ matrix.python-minor-version }}"
           auto-activate-base: false
           channels: conda-forge, openalea3, amei
           channel-priority: strict
@@ -46,7 +46,7 @@ jobs:
         shell: bash -el {0}
         run: |
           conda run -n build conda-build conda \
-          --python ${{ matrix.python-version }} \
+          --python 3.${{ matrix.python-minor-version }} \
           --output-folder conda-bld
 
 #      - name: Upload to Anaconda
