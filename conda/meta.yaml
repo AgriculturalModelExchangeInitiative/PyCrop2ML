@@ -1,8 +1,9 @@
-{% set data = load_setup_py_data() %}
+{% set data = load_file_data('../pyproject.toml') %}
+{% set version = data.get('project', {}).get('version', '2.2.0') %}
 
 package:
   name: pycropml
-  version: {{ data.get('version') }}
+  version: {{ 'version' }}
 
 source:
   path: ..
@@ -14,27 +15,21 @@ build:
   script: {{ PYTHON }} -m pip install . --no-deps -vv
   entry: 
     - cyml = pycropml.main:main
+    - cyml-check-composition = pycropml.transpiler.antlr_py.validate_composition:main
+
 
 requirements:
-  build:
-    - python {{PY_VER}}
+  host:
+    - python
     - pip
     - setuptools
   run:
-    - python {{PY_VER}}
-    - antlr4-python3-runtime  ==4.8
+    - python
+    - antlr4-python3-runtime ==4.8
     - cython >=0.29.37,<3
     - xmlformatter
-    - path
-    {% if PY_VER.startswith("3.9") %}
-    - numpy ==2.0.2   # For Python 3.9
-    {% elif PY_VER.startswith("3.10") %}
-    - numpy ==2.0.2   # For Python 3.10
-    {% elif PY_VER.startswith("3.11") %}
-    - numpy ==2.0.2   # For Python 3.11
-    {% endif %}
+    - numpy   >=2.0
     - pyyaml
-    - six
     - networkx
     - unyt
     - nbformat
@@ -45,12 +40,15 @@ requirements:
     - openalea.core
 
 
-#test:
-#  imports:
-#    - pycropml
+
+test:
+  imports:
+    - pycropml
+  commands:
+    - cyml -h
 
 about:
   home: https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML
-  license: Cecill-c License
+  license: Cecill-c 
   summary: PyCrop2ML Python library.
 
