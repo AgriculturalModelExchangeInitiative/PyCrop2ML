@@ -190,8 +190,8 @@ def transpile_package(package, language):
         simulation = PythonSimulation(T.model, package_name=namep)
         simulation.generate()
         code = ''.join(simulation.result)
-        filename = tg_rep / "simulation.py"))
-        initfile = tg_rep / "__init__.py"))
+        filename = tg_rep / "simulation.py"
+        initfile = tg_rep / "__init__.py"
         with filename.open("wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
         with initfile.open("wb") as tg_file:
