@@ -8,7 +8,8 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from path import Path 
+
+from pathlib import Path 
 from pycropml.formater_f90 import formater  
 from pycropml.composition import model_parser
 
@@ -175,9 +176,9 @@ class Model2Package(object):
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            filename = Path(self.directory/"test_%s.f90"%signature(model))
+            filename = Path(self.directory) / f"test_{signature(model)}.f90"
             codetest = "!Test generation\n\n"+codetest
-            with open(filename, "wb") as f90_file:
+            with filename.open("wb") as f90_file:
                 f90_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1

@@ -14,7 +14,7 @@ import os
 
 from optparse import OptionParser
 
-from path import Path
+from pathlib import Path
 
 from pycropml.cyml import transpile_file, transpile_package, transpile_component
 

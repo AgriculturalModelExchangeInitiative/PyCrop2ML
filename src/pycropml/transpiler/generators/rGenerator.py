@@ -1,10 +1,10 @@
 # coding: utf8
+import os
+
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.rRules import RRules, changetyp
 from pycropml.transpiler.generators.docGenerator import DocGenerator
-import os
 from pycropml.render_cyml import signature
-from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml.nameconvention import signature2, signature2_from_name

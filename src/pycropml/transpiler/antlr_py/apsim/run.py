@@ -3,7 +3,7 @@
 from __future__ import absolute_import
 from __future__ import print_function
 from os.path import isdir 
-from path import Path
+from pathlib import Path
 import os
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
 from pycropml.transpiler.antlr_py.apsim.apsimExtraction import ApsimExtraction

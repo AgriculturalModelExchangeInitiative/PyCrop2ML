@@ -15,9 +15,9 @@ from . import function
 from . import initialization
 import os.path
 import os
-from path import Path
+from pathlib import Path
 
-class Parser(object):
+class Parser:
     """Read an XML file and transform it in our object model."""
     def parse(self, crop2ml_dir):
         raise Exception('Not Implemented')
@@ -31,9 +31,9 @@ class ModelParser(Parser):
     def parse(self, crop2ml_dir):
         self.models = []
         self.crop2ml_dir = crop2ml_dir
-        xmlrep = Path(os.path.join(self.crop2ml_dir, 'crop2ml'))
-        self.algorep = Path(os.path.join(self.crop2ml_dir, 'crop2ml'))
-        fn = xmlrep.glob('unit*.xml') + xmlrep.glob('function*.xml')+xmlrep.glob('init*.xml')
+        xmlrep = Path(self.crop2ml_dir) / 'crop2ml'
+        self.algorep = Path(self.crop2ml_dir) / 'crop2ml'
+        fn = list(xmlrep.glob('unit*.xml')) + list(xmlrep.glob('function*.xml')) + list(xmlrep.glob('init*.xml'))
         try:
             for f in fn:           
         # Current proxy node for managing properties            
@@ -125,8 +125,8 @@ class ModelParser(Parser):
         if "filename" in elt.attrib:
             filename = elt.attrib["filename"]
             #file = self.algorep/ os.path.splitext(filename)[1][1:]/filename
-            file = Path(os.path.join(self.algorep, filename))
-            with open(file, 'r') as f:
+            file = Path(self.algorep) / filename
+            with file.open('r') as f:
                 development = f.read()
             algo = algorithm.Algorithm(language, development, platform, filename)
         else:

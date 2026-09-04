@@ -1,18 +1,19 @@
 # coding: utf8
+import os
+from copy import copy
+from pathlib import Path
+
 from importlib.machinery import ExtensionFileLoader
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.javaRules import JavaRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
-import os
 from pycropml.transpiler.interface import middleware
-from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.api_declarations import Middleware
 from pycropml.nameconvention import signature2
 from pycropml.composition import ModelComposition
-from copy import copy
 
 
 class Custom_call(Middleware):
@@ -1249,30 +1250,30 @@ def to_struct_java(models, rep, name):
     states = generator.node_states
     generator.generate(states, "%sState"%name)
     z= ''.join(generator.result)
-    filename = Path(os.path.join(rep,"%sState.java"%name))
-    with open(filename, "wb") as tg_file:
+    filename = Path(rep) / "%sState.java"%name
+    with filename.open("wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(rates, "%sRate"%name)
     z1= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sRate.java"%name))
-    with open(filename, "wb") as tg1_file:
+    filename = Path(rep) / "%sRate.java"%name
+    with filename.open("wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
     auxiliary = generator.node_auxiliary
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(auxiliary, "%sAuxiliary"%name)
     z2= ''.join(generator.result)
-    filename = Path(os.path.join(rep/"%sAuxiliary.java"%name))
-    with open(filename, "wb") as tg2_file:
+    filename = Path(rep) / "%sAuxiliary.java"%name
+    with filename.open("wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8')) 
 
     exogenous = generator.node_exogenous
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(exogenous, "%sExogenous"%name)
     z2= ''.join(generator.result)
-    filename = Path(os.path.join(rep/"%sExogenous.java"%name))
-    with open(filename, "wb") as tg2_file:
+    filename = Path(rep) / "%sExogenous.java"%name
+    with filename.open("wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))  
     return 0
 

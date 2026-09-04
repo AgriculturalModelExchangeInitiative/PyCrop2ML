@@ -1,20 +1,23 @@
-from pycropml import composition
-from pycropml.pparse import model_parser
-from path import Path
-import networkx as nx
-from collections import defaultdict
-from IPython.display import Image, display, SVG
-from networkx.drawing.nx_pydot import to_pydot
-from pycropml.render_cyml import signature
 import os
 import sys
-from pycropml.transpiler.main import Main
 from copy import copy
-from pycropml.render_cyml import my_input, DATATYPE
-import pandas as pd
+from collections import defaultdict
 import importlib
-from graphviz import Source
+
+from pathlib import Path
+import pandas as pd
+
+from IPython.display import Image, display, SVG
+
 import networkx as nx
+from networkx.drawing.nx_pydot import to_pydot
+from graphviz import Source
+
+from pycropml import composition
+from pycropml.pparse import model_parser
+from pycropml.render_cyml import signature
+from pycropml.transpiler.main import Main
+from pycropml.render_cyml import my_input, DATATYPE
 
  
 class Package:
@@ -100,7 +103,7 @@ class Topology:
         self.data = Path(self.pkg)/"crop2ml"
         self.diff_in, self.diff_out = {}, {}
         composite_file = None
-        composite_files = self.data.glob("composition*.xml")
+        composite_files = list(self.data.glob("composition*.xml"))
         if composite_files:
             composite_file = composite_files[0]
             self.mu = model_parser(self.pkg)
@@ -238,8 +241,10 @@ class Topology:
                 inout[m.name] = (inp, out)
                 self.model.model[i].inputs = self.meta_inp(pkgname)
                 self.model.model[i].outputs = self.meta_out(pkgname)
-                data = Path(os.path.join(self.path_pkg,"crop2ml"))
-                composite_file = data.glob("composition*.xml")[0]
+
+                data = Path(self.path_pkg) / "crop2ml"
+                composite_file = next(data.glob("composition*.xml"))
+
                 mc, = composition.model_parser(composite_file)
                 self.model.model[i].description = mc.description
                 self.model.model[i].inputlink = mc.inputlink
@@ -281,8 +286,8 @@ class Topology:
     def write_png(self, dir_images):
         G = self.createGraph()
         #a = to_pydot(G)
-        img = Path(os.path.join(dir_images, f"{self.model.name}.png"))
-        print(img)
+        img = Path(dir_images) / f"{self.model.name}.png"
+        print(str(img))
         df = pd.DataFrame(G.edges(data=True), columns=['Source', 'Target', 'Weight'])
         df['Weight'] = df['Weight'].map(lambda x: x['weight'] if 'weight' in x else 0)    
         #a.write_png(img)
@@ -335,8 +340,8 @@ class Topology:
         out_states = [out for out in self.model.outputs if out.variablecategory == "state"]
         if self.model.initialization:
             file_init = self.model.initialization[0].filename
-            path_init = Path(os.path.join(self.pkg, "crop2ml", file_init))
-            with open(path_init, 'r') as f:
+            path_init = Path(self.pkg) / "crop2ml" / file_init
+            with path_init.open('r') as f:
                 code_init = f.read()
             if code_init is not None:
                 lines = [tab+l for l in code_init.split('\n') if l.split()]

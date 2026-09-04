@@ -1,4 +1,6 @@
 import sys
+import os
+from pathlib import Path
 
 import pycropml.transpiler.generators
 import pycropml.transpiler.generators.csharpGenerator
@@ -23,8 +25,6 @@ import pycropml.transpiler.generators.openaleaGenerator
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml.transpiler.logger import get_logger
-import os
-from path import Path
 
 
 logger = get_logger('transpiler.main')
