@@ -10,9 +10,8 @@ Problems:
 from __future__ import print_function
 from __future__ import absolute_import
 import os
-from path import Path
+from pathlib import Path
 import numpy
-import six
 from pycropml.composition import model_parser
 
 
@@ -50,14 +49,16 @@ class Model2Package(object):
 
     def generate_test_import(self, model_unit, package=None):
         m = model_unit
-        dir_crop2ml = Path(os.path.join(m.path, "crop2ml"))
-        if package is not None:
-            rel_dir_src = Path(os.path.join(m.path, "test", "cpp")).relpathto(
-                Path(os.path.join(m.path, "src", "cpp", package)))
-        else:
-            rel_dir_src = Path(os.path.join(m.path, "test", "cpp")).relpathto(Path(os.path.join(m.path, "src", "cpp")))
+        dir_crop2ml = Path(m.path)/"crop2ml"
 
-        dir_compo = dir_crop2ml.glob("composition*.xml")[0]
+        test_cpp = Path(m.path) / "test" / "cpp"
+        src_cpp = Path(m.path) / "src" / "cpp"
+        if package is not None:
+            rel_dir_src = Path(os.path.relpath(src_cpp / package, test_cpp))
+        else:
+            rel_dir_src = Path(os.path.relpath(src_cpp, test_cpp))
+
+        dir_compo = next(dir_crop2ml.glob("composition*.xml"))
         name_mc = model_parser(dir_compo)[0].name
 
         self.import_test += f'#include "{os.path.join(rel_dir_src, name_mc)}State.cpp"\n'
@@ -75,8 +76,8 @@ class Model2Package(object):
         inputs = m.inputs
         outputs = m.outputs
         num = 0
-        dir_crop2ml = Path(os.path.join(m.path, "crop2ml"))
-        dir_compo = dir_crop2ml.glob("composition*.xml")[0]
+        dir_crop2ml = Path(m.path) / "crop2ml"
+        dir_compo = next(dir_crop2ml.glob("composition*.xml"))
         name_mc = model_parser(dir_compo)[0].name
         psets = m.parametersets
 
@@ -139,15 +140,15 @@ class Model2Package(object):
                     run_param = params.copy()
                     run_param.update(ins)
                     for testinp in inputs:
-                        if testinp.name not in list(run_param.keys()):
+                        if testinp.name not in list(run_param):
                             run_param[testinp.name] = testinp.default if testinp.datatype not in ("DATE", "STRING") \
                                 else str(testinp.default)
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         type_v = [inp.datatype for inp in inputs if inp.name == k][0]
                         self.code_test += 3 * tab + "this->%s.set%s(%s);\n" % (
                         categ(k, inputs), k if not k.endswith("_t1") else k[:-3], transf(type_v, v))
                     self.code_test += 3 * tab + "this->mod.Calculate_Model(s,s1, r, a, ex);\n"
-                    for k, v in six.iteritems(outs):
+                    for k, v in outs.items():
                         type_o = [out.datatype for out in outputs if out.name == k][0]
                         self.code_test += 3 * tab + "//%s: %s;\n" % (k, v[0])
                         self.code_test += 3 * tab + f'cout << "{k} estimated :\\n";\n'

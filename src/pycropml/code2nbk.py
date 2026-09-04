@@ -6,14 +6,15 @@ Generate notebook from code source
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from path import Path
-import pycropml.test_generator
+
+from pathlib import Path
 import os
 import sys
 
+import pycropml.test_generator
+
 # The package used to generate Notebook
 import nbformat as nbf
-import six
 
 
 class Model2Nb(object):
@@ -44,13 +45,14 @@ class Model2Nb(object):
 
         _cells = self.nb['cells'] = [nbf.v4.new_markdown_cell(text)]
 
+        tg_rep = Path(tg_rep)
 
         var = ["Auxiliary", "Rate", "State", "Exogenous"]
         if language in ("cs", "java"):
             for v in var:
-                fileVar = Path(os.path.join(tg_rep, f"{mc_name}{v}.{language}"))
+                fileVar = tg_rep / f"{mc_name}{v}.{language}"
                 #fileVar = Path(os.path.join(tg_rep, "%s%s.%s" % (mc_name.capitalize() if language=="java" else mc_name, v, language)))
-                with open(fileVar, "r") as var_file:
+                with fileVar.open("r") as var_file:
                     fi = var_file.read()
                 namev = "%s%s" % (mc_name.capitalize(), v)
 
@@ -62,7 +64,7 @@ class Model2Nb(object):
         text = u"""\
 ### Model %s""" % self.name
         _cells.append(nbf.v4.new_markdown_cell(text))
-        code_tests = getattr(pycropml.test_generator, "generate_test_%s" % language)(self.model, self.dir, package=namep)
+        code_tests = getattr(pycropml.test_generator, f"generate_test_{language}")(self.model, self.dir, package=namep)
 
 
         if language in ("cs", "java"):
@@ -75,16 +77,16 @@ class Model2Nb(object):
                 _cells.append(nbf.v4.new_code_cell(code))
 
         elif language == "f90" :
-            list_sub = Path(os.path.join(tg_rep, "list_sub.f90"))
-            if os.path.isfile(list_sub):
-                with open(list_sub, "r") as fi:
+            list_sub = tg_rep / "list_sub.f90"
+            if list_sub.is_file():
+                with list_sub.open("r") as fi:
                     sub = fi.read()
                 self.code = sub + self.code
             for code in code_tests:
                 code = self.code + code
                 _cells.append(nbf.v4.new_code_cell(code))
 
-        fname = Path(os.path.join(self.dir, "%s.ipynb" % self.name))
+        fname = Path(self.dir) / f"{self.name}.ipynb" 
         if sys.version_info[0] >= 3:
             with open(file=fname, mode="w", encoding='utf-8') as f:
                 nbf.write(self.nb, f)
