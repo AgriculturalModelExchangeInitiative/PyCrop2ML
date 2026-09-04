@@ -796,7 +796,7 @@ def to_struct_bioma(models, rep, name):
         generator.result = []
         generator.generateVarInfo(states, "%s%s"%(name,catvar), name)
         z= ''.join(generator.result)
-        filename = rep / "%s%sVarInfo.cs"%(name, catvar)))
+        filename = rep / "%s%sVarInfo.cs"%(name, catvar)
         with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
 
