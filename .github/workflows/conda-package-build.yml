@@ -34,13 +34,18 @@ jobs:
       - name: Install conda-build
         shell: bash -el {0}
         run: |
-          conda install -y conda-build anaconda-client
+          conda install -y -n build conda-build anaconda-client
 
+
+      - name: Check conda-build
+        shell: bash -el {0}
+        run: |
+          conda run -n build conda-build --version
 
       - name: Build package
         shell: bash -el {0}
         run: |
-          conda build conda \
+          conda run -n build conda-build conda \
           --python ${{ matrix.python-version }} \
           --output-folder conda-bld
 
