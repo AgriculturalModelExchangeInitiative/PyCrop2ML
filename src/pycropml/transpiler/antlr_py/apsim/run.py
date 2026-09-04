@@ -2,9 +2,11 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-from os.path import isdir 
-from pathlib import Path
 import os
+from os.path import isdir 
+from copy import deepcopy, copy
+from pathlib import Path
+
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
 from pycropml.transpiler.antlr_py.apsim.apsimExtraction import ApsimExtraction
 from pycropml.transpiler.pseudo_tree import Node
@@ -16,7 +18,6 @@ from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
 from pycropml.transpiler.antlr_py import repowalk
 from pycropml.transpiler.antlr_py.to_specification import createObjectCompo
 
-from copy import deepcopy, copy
 from typing import *
 import networkx as nx
 import itertools

@@ -1,12 +1,12 @@
 
 
-from path import Path
+from pathlib import Path
 from pycropml import pparse as pp
-data = Path('test/data')
-xmls = data.glob('*.xml')
+data = Path('test')/'data'
+xmls = list(data.glob('*.xml'))
 
 def example():
-    fn = data.glob('Example*.xml')[0]
+    fn = next(data.glob('Example*.xml'))
 
     parser = pp.Parser()
     model = parser.parse(fn)

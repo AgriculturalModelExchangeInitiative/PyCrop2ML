@@ -1,10 +1,11 @@
 # coding: utf8
+import os
+from pathlib import Path
+
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.csharpRules import CsharpRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
-import os
-from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml import code2nbk
@@ -771,12 +772,14 @@ def to_struct_bioma(models, rep, name):
     generator = BiomaTrans(models)
     generator.model2Node()
 
+    rep = Path(rep)
+
     def createdc(states, catvar):
         generator.result = []
         generator.generate(states, "%s%s"%(name,catvar), name)
         z= ''.join(generator.result)
-        filename = Path(os.path.join(rep, "%s%s.cs"%(name, catvar)))
-        with open(filename, "wb") as tg_file:
+        filename = rep / "%s%s.cs"%(name, catvar)
+        with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
 
     states = generator.node_states
@@ -793,8 +796,8 @@ def to_struct_bioma(models, rep, name):
         generator.result = []
         generator.generateVarInfo(states, "%s%s"%(name,catvar), name)
         z= ''.join(generator.result)
-        filename = Path(os.path.join(rep, "%s%sVarInfo.cs"%(name, catvar)))
-        with open(filename, "wb") as tg_file:
+        filename = rep / "%s%sVarInfo.cs"%(name, catvar)))
+        with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
 
     states = generator.states
@@ -1327,19 +1330,21 @@ using CRA.AgroManagement;
         self.write("}")
 
 def to_wrapper_bioma(models, rep, name, customer = ''):
+    rep = Path(rep)
+
     generator = BiomaCompo(model = models, customer=customer)
     generator.result=[u"using System;\nusing System.Collections.Generic;\nusing System.Linq;\n"]
     generator.model2Node()
     generator.wrapper()
     z= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sWrapper.cs"%name))
-    with open(filename, "wb") as tg2_file:
+    filename = rep / "%sWrapper.cs"%name
+    with filename.open("wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
-    filename = Path(os.path.join(rep, "IStrategy%s%s.cs"%(customer,name)))
+    filename = rep / "IStrategy%s%s.cs"%(customer,name)
     generator2 = BiomaCompo(model = models)
     generator2.interfaceStrategy(1)
     z= ''.join(generator2.result)
-    with open(filename, "wb") as tg2_file:
+    with filename.open("wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
 
     return 0

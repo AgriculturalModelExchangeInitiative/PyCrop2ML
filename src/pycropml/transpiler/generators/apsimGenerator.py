@@ -1,11 +1,12 @@
 # coding: utf8
+import os
+from pathlib import Path
+
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.csharpRules import CsharpRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.nameconvention import signature2, signature2_from_name
-import os
-from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml import code2nbk
