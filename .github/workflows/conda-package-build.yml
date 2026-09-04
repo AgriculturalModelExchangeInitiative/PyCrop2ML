@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        python-minor-version: [12, 13, 14]
+        python-version: [12, 13, 14]
 
     steps:
       - name: Checkout
