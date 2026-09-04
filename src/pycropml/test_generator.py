@@ -6,7 +6,7 @@ from pycropml import render_r
 from pycropml.render_cyml import transf, signature
 from pycropml.modelunit import ModelUnit
 from pycropml.nameconvention import signature1
-import six
+from pathlib import Path
 
 
 def splitunit(unit):
@@ -22,7 +22,6 @@ def splitunit(unit):
     
 
 def generate_test_py(model:ModelUnit,dir=None, package=None):
-    from path import Path
     import os
     
     tab = ' '*4
@@ -45,11 +44,14 @@ def generate_test_py(model:ModelUnit,dir=None, package=None):
         elif inp.variablecategory=="state":
             init_var_out.append(inp.name)
     
+    test_py = Path(m.path) / "test" / "py"
+    src_py = Path(m.path) / "src" / "py"
+
     if package is not None:
-        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py", package.replace("-", "_"))))
+        rel_dir_src = os.path.relpath(src_py / package.replace("-", "_"), test_py)
     else:
-        rel_dir_src = Path(os.path.join(m.path, "test", "py")).relpathto(Path(os.path.join(m.path, "src", "py")))
-    
+        rel_dir_src = os.path.relpath(src_py, test_py) 
+
     import_test = f'import numpy\nfrom datetime import datetime\nfrom array import array\n'
     import_test += f'import sys\n'
     import_test += f'sys.path.append("{rel_dir_src}")\n'
@@ -91,7 +93,7 @@ def generate_test_py(model:ModelUnit,dir=None, package=None):
                     name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory
                     
                 
-                for k, v in six.iteritems(run_param):
+                for k, v in run_param.items():
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
                     code = "%s = %s" % (k, transf(type_[0], v)) 
                     if m.initialization:
@@ -100,7 +102,7 @@ def generate_test_py(model:ModelUnit,dir=None, package=None):
                     else:
                         test_codes.append(code)
 
-                for k, v in six.iteritems(ins):
+                for k, v in ins.items():
                     type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
                     code = "%s = %s" % (k, transf(type_[0], v)) 
                     if v and name_categ[k] == "state" :

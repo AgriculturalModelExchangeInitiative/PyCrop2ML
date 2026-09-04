@@ -1,10 +1,8 @@
-from pycropml.transpiler.generators.javaGenerator import JavaGenerator, Custom_call
 from copy import deepcopy
 import os
-import six
+
+from pycropml.transpiler.generators.javaGenerator import JavaGenerator, Custom_call
 from pycropml.transpiler.antlr_py.toxml import Namespace
-import os
-from path import Path
 from pycropml.nameconvention import signature2
 from pycropml.transpiler.pseudo_tree import Node
 
@@ -444,7 +442,7 @@ class SimplaceGenerator(JavaGenerator):
                     run_param = params.copy()
                     run_param.update(ins)
 
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         self.write(f'FWSimVariable.setValue({transf(type_in[k],v)}, iFieldMap.get("{self.model.name}.{k}"), this);')
                         self.newline()
                     
@@ -459,7 +457,7 @@ class SimplaceGenerator(JavaGenerator):
                     self.newline(1)	
                     self.indentation+=1	
 
-                    for k, v in six.iteritems(outs):
+                    for k, v in outs.items:
                         self.write(f'FWSimVariable.setValue({transf(type_out[k],v[0])}, iFieldMap.get("{self.model.name}.{k}"), this);')
                         self.newline()
                     
