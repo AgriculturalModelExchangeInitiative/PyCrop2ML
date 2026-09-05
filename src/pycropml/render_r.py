@@ -8,9 +8,6 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from path import Path
-import os.path
-import six
 from pycropml.nameconvention import signature1
 import platform
 
@@ -97,7 +94,7 @@ class Model2Package(object):
                             run_param[j.name]=j.default 
                         name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory        
                         
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         if v:
                             code = tab + "%s = %s"%(k,transf(type_v, v))
@@ -107,7 +104,7 @@ class Model2Package(object):
                             else:
                                 test_codes.append(code)
             
-                    for k, v in six.iteritems(ins):
+                    for k, v in ins.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         code = tab + "%s = %s" % (k, transf(type_v, v)) 
                         if v and name_categ[k] == "state" :
@@ -124,7 +121,7 @@ class Model2Package(object):
                     code = tab + "params= model_{0}({1})\n".format(model_name, ', '.join(list_var))
                     test_codes.append(code)
                         
-                    for k, v in six.iteritems(outs):
+                    for k, v in outs.items():
                         type_v = [out.datatype for out in outputs if out.name==k][0]     
                         code = tab + "%s_estimated = params$%s"%(k,k) 
                         test_codes.append(code)

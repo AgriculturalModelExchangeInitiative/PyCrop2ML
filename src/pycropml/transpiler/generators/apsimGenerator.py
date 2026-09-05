@@ -1,11 +1,12 @@
 # coding: utf8
+import os
+from pathlib import Path
+
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.csharpRules import CsharpRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.nameconvention import signature2, signature2_from_name
-import os
-from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml import code2nbk
@@ -382,8 +383,8 @@ def to_struct_apsim(models, rep, name):
         generator.result = []
         generator.generate(states, "%s%s"%(name,catvar), name)
         z= ''.join(generator.result)
-        filename = Path(os.path.join(rep, "%s%s.cs"%(name, catvar)))
-        with open(filename, "wb") as tg_file:
+        filename = Path(rep) / "%s%s.cs"%(name, catvar)
+        with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
 
     states = generator.node_states
@@ -761,7 +762,7 @@ def to_wrapper_apsim(models, rep, name, customer = ''):
     generator.model2Node()
     generator.wrapper()
     z= ''.join(generator.result)
-    filename = Path(os.path.join(rep, "%sWrapper.cs"%name))
-    with open(filename, "wb") as tg2_file:
+    filename = Path(rep) / "%sWrapper.cs"%name
+    with filename.open("wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
     return 0

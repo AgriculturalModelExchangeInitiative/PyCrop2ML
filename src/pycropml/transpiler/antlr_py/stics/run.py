@@ -1,10 +1,9 @@
 from __future__ import absolute_import
 from __future__ import print_function
+
 import os
-#import copy
-from os.path import isdir
+from pathlib import Path
 import tempfile
-from path import Path
 from collections import OrderedDict
 
 from pycropml.composition import Description

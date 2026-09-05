@@ -3,7 +3,6 @@ from __future__ import absolute_import
 from pycropml.transpiler.errors import PseudoCythonTypeCheckError
 from pycropml.transpiler.helpers import serialize_type
 from Cython.Compiler import ExprNodes
-from six.moves import zip
 
 
 # based on pseudo

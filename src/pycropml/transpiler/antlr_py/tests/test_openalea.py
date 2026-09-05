@@ -1,73 +1,31 @@
+from pathlib import Path
 
-import re
-from weakref import ref
+import pytest
+from openalea.core.pkgmanager import PackageManager
 
-pattern_attr_val = r"(\s*(?P<attribute>\w+)\s*:\s*(?P<value>[\w+\s:,ï\[\]\\_\./\'-]*))"
 
-def attval(pat_name, string):  
-    #print( string)
-    att = re.findall(pat_name, string)
-    #print("hhkkkk", att)
-    if att:
-        lines = att[0][0].split('\n')[0:-1]
-        dic = {}
-        for line in lines:
-            attribute = re.search(pattern_attr_val, line).group("attribute")
-            print(attribute)
-            value = re.search(pattern_attr_val, line, re.ASCII).group("value").replace('\r', "")
-            dic[attribute] = str(value)
-        return dic
-    else: return
+EXAMPLES = Path(__file__).parent / "examples"
 
-def test_package():
-    
 
-    from openalea.core.pkgmanager import PackageManager
-    wralea_dir = "C:/Users/midingoy/Documents/crop2mlcatalog/SQ_Energy_Balance/src/openalea/SQ_Energy_Balance"
+@pytest.fixture
+def package_manager():
+    """Provide an OpenAlea registry isolated from the other tests."""
+    manager = PackageManager()
+    manager.clear()
+    yield manager
+    manager.clear()
 
-    pm = PackageManager()
-    pm.init(wralea_dir, True)
-    pkg =  pm.get_composite_nodes()[0]
-    doc = pkg.description
-    docs = [x.strip() for x in doc.strip().split('\n')]
-    d = "\n".join(docs[1:])
-    xx = docs[1:]
-    pat_description = r'(^(Author:|Reference:|Institution:|Abstract:))'
-    res = []
-    i = 0
-    while True:
-        if re.match(pat_description, xx[i]):
-            res.append(xx[i])
-        else:
-            if res: res[-1] = res[-1]+"\n"+xx[i]
-        i = i+1
-        if i==len(xx): break
-    
-    authors = res[0].split("Author:")[-1]
-    reference = res[1].split("Reference:")[-1]
-    institution = res[2].split("Institution:")[-1]
-    abstract = res[3].split("Abstract:")[-1]
-    
-    print(authors,'\n', reference,'\n', institution, '\n',abstract)
-        
-            
-    
 
-    
-    """description = attval(pat_description, d)   
-    #print(description)
-    
-   docs = [x.strip() for x in doc.strip().split('\n')]
-    ls = {"Author":'', "Reference":'', "Institution":'', "Abstract":''}
-    for d in docs[1:]:
-        
-        
-        
-    #print(docs, len(docs))
-    if docs[3].startswith('Institution'):
-                institution = docs[3].split(':')[1]
-                institution = institution.strip()
-                #print(institution)
-    else: print("ooooooo")"""
+def test_openalea_package_exposes_energy_balance_composite(package_manager):
+    """Load the local OpenAlea fixture and inspect its composite node."""
+    package_directory = EXAMPLES / "openalea" / "SQ_Energy_Balance"
 
-test_package()
+    package_manager.init(str(package_directory), True)
+    composites = package_manager.get_composite_nodes()
+
+    assert len(composites) == 1
+    composite = composites[0]
+    assert composite.name == "EnergyBalance_wf"
+    assert "EnergyBalance" in composite.description
+    assert "Authors:" in composite.description
+    assert "Institution:" in composite.description

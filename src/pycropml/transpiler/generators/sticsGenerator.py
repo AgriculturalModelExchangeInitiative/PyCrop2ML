@@ -1,8 +1,8 @@
 
-from pycropml.transpiler.generators.fortranGenerator import FortranGenerator, FortranCompo
 import os
+from pathlib import Path
+from pycropml.transpiler.generators.fortranGenerator import FortranGenerator, FortranCompo
 from pycropml.transpiler import lib
-from path import Path
 
 class SticsGenerator(FortranGenerator):
     """ This class contains the specific properties of

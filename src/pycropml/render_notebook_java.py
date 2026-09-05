@@ -10,7 +10,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 import os
 from os.path import isdir
-from path import Path
+from pathlib import Path
 
 # The package used to generate Notebook
 import nbformat as nbf
@@ -50,10 +50,8 @@ class Model2Nb(rp.Model2Package):
         # Create a directory (mymodel)
         cwd = Path(self.dir)
         directory=cwd/'java_notebook'
-        if isdir(directory):
-            _dir = directory
-        else:
-            _dir = directory.mkdir()
+        directory.mkdir(parents=True, exist_ok=True)
+        _dir = directory
         
         count = 0
         files=[]
@@ -123,7 +121,7 @@ Each run will be defined in its own cell."""
         # map the paramsets
             params = {}
 
-            if   test_paramsets not in list(psets.keys()):
+            if test_paramsets not in list(psets.keys()):
                 print('Unknown parameter %s'%test_paramsets)
             else:
                 params.update(psets[test_paramsets].params)
@@ -138,7 +136,7 @@ Each run will be defined in its own cell."""
                     
                     code =tab+"//%s  %s"%(test_name,tname)+");\n"
 
-                    (run, inouts) = list(each_run.items())[0]
+                    (run, inouts) = next(each_run.items())
 
                     ins = inouts['inputs']
                     outs = inouts['outputs']

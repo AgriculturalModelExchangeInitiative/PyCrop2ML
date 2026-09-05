@@ -8,11 +8,9 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-import os.path
-from os.path import isdir
-import six
-from datetime import datetime
-from path import Path
+
+from pathlib import Path
+
 import numpy
 
 try:
@@ -79,10 +77,8 @@ class Model2Package(object):
         # Create a directory (mymodel)
         cwd = Path(self.dir)
         directory=cwd/'python_model'
-        if isdir(directory):
-            self.dir = directory
-        else:
-            self.dir = directory.mkdir()
+        directory.mkdir(parents=True, exist_ok=True)
+        _dir = directory
 
         files = []
         count = 0
@@ -92,13 +88,13 @@ class Model2Package(object):
             self.generate_component(model)
 
             #filename = self.dir/"model%s.py"%ext
-            filename = self.dir/"%s.py"%signature(model)
+            filename = self.dir /"%s.py"%signature(model)
 
             with open(filename, "wb") as python_file:
                 python_file.write(self.code.encode('utf-8','ignore'))
                 files.append(filename)
 
-                model.module_name = str(Path(filename).namebase)
+                model.module_name = str(Path(filename).stem)
 
             count += 1
 
@@ -179,7 +175,7 @@ class Model2Package(object):
         if model_unit.function:
             for function in model_unit.function:
                 if function.language.lower() == "python":
-                    module=os.path.split(function.filename)[1].split(".")[0]
+                    module = Path(function.filename).stem
                     self.code +="from %s import * \n"%module.lower()
                     break
         self.code += self.generate_function_signature(model_unit)
@@ -291,8 +287,6 @@ class Model2Package(object):
                 elif _type in self.DATATYPE:# and _type!="Date":
 
                     default = self.DATATYPE[_type](default)
-                ##if _type=="Date":
-                    #default = datetime.strptime(default, '%d/%m/%Y')
 
                     return '%s=%s'%(name, default)
             else:
@@ -353,7 +347,7 @@ class Model2Package(object):
                     run_param = params.copy()
                     run_param.update(ins)
 
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         code = "    %s = %s,"%(k,v)
                         test_codes.append(code)
                     code = "     )"

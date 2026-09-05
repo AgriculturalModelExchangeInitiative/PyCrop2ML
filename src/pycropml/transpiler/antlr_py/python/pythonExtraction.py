@@ -40,7 +40,11 @@ class PythonExtraction(MetaExtraction):
     
     def orderedvar(self, mdata, tree):
         mu_inputs = [m.name for m in tree.params]
-        mu_outputs = [m.name for m in tree.block[-1].value.elements]
+        return_value = tree.block[-1].value
+        if hasattr(return_value, "elements"):
+            mu_outputs = [m.name for m in return_value.elements]
+        else:
+            mu_outputs = [return_value.name]
         inps = []
         outs = []
         for n in mu_inputs:
@@ -80,21 +84,20 @@ class PythonExtraction(MetaExtraction):
         outs = {m.name:[n.name for n in m.outputs] for m in md}
         var_int = []
         var_out = [] # variables that are outputs of model units
-        len_r = len(md) - 1 if len(md) > 1 else len(md)
         res_in = {}
         res_out = {}
-        for i in range(0, len_r):
-            mi = md[i]
+        for i, mi in enumerate(md):
             mi_inp = inps[mi.name]
             mi_out = outs[mi.name]
             mi_inp_p = set(mi_inp).intersection(set(mc_inputs)) # inputs of mi that are also inputs of the model composition
             mi_out_p = set(mi_out).intersection(set(mc_outputs)) # outputs of mi that are also outputs ...
             mi_inp_f = mi_inp_p - set(var_out) # inputs of mi that are not outputs of the previous model units
             if len(md) > 1:
-                for j in range(i+1, len_r+1):
+                for j in range(i + 1, len(md)):
                     mj = md[j]
                     mj_inp = inps[mj.name]
-                    zi = list(mi_out.intersection(set(mj_inp)))
+                    mj_inputs = set(mj_inp)
+                    zi = [name for name in mi_out if name in mj_inputs]
                     var_int.extend(list(zi))
                     for k in zi:
                         internallink.append({"source": mi.name + "." + k, "target":mj.name + "." + k}) 

@@ -1,11 +1,12 @@
 # coding: utf8
 from __future__ import absolute_import
 import os
+from pathlib import Path
+
 from Cython.Compiler import Scanning
 from Cython.Compiler import Main
 from Cython.Compiler import Options
-from path import Path
-import sys
+
 from pycropml.transpiler.errors import PseudoCythonParseError
 from pycropml.transpiler.logger import get_logger
 
@@ -149,12 +150,13 @@ def parser(module):
     try:
         logger.debug('Starting parse (input type=%s)', type(module).__name__)
         if isinstance(module, Path):
-            context = Main.Context([os.path.dirname(module)], {}, cpp=False, language_level=2, options=options)
-            scope = context.find_submodule(module)
-            with open(module.encode('utf-8'), 'r') as f:
+            module_path = os.fspath(module)
+            context = Main.Context([os.path.dirname(module_path)], {}, cpp=False, language_level=2, options=options)
+            scope = context.find_submodule(module_path)
+            with module.open('r', encoding='utf-8') as f:
                 source = f.read()
-            source_desc = Scanning.FileSourceDescriptor(module, source)
-            tree = context.parse(source_desc, scope, pxd=None, full_module_name=module)
+            source_desc = Scanning.FileSourceDescriptor(module_path, source)
+            tree = context.parse(source_desc, scope, pxd=None, full_module_name=module_path)
         else:
             from Cython.Compiler.TreeFragment import parse_from_strings
             source = module

@@ -9,9 +9,7 @@ Problems:
 
 from __future__ import print_function
 from __future__ import absolute_import
-import os
-from path import Path
-import six
+from pathlib import Path
 from pycropml.composition import model_parser
 
 class Model2Package(object):
@@ -48,8 +46,8 @@ class Model2Package(object):
         inputs = m.inputs
         outputs=m.outputs
         num=0
-        dir_crop2ml = Path(os.path.join(m.path,"crop2ml"))
-        dir_compo = dir_crop2ml.glob("composition*.xml")[0]
+        dir_crop2ml = Path(m.path)/"crop2ml"
+        dir_compo = next(dir_crop2ml.glob("composition*.xml"))
         name_mc = model_parser(dir_compo)[0].name     
         psets = m.parametersets
         def categ(k, inout):
@@ -102,7 +100,7 @@ class Model2Package(object):
                     for testinp in inputs:
                         if testinp.name not in list(run_param.keys()):
                             run_param[testinp.name]=testinp.default if testinp.datatype not in ("DATE", "STRING") else str(testinp.default)
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         if v: # the input could not be set in testset and no default value. In this case, it's supposed to set through initialization part
                             type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                             code_ = 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v))
@@ -112,19 +110,19 @@ class Model2Package(object):
                             else:
                                 code += code_ 
                     test_codes2 = ""            
-                    for k, v in six.iteritems(ins):
+                    for k, v in ins.items():
                         type_v = [inp.datatype for inp in inputs if inp.name==k][0]
                         code_ = 2*tab + "%s.%s = %s;\n"%(categ(k, inputs),k if not k.endswith("_t1") else k[:-3],transf(type_v, v))
                         if v and categ(k, inputs) == "s" :
                             test_codes2 += code_                  
                     
                     if m.initialization: 
-                        code_ = tab*2+"mod.Init(s,s1, r, a, ex);\n" 
+                        code_ = tab*2 + "mod.Init(s,s1, r, a, ex);\n" 
                         code += code_
                         code += test_codes2 
                                         
                     code+=tab*2+"mod.CalculateModel(s,s1, r, a, ex);\n"
-                    for k, v in six.iteritems(outs):
+                    for k, v in outs.items():
                         type_o = [out.datatype for out in outputs if out.name==k][0]     
                         code += 2*tab + "//%s: %s;\n"%(k, v[0]) 
                         code += 2*tab + 'Console.WriteLine("%s estimated :");\n'%(k)

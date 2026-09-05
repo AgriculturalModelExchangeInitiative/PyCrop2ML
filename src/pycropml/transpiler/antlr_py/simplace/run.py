@@ -3,7 +3,9 @@ from __future__ import print_function
 
 import os
 from os.path import isdir
-from path import Path
+from pathlib import Path
+
+import itertools
 
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
@@ -16,7 +18,6 @@ from pycropml.transpiler.ast_transform import transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.to_specification import extractcomments, createObjectCompo
 from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml, generate_compositefile, generate_unitfile, create_repo
 from pycropml.transpiler.antlr_py.codeExtraction import remove
-import itertools
 
 
 def function_dependency(st, f):
@@ -96,15 +97,14 @@ def run_simplace(components, output):
     compositeStrats = Path(components).glob('*.xml')
     if compositeStrats: 
         compositeStrat = compositeStrats[0] 
-    crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-    if not isdir(crop2ml_rep):
-        crop2ml_rep.mkdir()
-    algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not isdir(algo_rep):
-        algo_rep.mkdir()
-    cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not isdir(cyml_rep):
-        cyml_rep.mkdir()
+    crop2ml_rep = Path(output) / 'crop2ml'
+    crop2ml_rep.mkdir(exist_ok=True)
+
+    algo_rep = Path(crop2ml_rep) / 'algo'
+    algo_rep.mkdir(exist_ok=True)
+    cyml_rep = Path(algo_rep) / 'pyx'
+    cyml_rep.mkdir(exist_ok=True)
+
     models = []
     p = SimplaceExtraction()
     auxiliary = {}
@@ -113,7 +113,7 @@ def run_simplace(components, output):
         auxiliary = p.getAuxiliary(compositeStrat)
     for strat in simpleStrat:
         print(strat)
-        with open(strat, "r") as f:
+        with strat.open("r") as f:
             code = f.read()
             
         code = remove(code, "//%%CyML Ignore Begin%%", "//%%CyML Ignore End%%")
@@ -141,12 +141,12 @@ def run_simplace(components, output):
             dict_init["name"] = "init"
             dict_init["filename"] = "algo/pyx/" + name_i + ".pyx"
             mm.model.initialization = [dict_init]
-            filename = Path(os.path.join(cyml_rep, "init.%s.pyx"%(mm.model.name)))
-            with open(filename, "wb") as tg_file:
+            filename = Path(cyml_rep) / "init.%s.pyx"%(mm.model.name)
+            with filename.open("wb") as tg_file:
                 tg_file.write(initcode.encode('utf-8'))    
         
-        filename = Path(os.path.join(cyml_rep, "%s.pyx"%(mm.model.name)))
-        with open(filename, "wb") as tg_file:
+        filename = Path(cyml_rep) / "%s.pyx"%(mm.model.name)
+        with filename.open("wb") as tg_file:
             tg_file.write(algocode.encode('utf-8'))
         funcs = [f for f in funcs if f]
         if funcs:
@@ -175,8 +175,8 @@ def run_simplace(components, output):
                     h = cd.transform()
                     nd = transform_to_syntax_tree(h)
                     code = writeCyml(nd) 
-                    filename = Path(os.path.join(cyml_rep, "%s.pyx"%(f.name)))
-                    with open(filename, "wb") as tg_file:
+                    filename = Path(cyml_rep) / "%s.pyx"%(f.name)
+                    with filename.open("wb") as tg_file:
                         tg_file.write(code.encode('utf-8'))
                     mm.model.function.append(f.name)
                             

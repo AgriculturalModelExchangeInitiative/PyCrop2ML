@@ -1,25 +1,20 @@
-""" Read xml representation of a component
-    and translate Crop2ML models to python codes
-
-"""
-from __future__ import absolute_import
-from __future__ import print_function
-from path import Path
+import shutil
+from pathlib import Path
 
 from pycropml.cyml import transpile_component
 
-cwd = Path(__file__).dirname()
-package = cwd/'Models'/'SQ_Energy_Balance_py'
+
+MODELS = Path(__file__).parent / "Models"
 
 
-##############################################################################
-# Test on Example
+def test_python_component_can_be_transpiled_to_crop2ml(tmp_path):
+    """Transpile a copied Python component without modifying its fixture."""
+    source = MODELS / "SQ_Energy_Balance_py"
+    package = tmp_path / source.name
+    shutil.copytree(source, package, ignore=shutil.ignore_patterns("crop2ml"))
 
+    transpile_component(package, package, "py")
 
-def test_py2crop2ml():
-    transpile_component(package,package,"py")
-
-
-
-test_py2crop2ml()
-
+    crop2ml_directory = package / "crop2ml"
+    assert list(crop2ml_directory.glob("unit*.xml"))
+    assert list(crop2ml_directory.glob("composition.*.xml"))

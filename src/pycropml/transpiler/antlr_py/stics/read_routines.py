@@ -1,5 +1,4 @@
-from path import Path
-import os
+from pathlib import Path
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG
 
 def read_unit(file):
@@ -17,8 +16,6 @@ def main():
 mod1 = Path("C:/Users/midingoy/Documents/Restore/Users/midingoy/Documents/pycropml_pheno/src/pycropml/transpiler/antlr_py/tests/examples/DssatComponent/phenology/Vernalizationprogress.f90")
 
 
-from path import Path
-import os
 from pycropml.transpiler.antlr_py.to_CASG import to_CASG
 from pycropml.transpiler.antlr_py.fortran import f90_cyml
 from pycropml.transpiler.antlr_py.dssat.dssatExtraction import DssatExtraction

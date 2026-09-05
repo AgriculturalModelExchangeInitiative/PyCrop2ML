@@ -4,19 +4,23 @@
 
 from __future__ import absolute_import
 from __future__ import print_function
-from pycropml.units import cyml_reg
+
 from copy import copy
-import xml.etree.ElementTree as xml
-import six
-from pycropml.pparse import Parser
-from path import Path
+
+from pathlib import Path
 import os
-class UnitDefinition(object):
+
+import xml.etree.ElementTree as xml
+
+from pycropml.units import cyml_reg
+from pycropml.pparse import Parser
+
+class UnitDefinition:
     """
     """
     def __init__(self, kwds):
         self._attributes = kwds
-        for k, v in six.iteritems(kwds):
+        for k, v in kwds.items():
             self.__setattr__(k,v)
 
     def __repr__(self):
@@ -33,7 +37,7 @@ class UnitList(UnitDefinition):
     def __repr__(self):
         return 'Units'
 
-class UnitV(object):
+class UnitV:
     """ Units.
 
     """
@@ -53,9 +57,9 @@ class UnitParser(Parser):
     def parse(self, crop2mldir):
         self.unitvs = []
         self.crop2ml_dir = crop2mldir
-        xmlrep = Path(os.path.join(self.crop2ml_dir,'crop2ml'))
-        self.algorep = Path(os.path.join(self.crop2ml_dir,'crop2ml'))  
-        f = xmlrep.glob('VarUnit*.xml')[0]
+        xmlrep = Path(self.crop2ml_dir) / 'crop2ml'
+        self.algorep = xmlrep
+        f = str(next(xmlrep.glob('VarUnit*.xml')))
         try:          
         # Current proxy node for managing properties            
             doc = xml.parse(f)

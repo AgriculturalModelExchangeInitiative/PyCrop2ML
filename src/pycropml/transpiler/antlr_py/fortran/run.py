@@ -1,7 +1,10 @@
 from __future__ import absolute_import
 from __future__ import print_function
-from path import Path
+
 import os
+import re
+from pathlib import Path
+
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG ,to_CASG
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.generators.cymlGenerator import CymlGenerator
@@ -12,11 +15,9 @@ from pycropml.transpiler.antlr_py.fortran import f90_cyml
 from pycropml.transpiler.antlr_py.fortran.fortranExtraction import FortranExtraction
 from pycropml.transpiler.antlr_py.extract_metadata_from_comment import extract
 from pycropml.transpiler.antlr_py.fortran.fortran_preprocessing import Declarations, Local, Call_stmt, Implicit_return
-import tempfile
 from pycropml.transpiler.antlr_py import repowalk
 from pycropml.transpiler.antlr_py.to_specification import extractMetaInfo, createObjectModel, extractcomments, createObjectCompo
 from pycropml.transpiler.antlr_py.codeExtraction import extraction
-import re
 
 """ Read non-specific fortran component and infer Crop2ML model
 
@@ -103,8 +104,8 @@ def fortrancomments(code ):
 def run_fortran(routines, output):
     
     compositeStrat= Path(routines).glob('*Component.f90')
-    if compositeStrat: compositeStrat = compositeStrat[0]
-    simpleStrat = [f for f in Path(routines).glob('*.f90')  if (f not in compositeStrat and not f.endswith("list_sub.f90"))]
+    compositeStrat = next(compositeStrat)
+    simpleStrat = [f for f in Path(routines).glob('*.f90')  if (f not in compositeStrat and not str(f).endswith("list_sub.f90"))]
     create_repo(output)
     files = repowalk.walk(routines, 'f90')
     

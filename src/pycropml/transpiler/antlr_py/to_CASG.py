@@ -1,16 +1,16 @@
+import sys
+import logging
+import traceback
+
 from pycropml.transpiler.antlr_py import parse, simplifyAntlrTree
-from  pycropml.transpiler.antlr_py.csharp  import csharpTransformer
+from pycropml.transpiler.antlr_py.csharp  import csharpTransformer
 from pycropml.transpiler.antlr_py.fortran import fortranTransformer
 from pycropml.transpiler.antlr_py.java import javaTransformer
 from pycropml.transpiler.antlr_py.python import pythonTransformer
 from pycropml.transpiler.antlr_py.xml import xmlTransformer
 
 from pycropml.transpiler.ast_transform import transform_to_syntax_tree
-from path import Path
 import pycropml.transpiler.antlr_py
-import sys
-import logging
-import traceback
 
 # Configure logger
 logger = logging.getLogger(__name__)

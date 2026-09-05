@@ -77,7 +77,9 @@ class ApsimExtraction(MetaExtraction):
         Returns:
             Node: ASG of the algorithm method
         """
-        meth = self.getmethod(tree, "OnProcess")
-        if not meth: meth = self.getmethod(tree, "Estimate")
-        return meth
+        for method_name in ("OnProcess", "OnStartOfDay", "Estimate"):
+            meth = self.getmethod(tree, method_name)
+            if meth:
+                return meth
+        return None
     

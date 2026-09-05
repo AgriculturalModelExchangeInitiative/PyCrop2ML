@@ -5,88 +5,32 @@ Created on Tue Mar 19 22:59:23 2019
 @author: midingoy
 """
 import os
-from os.path import isdir
-from path import Path
-import pycropml
+from pathlib import Path
 from pycropml.transpiler.main import Main
-from pycropml.transpiler.antlr_py.dssat.run import run_dssat
-from pycropml.transpiler.antlr_py.stics.run import run_stics
-from pycropml.transpiler.antlr_py.simplace.run import run_simplace
-from pycropml.transpiler.antlr_py.bioma.run import run_bioma
-from pycropml.transpiler.antlr_py.openalea.run import run_openalea
-from pycropml.transpiler.antlr_py.fortran.run import run_fortran
-from pycropml.transpiler.antlr_py.python.run import run_python
-from pycropml.transpiler.antlr_py.apsim.run import run_apsim
-from pycropml.transpiler.antlr_py.csharp.run import run_csharp
 from pycropml import render_cyml, nameconvention
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
-from pycropml.transpiler.generators.csharpGenerator import to_struct_cs, to_wrapper_cs
-from pycropml.transpiler.generators.javaGenerator import to_struct_java
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
-from pycropml.transpiler.generators.pythonGenerator import PythonSimulation
-from pycropml.transpiler.generators.siriusGenerator import to_struct_sirius, to_wrapper_sirius
-from pycropml.transpiler.generators.sirius2Generator import to_struct_sirius2, to_wrapper_sirius2
-from pycropml.transpiler.generators.recordGenerator import Crop2ML_Vpz
-#from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
-import pycropml.transpiler.antlr_py
+from pycropml.transpiler.source_registry import SOURCES, load_source_adapter
+from pycropml.transpiler.target_registry import get_target, load_target_callable
 
-NAMES = {
-    'r': 'r',
-    'cs': 'csharp',
-    'cpp': 'cpp',
-    "cpp2": "cpp2",
-    'py': 'python',
-    'f90': 'fortran',
-    'java': 'java',
-    'simplace': 'simplace',
-    'sirius': 'sirius',
-    "openalea": "openalea",
-    "apsim": "apsim",
-    "record": "record",
-    "dssat": "dssat",
-    "bioma": "bioma",
-    "stics": "stics",
-    "sirius2": "sirius2"
-}
-
-ext = {'r': 'r',
-       'cs': 'cs',
-       'cpp': 'cpp',
-       "cpp2": "cpp",
-       'py': 'py',
-       'f90': 'f90',
-       'java': 'java',
-       'simplace': 'java',
-       'sirius': 'cs',
-       'bioma': 'cs',
-       "openalea": "py",
-       "apsim": "cs",
-       "record": "cpp",
-       "dssat": "f90",
-       "stics": "f90",
-       "sirius2": 'cs'
-       }
-
-cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py", "apsim","cs"]
-langs = ["cs", "cpp", "java", "f90", "r", "py"]
-
-domain_class = ["cs", "java", "sirius", "cpp", "cpp2", "bioma", "sirius2", "apsim"]
-wrapper=["cs", "sirius", "bioma", "sirius2", "apsim"]
-platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "stics", "sirius2"]
+cymltx_languages = list(SOURCES)
 
 def transpile_file(source, language):
+    target = get_target(language)
+    if target.extension is None:
+        raise ValueError(f"Target {language!r} does not define a file extension")
     sourcef = source
     file = Path(sourcef)
-    with open(file, 'r') as fi:
+    with file.open('r') as fi:
         source = fi.read()
-    name = sourcef.split(".")[0]
+    name = file.stem
     test = Main(file, language)
     test.parse()
     test.to_ast(source)
     code = test.to_source()
-    filename = "%s.%s" % (name, language)
+    filename = f"{name}.{target.extension}"
     with open(filename, "wb") as tg_file:
         tg_file.write(code.encode('utf-8'))
     return 0
@@ -99,46 +43,44 @@ def prefix(model):
 
 def transpile_package(package, language):
     """ translate from crop2ml package"""
+    target = get_target(language)
+    if target.extension is None:
+        raise ValueError(f"Target {language!r} does not define a file extension")
     sourcef = package
-    namep = sourcef.split(os.path.sep)[-1]
-    pkg = Path(sourcef)
+    pkg = Path(package)
+    namep = pkg.name
+
     models = model_parser(pkg)  # parse xml files and create python model object
-    output = Path(os.path.join(pkg, 'src'))
-    dir_test = Path(os.path.join(pkg, 'test'))
-    dir_doc = Path(os.path.join(pkg, 'doc'))
+    output = pkg / "src"
+    dir_test = pkg / "test"
+    dir_doc = pkg / "doc"
 
     # Generate packages if the directories does not exists.
-    if not output.is_dir():
-        output.mkdir()
-    if not dir_test.is_dir():
-        dir_test.mkdir()
-    if not dir_doc.is_dir():
-        dir_doc.mkdir()
+    output.mkdir(exist_ok=True)
+    dir_test.mkdir(exist_ok=True)
+    dir_doc.mkdir(exist_ok=True)
 
-    dir_images = Path(os.path.join(dir_doc, 'images'))
-    if not dir_images.is_dir():
-        dir_images.mkdir()
+    dir_images = dir_doc / 'images'
+    dir_images.mkdir(exist_ok=True)
+
 
     m2p = render_cyml.Model2Package(models, dir=output)
     m2p.generate_package()  # generate cyml models in "pyx" directory
-    tg_rep1 = Path(os.path.join(output, language))  # target language models  directory in output
-    dir_test_lang = Path(os.path.join(dir_test, language))
+    tg_rep1 = output / language  # target language models  directory in output
+    dir_test_lang = dir_test / language
     
-    if not tg_rep1.is_dir():
-        tg_rep1.mkdir()
+    tg_rep1.mkdir(exist_ok=True)
 
     namep_ = namep.replace("-", "_")
-    tg_rep = Path(os.path.join(tg_rep1, namep_))
-    if not tg_rep.is_dir():
-        tg_rep.mkdir()
+    tg_rep = tg_rep1 / namep_
+    tg_rep.mkdir(exist_ok=True)
 
-    if not dir_test_lang.is_dir():  #Create if it doesn't exist
-        dir_test_lang.mkdir()
+    dir_test_lang.mkdir(exist_ok=True)
 
     m2p.write_tests()
 
     # generate cyml functions
-    cyml_rep = Path(os.path.join(output, 'pyx'))  # cyml model directory in output
+    cyml_rep = output / 'pyx'  # cyml model directory in output
 
     # create topology of composite model
     T = Topology(namep, package)
@@ -150,67 +92,63 @@ def transpile_package(package, language):
     # print(vpz.create())
 
     # domain class
-    if language in domain_class:
-        getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
-                f'to_struct_{language}')([T.model], tg_rep, mc_name)
+    domain_class_factory = load_target_callable(language, "domain_class_factory")
+    if domain_class_factory:
+        domain_class_factory([T.model], tg_rep, mc_name)
     # wrapper
-    if language in wrapper:
-        getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
-                f'to_wrapper_{language}')(T.model, tg_rep, mc_name)
+    wrapper_factory = load_target_callable(language, "wrapper_factory")
+    if wrapper_factory:
+        wrapper_factory(T.model, tg_rep, mc_name)
 
     # Transform model unit to languages and platforms
-    for k, file in enumerate(cyml_rep.files()):
-        with open(file, 'r') as fi:
+    for k, file in enumerate(p for p in cyml_rep.iterdir() if p.is_file()):
+        with file.open('r') as fi:
             source = fi.read()
-        name = os.path.split(file)[1].split(".")[0]
+        name = file.stem
         for model in models:  # in the case we haven't the same order
             if name.lower() == model.name.lower() and prefix(model) != "function":
-                #getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
-                #        f'header_mu_cpp2')(model, tg_rep, mc_name)
-
                 test = Main(file, language, model, T.model.name)
                 test.parse()
                 test.to_ast(source)
                 code = test.to_source()
-                filename = Path(
-                    os.path.join(tg_rep, f"{nameconvention.signature(model, ext[language])}.{ext[language]}"))
-                with open(filename, "wb") as tg_file:
+                filename = tg_rep / f"{nameconvention.signature(model, target.extension)}.{target.extension}"
+                with filename.open("wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
-                if language in langs:
+                if target.generate_notebooks:
                     Model2Nb(model, code, name, dir_test_lang).generate_nb(language, tg_rep, namep, mc_name)
                     # code2nbk.generate_notebook(code, name, dir_nb_lang)
 
     # Create Cyml Composite model
     T_pyx = T.algo2cyml(dir_images)
-    fileT = Path(os.path.join(cyml_rep, f"{mc_name}Component.pyx"))
-    with open(fileT, "wb") as tg_file:
+    fileT = cyml_rep / f"{mc_name}Component.pyx"
+    with fileT.open("wb") as tg_file:
         tg_file.write(T_pyx.encode('utf-8'))
 
-    filename = Path(os.path.join(tg_rep, f"{mc_name}Component.{ext[language]}"))
+    filename = tg_rep / f"{mc_name}Component.{target.extension}"
     code = T.compotranslate(language).encode('utf-8')
     if code:
-        with open(filename, "wb") as tg_file:
+        with filename.open("wb") as tg_file:
             tg_file.write(code)
 
-    # create computing algorithm
-    if language == "py":
-        simulation = PythonSimulation(T.model, package_name=namep)
+    # Create a platform-specific simulation when the target provides one.
+    simulation_class = load_target_callable(language, "simulation_class")
+    if simulation_class:
+        simulation = simulation_class(T.model, package_name=namep)
         simulation.generate()
         code = ''.join(simulation.result)
-        filename = Path(os.path.join(tg_rep, "simulation.py"))
-        initfile = Path(os.path.join(tg_rep, "__init__.py"))
-        with open(filename, "wb") as tg_file:
+        filename = tg_rep / "simulation.py"
+        initfile = tg_rep / "__init__.py"
+        with filename.open("wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
-        with open(initfile, "wb") as tg_file:
+        with initfile.open("wb") as tg_file:
             tg_file.write("".encode("utf-8"))
 
-        setup = PythonSimulation(T.model, package_name=namep)
+        setup = simulation_class(T.model, package_name=namep)
         #setup.generate_setup()
         setup.generate_pyproject()
         code = ''.join(setup.result)
-        #setupfile = Path(os.path.join(tg_rep1, "setup.py"))
-        setupfile = Path(os.path.join(tg_rep1, "pyproject.toml"))
-        with open(setupfile, "wb") as tg_file:
+        setupfile = tg_rep1 / "pyproject.toml"
+        with setupfile.open("wb") as tg_file:
             tg_file.write(code.encode("utf-8"))
 
     status = 0
@@ -229,12 +167,7 @@ def transpile_component(component, package, language):
         package: Crop2ML package containing xml files and 
     """
 
-    translator = {
-        format: getattr(getattr(getattr(pycropml.transpiler.antlr_py, NAMES[format].lower()), 'run'),
-                        f'run_{NAMES[format]}')
-        for format in cymltx_languages
-    }
-    print('translator :', translator)
-    translator[language](component, package)
+    adapter = load_source_adapter(language)
+    adapter(component, package)
 
     return 0

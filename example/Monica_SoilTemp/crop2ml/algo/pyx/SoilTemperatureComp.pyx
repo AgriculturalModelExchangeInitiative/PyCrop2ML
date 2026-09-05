@@ -16,6 +16,9 @@ description:
 """
 
 # ModelUnit interfaces are loaded from their Crop2ML descriptions.
+# `self` is the interface of this composition. The external name may differ
+# from the ModelUnit input name, and the binding precedes the model call.
+NoSnowSoilSurfaceTemperature.tmin = self.minimumAirTemperature
 NoSnowSoilSurfaceTemperature()
 
 WithSnowSoilSurfaceTemperature.noSnowSoilSurfaceTemperature = \
@@ -26,5 +29,5 @@ SoilTemperature.soilSurfaceTemperature = \
     WithSnowSoilSurfaceTemperature.soilSurfaceTemperature
 SoilTemperature()
 
-soilSurfaceTemperature = WithSnowSoilSurfaceTemperature.soilSurfaceTemperature
-soilTemperature = SoilTemperature.soilTemperature
+self.soilSurfaceTemperature = WithSnowSoilSurfaceTemperature.soilSurfaceTemperature
+self.soilTemperature = SoilTemperature.soilTemperature

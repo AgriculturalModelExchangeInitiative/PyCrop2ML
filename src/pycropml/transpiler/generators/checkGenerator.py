@@ -2,9 +2,7 @@
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.pythonRules import PythonRules
 from pycropml.transpiler.generators.docGenerator import DocGenerator
-import os
 from pycropml.render_cyml import signature
-from path import Path
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 

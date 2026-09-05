@@ -1,61 +1,60 @@
-name: build_publish_anaconda
+name: Build and Test Conda Package
 
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-    
+
 jobs:
-  build-and-publish:
-    name: ${{ matrix.os }}, Python 3.${{ matrix.python-minor-version }} for conda deployment
+  test:
+    name: Python 3.${{ matrix.python-minor-version }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHONIOENCODING: utf-8
     strategy:
       fail-fast: false
-      max-parallel: 3
       matrix:
-        os: [ macos-15-intel, windows-latest, ubuntu-latest]
-        python-minor-version: [9, 10, 11]
-        isMaster:
-          - ${{ github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/heads/dev') }}
-        exclude:
-          - isMaster: false
-            os: ubuntu-latest
-            python-minor-version: 10
-          - isMaster: false
-            os: ubuntu-latest
-            python-minor-version: 11
-          - isMaster: false
-            os: macos-15-intel
-            python-minor-version: 10
-          - isMaster: false
-            os: macos-15-intel
-            python-minor-version: 11
-          - isMaster: false
-            os: windows-latest
-            python-minor-version: 10
-          - isMaster: false
-            os: windows-latest
-            python-minor-version: 11            
+        os: [ubuntu-latest]
+        python-minor-version: [10, 11, 12]
 
     steps:
-    - name: Chekout
-      uses: actions/checkout@v3
-    - name: Determine publish
-      uses: haya14busa/action-cond@v1
-      id: publish
-      with:
-        cond: ${{ contains(github.ref, 'master') || startsWith(github.ref, 'refs/heads/v') }}
-        if_true: 'true'
-        if_false: 'false'
-    - name: Build and Publish
-      uses: openalea/action-build-publish-anaconda@v0.1.5
-      with:
-        conda: conda
-        mamba: true
-        numpy: 22
-        python: ${{ matrix.python-minor-version }}
-        channels: amei, openalea3, conda-forge
-        token: ${{ secrets.ANACONDA_TOKEN }}
-        publish: ${{ steps.publish.outputs.value }}
-        label: main
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: build
+          python-version: "3.${{ matrix.python-minor-version }}"
+          auto-activate-base: false
+          channels: conda-forge, openalea3, amei
+          channel-priority: strict
+
+      - name: Install conda-build
+        shell: bash -el {0}
+        run: |
+          conda install -y -n build conda-build anaconda-client
+
+
+      - name: Check conda-build
+        shell: bash -el {0}
+        run: |
+          conda run -n build conda-build --version
+
+      - name: Build package
+        shell: bash -el {0}
+        run: |
+          conda run -n build conda-build conda \
+          --python 3.${{ matrix.python-minor-version }} \
+          --output-folder conda-bld
+
+#      - name: Upload to Anaconda
+#        shell: bash -el {0}
+#        env:
+#          ANACONDA_API_TOKEN: ${{ secrets.ANACONDA_API_TOKEN }}
+#        run: |
+#          anaconda upload conda-bld/*/*/*.tar.bz2 \
+#          --user YOUR_ANACONDA_USERNAME \
+#          --force
+

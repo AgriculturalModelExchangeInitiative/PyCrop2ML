@@ -7,10 +7,8 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-import six
-import os
-from os.path import isdir
-from path import Path
+
+from pathlib import Path
 
 # The package used to generate Notebook
 import nbformat as nbf
@@ -49,11 +47,9 @@ class Model2Nb(rp.Model2Package):
         """
         # Create a directory (mymodel)
         cwd = Path(self.dir)
-        directory=cwd/'python_notebook'
-        if isdir(directory):
-            _dir = directory
-        else:
-            _dir = directory.mkdir()
+        directory= cwd / 'python_notebook'
+        directory.mkdir(parents=True, exist_ok=True)
+        _dir = directory
         
         count = 0
         files=[]
@@ -141,7 +137,7 @@ Each run will be defined in its own cell."""
                     run_param = params.copy()
                     run_param.update(ins)
 
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         code = "    %s = %s,"%(k,v)
                         test_codes.append(code)
                     code = "     )"

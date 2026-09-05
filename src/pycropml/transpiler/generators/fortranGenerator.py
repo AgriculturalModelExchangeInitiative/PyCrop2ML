@@ -1,4 +1,8 @@
 # coding: utf8
+import os
+from pathlib import Path
+import shutil
+
 from pycropml.transpiler.pseudo_tree import Node
 from pycropml.transpiler.codeGenerator import CodeGenerator
 from pycropml.transpiler.rules.fortranRules import FortranRules
@@ -6,11 +10,8 @@ from pycropml.transpiler.interface import middleware
 from pycropml.transpiler.generators.docGenerator import DocGenerator
 from pycropml.transpiler import lib
 from pycropml.transpiler.preprocessing import check_range_function
-import os
-from path import Path
 #from pycropml.transpiler.Parser import parser
 #from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
-import shutil
 
 
 # get the path of fortran subroutine list_sub

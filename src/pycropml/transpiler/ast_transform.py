@@ -11,8 +11,7 @@ from pycropml.transpiler.logger import get_logger
 from Cython.Compiler.StringEncoding import EncodedString
 from pycropml.transpiler.helpers import *
 import unyt as u
-from six.moves import map
-from six.moves import zip
+
 
 
 logger = get_logger('transpiler.ast_transform')
@@ -1004,10 +1003,9 @@ class AstTransformer():
         #unit = "u.mm**3*u.m/u.kg"
         unit = unit.replace("**", "%")
         unit = unit.split("*")
-        unit = list(map(lambda un:un.split("/"), unit))
-        flatten = lambda l: [item for sublist in l for item in sublist]
-        unit = flatten(unit)
-        unit = list(map(lambda un:un.replace("%","**"), unit))
+        unit = [un.split("/") for un in unit]
+        unit = [item for sublist in unit for item in sublist]
+        unit = [un.replace("%","**") for un in unit]
         
         return unit
         
@@ -1762,7 +1760,8 @@ class AstTransformer():
             start, end, step = self.visit_node(range[0]), self.visit_node(
                 range[1]), {'type': 'int', 'value': "1", 'pseudo_type': 'int'}
         else:
-            start, end, step = tuple(map(self.visit_node, range[:3]))
+            x, y, d = range[:3]
+            start, end, step = self.visit_node(x), self.visit_node(y), self.visit_node(d)
         for label, r in [('start', start), ('end', end), ('step', step)]:
             if r['pseudo_type'] != 'int':
                 raise PseudoCythonTypeCheckError(

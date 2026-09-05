@@ -8,10 +8,9 @@ Problems:
 """
 from __future__ import print_function
 from __future__ import absolute_import
-from path import Path 
+
+from pathlib import Path 
 from pycropml.formater_f90 import formater  
-import six
-import os
 from pycropml.composition import model_parser
 
 class Model2Package(object):
@@ -124,7 +123,7 @@ class Model2Package(object):
                             #if model_name=="canopytemperature": print("    ", run_param)                                     
                         name_categ[j.name] = j.variablecategory if hasattr(j, "variablecategory") else j.parametercategory
                     
-                    for k, v in six.iteritems(run_param):
+                    for k, v in run_param.items():
                         typ = [inp.datatype for inp in list_inouts if inp.name == k][0]
                         
                         if typ == "STRING" or typ == "DATE": code = '    %s = "%s"\n'%(k,v.replace('"', ''))
@@ -143,7 +142,7 @@ class Model2Package(object):
                             test_codes.append(code)
 
                     test_codes2 = []
-                    for k, v in six.iteritems(ins):
+                    for k, v in ins.items():
                         type_ = [(inp.datatype, inp.unit) for inp in m.inputs if inp.name==k][0]
                         code_ = "%s" % transf(type_, k, v)
                         if v and name_categ[k] == "state" :
@@ -155,7 +154,7 @@ class Model2Package(object):
                         test_codes.extend(test_codes2)
                                            
                     code="    call model_{0}({1})\n".format(model_name, ', '.join(list_var))
-                    for k, v in six.iteritems(outs):
+                    for k, v in outs.items():
                         type_o = [out.datatype for out in m.outputs if out.name==k][0]     
                         code += tab + "!%s: %s\n"%(k, v[0]) 
                         code += tab + 'print *, "%s estimated :" \n'%(k)
@@ -177,9 +176,9 @@ class Model2Package(object):
         count = 0
         for model in self.models:
             codetest = self.generate_test(model)
-            filename = Path(self.directory/"test_%s.f90"%signature(model))
+            filename = Path(self.directory) / f"test_{signature(model)}.f90"
             codetest = "!Test generation\n\n"+codetest
-            with open(filename, "wb") as f90_file:
+            with filename.open("wb") as f90_file:
                 f90_file.write(codetest.encode('utf-8'))
                 files.append(filename)
             count +=1

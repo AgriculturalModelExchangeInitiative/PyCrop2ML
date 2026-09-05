@@ -1,0 +1,99 @@
+[build-system]
+requires = [
+    "setuptools>=61",
+  ]
+build-backend = "setuptools.build_meta"
+
+# allow openalea to be a namespace package
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[project]
+name = "pycropml"
+dynamic = ["version", "readme"]
+authors = [
+  { name = "Cyrille Ahmed Midingoyi", email="cyrille_ahmed.midingoyi@cirad.fr" },
+  { name = "Christophe Pradal", email="christophe.pradal@cirad.fr" },
+]
+description = "A Python library to generate components from Crop2ML declarative language"
+license-files = ["LICEN[CS]E*"]
+requires-python = ">=3.8,<3.13"
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering",
+  "Framework :: OpenAlea",
+  "Framework :: Crop2ML",
+]
+
+dependencies = [
+  "nbformat",
+  "numpy",
+  "Cython>=0.29.37,<3",
+  "networkx",
+  "graphviz",
+  "pydot",
+  "PyYAML",
+  "unyt",
+  "IPython",
+  "antlr4-python3-runtime==4.8",
+  "xmlformatter",
+  "pandas"
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "pycropml.version.__version__"}
+readme = {file = ["README.rst"]}
+
+
+[tool.setuptools.package-data]
+pycropml = ["**/*.json", "**/*.xml", "**/*.ini"]
+
+# section specific to conda-only distributed package (not used by pip yet)
+[tool.conda.environment]
+channels = [
+  "openalea3",
+  "conda-forge"
+]
+dependencies = [
+  "nbformat",
+  "numpy",
+  "Cython>=0.29.37,<3",
+  "networkx",
+  "graphviz",
+  "pydot",
+  "pyyaml",
+  "unyt",
+  "IPython",
+  "antlr4-python3-runtime==4.8",
+  "xmlformatter",
+  "pandas"
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+doc = [
+  "sphinx-favicon",
+  "sphinx-rtd-theme",
+  "pydata-sphinx-theme",
+  "myst-parser",
+  "nbsphinx",
+]
+
+[project.urls]
+Homepage = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML"
+"Bug Tracker" = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/issues"
+Discussions = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/discussions"
+Changelog = "https://github.com/AgriculturalModelExchangeInitiative/PyCrop2ML/releases"
+
+#[tool.setuptools.package-data]
+#"pycropml_data" = ["*"]
+
+[project.scripts]
+cyml = "pycropml.main:main"
+cyml-check-composition = "pycropml.transpiler.antlr_py.validate_composition:main"

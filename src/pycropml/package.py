@@ -1,6 +1,5 @@
 """from pycropml import composition
 from pycropml.pparse import model_parser
-from path import Path
 import networkx as nx
 from collections import defaultdict
 from IPython.display import Image, display

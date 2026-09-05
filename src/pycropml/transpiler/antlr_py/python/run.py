@@ -1,6 +1,6 @@
 import os
 import re
-from path import Path
+from pathlib import Path
 import xmlformatter
 
 from pycropml.transpiler.antlr_py import repowalk
@@ -46,7 +46,7 @@ def run_python(components, package):
     files = repowalk.walk(components, 'py')
     print('Process ', files)
     composite= None
-    composites = Path(components).glob('*Component.py')
+    composites = list(Path(components).glob('*Component.py'))
     if composites:
         composite = composites[0]
     else: 
@@ -117,6 +117,7 @@ def run_python(components, package):
                     
                     #extract external function used in model unit
                     extfunc = z.externFunction(file_asg, meth, True)
+                    extfunc = [ext for ext in extfunc if ext]
                     # save external functions
                     for ext in extfunc:
                         name = ext.name
@@ -153,6 +154,7 @@ def run_python(components, package):
 
                         #extract external function used in model unit
                         extfunc = z.externFunction(file_asg, meth_, True)
+                        extfunc = [ext for ext in extfunc if ext]
                         # save external functions
                         for ext in extfunc:
                             name = ext.name
