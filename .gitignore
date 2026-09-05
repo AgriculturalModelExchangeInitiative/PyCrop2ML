@@ -81,6 +81,7 @@ nosetests.xml
 *.code-workspace
 example/apsimcomponent
 tools/
+.antlr/
 *.bak
 *.interp
 *.tokens
