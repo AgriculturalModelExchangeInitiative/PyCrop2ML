@@ -88,7 +88,7 @@ class OpenaleaCompo(PythonCompo):
         names = split_name[:-1] if len(split_name) >2 else split_name
         names.insert(0, 'amei')
         name = '.'.join(names).lower()
-        wra_path = mc.path.split(os.path.sep)[-1].replace('-', '_')
+        wra_path = Path(mc.path).name.replace('-', '_')
         path = Path(mc.path) / "src" / "openalea" / wra_path
         _package = package.UserPackage(name, metainfo, path)
         for model in mc.model:
