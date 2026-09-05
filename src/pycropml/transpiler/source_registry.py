@@ -1,43 +1,43 @@
-"""Central registry for source languages and platforms converted to Crop2ML."""
+"""Registry of the source platforms built into PyCropML."""
 
-from dataclasses import dataclass
-from importlib import import_module
-
-
-@dataclass(frozen=True)
-class SourceSpec:
-    """Describe one source adapter that produces a Crop2ML package."""
-
-    module: str
-    runner: str
+from pycropml.transpiler.source import SourcePlatform
 
 
 SOURCES = {
-    "dssat": SourceSpec(
+    "dssat": SourcePlatform(
+        "dssat",
         "pycropml.transpiler.antlr_py.dssat.run", "run_dssat"
     ),
-    "simplace": SourceSpec(
+    "simplace": SourcePlatform(
+        "simplace",
         "pycropml.transpiler.antlr_py.simplace.run", "run_simplace"
     ),
-    "bioma": SourceSpec(
+    "bioma": SourcePlatform(
+        "bioma",
         "pycropml.transpiler.antlr_py.bioma.run", "run_bioma"
     ),
-    "openalea": SourceSpec(
+    "openalea": SourcePlatform(
+        "openalea",
         "pycropml.transpiler.antlr_py.openalea.run", "run_openalea"
     ),
-    "f90": SourceSpec(
+    "f90": SourcePlatform(
+        "f90",
         "pycropml.transpiler.antlr_py.fortran.run", "run_fortran"
     ),
-    "stics": SourceSpec(
+    "stics": SourcePlatform(
+        "stics",
         "pycropml.transpiler.antlr_py.stics.run", "run_stics"
     ),
-    "py": SourceSpec(
+    "py": SourcePlatform(
+        "py",
         "pycropml.transpiler.antlr_py.python.run", "run_python"
     ),
-    "apsim": SourceSpec(
+    "apsim": SourcePlatform(
+        "apsim",
         "pycropml.transpiler.antlr_py.apsim.run", "run_apsim"
     ),
-    "cs": SourceSpec(
+    "cs": SourcePlatform(
+        "cs",
         "pycropml.transpiler.antlr_py.csharp.run", "run_csharp"
     ),
 }
@@ -56,5 +56,4 @@ def get_source(name):
 
 def load_source_adapter(name):
     """Load the conversion function registered for a source."""
-    spec = get_source(name)
-    return getattr(import_module(spec.module), spec.runner)
+    return get_source(name).load_adapter()

@@ -2,6 +2,7 @@
 
 import pytest
 
+from pycropml.transpiler.target import TargetPlatform
 from pycropml.transpiler.target_registry import (
     TARGETS,
     get_target,
@@ -9,6 +10,12 @@ from pycropml.transpiler.target_registry import (
     load_generator,
     load_target_callable,
 )
+
+
+def test_builtin_targets_use_the_public_platform_contract():
+    for name, target in TARGETS.items():
+        assert isinstance(target, TargetPlatform)
+        assert target.name == name
 
 
 def test_registered_targets_load_their_generators():
@@ -46,3 +53,14 @@ def test_only_python_registers_a_simulation_generator():
 def test_unknown_target_has_a_helpful_error():
     with pytest.raises(ValueError, match="Unknown target 'unknown'"):
         get_target("unknown")
+
+
+def test_target_platform_rejects_empty_required_fields():
+    with pytest.raises(ValueError, match="TargetPlatform.name must not be empty"):
+        TargetPlatform(
+            name="",
+            module="example.platform",
+            generator="Generator",
+            composer="Composer",
+            extension="py",
+        )

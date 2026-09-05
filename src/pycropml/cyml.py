@@ -12,8 +12,8 @@ from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
-from pycropml.transpiler.source_registry import SOURCES, load_source_adapter
-from pycropml.transpiler.target_registry import get_target, load_target_callable
+from pycropml.transpiler.source_registry import SOURCES, get_source
+from pycropml.transpiler.target_registry import get_target
 
 cymltx_languages = list(SOURCES)
 
@@ -92,13 +92,9 @@ def transpile_package(package, language):
     # print(vpz.create())
 
     # domain class
-    domain_class_factory = load_target_callable(language, "domain_class_factory")
-    if domain_class_factory:
-        domain_class_factory([T.model], tg_rep, mc_name)
+    target.generate_domain_classes([T.model], tg_rep, mc_name)
     # wrapper
-    wrapper_factory = load_target_callable(language, "wrapper_factory")
-    if wrapper_factory:
-        wrapper_factory(T.model, tg_rep, mc_name)
+    target.generate_wrapper(T.model, tg_rep, mc_name)
 
     # Transform model unit to languages and platforms
     for k, file in enumerate(p for p in cyml_rep.iterdir() if p.is_file()):
@@ -131,7 +127,7 @@ def transpile_package(package, language):
             tg_file.write(code)
 
     # Create a platform-specific simulation when the target provides one.
-    simulation_class = load_target_callable(language, "simulation_class")
+    simulation_class = target.load_simulation()
     if simulation_class:
         simulation = simulation_class(T.model, package_name=namep)
         simulation.generate()
@@ -167,7 +163,7 @@ def transpile_component(component, package, language):
         package: Crop2ML package containing xml files and 
     """
 
-    adapter = load_source_adapter(language)
-    adapter(component, package)
+    source = get_source(language)
+    source.convert(component, package)
 
     return 0
