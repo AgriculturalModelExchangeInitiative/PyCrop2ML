@@ -8,6 +8,12 @@ from pycropml.transpiler.antlr_py.composition_compiler import (
     find_composition_algorithms,
 )
 from pycropml.transpiler.antlr_py.composition_visitor import load_model_interfaces
+from pycropml.transpiler.antlr_py.composition_visualization import (
+    INPUT_NODE,
+    OUTPUT_NODE,
+    composition_graph_from_file,
+    write_composition_graph,
+)
 from pycropml.transpiler.antlr_py.validate_composition import validate
 
 
@@ -59,6 +65,17 @@ def test_monica_composition_metadata_and_links():
         "source": "soilTemperature",
         "target": "SoilTemperature.soilTemperature",
     } in result.input_links
+    assert {
+        "source": "minimumAirTemperature",
+        "target": "NoSnowSoilSurfaceTemperature.tmin",
+    } in result.input_links
+    assert not any(
+        link == {
+            "source": "tmin",
+            "target": "NoSnowSoilSurfaceTemperature.tmin",
+        }
+        for link in result.input_links
+    )
 
 
 def test_generated_composition_xml():
@@ -76,6 +93,52 @@ def test_generated_composition_xml():
     assert len(root.findall("./Composition/Model")) == 3
     assert len(root.findall("./Composition/Links/InternalLink")) == 2
     assert len(root.findall("./Composition/Links/OutputLink")) == 2
+    assert root.find(
+        "./Composition/Links/InputLink"
+        "[@source='minimumAirTemperature']"
+        "[@target='NoSnowSoilSurfaceTemperature.tmin']"
+    ) is not None
 
     # Ensure the generated element tree can be serialized and parsed again.
     assert ET.fromstring(ET.tostring(root)).tag == "ModelComposition"
+
+
+def test_composition_graph():
+    graph = composition_graph_from_file(ALGORITHM, CROP2ML)
+
+    assert list(graph.nodes) == [
+        "NoSnowSoilSurfaceTemperature",
+        "WithSnowSoilSurfaceTemperature",
+        "SoilTemperature",
+    ]
+    assert graph.number_of_edges() == 2
+    assert {
+        edge[2]["label"]
+        for edge in graph.edges(data=True)
+    } == {
+        "soilSurfaceTemperature → noSnowSoilSurfaceTemperature",
+        "soilSurfaceTemperature → soilSurfaceTemperature",
+    }
+
+
+def test_detailed_composition_graph_and_dot_output(tmp_path):
+    graph = composition_graph_from_file(
+        ALGORITHM,
+        CROP2ML,
+        include_interfaces=True,
+    )
+
+    assert INPUT_NODE in graph
+    assert OUTPUT_NODE in graph
+    assert graph.number_of_edges() == 46
+
+    output = write_composition_graph(
+        ALGORITHM,
+        tmp_path / "composition.dot",
+        CROP2ML,
+        include_interfaces=True,
+    )
+    dot_source = output.read_text(encoding="utf-8")
+    assert "Composition inputs" in dot_source
+    assert "Composition outputs" in dot_source
+    assert "NoSnowSoilSurfaceTemperature" in dot_source

@@ -35,3 +35,37 @@ jobs:
 
       - name: Run unit tests
         run: python -m unittest discover -s test/cyml -p "test_cyml_operations.py" -v
+
+  pytest:
+    name: Full pytest suite on Python 3.12
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout with test fixtures
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Conda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: pycropml-tests
+          python-version: "3.12"
+          channels: conda-forge,openalea3,amei
+          channel-priority: strict
+
+      - name: Install system and Python dependencies
+        shell: bash -el {0}
+        run: |
+          conda install -y graphviz openalea.core
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[test]"
+
+      - name: Run full pytest suite
+        shell: bash -el {0}
+        run: |
+          python -m pytest \
+            test \
+            src/pycropml/transpiler/antlr_py/tests \
+            --ignore=test/Tutorial \
+            -v --tb=short
