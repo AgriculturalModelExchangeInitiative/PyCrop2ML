@@ -13,6 +13,7 @@ class TargetSpec:
     generator: str
     composer: str
     extension: Optional[str]
+    simulation_class: Optional[str] = None
     generate_notebooks: bool = False
     domain_class_factory: Optional[str] = None
     wrapper_factory: Optional[str] = None
@@ -41,7 +42,8 @@ TARGETS = {
     ),
     "py": TargetSpec(
         "pycropml.transpiler.generators.pythonGenerator",
-        "PythonGenerator", "PythonCompo", "py", generate_notebooks=True,
+        "PythonGenerator", "PythonCompo", "py",
+        simulation_class="PythonSimulation", generate_notebooks=True,
     ),
     "f90": TargetSpec(
         "pycropml.transpiler.generators.fortranGenerator",

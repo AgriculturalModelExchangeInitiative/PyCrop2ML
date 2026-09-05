@@ -19,7 +19,11 @@ def test_registered_targets_load_their_generators():
 
 def test_registered_target_helpers_are_loadable():
     for name, spec in TARGETS.items():
-        for attribute in ("domain_class_factory", "wrapper_factory"):
+        for attribute in (
+            "domain_class_factory",
+            "wrapper_factory",
+            "simulation_class",
+        ):
             helper = load_target_callable(name, attribute)
             if getattr(spec, attribute) is None:
                 assert helper is None
@@ -30,6 +34,13 @@ def test_registered_target_helpers_are_loadable():
 def test_python_platforms_share_the_python_extension():
     assert get_target("py").extension == "py"
     assert get_target("openalea").extension == "py"
+
+
+def test_only_python_registers_a_simulation_generator():
+    assert load_target_callable("py", "simulation_class").__name__ == (
+        "PythonSimulation"
+    )
+    assert get_target("openalea").simulation_class is None
 
 
 def test_unknown_target_has_a_helpful_error():

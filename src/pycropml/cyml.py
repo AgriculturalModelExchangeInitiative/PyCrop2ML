@@ -6,38 +6,16 @@ Created on Tue Mar 19 22:59:23 2019
 """
 import os
 from pathlib import Path
-import pycropml
 from pycropml.transpiler.main import Main
-from pycropml.transpiler.antlr_py.dssat.run import run_dssat
-from pycropml.transpiler.antlr_py.stics.run import run_stics
-from pycropml.transpiler.antlr_py.simplace.run import run_simplace
-from pycropml.transpiler.antlr_py.bioma.run import run_bioma
-from pycropml.transpiler.antlr_py.openalea.run import run_openalea
-from pycropml.transpiler.antlr_py.fortran.run import run_fortran
-from pycropml.transpiler.antlr_py.python.run import run_python
-from pycropml.transpiler.antlr_py.apsim.run import run_apsim
-from pycropml.transpiler.antlr_py.csharp.run import run_csharp
 from pycropml import render_cyml, nameconvention
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
-from pycropml.transpiler.generators.pythonGenerator import PythonSimulation
-import pycropml.transpiler.antlr_py
+from pycropml.transpiler.source_registry import SOURCES, load_source_adapter
 from pycropml.transpiler.target_registry import get_target, load_target_callable
 
-cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py", "apsim","cs"]
-SOURCE_NAMES = {
-    "dssat": "dssat",
-    "simplace": "simplace",
-    "bioma": "bioma",
-    "openalea": "openalea",
-    "f90": "fortran",
-    "stics": "stics",
-    "py": "python",
-    "apsim": "apsim",
-    "cs": "csharp",
-}
+cymltx_languages = list(SOURCES)
 
 def transpile_file(source, language):
     target = get_target(language)
@@ -152,9 +130,10 @@ def transpile_package(package, language):
         with filename.open("wb") as tg_file:
             tg_file.write(code)
 
-    # create computing algorithm
-    if language == "py":
-        simulation = PythonSimulation(T.model, package_name=namep)
+    # Create a platform-specific simulation when the target provides one.
+    simulation_class = load_target_callable(language, "simulation_class")
+    if simulation_class:
+        simulation = simulation_class(T.model, package_name=namep)
         simulation.generate()
         code = ''.join(simulation.result)
         filename = tg_rep / "simulation.py"
@@ -164,7 +143,7 @@ def transpile_package(package, language):
         with initfile.open("wb") as tg_file:
             tg_file.write("".encode("utf-8"))
 
-        setup = PythonSimulation(T.model, package_name=namep)
+        setup = simulation_class(T.model, package_name=namep)
         #setup.generate_setup()
         setup.generate_pyproject()
         code = ''.join(setup.result)
@@ -188,12 +167,7 @@ def transpile_component(component, package, language):
         package: Crop2ML package containing xml files and 
     """
 
-    translator = {
-        format: getattr(getattr(getattr(pycropml.transpiler.antlr_py, SOURCE_NAMES[format]), 'run'),
-                        f'run_{SOURCE_NAMES[format]}')
-        for format in cymltx_languages
-    }
-    print('translator :', translator)
-    translator[language](component, package)
+    adapter = load_source_adapter(language)
+    adapter(component, package)
 
     return 0

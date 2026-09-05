@@ -47,11 +47,14 @@ def test_energy_balance_package_generation(tmp_path):
     assert len(list((cyml_output / "pyx").glob("*.pyx"))) == len(models)
 
     transpile_package(package, "py")
-    assert_generated_component(package, "py")
+    python_output = assert_generated_component(package, "py")
+    assert (python_output / "simulation.py").is_file()
+    assert (package / "src" / "py" / "pyproject.toml").is_file()
 
     transpile_package(package, "openalea")
     openalea_output = assert_generated_component(package, "openalea")
     assert (openalea_output / "__wralea__.py").is_file()
+    assert not (openalea_output / "simulation.py").exists()
 
 
 def test_phenology_package_generation(tmp_path):
