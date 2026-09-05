@@ -20,62 +20,29 @@ from pycropml.transpiler.antlr_py.csharp.run import run_csharp
 from pycropml import render_cyml, nameconvention
 from pycropml.pparse import model_parser
 from pycropml.writeTest import WriteTest
-from pycropml.transpiler.generators.csharpGenerator import to_struct_cs, to_wrapper_cs
-from pycropml.transpiler.generators.javaGenerator import to_struct_java
 from pycropml.topology import Topology
 from pycropml.code2nbk import Model2Nb
 from pycropml.transpiler.generators.pythonGenerator import PythonSimulation
-from pycropml.transpiler.generators.siriusGenerator import to_struct_sirius, to_wrapper_sirius
-from pycropml.transpiler.generators.sirius2Generator import to_struct_sirius2, to_wrapper_sirius2
-from pycropml.transpiler.generators.recordGenerator import Crop2ML_Vpz
-#from pycropml.transpiler.generators.cppGenerator import to_struct_cpp
 import pycropml.transpiler.antlr_py
-
-NAMES = {
-    'r': 'r',
-    'cs': 'csharp',
-    'cpp': 'cpp',
-    "cpp2": "cpp2",
-    'py': 'python',
-    'f90': 'fortran',
-    'java': 'java',
-    'simplace': 'simplace',
-    'sirius': 'sirius',
-    "openalea": "openalea",
-    "apsim": "apsim",
-    "record": "record",
-    "dssat": "dssat",
-    "bioma": "bioma",
-    "stics": "stics",
-    "sirius2": "sirius2"
-}
-
-ext = {'r': 'r',
-       'cs': 'cs',
-       'cpp': 'cpp',
-       "cpp2": "cpp",
-       'py': 'py',
-       'f90': 'f90',
-       'java': 'java',
-       'simplace': 'java',
-       'sirius': 'cs',
-       'bioma': 'cs',
-       "openalea": "py",
-       "apsim": "cs",
-       "record": "cpp",
-       "dssat": "f90",
-       "stics": "f90",
-       "sirius2": 'cs'
-       }
+from pycropml.transpiler.target_registry import get_target, load_target_callable
 
 cymltx_languages = ['dssat', "simplace", "bioma", "openalea", "f90", "stics", "py", "apsim","cs"]
-langs = ["cs", "cpp", "java", "f90", "r", "py"]
-
-domain_class = ["cs", "java", "sirius", "cpp", "cpp2", "bioma", "sirius2", "apsim"]
-wrapper=["cs", "sirius", "bioma", "sirius2", "apsim"]
-platform = ["simplace","sirius","openalea","apsim","bioma","record","dssat", "stics", "sirius2"]
+SOURCE_NAMES = {
+    "dssat": "dssat",
+    "simplace": "simplace",
+    "bioma": "bioma",
+    "openalea": "openalea",
+    "f90": "fortran",
+    "stics": "stics",
+    "py": "python",
+    "apsim": "apsim",
+    "cs": "csharp",
+}
 
 def transpile_file(source, language):
+    target = get_target(language)
+    if target.extension is None:
+        raise ValueError(f"Target {language!r} does not define a file extension")
     sourcef = source
     file = Path(sourcef)
     with file.open('r') as fi:
@@ -85,7 +52,7 @@ def transpile_file(source, language):
     test.parse()
     test.to_ast(source)
     code = test.to_source()
-    filename = f"{name}.{language}"
+    filename = f"{name}.{target.extension}"
     with open(filename, "wb") as tg_file:
         tg_file.write(code.encode('utf-8'))
     return 0
@@ -98,6 +65,9 @@ def prefix(model):
 
 def transpile_package(package, language):
     """ translate from crop2ml package"""
+    target = get_target(language)
+    if target.extension is None:
+        raise ValueError(f"Target {language!r} does not define a file extension")
     sourcef = package
     pkg = Path(package)
     namep = pkg.name
@@ -144,13 +114,13 @@ def transpile_package(package, language):
     # print(vpz.create())
 
     # domain class
-    if language in domain_class:
-        getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
-                f'to_struct_{language}')([T.model], tg_rep, mc_name)
+    domain_class_factory = load_target_callable(language, "domain_class_factory")
+    if domain_class_factory:
+        domain_class_factory([T.model], tg_rep, mc_name)
     # wrapper
-    if language in wrapper:
-        getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
-                f'to_wrapper_{language}')(T.model, tg_rep, mc_name)
+    wrapper_factory = load_target_callable(language, "wrapper_factory")
+    if wrapper_factory:
+        wrapper_factory(T.model, tg_rep, mc_name)
 
     # Transform model unit to languages and platforms
     for k, file in enumerate(p for p in cyml_rep.iterdir() if p.is_file()):
@@ -159,17 +129,14 @@ def transpile_package(package, language):
         name = file.stem
         for model in models:  # in the case we haven't the same order
             if name.lower() == model.name.lower() and prefix(model) != "function":
-                #getattr(getattr(pycropml.transpiler.generators, f'{NAMES[language]}Generator'),
-                #        f'header_mu_cpp2')(model, tg_rep, mc_name)
-
                 test = Main(file, language, model, T.model.name)
                 test.parse()
                 test.to_ast(source)
                 code = test.to_source()
-                filename = tg_rep / f"{nameconvention.signature(model, ext[language])}.{ext[language]}"
+                filename = tg_rep / f"{nameconvention.signature(model, target.extension)}.{target.extension}"
                 with filename.open("wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
-                if language in langs:
+                if target.generate_notebooks:
                     Model2Nb(model, code, name, dir_test_lang).generate_nb(language, tg_rep, namep, mc_name)
                     # code2nbk.generate_notebook(code, name, dir_nb_lang)
 
@@ -179,7 +146,7 @@ def transpile_package(package, language):
     with fileT.open("wb") as tg_file:
         tg_file.write(T_pyx.encode('utf-8'))
 
-    filename = tg_rep / f"{mc_name}Component.{ext[language]}"
+    filename = tg_rep / f"{mc_name}Component.{target.extension}"
     code = T.compotranslate(language).encode('utf-8')
     if code:
         with filename.open("wb") as tg_file:
@@ -222,8 +189,8 @@ def transpile_component(component, package, language):
     """
 
     translator = {
-        format: getattr(getattr(getattr(pycropml.transpiler.antlr_py, NAMES[format].lower()), 'run'),
-                        f'run_{NAMES[format]}')
+        format: getattr(getattr(getattr(pycropml.transpiler.antlr_py, SOURCE_NAMES[format]), 'run'),
+                        f'run_{SOURCE_NAMES[format]}')
         for format in cymltx_languages
     }
     print('translator :', translator)
