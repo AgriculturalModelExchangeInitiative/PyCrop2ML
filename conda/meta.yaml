@@ -29,7 +29,7 @@ requirements:
     - nbformat
     - ipython
     - nbsphinx
-    - graphviz
+    - python-graphviz
     - pydot
     - pandas
     - openalea.core
