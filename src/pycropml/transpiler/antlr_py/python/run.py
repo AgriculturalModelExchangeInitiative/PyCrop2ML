@@ -117,6 +117,7 @@ def run_python(components, package):
                     
                     #extract external function used in model unit
                     extfunc = z.externFunction(file_asg, meth, True)
+                    extfunc = [ext for ext in extfunc if ext]
                     # save external functions
                     for ext in extfunc:
                         name = ext.name
@@ -153,6 +154,7 @@ def run_python(components, package):
 
                         #extract external function used in model unit
                         extfunc = z.externFunction(file_asg, meth_, True)
+                        extfunc = [ext for ext in extfunc if ext]
                         # save external functions
                         for ext in extfunc:
                             name = ext.name

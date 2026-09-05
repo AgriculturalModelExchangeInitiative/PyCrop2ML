@@ -125,9 +125,9 @@ Example
         print(parser.usage)
         return
 
-    if pyx_filename or len(sourcef.split(".")) == 2:
+    if pyx_filename or sourcef.is_file():
         # translate from cyml code
-        if sourcef.split(".")[1] != "pyx":
+        if sourcef.suffix.lower() != ".pyx":
             parser.error("Source code %s is not a Cyml file (.pyx estension) " % (str(sourcef)))
             return
 
