@@ -1,6 +1,6 @@
-# Generated from CMake.g4 by ANTLR 4.8
+# Generated from CMake.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .CMakeParser import CMakeParser
 else:
     from CMakeParser import CMakeParser

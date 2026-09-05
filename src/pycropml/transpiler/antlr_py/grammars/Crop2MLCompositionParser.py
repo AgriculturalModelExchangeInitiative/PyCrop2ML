@@ -1,4 +1,4 @@
-# Generated from src/pycropml/transpiler/antlr_py/grammars/Crop2MLComposition.g4 by ANTLR 4.8
+# Generated from Crop2MLComposition.g4 by ANTLR 4.13.2
 # encoding: utf-8
 from antlr4 import *
 from io import StringIO
@@ -8,40 +8,36 @@ if sys.version_info[1] > 5:
 else:
 	from typing.io import TextIO
 
-
 def serializedATN():
-    with StringIO() as buf:
-        buf.write("\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3\f")
-        buf.write("\\\4\2\t\2\4\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b")
-        buf.write("\t\b\4\t\t\t\4\n\t\n\4\13\t\13\4\f\t\f\3\2\7\2\32\n\2")
-        buf.write("\f\2\16\2\35\13\2\3\2\3\2\6\2!\n\2\r\2\16\2\"\3\2\3\2")
-        buf.write("\6\2\'\n\2\r\2\16\2(\7\2+\n\2\f\2\16\2.\13\2\3\2\5\2\61")
-        buf.write("\n\2\3\2\7\2\64\n\2\f\2\16\2\67\13\2\3\2\3\2\3\3\3\3\3")
-        buf.write("\4\3\4\3\4\5\4@\n\4\3\5\3\5\3\5\3\5\3\6\3\6\3\6\3\6\3")
-        buf.write("\7\3\7\3\7\3\7\3\b\3\b\5\bP\n\b\3\t\3\t\3\t\3\t\3\n\3")
-        buf.write("\n\3\13\3\13\3\f\3\f\3\f\2\2\r\2\4\6\b\n\f\16\20\22\24")
-        buf.write("\26\2\2\2Y\2\33\3\2\2\2\4:\3\2\2\2\6?\3\2\2\2\bA\3\2\2")
-        buf.write("\2\nE\3\2\2\2\fI\3\2\2\2\16O\3\2\2\2\20Q\3\2\2\2\22U\3")
-        buf.write("\2\2\2\24W\3\2\2\2\26Y\3\2\2\2\30\32\7\13\2\2\31\30\3")
-        buf.write("\2\2\2\32\35\3\2\2\2\33\31\3\2\2\2\33\34\3\2\2\2\34\36")
-        buf.write("\3\2\2\2\35\33\3\2\2\2\36 \5\4\3\2\37!\7\13\2\2 \37\3")
-        buf.write("\2\2\2!\"\3\2\2\2\" \3\2\2\2\"#\3\2\2\2#,\3\2\2\2$&\5")
-        buf.write("\6\4\2%\'\7\13\2\2&%\3\2\2\2\'(\3\2\2\2(&\3\2\2\2()\3")
-        buf.write("\2\2\2)+\3\2\2\2*$\3\2\2\2+.\3\2\2\2,*\3\2\2\2,-\3\2\2")
-        buf.write("\2-\60\3\2\2\2.,\3\2\2\2/\61\5\6\4\2\60/\3\2\2\2\60\61")
-        buf.write("\3\2\2\2\61\65\3\2\2\2\62\64\7\13\2\2\63\62\3\2\2\2\64")
-        buf.write("\67\3\2\2\2\65\63\3\2\2\2\65\66\3\2\2\2\668\3\2\2\2\67")
-        buf.write("\65\3\2\2\289\7\2\2\39\3\3\2\2\2:;\7\7\2\2;\5\3\2\2\2")
-        buf.write("<@\5\b\5\2=@\5\n\6\2>@\5\f\7\2?<\3\2\2\2?=\3\2\2\2?>\3")
-        buf.write("\2\2\2@\7\3\2\2\2AB\5\22\n\2BC\7\3\2\2CD\7\4\2\2D\t\3")
-        buf.write("\2\2\2EF\5\20\t\2FG\7\6\2\2GH\5\16\b\2H\13\3\2\2\2IJ\5")
-        buf.write("\26\f\2JK\7\6\2\2KL\5\20\t\2L\r\3\2\2\2MP\5\26\f\2NP\5")
-        buf.write("\20\t\2OM\3\2\2\2ON\3\2\2\2P\17\3\2\2\2QR\5\22\n\2RS\7")
-        buf.write("\5\2\2ST\5\24\13\2T\21\3\2\2\2UV\5\26\f\2V\23\3\2\2\2")
-        buf.write("WX\5\26\f\2X\25\3\2\2\2YZ\7\b\2\2Z\27\3\2\2\2\n\33\"(")
-        buf.write(",\60\65?O")
-        return buf.getvalue()
-
+    return [
+        4,1,10,90,2,0,7,0,2,1,7,1,2,2,7,2,2,3,7,3,2,4,7,4,2,5,7,5,2,6,7,
+        6,2,7,7,7,2,8,7,8,2,9,7,9,2,10,7,10,1,0,5,0,24,8,0,10,0,12,0,27,
+        9,0,1,0,1,0,4,0,31,8,0,11,0,12,0,32,1,0,1,0,4,0,37,8,0,11,0,12,0,
+        38,5,0,41,8,0,10,0,12,0,44,9,0,1,0,3,0,47,8,0,1,0,5,0,50,8,0,10,
+        0,12,0,53,9,0,1,0,1,0,1,1,1,1,1,2,1,2,1,2,3,2,62,8,2,1,3,1,3,1,3,
+        1,3,1,4,1,4,1,4,1,4,1,5,1,5,1,5,1,5,1,6,1,6,3,6,78,8,6,1,7,1,7,1,
+        7,1,7,1,8,1,8,1,9,1,9,1,10,1,10,1,10,0,0,11,0,2,4,6,8,10,12,14,16,
+        18,20,0,0,87,0,25,1,0,0,0,2,56,1,0,0,0,4,61,1,0,0,0,6,63,1,0,0,0,
+        8,67,1,0,0,0,10,71,1,0,0,0,12,77,1,0,0,0,14,79,1,0,0,0,16,83,1,0,
+        0,0,18,85,1,0,0,0,20,87,1,0,0,0,22,24,5,9,0,0,23,22,1,0,0,0,24,27,
+        1,0,0,0,25,23,1,0,0,0,25,26,1,0,0,0,26,28,1,0,0,0,27,25,1,0,0,0,
+        28,30,3,2,1,0,29,31,5,9,0,0,30,29,1,0,0,0,31,32,1,0,0,0,32,30,1,
+        0,0,0,32,33,1,0,0,0,33,42,1,0,0,0,34,36,3,4,2,0,35,37,5,9,0,0,36,
+        35,1,0,0,0,37,38,1,0,0,0,38,36,1,0,0,0,38,39,1,0,0,0,39,41,1,0,0,
+        0,40,34,1,0,0,0,41,44,1,0,0,0,42,40,1,0,0,0,42,43,1,0,0,0,43,46,
+        1,0,0,0,44,42,1,0,0,0,45,47,3,4,2,0,46,45,1,0,0,0,46,47,1,0,0,0,
+        47,51,1,0,0,0,48,50,5,9,0,0,49,48,1,0,0,0,50,53,1,0,0,0,51,49,1,
+        0,0,0,51,52,1,0,0,0,52,54,1,0,0,0,53,51,1,0,0,0,54,55,5,0,0,1,55,
+        1,1,0,0,0,56,57,5,5,0,0,57,3,1,0,0,0,58,62,3,6,3,0,59,62,3,8,4,0,
+        60,62,3,10,5,0,61,58,1,0,0,0,61,59,1,0,0,0,61,60,1,0,0,0,62,5,1,
+        0,0,0,63,64,3,16,8,0,64,65,5,1,0,0,65,66,5,2,0,0,66,7,1,0,0,0,67,
+        68,3,14,7,0,68,69,5,4,0,0,69,70,3,12,6,0,70,9,1,0,0,0,71,72,3,20,
+        10,0,72,73,5,4,0,0,73,74,3,14,7,0,74,11,1,0,0,0,75,78,3,20,10,0,
+        76,78,3,14,7,0,77,75,1,0,0,0,77,76,1,0,0,0,78,13,1,0,0,0,79,80,3,
+        16,8,0,80,81,5,3,0,0,81,82,3,18,9,0,82,15,1,0,0,0,83,84,3,20,10,
+        0,84,17,1,0,0,0,85,86,3,20,10,0,86,19,1,0,0,0,87,88,5,6,0,0,88,21,
+        1,0,0,0,8,25,32,38,42,46,51,61,77
+    ]
 
 class Crop2MLCompositionParser ( Parser ):
 
@@ -89,7 +85,7 @@ class Crop2MLCompositionParser ( Parser ):
 
     def __init__(self, input:TokenStream, output:TextIO = sys.stdout):
         super().__init__(input, output)
-        self.checkVersion("4.8")
+        self.checkVersion("4.13.2")
         self._interp = ParserATNSimulator(self, self.atn, self.decisionsToDFA, self.sharedContextCache)
         self._predicates = None
 
@@ -97,6 +93,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class CompositionContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -152,7 +149,7 @@ class Crop2MLCompositionParser ( Parser ):
             self.state = 25
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==Crop2MLCompositionParser.NEWLINE:
+            while _la==9:
                 self.state = 22
                 self.match(Crop2MLCompositionParser.NEWLINE)
                 self.state = 27
@@ -203,7 +200,7 @@ class Crop2MLCompositionParser ( Parser ):
             self.state = 46
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            if _la==Crop2MLCompositionParser.IDENTIFIER:
+            if _la==6:
                 self.state = 45
                 self.statement()
 
@@ -211,7 +208,7 @@ class Crop2MLCompositionParser ( Parser ):
             self.state = 51
             self._errHandler.sync(self)
             _la = self._input.LA(1)
-            while _la==Crop2MLCompositionParser.NEWLINE:
+            while _la==9:
                 self.state = 48
                 self.match(Crop2MLCompositionParser.NEWLINE)
                 self.state = 53
@@ -230,6 +227,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class DocumentationContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -276,6 +274,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class StatementContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -350,6 +349,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class ModelCallContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -407,6 +407,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class ModelInputAssignmentContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -465,6 +466,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class CompositionOutputAssignmentContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -523,6 +525,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class SourceContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -587,6 +590,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class ModelPortContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -645,6 +649,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class ModelNameContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -692,6 +697,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class PortNameContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)
@@ -739,6 +745,7 @@ class Crop2MLCompositionParser ( Parser ):
 
 
     class IdentifierContext(ParserRuleContext):
+        __slots__ = 'parser'
 
         def __init__(self, parser, parent:ParserRuleContext=None, invokingState:int=-1):
             super().__init__(parent, invokingState)

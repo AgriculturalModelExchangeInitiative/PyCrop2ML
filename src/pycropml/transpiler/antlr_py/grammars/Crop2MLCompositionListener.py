@@ -1,6 +1,6 @@
-# Generated from src/pycropml/transpiler/antlr_py/grammars/Crop2MLComposition.g4 by ANTLR 4.8
+# Generated from Crop2MLComposition.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .Crop2MLCompositionParser import Crop2MLCompositionParser
 else:
     from Crop2MLCompositionParser import Crop2MLCompositionParser

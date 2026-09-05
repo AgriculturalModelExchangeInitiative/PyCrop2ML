@@ -1,6 +1,6 @@
-# Generated from gram\xml\XMLParser.g4 by ANTLR 4.8
+# Generated from XMLParser.g4 by ANTLR 4.13.2
 from antlr4 import *
-if __name__ is not None and "." in __name__:
+if "." in __name__:
     from .XMLParser import XMLParser
 else:
     from XMLParser import XMLParser

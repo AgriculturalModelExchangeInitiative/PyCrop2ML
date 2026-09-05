@@ -80,3 +80,7 @@ nosetests.xml
 .Rhistory
 *.code-workspace
 example/apsimcomponent
+tools/
+*.bak
+*.interp
+*.tokens
