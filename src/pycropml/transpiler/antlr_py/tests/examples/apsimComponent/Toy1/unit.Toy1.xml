@@ -10,12 +10,12 @@
         <ExtendedDescription></ExtendedDescription>
         <ShortDescription>Calculates vapour pressure deficit</ShortDescription></Description>
     <Inputs>
-        <Input name="MinT" description="Minimum temperature" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="" unit="oC"/>
-        <Input name="MaxT" description="Maximum temperature" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="" unit="oC"/>
-        <Input name="VP" description="Vapour pressure deficit" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="" unit="hPa"/>
+        <Input name="weather_MinT" description="Minimum temperature" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="" unit="oC"/>
+        <Input name="weather_MaxT" description="Maximum temperature" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="" unit="oC"/>
+        <Input name="weather_VP" description="Vapour pressure deficit" inputtype="variable" variablecategory="exogenous" datatype="DOUBLE" max="" min="" default="" unit="hPa"/>
     </Inputs>
     <Outputs>
-        <Output name="VPD" description="Vapour pressure deficit" datatype="DOUBLE" variablecategory="state" max="" min="" unit="hPa"/>
+        <Output name="weather_VPD" description="Vapour pressure deficit" datatype="DOUBLE" variablecategory="state" max="" min="" unit="hPa"/>
     </Outputs>
     <Function name="TOY1" description="" language="cyml" type="external" filename="algo/pyx/svp.pyx"/>
     <Algorithm language="cyml" platform="" filename="algo/pyx/TOY1.pyx"/>

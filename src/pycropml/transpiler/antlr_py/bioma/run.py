@@ -62,12 +62,9 @@ pseudo_type_={
     
 
 def create_package(output):
-    crop2ml_rep = Path(output) / 'crop2ml'
-    crop2ml_rep.mkdir(exist_ok=True)
-    algo_rep = crop2ml_rep / 'algo'
-    algo_rep.mkdir(exists_ok=True)
-    cyml_rep = algo_rep / 'pyx'
-    cyml_rep.mkdir(exist_ok=True)
+    crop2ml_rep = Path(output) / "crop2ml"
+    cyml_rep = crop2ml_rep / "algo" / "pyx"
+    cyml_rep.mkdir(parents=True, exist_ok=True)
     return crop2ml_rep, cyml_rep    
                 
 
@@ -428,7 +425,7 @@ def run_bioma(component, output):
                 h = cd.transform()
                 nd = transform_to_syntax_tree(h)
                 code = writeCyml(nd) 
-                filename = Path(cyml_rep) / "%s.pyx"%(name)
+                filename = cyml_rep / f"{name}.pyx"
                 with filename.open("wb") as tg_file:
                     tg_file.write(code.encode('utf-8'))
                     
@@ -462,7 +459,7 @@ def run_bioma(component, output):
             h = cd.transform()
             nd = transform_to_syntax_tree(h)
             initcode = writeCyml(nd)
-            filename = Path(cyml_rep) / "init.%s.pyx"%(z.model.name)
+            filename = cyml_rep / f"init.{z.model.name}.pyx"
             with filename.open("wb") as tg_file:
                 tg_file.write(initcode.encode('utf-8'))   
                
@@ -473,12 +470,12 @@ def run_bioma(component, output):
         nd = transform_to_syntax_tree(h)
         code = writeCyml(nd)
          
-        filename = Path(cyml_rep) / "%s.pyx"%(straNames[k])
+        filename = cyml_rep / f"{straNames[k]}.pyx"
         with filename.open("wb") as tg_file:
             tg_file.write(code.encode('utf-8'))
         
         xml_ = Pl2Crop2ml(z.model, "Crop2ML."+pkg).run_unit() 
-        filename = Path(crop2ml_rep) / "unit.%s.xml"%(straNames[k])
+        filename = crop2ml_rep / f"unit.{straNames[k]}.xml"
         with filename.open("wb") as xml_file:
             #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
             r = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -490,7 +487,7 @@ def run_bioma(component, output):
         z.modelcomposition(models,compo)
         xml_ = Pl2Crop2ml(z.mc, "Crop2ML."+pkg).run_compo()
         name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
-        filename = Path(crop2ml_rep) / "composition.%s.xml"%(name)
+        filename = crop2ml_rep / f"composition.{name}.xml"
         with filename.open("wb") as xml_file:
             #xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
             r = '<?xml version="1.0" encoding="UTF-8"?>\n'
@@ -506,4 +503,3 @@ def run_bioma(component, output):
                 
             
                 
-

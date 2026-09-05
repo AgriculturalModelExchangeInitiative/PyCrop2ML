@@ -1,96 +1,25 @@
-
-from __future__ import absolute_import
-from __future__ import print_function
-import os
-from os.path import isdir
 from pathlib import Path
 
-from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
-from pycropml.transpiler.antlr_py.bioma.biomaExtraction import BiomaExtraction
-from pycropml.transpiler.pseudo_tree import Node
-from pycropml.transpiler.antlr_py.csharp import cs_cyml
-from pycropml.transpiler.generators.cymlGenerator import CymlGenerator
-from pycropml.transpiler.ast_transform import transform_to_syntax_tree
-from pycropml.transpiler.antlr_py.generateCyml import writeCyml
-from pycropml.transpiler.antlr_py.createXml import Pl2Crop2ml
-
-""" Read BioMA component and extract metadata
-
-"""
-
-cwd = Path(__file__).parent
-data = cwd/'examples'/'SiriusComponent'/'phenology'/'Strategies'
-
-compositeStrat= next(data.glob('*Component.cs'))
-simpleStrat = [f for f in data.glob('*.cs')  if f not in compositeStrat]
-
-data = cwd/'examples'/'SiriusComponent'/'phenology'/'DomainClass'
-varInfo = data.glob('*VarInfo.cs')
-
-output = cwd/'examples'/'SiriusComponent'/'phenology'
-crop2ml_rep = output / 'crop2ml'
-crop2ml_rep.mkdir(exist_ok=True)
-algo_rep = crop2ml_rep / 'algo'
-algo_rep.mkdir(exist_ok=True)
-cyml_rep = algo_rep / 'pyx'
-cyml_rep.mkdir(exist_ok=True)
+from pycropml.transpiler.antlr_py.bioma.run import run_bioma
 
 
-vinfoAsg = []
-for vi in varInfo:
-    with open(vi, "r") as f:
-        v = f.read()
-    dictasg = to_dictASG(v, 'cs')
-    asg = to_CASG(dictasg)
-    vinfoAsg.append(asg)
-
-with open(compositeStrat, "r") as f:
-    strat = f.read()
-dictcompo = to_dictASG(strat, 'cs')
-compo = to_CASG(dictcompo)
-
-models = []
-for fil in simpleStrat:
-    print(fil)
-    with open(fil, "r") as f:
-        strat = f.read()
-    dictstrat = to_dictASG(strat,'cs')
-    strAsg = to_CASG(dictstrat)
-    z = BiomaExtraction()
-    p2 = z.prec_cur_states(strAsg)
-    algo = z.getAlgo(strAsg)
-    funcs = z.externFunction(strAsg, algo)
-    var =  z.totalvar(strAsg)
-    cd = cs_cyml.Cs_Cyml_ast(algo.block, var = var)
-    h = cd.transform()
-    nd = transform_to_syntax_tree(h)
-    code = writeCyml(nd)
-    filename = Path(os.path.join(cyml_rep, "%s.pyx"%(fil.basename().split(".")[0])))
-    with open(filename, "wb") as tg_file:
-        tg_file.write(code.encode('utf-8'))
-    
-    if funcs:
-        for m in funcs:
-            cd = cs_cyml.Cs_Cyml_ast(m)
-            h = cd.transform()
-            nd = transform_to_syntax_tree(h)
-            code = writeCyml(nd)
-            filename = Path(os.path.join(cyml_rep, "%s.pyx"%(m.name)))
-            with open(filename, "wb") as tg_file:
-                tg_file.write(code.encode('utf-8'))
-    
-    z.modelunit(strAsg,vinfoAsg)
-    models.append(z.model)
-    xml_ = Pl2Crop2ml(z.model, "SQ.Pheno_Pkg").run_unit()
-    filename = Path(os.path.join(crop2ml_rep, "unit.%s.xml"%(fil.basename().split(".")[0])))
-    with open(filename, "wb") as xml_file:
-        xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
-
-z.modelcomposition(models,compo)
-xml_ = Pl2Crop2ml(z.mc, "SQ.Pheno_Pkg").run_compo()
-name = z.mc.name[:-9] if z.mc.name.endswith("Component") else z.mc.name
-filename = Path(os.path.join(crop2ml_rep, "composition.%s.xml"%(name)))
-with open(filename, "wb") as xml_file:
-    xml_file.write(xml_.unicode(indent=4).encode('utf-8'))
+EXAMPLES = Path(__file__).parent / "examples"
 
 
+def test_run_bioma_generates_crop2ml_package(tmp_path):
+    """Convert the BioMA phenology component into a temporary package."""
+    component = (
+        EXAMPLES
+        / "SiriusComponent"
+        / "phenology"
+        / "original"
+        / "src"
+        / "sirius"
+        / "original"
+    )
+
+    run_bioma(component, tmp_path)
+
+    crop2ml_directory = tmp_path / "crop2ml"
+    assert list(crop2ml_directory.glob("unit*.xml"))
+    assert list(crop2ml_directory.glob("composition.*.xml"))

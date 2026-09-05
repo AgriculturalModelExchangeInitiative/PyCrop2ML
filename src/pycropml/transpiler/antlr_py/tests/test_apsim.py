@@ -1,20 +1,16 @@
-import os
 from pathlib import Path
 
-from pycropml.transpiler.antlr_py.to_CASG import to_CASG, to_dictASG
-from pycropml.transpiler.antlr_py.apsim.apsimExtraction import ApsimExtraction
 from pycropml.transpiler.antlr_py.apsim.run import run_apsim
 
-cwd = os.path.join(Path(__file__).parent, "examples")
-print("iii", cwd)
-data = cwd/'apsimComponent/Toy1'
-print(data)
 
-simpleStrat = [f for f in data.glob('*.cs')]
+EXAMPLES = Path(__file__).parent / "examples"
 
-strat = simpleStrat[0]
+def test_run_apsim_generates_crop2ml_package(tmp_path):
+    """Convert the Toy1 APSIM component without modifying the fixture."""
+    component = EXAMPLES / "apsimComponent" / "Toy1"
 
+    run_apsim(component, tmp_path)
 
-component = cwd/'apsimComponent/Toy1'
-output = cwd/'apsimComponent/Toy1'
-run_apsim(component, output)
+    crop2ml_directory = tmp_path / "crop2ml"
+    assert list(crop2ml_directory.glob("unit*.xml"))
+    assert list(crop2ml_directory.glob("composition.*.xml"))

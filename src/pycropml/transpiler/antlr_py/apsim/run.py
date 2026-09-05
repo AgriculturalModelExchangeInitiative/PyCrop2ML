@@ -3,9 +3,9 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import os
-from os.path import isdir 
 from copy import deepcopy, copy
 from pathlib import Path
+from shutil import copy2
 
 from pycropml.transpiler.antlr_py.to_CASG import to_dictASG, to_CASG
 from pycropml.transpiler.antlr_py.apsim.apsimExtraction import ApsimExtraction
@@ -571,16 +571,23 @@ f_dest = os.path.join(modelpath,"src","f90",pkg,"list_sub.f90")
 
 
 def create_package(output):
-    crop2ml_rep = Path(os.path.join(output, 'crop2ml'))
-    if not isdir(crop2ml_rep):
-        crop2ml_rep.mkdir()
-    algo_rep = Path(os.path.join(crop2ml_rep, 'algo'))
-    if not isdir(algo_rep):
-        algo_rep.mkdir()
-    cyml_rep = Path(os.path.join(algo_rep, 'pyx'))
-    if not isdir(cyml_rep):
-        cyml_rep.mkdir()
+    crop2ml_rep = Path(output) / "crop2ml"
+    cyml_rep = crop2ml_rep / "algo" / "pyx"
+    cyml_rep.mkdir(parents=True, exist_ok=True)
     return crop2ml_rep, cyml_rep    
+
+
+def copy_component_xml(component, crop2ml_rep):
+    """Copy existing ModelUnit and composition XML files into the output."""
+    component_dir = Path(component)
+    if not component_dir.is_dir():
+        return
+
+    for pattern in ("unit*.xml", "composition*.xml"):
+        for source in component_dir.rglob(pattern):
+            destination = crop2ml_rep / source.name
+            if source.resolve() != destination.resolve():
+                copy2(source, destination)
                   
                 
 
@@ -678,6 +685,7 @@ def run_apsim(component, output):
         output (_type_): Crop2ML package path
     """
     crop2ml_rep, cyml_rep = create_package(output)
+    copy_component_xml(component, crop2ml_rep)
     
     pkg = os.path.split(component)[-1].replace('-', '_')
     
@@ -694,10 +702,9 @@ def run_apsim(component, output):
     print(xfiles)
     for  k, v in files.items():
         print(v, "pmmmmmm")
-        with open(v, 'r') as f:
+        with open(v, "r", encoding="utf-8-sig") as f:
             code = f.read()
-        if code : # and k=="WheatLAIState.cs":
-            if code.startswith("ï»¿"): code = code[3:]
+        if code :
             splitcode = code.split('\n')
             zz = map(lambda x: x.lstrip(), splitcode)
             codelist = [n  for n in zz if not n.startswith("#") ]
@@ -709,8 +716,8 @@ def run_apsim(component, output):
             m = ApsimExtraction()
             m.getTypeNode(strAsg, "classDef")
             g= m.getTree
-            n = m.getmethod( g, "OnProcess")
-            if g and g[0].base and  m.getmethod( g[0], "OnProcess"):
+            algorithm = m.getAlgo(g[0]) if g and g[0].base else None
+            if algorithm:
                 if m.getmethod( g[0],"EstimateOfAssociatedClasses"):
                     compo[k] = strAsg
                 else: 
@@ -739,7 +746,8 @@ def run_apsim(component, output):
         z = ApsimExtraction() 
         algo = z.getAlgo(st)
         init_ = z.getInit(st)
-        funcs = z.externFunction(st, algo.block + init_.block, False) 
+        init_block = init_.block if init_ and init_.block else []
+        funcs = z.externFunction(st, algo.block + init_block, False) 
         funcs = [f for f in funcs if f]
         params_not_declared = {}
         params_not_declared_ = {}
@@ -919,7 +927,7 @@ def run_apsim(component, output):
         with open(filename, "wb") as tg_file:
             tg_file.write(code.encode('utf-8'))
 
-        if init_:
+        if init_ and init_.block:
             rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category)
             dict_init = {}
             name_i = "init."+straNames[k]
@@ -944,6 +952,12 @@ def run_apsim(component, output):
     
     modelp = ModelParser()
     mp = modelp.parse(output)
+    if not mp:
+        print(
+            "No ModelUnit XML was generated; "
+            "the composite model XML was not produced."
+        )
+        return
     mc = createObjectCompo(description,mp)
 
     xml_ = Pl2Crop2ml(mc, "APSIM_").run_compo()
