@@ -1,5 +1,6 @@
 from copy import deepcopy
 import os
+from pathlib import Path
 
 from pycropml.transpiler.generators.javaGenerator import JavaGenerator, Custom_call
 from pycropml.transpiler.antlr_py.toxml import Namespace
@@ -53,7 +54,7 @@ class SimplaceGenerator(JavaGenerator):
                 listvar.append(va.name)
 
     def visit_module(self, node):
-        package = self.model.path.split(os.sep)[-1]
+        package = Path(self.model.path).name
         self.module = node
         self.extfuncs = []
         self.write(f"package net.simplace.sim.components.{package};")
@@ -583,8 +584,9 @@ class SimplaceCompo(JavaGenerator):
     def visit_module(self, node):
         xml_ = Pl2Crop2ml(self.model, "Simplace.SoilTemp").run_simplace()    
         print("iiiiiiiiiiiii", xml_)         
-        filename = os.path.join(self.model.model[0].path,  "src", "simplace",  self.model.path.replace("-","_"), "%s.xml"%(self.model.name)) # "unit.%s.xml"%(strat.basename().split(".")[0])
-        with open(filename, "wb") as xml_file:
+        package = Path(self.model.path).name.replace("-", "_")
+        filename = Path(self.model.model[0].path) / "src" / "simplace" / package / ("%s.xml" % self.model.name)
+        with filename.open("wb") as xml_file:
             r = '<?xml version="1.0" encoding="UTF-8"?>\n'
             r += '<!DOCTYPE configuration PUBLIC "-//SIMPLACE/DTD GRP 1.0//EN" "http://simplace.net/dtd/GroupComponent.dtd">\n'
             r += xml_.unicode(indent=4)#.encode('utf-8')
@@ -612,7 +614,7 @@ class Pl2Crop2ml(object):
     
     def run_simplace(self):
         md = self.md
-        package = md.path.split(os.sep)[-1]
+        package = Path(md.path).name
         
         xml = ns.configuration(Class=f"net.simplace.sim.components.{package}.{md.name}")
         

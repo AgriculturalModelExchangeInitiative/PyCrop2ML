@@ -1258,28 +1258,28 @@ def to_struct_cs(models, rep, name):
     generator.generate(states, "%sState"%name)
     z= ''.join(generator.result)
     rep = Path(rep)
-    filename = rep / "%sState.cs"%name
+    filename = rep / ("%sState.cs" % name)
     with filename.open("wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.generate(rates, "%sRate"%name)
     z1= ''.join(generator.result)
-    filename = rep / "%sRate.cs"%name
+    filename = rep / ("%sRate.cs" % name)
     with filename.open("wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))      
     auxiliary = generator.node_auxiliary
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.generate(auxiliary, "%sAuxiliary"%name)
     z2= ''.join(generator.result)
-    filename = rep / "%sAuxiliary.cs"%name
+    filename = rep / ("%sAuxiliary.cs" % name)
     with filename.open("wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))
     exogenous = generator.node_exogenous
     generator.result=[u"using System;\nusing System.Collections.Generic;\n"]
     generator.generate(exogenous, "%sExogenous"%name)
     z3= ''.join(generator.result)
-    filename = rep / "%sExogenous.cs"%name
+    filename = rep / ("%sExogenous.cs" % name)
     with filename.open("wb") as tg3_file:
         tg3_file.write(z3.encode('utf-8'))
     return 0

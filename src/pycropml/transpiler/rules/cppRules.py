@@ -17,7 +17,6 @@ def translate_log(node):
 
 def translate_sum(node):
     if "name" in dir(node.receiver):
-        print(node.receiver.y)
         return Node("call", function="accumulate",
                     args=[Node("local", name=f"{node.receiver.name}.begin()"),
                         Node("local", name=f"{node.receiver.name}.end()"),

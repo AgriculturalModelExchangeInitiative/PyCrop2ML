@@ -265,10 +265,10 @@ def run_bioma(component, output):
     compo = {}
     source_codes=[]
     for  k, v in files.items():
-        with open(v, 'r') as f:
+        with open(v, 'r', encoding="utf-8-sig") as f:
             code = f.read()
         if code : # and k=="WheatLAIState.cs":
-            if code.startswith("ï»¿"): code = code[3:]
+            #if code.startswith("ï»¿"): code = code[3:]
             splitcode = code.split('\n')
             zz = map(lambda x: x.lstrip(), splitcode)
             codelist = [n  for n in zz if not n.startswith("#") ]
@@ -433,9 +433,7 @@ def run_bioma(component, output):
         env = {m.name:m.pseudo_type for j in rr.declarations for m in j.decl}
         zz = CheckingInOut( {},isAlgo = True)
         r_ch = zz.process(vv)
-        print(zz.inputs, zz.outputs)
-        z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs)))
-        print(z.model.name) 
+        z.modelunit(description, var_, all_var_pa,var,  list(set(zz.inputs)), list(set(zz.outputs))) 
 
         startcom = description_tags[0] # start of description extraction
         startend = description_tags[1] # end of description extraction
@@ -446,7 +444,6 @@ def run_bioma(component, output):
             mdata = extract(commentsPart[0]+"\n\n")
             z.model = mdata
         
-        #print(z.model.outputs)
         z.model.function = [n.name for n in funcs if f]
         if init_:
             rr_, init_pseudo = translate(total_tree, z.dclassdict, init_.block, params_not_declared_, res_inout, member_category, dict_pa)

@@ -74,6 +74,22 @@ def test_component_mode_rejects_a_target_only_name(
     assert "r is not a supported source" in capsys.readouterr().err
 
 
+def test_component_mode_reports_the_missing_path(monkeypatch, capsys):
+    missing = "BiomaSurfacePartonSoilSWAT"
+    monkeypatch.setattr(
+        sys, "argv", ["cyml", "-c", missing, missing, "bioma"]
+    )
+
+    with pytest.raises(SystemExit) as error:
+        cli.main()
+
+    assert error.value.code == 2
+    assert (
+        f"Component directory does not exist: {missing}"
+        in capsys.readouterr().err
+    )
+
+
 def test_help_lists_sources_and_targets(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["cyml", "--help"])
 

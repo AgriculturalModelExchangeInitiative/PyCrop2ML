@@ -341,7 +341,7 @@ class Crop2ML2Record(object):
     
     def run_simplace(self):
         md = self.md
-        package = md.path.split(os.sep)[-1]
+        package = str(md.path).split(os.sep)[-1]
         
         xml = ns.configuration(Class=f"net.simplace.sim.components.{package}.{md.name}")
         

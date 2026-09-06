@@ -72,7 +72,22 @@ class JavaGenerator(CodeGenerator,JavaRules):
 
 
     def visit_comparison(self, node):
-        self.visit_binary_op(node)
+        operands = (node.left, node.right)
+        compares_strings = any(
+            operand.type == "str"
+            or getattr(operand, "pseudo_type", None) == "str"
+            for operand in operands
+        )
+        if node.op in ("==", "!=") and compares_strings:
+            if node.op == "!=":
+                self.write("!")
+            self.write("Objects.equals(")
+            self.visit(node.left)
+            self.write(", ")
+            self.visit(node.right)
+            self.write(")")
+        else:
+            self.visit_binary_op(node)
         
     def visit_binary_op(self, node):
         op = node.op
@@ -255,9 +270,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
     
     def visit_assignment(self, node):
         if node.value.type == "binary_op" and node.value.left.type == "list":
+            self.write("Arrays.fill(")
             self.visit(node.target)
-            self.write(".fill(")
-            self.visit(node.value.right)
             self.write(", ")
             self.visit(node.value.left.elements[0])
             self.write(");")
@@ -1250,21 +1264,21 @@ def to_struct_java(models, rep, name):
     states = generator.node_states
     generator.generate(states, "%sState"%name)
     z= ''.join(generator.result)
-    filename = Path(rep) / "%sState.java"%name
+    filename = Path(rep) / ("%sState.java" % name)
     with filename.open("wb") as tg_file:
         tg_file.write(z.encode('utf-8'))
     rates = generator.node_rates
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(rates, "%sRate"%name)
     z1= ''.join(generator.result)
-    filename = Path(rep) / "%sRate.java"%name
+    filename = Path(rep) / ("%sRate.java" % name)
     with filename.open("wb") as tg1_file:
         tg1_file.write(z1.encode('utf-8'))
     auxiliary = generator.node_auxiliary
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(auxiliary, "%sAuxiliary"%name)
     z2= ''.join(generator.result)
-    filename = Path(rep) / "%sAuxiliary.java"%name
+    filename = Path(rep) / ("%sAuxiliary.java" % name)
     with filename.open("wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8')) 
 
@@ -1272,7 +1286,7 @@ def to_struct_java(models, rep, name):
     generator.result=[u"import  java.io.*;\nimport  java.util.*;\nimport java.time.LocalDateTime;\n"]
     generator.generate(exogenous, "%sExogenous"%name)
     z2= ''.join(generator.result)
-    filename = Path(rep) / "%sExogenous.java"%name
+    filename = Path(rep) / ("%sExogenous.java" % name)
     with filename.open("wb") as tg2_file:
         tg2_file.write(z2.encode('utf-8'))  
     return 0

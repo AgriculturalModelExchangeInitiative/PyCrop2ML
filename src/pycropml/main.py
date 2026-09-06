@@ -87,7 +87,13 @@ Available sources: {sources}
 
     sourcef = Path(sourcef)
     if not sourcef.exists():
-        parser.error("Package or file does not exists")
+        if opts.component is not None:
+            source_kind = "Component directory"
+        elif opts.file is not None:
+            source_kind = "CyML file"
+        else:
+            source_kind = "Package path"
+        parser.error(f"{source_kind} does not exist: {sourcef}")
 
     if opts.component is not None:
         if not positional:

@@ -223,7 +223,6 @@ class BiomaExtraction(MetaExtraction):
         ass = self.getAttNode(meth.block,**{"type":"assignment"})
         target = ass[0].target.name
         addMeth = self.getAttNode(meth.block, **{"type":"custom_call"})
-        print("ppppppppppppppppppppppppppp", [v.args[0].value for v in addMeth])
         for v in addMeth:
             if v.args[0].value=="Creator": desc["authors"] = v.args[1].value
             if v.args[0].value=="Publisher": desc["institution"] = v.args[1].value
@@ -322,7 +321,6 @@ class BiomaExtraction(MetaExtraction):
         name = desc["name"][:-9] if desc["name"].endswith("Component") else desc["name"]
         description = Description()
         description.Title = name+" model" 
-        print(desc)
         description.Authors = desc["authors"]
         description.Institution=desc["institution"]
         description.Reference = desc["reference"], 

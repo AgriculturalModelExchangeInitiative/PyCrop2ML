@@ -406,7 +406,6 @@ class Member_access2(Middleware):
         name = tree.member
         if "." in name: 
             name = name.split('.')[0]
-            print("member accessssssssssssssssssssssss", tree.y)
         pseudo = tree.pseudo_type
         self.members.append(tree)
         # retrieve the class name
@@ -718,10 +717,10 @@ def run_csharp(component, output):
     source_codes=[]
     compo_codes = []
     for  k, v in files.items():
-        with open(v, 'r') as f:
+        with open(v, 'r', encoding="utf-8-sig") as f:
             code = f.read()
         if code :
-            if code.startswith("ï»¿"): code = code[3:]
+            #if code.startswith("ï»¿"): code = code[3:]
             splitcode = code.split('\n')
             zz = map(lambda x: x.lstrip(), splitcode)
             codelist = [n  for n in zz if not n.startswith("#") ]
