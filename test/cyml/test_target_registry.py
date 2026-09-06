@@ -1,5 +1,8 @@
 """Tests for the central Crop2ML target registry."""
 
+import sys
+from types import ModuleType, SimpleNamespace
+
 import pytest
 
 from pycropml.transpiler.target import TargetPlatform
@@ -64,3 +67,35 @@ def test_target_platform_rejects_empty_required_fields():
             composer="Composer",
             extension="py",
         )
+
+
+def test_target_platform_adapts_context_to_legacy_hooks(monkeypatch):
+    calls = []
+    module = ModuleType("test_platform_hooks")
+    module.Generator = object
+    module.Composer = object
+    module.generate_domain = lambda *args: calls.append(("domain", args))
+    module.generate_wrapper = lambda *args: calls.append(("wrapper", args))
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    target = TargetPlatform(
+        name="test",
+        module=module.__name__,
+        generator="Generator",
+        composer="Composer",
+        extension="py",
+        domain_class_factory="generate_domain",
+        wrapper_factory="generate_wrapper",
+    )
+    context = SimpleNamespace(
+        composition="composition",
+        target_package="output",
+        component_name="Component",
+    )
+
+    target.generate_domain_classes(context)
+    target.generate_wrapper(context)
+
+    assert calls == [
+        ("domain", (["composition"], "output", "Component")),
+        ("wrapper", ("composition", "output", "Component")),
+    ]

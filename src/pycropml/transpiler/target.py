@@ -49,18 +49,56 @@ class TargetPlatform:
             return None
         return self.load_symbol(symbol)
 
-    def generate_domain_classes(self, models, output, component_name):
-        """Generate platform domain classes when the capability is present."""
+    def generate_domain_classes(self, context):
+        """Generate platform domain classes from a stable generation context."""
         factory = self.load_optional("domain_class_factory")
         if factory:
-            factory(models, output, component_name)
+            factory(
+                [context.composition],
+                context.target_package,
+                context.component_name,
+            )
 
-    def generate_wrapper(self, model, output, component_name):
-        """Generate a platform wrapper when the capability is present."""
+    def generate_wrapper(self, context):
+        """Generate a platform wrapper from a stable generation context."""
         factory = self.load_optional("wrapper_factory")
         if factory:
-            factory(model, output, component_name)
+            factory(
+                context.composition,
+                context.target_package,
+                context.component_name,
+            )
 
     def load_simulation(self):
         """Load the optional platform simulation generator class."""
         return self.load_optional("simulation_class")
+
+    def generate_simulation(self, context):
+        """Generate optional simulation and package metadata files."""
+        simulation_class = self.load_simulation()
+        if simulation_class is None:
+            return
+
+        simulation = simulation_class(
+            context.composition,
+            package_name=context.package_name,
+        )
+        simulation.generate()
+        (context.target_package / "simulation.py").write_text(
+            "".join(simulation.result),
+            encoding="utf-8",
+        )
+        (context.target_package / "__init__.py").write_text(
+            "",
+            encoding="utf-8",
+        )
+
+        package_metadata = simulation_class(
+            context.composition,
+            package_name=context.package_name,
+        )
+        package_metadata.generate_pyproject()
+        (context.target_root / "pyproject.toml").write_text(
+            "".join(package_metadata.result),
+            encoding="utf-8",
+        )
