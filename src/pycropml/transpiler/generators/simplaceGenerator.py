@@ -105,7 +105,7 @@ class SimplaceGenerator(JavaGenerator):
                         self.write("List<%s> %s%s = new ArrayList<>(Arrays.asList());"%("t_" if n.name in self.var else "",self.types2[n.pseudo_type[1]],n.name))
                     if n.type=="array":
                         self.write(self.types[n.type]%(self.types2[n.pseudo_type[1]], n.name))
-                        if n.elts:
+                        if "elts" in dir(n) and n.elts:
                             self.write(f" = new {self.types2[n.pseudo_type[1]]}")
                             for n in n.elts: 
                                 self.write('[')
@@ -458,7 +458,7 @@ class SimplaceGenerator(JavaGenerator):
                     self.newline(1)	
                     self.indentation+=1	
 
-                    for k, v in outs.items:
+                    for k, v in outs.items():
                         self.write(f'FWSimVariable.setValue({transf(type_out[k],v[0])}, iFieldMap.get("{self.model.name}.{k}"), this);')
                         self.newline()
                     
