@@ -831,7 +831,7 @@ class CppGenerator(CodeGenerator, CppRules):
         tplte = False
         for pa in params:
             if pa and isinstance(pa.pseudo_type, list) and pa.pseudo_type[0] == "array":
-                if len(pa.elts) == 0:
+                if "elts" not in dir(pa) or len(pa.elts) == 0:
                     tplte = True
                     elt = f"SIZE_{i}"
                     i = i + 1
@@ -1793,24 +1793,24 @@ def header_cpp(models, rep, name):
 
 def header_mu_cpp(models, rep, name):
     mc = models[0].name
-    h = []
-    init = False
     for m in models[0].model:
+        h = []
         if m.function:
+            from pycropml.transpiler.main import Main
+            V = "from math import *\n"
             for mf in m.function:
                 file_func = mf.filename
                 path_func = Path(m.path) / "crop2ml" / file_func
-                func_tree = parser(path_func)
-                newtree = AstTransformer(func_tree, str(path_func), m)
-                # print(newtree)
-                dict_ast = newtree.transformer()
-                node_ast = transform_to_syntax_tree(dict_ast)
-                z = {}
-                for f in filter(lambda x: x.type == "function_definition", node_ast.body):
-                    z[f.name] = [f.return_type, f.params]
-                h.append(z)
-        if m.initialization:
-            init = True
+                with path_func.open('r') as file:
+                    V += file.read() + "\n\n"
+            cst = Main(V, 'cpp')
+            cst.parse()
+            node_ast = cst.to_ast(V)
+            z = {}
+            for f in filter(lambda x: x.type == "function_definition", node_ast.body):
+                z[f.name] = [f.return_type, f.params]
+            h = [z]
+        init = len(m.initialization) > 0
         generator = CppTrans([m])
         generator.result = [f'''
 #pragma once
@@ -1831,31 +1831,28 @@ def header_mu_cpp(models, rep, name):
         filename = Path(rep) / f"{m.name}.h"
         with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
-        h = []
 
 
 def header_mu_cpp2(model, rep, name):
-    #mc = models[0].name
     mc = model.name
     m = model
     h = []
-    init = False
-    #for m in models[0].model:
     if m.function:
+        from pycropml.transpiler.main import Main
+        V = "from math import *\n"
         for mf in m.function:
             file_func = mf.filename
             path_func = Path(m.path) / "crop2ml" / file_func
-            func_tree = parser(path_func)
-            newtree = AstTransformer(func_tree, str(path_func), m)
-            # print(newtree)
-            dict_ast = newtree.transformer()
-            node_ast = transform_to_syntax_tree(dict_ast)
-            z = {}
-            for f in filter(lambda x: x.type == "function_definition", node_ast.body):
-                z[f.name] = [f.return_type, f.params]
-            h.append(z)
-    if m.initialization:
-        init = True
+            with path_func.open('r') as file:
+                V += file.read() + "\n\n"
+        cst = Main(V, 'cpp')
+        cst.parse()
+        node_ast = cst.to_ast(V)
+        z = {}
+        for f in filter(lambda x: x.type == "function_definition", node_ast.body):
+            z[f.name] = [f.return_type, f.params]
+        h = [z]
+    init = len(m.initialization) > 0
     generator = CppTrans([m])
     generator.result = [f'''
 #pragma once

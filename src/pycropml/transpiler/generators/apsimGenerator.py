@@ -383,7 +383,7 @@ def to_struct_apsim(models, rep, name):
         generator.result = []
         generator.generate(states, "%s%s"%(name,catvar), name)
         z= ''.join(generator.result)
-        filename = Path(rep) / "%s%s.cs"%(name, catvar)
+        filename = Path(rep) / ("%s%s.cs" % (name, catvar))
         with filename.open("wb") as tg_file:
             tg_file.write(z.encode('utf-8'))
 
@@ -762,7 +762,7 @@ def to_wrapper_apsim(models, rep, name, customer = ''):
     generator.model2Node()
     generator.wrapper()
     z= ''.join(generator.result)
-    filename = Path(rep) / "%sWrapper.cs"%name
+    filename = Path(rep) / ("%sWrapper.cs" % name)
     with filename.open("wb") as tg2_file:
         tg2_file.write(z.encode('utf-8'))
     return 0

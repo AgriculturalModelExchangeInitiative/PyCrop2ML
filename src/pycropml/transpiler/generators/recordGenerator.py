@@ -192,9 +192,21 @@ namespace record {
                     if n.type=="list":
                         self.write("vector<%s> %s;"%(self.types[n.pseudo_type[1]],n.name))
                     if n.type=="array":
-                        if not n.elts:
+                        if "elts" not in dir(n) or not n.elts:
                             self.write("vector<%s>"%self.types[n.pseudo_type[1]])
-                        else: self.write(self.types["array"]%(self.types[n.pseudo_type[1]], n.elts.name if "name" in dir(n.elts) else n.elts.value))
+                        else:
+                            elt = n.elts[0]
+                            prefix, sep, suffix = self.types["array"].split("%s")
+                            self.write(prefix)
+                            self.write(self.types[n.pseudo_type[1]])
+                            self.write(sep)
+                            if "name" in dir(elt):
+                                self.write(elt.name)
+                            elif "value" in dir(elt):
+                                self.write(str(elt.value))
+                            else:
+                                self.visit(elt)
+                            self.write(suffix)
                         self.write("%s;"%n.name)
                 if 'value' in dir(n) and n.type in ("int", "float", "str", "bool"):
                     self.write("%s %s"%(self.types[n.type], n.name))
@@ -382,12 +394,18 @@ class Crop2ML2Record(object):
 
 
 transType = {"double":"toDouble",
-            "int":"toInteger", 
+            "int":"toInteger",
             "string":"toString",
             "intlist":"toMatrix",
             "date":"toDateTime",
             "boolean":"toBoolean",
-            "doublearray":"toMatrix"}
+            "doublearray":"toMatrix",
+            "intarray":"toMatrix",
+            "stringarray":"toMatrix",
+            "datearray":"toMatrix",
+            "doublelist":"toMatrix",
+            "stringlist":"toMatrix",
+            "datelist":"toMatrix"}
 
 
 class Crop2ML_Vpz():

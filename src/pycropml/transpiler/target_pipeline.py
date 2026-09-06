@@ -138,8 +138,9 @@ class TargetPipeline:
 
         code = topology.compotranslate(self.target_name)
         if code:
+            extension = self.target.effective_composition_extension
             destination = (
                 context.target_package
-                / f"{context.component_name}Component.{self.target.extension}"
+                / f"{context.component_name}Component.{extension}"
             )
             destination.write_text(code, encoding="utf-8")
