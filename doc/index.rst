@@ -27,6 +27,7 @@ Module description
 	Crop2ML description <user/description.rst>
         CyML specification <user/language.rst>
 	User Guide <user/index.rst>
+	Architecture des plateformes <platform-architecture.rst>
 	Reference Guide <_dvlpt/modules.rst>
 	Usecases <user/usecases.rst>
 	License <user/license.rst>

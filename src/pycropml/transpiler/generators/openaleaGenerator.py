@@ -178,7 +178,7 @@ def openalea_interface(inout):
             interface = interface (min=eval(inout.min))
         elif 'max' in kwds and (eval(inout.max)!=None):
             interface = interface(max=eval(inout.max))
-        elif 'default' in dir(inout):
+        elif 'default' in dir(inout) and inout.default:
             interface = interface(min=eval(inout.default), max=eval(inout.default))
 
     elif dtype == 'string':

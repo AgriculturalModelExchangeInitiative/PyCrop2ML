@@ -1800,8 +1800,8 @@ def header_mu_cpp(models, rep, name):
             for mf in m.function:
                 file_func = mf.filename
                 path_func = Path(m.path) / "crop2ml" / file_func
-                func_tree = parser(str(path_func))
-                newtree = AstTransformer(func_tree, path_func, m)
+                func_tree = parser(path_func)
+                newtree = AstTransformer(func_tree, str(path_func), m)
                 # print(newtree)
                 dict_ast = newtree.transformer()
                 node_ast = transform_to_syntax_tree(dict_ast)
@@ -1846,7 +1846,7 @@ def header_mu_cpp2(model, rep, name):
             file_func = mf.filename
             path_func = Path(m.path) / "crop2ml" / file_func
             func_tree = parser(path_func)
-            newtree = AstTransformer(func_tree, path_func, m)
+            newtree = AstTransformer(func_tree, str(path_func), m)
             # print(newtree)
             dict_ast = newtree.transformer()
             node_ast = transform_to_syntax_tree(dict_ast)

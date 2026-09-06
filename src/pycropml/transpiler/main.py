@@ -8,8 +8,6 @@ from pycropml.transpiler.logger import get_logger
 from pycropml.transpiler.target_registry import (
     TARGETS,
     get_target,
-    load_composer,
-    load_generator,
 )
 
 
@@ -93,7 +91,7 @@ class Main:
         return self.nodeAst
 
     def to_source(self):
-        generator_class = load_generator(self.language)
+        generator_class = get_target(self.language).load_generator()
         generator = generator_class(self.nodeAst, self.models, self.name)
         # node = self.nodeAst.body
         node = self.nodeAst
@@ -104,7 +102,7 @@ class Main:
         return z
 
     def translate(self):
-        composer_class = load_composer(self.language)
+        composer_class = get_target(self.language).load_composer()
         generator = composer_class(self.nodeAst, self.models, self.name)
         node = self.nodeAst
         generator.visit(node)

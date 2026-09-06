@@ -246,7 +246,8 @@ using System.Reflection;
             elif arg.pseudo_type=="DateTime":
                 self.write(" = new DateTime()")
             elif arg.pseudo_type[0] =="array":
-                self.write(" = new %s[%s]"%(self.types[arg.pseudo_type[1]], arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name))
+                size = arg.elts[0].value if "value" in dir(arg.elts[0]) else arg.elts[0].name
+                self.write(" = new %s[%s]" % (self.types[arg.pseudo_type[1]], size or 0))
             elif arg.pseudo_type == "str":
                 self.write(" = null")
             else: self.write(" = default(%s)"%(self.types[arg.pseudo_type]))

@@ -855,10 +855,12 @@ class AstTransformer():
                     logger.error(_msg)
                     raise PseudoCythonNotTranslatableError(_msg)
                 else:
-                    if self.retrieve_library(function.name) not in self._imports:
-                        self._imports.append(
-                            self.retrieve_library(function.name))
-                    return self._translate_builtin_call(self.retrieve_library(function.name), function.name, arg_nodes, location, attrib=0)
+                    lib = self.retrieve_library(function.name)
+                    if lib is None and function.name in FUNCTION_API["math"]:
+                        lib = "math"
+                    if lib not in self._imports:
+                        self._imports.append(lib)
+                    return self._translate_builtin_call(lib, function.name, arg_nodes, location, attrib=0)
         
         elif isinstance(function, ExprNodes.AttributeNode): # [2].append
             value_node = self.visit_node(function.obj)

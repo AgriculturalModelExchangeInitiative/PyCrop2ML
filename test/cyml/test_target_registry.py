@@ -1,7 +1,11 @@
 """Tests for the central Crop2ML target registry."""
 
+import sys
+from types import ModuleType, SimpleNamespace
+
 import pytest
 
+from pycropml.transpiler.target import TargetPlatform
 from pycropml.transpiler.target_registry import (
     TARGETS,
     get_target,
@@ -9,6 +13,12 @@ from pycropml.transpiler.target_registry import (
     load_generator,
     load_target_callable,
 )
+
+
+def test_builtin_targets_use_the_public_platform_contract():
+    for name, target in TARGETS.items():
+        assert isinstance(target, TargetPlatform)
+        assert target.name == name
 
 
 def test_registered_targets_load_their_generators():
@@ -46,3 +56,46 @@ def test_only_python_registers_a_simulation_generator():
 def test_unknown_target_has_a_helpful_error():
     with pytest.raises(ValueError, match="Unknown target 'unknown'"):
         get_target("unknown")
+
+
+def test_target_platform_rejects_empty_required_fields():
+    with pytest.raises(ValueError, match="TargetPlatform.name must not be empty"):
+        TargetPlatform(
+            name="",
+            module="example.platform",
+            generator="Generator",
+            composer="Composer",
+            extension="py",
+        )
+
+
+def test_target_platform_adapts_context_to_legacy_hooks(monkeypatch):
+    calls = []
+    module = ModuleType("test_platform_hooks")
+    module.Generator = object
+    module.Composer = object
+    module.generate_domain = lambda *args: calls.append(("domain", args))
+    module.generate_wrapper = lambda *args: calls.append(("wrapper", args))
+    monkeypatch.setitem(sys.modules, module.__name__, module)
+    target = TargetPlatform(
+        name="test",
+        module=module.__name__,
+        generator="Generator",
+        composer="Composer",
+        extension="py",
+        domain_class_factory="generate_domain",
+        wrapper_factory="generate_wrapper",
+    )
+    context = SimpleNamespace(
+        composition="composition",
+        target_package="output",
+        component_name="Component",
+    )
+
+    target.generate_domain_classes(context)
+    target.generate_wrapper(context)
+
+    assert calls == [
+        ("domain", (["composition"], "output", "Component")),
+        ("wrapper", ("composition", "output", "Component")),
+    ]

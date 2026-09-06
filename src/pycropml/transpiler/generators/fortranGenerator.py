@@ -72,7 +72,7 @@ class FortranGenerator(CodeGenerator, FortranRules):
         dir_lib = Path(os.path.dirname(lib.__file__))
         self.f_src=dir_lib/"f90"/"list_sub.f90"
         if self.model:
-            pkg = self.model.path.split(os.path.sep)[-1] 
+            pkg = str(self.model.path).split(os.path.sep)[-1]
             self.f_dest = os.path.join(self.model.path,"src","f90",pkg,"list_sub.f90") 
     
     def visit_notAnumber(self, node):

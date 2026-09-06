@@ -9,50 +9,44 @@ Created on Tue Mar 19 22:59:23 2019
 from __future__ import absolute_import
 from __future__ import print_function
 
-import sys
-import os
-
 from optparse import OptionParser
 
 from pathlib import Path
 
 from pycropml.cyml import transpile_file, transpile_package, transpile_component
 
-from pycropml.transpiler.main import languages
 from pycropml.transpiler.logger import configure_logging, get_logger
+from pycropml.transpiler.source_registry import SOURCES
+from pycropml.transpiler.target_registry import TARGETS
+
+
+def _validate_platforms(parser, requested, supported, kind):
+    """Validate and deduplicate source or target names from the command line."""
+    unknown = [name for name in requested if name not in supported]
+    if unknown:
+        available = ", ".join(sorted(supported))
+        parser.error(
+            f"{unknown[0]} is not a supported {kind}. "
+            f"Supported {kind}s: {available}"
+        )
+    return list(dict.fromkeys(requested))
 
 
 def main():
-    usage = """Usage: %prog [options] package language1 [languages]
+    targets = ", ".join(TARGETS)
+    sources = ", ".join(SOURCES)
+    usage = f"""Usage:
+    %prog -f FILE TARGET [TARGET ...]
+    %prog -p PACKAGE TARGET [TARGET ...]
+    %prog -c COMPONENT OUTPUT SOURCE [SOURCE ...]
+    %prog PACKAGE TARGET [TARGET ...]
 
-cyml transpiler translate a cyml source code or a Crop2ML package with algo in cyml
-language to target language.
+Translate a CyML file or Crop2ML package to a target, or convert an existing
+platform component into a Crop2ML package.
 
-Example
-    cyml <source_code.pyx or pkg> <target_language>
+Available targets: {targets}
+Available sources: {sources}
 
-    * target language must be:
-        py for python
-        cs for csharp
-        f90 for fortran
-        java for java
-        cpp for C++
-        r for r
-    * target platforms :
-        apsim, bioma, dssat, openalea, record, simplace, stics
-
-"""
-    # TODO
-    todo = """
-    * target language must be:
-        py for python
-        cs for csharp
-        cpp for c++
-        f90 for fortran
-        java  for java
-        r for R
-        simplace for simplace
-        sirius for sirius
 """
 
     parser = OptionParser(usage=usage)
@@ -64,8 +58,8 @@ Example
     parser.add_option("-c", "--component", dest="component",
                       help="framework model component directory")
     parser.add_option("-l", "--languages", dest="languages", action="append",
-                      choices=languages,
-                      help="Target languages : " + ','.join(languages))
+                      metavar="NAME",
+                      help="source or target name; may be repeated")
     parser.add_option("--log-level", dest="log_level", default="WARNING",
                       help="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: WARNING)")
 
@@ -74,74 +68,66 @@ Example
     cli_logger = get_logger('cli')
     cli_logger.debug('CLI started with args=%s options=%s', args, opts)
 
-    sourcef = None
-    pyx_filename = None
-    package = None
-    component = None
-    newpackage = None
-    langs = []
+    selected_modes = [opts.file, opts.package, opts.component]
+    if sum(value is not None for value in selected_modes) > 1:
+        parser.error("use only one of --file, --package, or --component")
 
-    if len(parser.option_list) + len(args) < 2:
-        parser.error("incorrect number of arguments")
-
-    if opts.file:
-        sourcef = pyx_filename = opts.file
-    elif opts.package:
-        sourcef = package = opts.package
-    elif opts.component:
-        sourcef = component = opts.component
+    positional = list(args)
+    if opts.file is not None:
+        sourcef = opts.file
+    elif opts.package is not None:
+        sourcef = opts.package
+    elif opts.component is not None:
+        sourcef = opts.component
     else:
-        if len(args) == 0:
+        if not positional:
             parser.print_usage()
             return
-        else:
-            sourcef = args[0]
+        sourcef = positional.pop(0)
 
     sourcef = Path(sourcef)
     if not sourcef.exists():
-        parser.error("Package or file does not exists")
+        if opts.component is not None:
+            source_kind = "Component directory"
+        elif opts.file is not None:
+            source_kind = "CyML file"
+        else:
+            source_kind = "Package path"
+        parser.error(f"{source_kind} does not exist: {sourcef}")
 
-    if opts.languages:
-        langs = opts.languages
+    if opts.component is not None:
+        if not positional:
+            parser.error("an output package is required with --component")
+        newpackage = positional.pop(0)
+        supported = SOURCES
+        kind = "source"
     else:
-        if opts.component:
-            newpackage = args[0]
-            args = args[1:]
-        langs = [a for a in args if a in languages]
+        newpackage = None
+        supported = TARGETS
+        kind = "target"
 
-    fail = False
-    for arg in args:
-        if arg == sourcef:
-            continue
-        if arg not in languages:
-            parser.error("%s is not a supported language" % arg)
-            fail = True
-
-    if fail:
-        return
+    requested = list(opts.languages or []) + positional
+    langs = _validate_platforms(parser, requested, supported, kind)
 
     if not langs:
-        parser.error("No language has been specified")
-        print(parser.usage)
-        return
+        parser.error(f"No {kind} has been specified")
 
-    if pyx_filename or sourcef.is_file():
+    if opts.component is not None:
+        for language in langs:
+            cli_logger.info('Converting %s source component %s', language, sourcef)
+            transpile_component(sourcef, newpackage, language)
+    elif sourcef.is_file():
         # translate from cyml code
         if sourcef.suffix.lower() != ".pyx":
-            parser.error("Source code %s is not a Cyml file (.pyx estension) " % (str(sourcef)))
-            return
+            parser.error("Source code %s is not a CyML file (.pyx extension)" % sourcef)
 
         for language in langs:
             cli_logger.info('Transpiling file %s to %s', sourcef, language)
-            status = transpile_file(sourcef, language)
-    elif package:
-        for language in langs:
-            cli_logger.info('Transpiling package %s to %s', sourcef, language)
-            status = transpile_package(sourcef, language)
+            transpile_file(sourcef, language)
     else:
         for language in langs:
-            cli_logger.info('Transpiling component %s to %s', sourcef, language)
-            status = transpile_component(sourcef, newpackage, language)
+            cli_logger.info('Transpiling package %s to %s', sourcef, language)
+            transpile_package(sourcef, language)
 
 
 if __name__ == '__main__':
