@@ -1031,12 +1031,15 @@ using CRA.AgroManagement;
         self.newline(extra=1)
 
     def staticVarInfo(self, node):
-        for pa in self.node_param: 	
+        for pa in self.node_param:
+            mo = self.get_mo(pa.name)
+            if not mo:
+                continue
             self.write("public static VarInfo %sVarInfo"%pa.name)
             self.open(node)
-            self.write("get { return %s%s.Strategies.%s.%sVarInfo;} "%(self.customer,self.model.name,self.get_mo(pa.name)[0],pa.name))
-            self.close(node) 
-            self.newline(extra=1) 
+            self.write("get { return %s%s.Strategies.%s.%sVarInfo;} "%(self.customer,self.model.name,mo[0]["modu"],pa.name))
+            self.close(node)
+            self.newline(extra=1)
 
     def TestPostConditions(self, node):
         self.write("public string TestPostConditions(%s%s.DomainClass.%sState s,%s%s.DomainClass.%sState s1,%s%s.DomainClass.%sRate r,%s%s.DomainClass.%sAuxiliary a,%s%s.DomainClass.%sExogenous ex,string callID)"%(self.customer,self.name,self.name,self.customer,self.name,self.name,self.customer,self.name,self.name,self.customer,self.name,self.name,self.customer,self.name,self.name))

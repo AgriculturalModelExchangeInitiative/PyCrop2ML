@@ -68,7 +68,7 @@ Dans cette architecture, les contrats publics sont principalement :
 
 ``TargetPlatform``
     Décrit une cible : nom, module Python, générateur de ModelUnit, compositeur,
-    extension de fichier et capacités optionnelles. Le pipeline utilise ce
+    extensions de fichiers et capacités optionnelles. Le pipeline utilise ce
     contrat sans importer directement un générateur Python, OpenAlea ou Java.
 
 ``GenerationContext``
@@ -323,6 +323,7 @@ Exemple conceptuel d'une cible::
         generator="ModelUnitGenerator",
         composer="CompositionGenerator",
         extension="py",
+        composition_extension="xml",
         wrapper_factory="generate_wrapper",
         generate_notebooks=True,
     )
@@ -331,19 +332,76 @@ Le pipeline n'a pas à être modifié si la plateforme se limite aux capacités 
 contrat. Une nouvelle capacité transversale doit d'abord être définie dans le
 contrat, documentée, puis orchestrée par le pipeline.
 
-Limite actuelle et extension externe
-------------------------------------
+Une cible dont les ModelUnits et la composition utilisent le même format ne
+précise que ``extension``. ``effective_composition_extension`` reprend alors
+automatiquement cette valeur. Une plateforme mixte, par exemple des Steps
+Python et un Workflow XML, déclare séparément::
 
-Les plateformes intégrées sont encore déclarées dans les registres du dépôt
-PyCropML. Les contrats, la façade et le contexte constituent la préparation
-nécessaire à des packages externes, mais leur découverte automatique n'est pas
-encore implémentée.
+    TargetPlatform(
+        ...,
+        extension="py",
+        composition_extension="xml",
+    )
 
-L'étape suivante pourra utiliser les **entry points Python**. Un package tiers
-déclarera alors sa plateforme dans son ``pyproject.toml`` ; PyCropML la
-découvrira à l'exécution sans modification de son registre interne. Cette
-évolution devra préserver les mêmes contrats et fournir une erreur claire en
-cas de plugin incompatible.
+Le compositeur retourne le contenu généré ; ``TargetPipeline`` reste
+responsable du chemin et de l'écriture du fichier avec la bonne extension.
+
+Plateformes cibles externes
+---------------------------
+
+Une cible peut maintenant être distribuée dans un package Python indépendant.
+Le package tiers publie son contrat au moyen d'un **entry point Python** dans
+son ``pyproject.toml``::
+
+    [project.entry-points."pycropml.targets"]
+    ma_plateforme = "mon_plugin.platform:target"
+
+L'objet ``target`` exposé par ``mon_plugin.platform`` peut être directement un
+``TargetPlatform``::
+
+    from pycropml.transpiler.target import TargetPlatform
+
+    target = TargetPlatform(
+        name="ma_plateforme",
+        module="mon_plugin.generator",
+        generator="ModelUnitGenerator",
+        composer="CompositionGenerator",
+        extension="py",
+        api_version="1",
+    )
+
+L'entry point peut également exposer une fabrique sans argument qui retourne
+cet objet. Après installation du package tiers, ``available_targets()`` réunit
+les cibles intégrées et les cibles découvertes. La nouvelle cible apparaît
+donc dans l'aide de la CLI et peut être utilisée normalement::
+
+    cyml -p energybalance_pkg ma_plateforme
+
+Le nom de l'entry point doit être identique à ``TargetPlatform.name``. Les noms
+des plateformes intégrées sont réservés et deux plugins ne peuvent pas publier
+le même nom. Une collision produit une erreur explicite au lieu de remplacer
+silencieusement une plateforme.
+
+Version du contrat
+------------------
+
+``TARGET_PLATFORM_API_VERSION`` indique la version du contrat comprise par
+PyCropML. Chaque ``TargetPlatform`` possède un champ ``api_version`` dont la
+valeur actuelle est ``"1"``. Une plateforme déclarant une autre version est
+refusée avec une erreur claire.
+
+Cette version décrit l'interface entre PyCropML et la plateforme, et non la
+version fonctionnelle du plugin. Le plugin conserve sa propre version de
+package dans son ``pyproject.toml``. Le numéro d'API ne devra changer que lors
+d'une modification incompatible du contrat.
+
+Limite actuelle
+---------------
+
+La découverte externe est actuellement disponible pour les plateformes
+cibles. Les plateformes sources utilisent déjà ``SourcePlatform`` mais la
+découverte de sources externes par le groupe ``pycropml.sources`` constitue une
+étape distincte à venir.
 
 Principes de maintenance
 ------------------------

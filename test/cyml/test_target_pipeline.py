@@ -1,8 +1,10 @@
 """Tests for target-package pipeline orchestration."""
 
 from pathlib import Path
+from types import SimpleNamespace
 
 from pycropml import cyml
+from pycropml.transpiler.target import TargetPlatform
 from pycropml.transpiler.target_pipeline import TargetPipeline
 
 
@@ -39,3 +41,43 @@ def test_pipeline_prepares_the_generation_context(tmp_path):
     assert context.target_package.is_dir()
     assert context.test_directory.is_dir()
     assert context.image_directory.is_dir()
+
+
+def test_pipeline_uses_the_composition_specific_extension(tmp_path):
+    pipeline = TargetPipeline(tmp_path, "py")
+    pipeline.target = TargetPlatform(
+        name="mixed",
+        module="example.platform",
+        generator="Generator",
+        composer="Composer",
+        extension="py",
+        composition_extension="xml",
+    )
+    context = SimpleNamespace(
+        component_name="Composite",
+        cyml_directory=tmp_path / "pyx",
+        image_directory=tmp_path / "images",
+        target_package=tmp_path / "target",
+    )
+    context.cyml_directory.mkdir()
+    context.image_directory.mkdir()
+    context.target_package.mkdir()
+
+    class Topology:
+        def algo2cyml(self, image_directory):
+            assert image_directory == context.image_directory
+            return "composition algorithm"
+
+        def compotranslate(self, target_name):
+            assert target_name == "py"
+            return "<Workflow />"
+
+    pipeline._generate_composition(context, Topology())
+
+    assert (context.cyml_directory / "CompositeComponent.pyx").read_text() == (
+        "composition algorithm"
+    )
+    assert (context.target_package / "CompositeComponent.xml").read_text() == (
+        "<Workflow />"
+    )
+    assert not (context.target_package / "CompositeComponent.py").exists()

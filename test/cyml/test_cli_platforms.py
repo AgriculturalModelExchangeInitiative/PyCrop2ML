@@ -100,3 +100,18 @@ def test_help_lists_sources_and_targets(monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "Available targets:" in output
     assert "Available sources:" in output
+
+
+def test_help_lists_discovered_external_targets(monkeypatch, capsys):
+    monkeypatch.setattr(
+        cli,
+        "available_targets",
+        lambda: {"py": object(), "external": object()},
+    )
+    monkeypatch.setattr(sys, "argv", ["cyml", "--help"])
+
+    with pytest.raises(SystemExit) as error:
+        cli.main()
+
+    assert error.value.code == 0
+    assert "Available targets: py, external" in capsys.readouterr().out

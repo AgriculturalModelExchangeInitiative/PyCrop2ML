@@ -5,6 +5,9 @@ from importlib import import_module
 from typing import Optional
 
 
+TARGET_PLATFORM_API_VERSION = "1"
+
+
 @dataclass(frozen=True)
 class TargetPlatform:
     """Describe and load the generators provided by a target platform.
@@ -24,11 +27,18 @@ class TargetPlatform:
     domain_class_factory: Optional[str] = None
     wrapper_factory: Optional[str] = None
     format_fortran: bool = False
+    api_version: str = TARGET_PLATFORM_API_VERSION
+    composition_extension: Optional[str] = None
 
     def __post_init__(self):
         for attribute in ("name", "module", "generator", "composer"):
             if not getattr(self, attribute):
                 raise ValueError(f"TargetPlatform.{attribute} must not be empty")
+        if self.api_version != TARGET_PLATFORM_API_VERSION:
+            raise ValueError(
+                f"Unsupported target platform API version {self.api_version!r}; "
+                f"expected {TARGET_PLATFORM_API_VERSION!r}"
+            )
 
     def load_symbol(self, symbol):
         """Load *symbol* from the platform module."""
@@ -41,6 +51,11 @@ class TargetPlatform:
     def load_composer(self):
         """Load the model-composition generator class."""
         return self.load_symbol(self.composer)
+
+    @property
+    def effective_composition_extension(self):
+        """Return the composition extension, falling back to ModelUnits."""
+        return self.composition_extension or self.extension
 
     def load_optional(self, attribute):
         """Load an optional capability declared by a dataclass field."""

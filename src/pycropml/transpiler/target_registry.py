@@ -1,7 +1,13 @@
-"""Registry of the target platforms built into PyCropML."""
+"""Registry and entry-point discovery for Crop2ML target platforms."""
+
+from importlib.metadata import entry_points
 
 from pycropml.transpiler.target import TargetPlatform
 
+
+TARGET_ENTRY_POINT_GROUP = "pycropml.targets"
+_external_target_names = set()
+_discovery_complete = False
 
 TARGETS = {
     "r": TargetPlatform(
@@ -99,12 +105,78 @@ TARGETS = {
 }
 
 
+def _target_entry_points():
+    """Return target entry points on all supported Python versions."""
+    discovered = entry_points()
+    if hasattr(discovered, "select"):
+        return discovered.select(group=TARGET_ENTRY_POINT_GROUP)
+    return discovered.get(TARGET_ENTRY_POINT_GROUP, ())
+
+
+def _load_external_target(entry_point):
+    """Load and validate one external target contract."""
+    target = entry_point.load()
+    if not isinstance(target, TargetPlatform) and callable(target):
+        target = target()
+    if not isinstance(target, TargetPlatform):
+        raise TypeError(
+            f"Target entry point {entry_point.name!r} must expose a "
+            "TargetPlatform instance or a factory returning one"
+        )
+    if target.name != entry_point.name:
+        raise ValueError(
+            f"Target entry point name {entry_point.name!r} does not match "
+            f"TargetPlatform.name {target.name!r}"
+        )
+    return target
+
+
+def discover_targets(force=False):
+    """Discover external targets once and merge them into ``TARGETS``.
+
+    Built-in target names are reserved. Two external distributions cannot
+    register the same name.
+    """
+    global _discovery_complete
+    if _discovery_complete and not force:
+        return TARGETS
+
+    if force:
+        for name in _external_target_names:
+            TARGETS.pop(name, None)
+        _external_target_names.clear()
+
+    discovered_targets = {}
+    for entry_point in _target_entry_points():
+        if (
+            entry_point.name in TARGETS
+            or entry_point.name in discovered_targets
+        ):
+            raise ValueError(
+                f"Target name {entry_point.name!r} is already registered"
+            )
+        target = _load_external_target(entry_point)
+        discovered_targets[target.name] = target
+
+    TARGETS.update(discovered_targets)
+    _external_target_names.update(discovered_targets)
+
+    _discovery_complete = True
+    return TARGETS
+
+
+def available_targets():
+    """Return built-in and discovered target specifications."""
+    return discover_targets()
+
+
 def get_target(name):
     """Return the specification for *name* with a helpful error message."""
+    targets = available_targets()
     try:
-        return TARGETS[name]
+        return targets[name]
     except KeyError as error:
-        supported = ", ".join(sorted(TARGETS))
+        supported = ", ".join(sorted(targets))
         raise ValueError(
             f"Unknown target {name!r}. Supported targets: {supported}"
         ) from error

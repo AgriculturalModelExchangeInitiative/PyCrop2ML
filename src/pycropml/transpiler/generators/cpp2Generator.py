@@ -900,7 +900,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
         tplte = False
         for pa in params:
             if pa and isinstance(pa.pseudo_type, list) and pa.pseudo_type[0] == "array":
-                if len(pa.elts) == 0:
+                if "elts" not in dir(pa) or len(pa.elts) == 0:
                     tplte = True
                     elt = f"SIZE_{i}"
                     i = i + 1

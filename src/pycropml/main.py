@@ -17,7 +17,7 @@ from pycropml.cyml import transpile_file, transpile_package, transpile_component
 
 from pycropml.transpiler.logger import configure_logging, get_logger
 from pycropml.transpiler.source_registry import SOURCES
-from pycropml.transpiler.target_registry import TARGETS
+from pycropml.transpiler.target_registry import available_targets
 
 
 def _validate_platforms(parser, requested, supported, kind):
@@ -33,7 +33,8 @@ def _validate_platforms(parser, requested, supported, kind):
 
 
 def main():
-    targets = ", ".join(TARGETS)
+    supported_targets = available_targets()
+    targets = ", ".join(supported_targets)
     sources = ", ".join(SOURCES)
     usage = f"""Usage:
     %prog -f FILE TARGET [TARGET ...]
@@ -103,7 +104,7 @@ Available sources: {sources}
         kind = "source"
     else:
         newpackage = None
-        supported = TARGETS
+        supported = supported_targets
         kind = "target"
 
     requested = list(opts.languages or []) + positional

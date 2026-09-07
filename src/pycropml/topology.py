@@ -377,9 +377,11 @@ class Topology:
         # return all the unique state variables and the parameters whose parametercategory is private
         tab = ' '*4
         outs = []
+        statenames = [st.name for st in self.model.states]
         for mod in self.model.model:
             for inp in mod.inputs:
-                if "variablecategory" in dir(inp) and inp.variablecategory == "state" and inp.name not in outs:
+                if ("variablecategory" in dir(inp) and inp.variablecategory == "state"
+                        and inp.name not in outs and inp.name in statenames):
                     outs.append(inp.name)
                 if "parametercategory" in dir(inp) and inp.parametercategory == "private" and inp.name not in outs:
                     outs.append(inp.name)
