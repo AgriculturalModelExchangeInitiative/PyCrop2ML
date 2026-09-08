@@ -141,11 +141,11 @@ def run_simplace(components, output):
             dict_init["name"] = "init"
             dict_init["filename"] = "algo/pyx/" + name_i + ".pyx"
             mm.model.initialization = [dict_init]
-            filename = Path(cyml_rep) / "init.%s.pyx"%(mm.model.name)
+            filename = Path(cyml_rep) / ("init.%s.pyx" % (mm.model.name))
             with filename.open("wb") as tg_file:
                 tg_file.write(initcode.encode('utf-8'))    
         
-        filename = Path(cyml_rep) / "%s.pyx"%(mm.model.name)
+        filename = Path(cyml_rep) / ("%s.pyx" % (mm.model.name))
         with filename.open("wb") as tg_file:
             tg_file.write(algocode.encode('utf-8'))
         funcs = [f for f in funcs if f]
@@ -175,7 +175,7 @@ def run_simplace(components, output):
                     h = cd.transform()
                     nd = transform_to_syntax_tree(h)
                     code = writeCyml(nd) 
-                    filename = Path(cyml_rep) / "%s.pyx"%(f.name)
+                    filename = Path(cyml_rep) / ("%s.pyx" % (f.name))
                     with filename.open("wb") as tg_file:
                         tg_file.write(code.encode('utf-8'))
                     mm.model.function.append(f.name)
