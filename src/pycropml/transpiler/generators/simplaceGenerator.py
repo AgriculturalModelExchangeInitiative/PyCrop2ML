@@ -561,9 +561,10 @@ class SimplaceGenerator(JavaGenerator):
                 vars.append(inp.name)
                 
                 self.newline(node)
-                zmin = transf(inp.datatype, inp.min) if (hasattr(inp, "min") and inp.min) else "null"
-                zmax = transf(inp.datatype, inp.max) if (hasattr(inp, "max") and inp.max) else "null"
-                zdefault = transf(inp.datatype, inp.default) if hasattr(inp, "default") else  transf(inp.datatype, "") 
+                missing = "0" if inp.datatype == "INT" else "0.0" if inp.datatype == "DOUBLE" else "null"
+                zmin = transf(inp.datatype, inp.min) if (hasattr(inp, "min") and inp.min) else missing
+                zmax = transf(inp.datatype, inp.max) if (hasattr(inp, "max") and inp.max) else missing
+                zdefault = transf(inp.datatype, inp.default) if hasattr(inp, "default") else  transf(inp.datatype, "")
                 unit = inp.unit
 
                 if inp.datatype.startswith("DATE"): zmin, zmax,zdefault= "null", "null", "null"
@@ -713,12 +714,15 @@ DATA_TYPE = {
 
 
 def transfInt(type_v,elem):
-    if isinstance(elem, str) and elem.strip() =="": return "null"
+    if elem is None or (isinstance(elem, str) and elem.strip() in ("", "None")): return "0"
     return str(elem)
 
 def transfDouble(type_v,elem):
-    if isinstance(elem, str) and elem.strip() =="": return "null"
-    return str(elem)   
+    if elem is None or (isinstance(elem, str) and elem.strip() in ("", "None")): return "0.0"
+    value = float(elem)
+    if value.is_integer():
+        return "%d.0" % value
+    return str(value)
 
 def transfString(type_v, elem): 
     if isinstance(elem, str) and elem.strip() =="": return 'null'
