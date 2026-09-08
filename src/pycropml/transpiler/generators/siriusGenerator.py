@@ -888,7 +888,7 @@ using CRA.AgroManagement;
         for p in self.node_param:
             for j in self.get_mo(p.name):
                 self.newline(node)
-                self.write('VarInfo v%s = new CompositeStrategyVarInfo(_%s, "%s");'%(n,j,p.name))
+                self.write('VarInfo v%s = new CompositeStrategyVarInfo(_%s, "%s");'%(n,j["modu"],p.name))
                 self.newline(node)
                 self.write("_parameters0_0.Add(v%s);"%n)
                 n = n+1
