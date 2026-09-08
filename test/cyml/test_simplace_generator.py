@@ -20,6 +20,6 @@ def test_simplace_composition_accepts_pathlib_model_path():
     xml = Pl2Crop2ml(composition, "Simplace.SoilTemp").run_simplace()
 
     assert (
-        'Class="net.simplace.sim.components.Example-Model.ExampleComposition"'
+        'Class="net.simplace.sim.components.Example_Model.ExampleComposition"'
         in xml.unicode()
     )
