@@ -866,7 +866,7 @@ using CRA.AgroManagement;
         for p in self.node_param:
             for j in self.get_mo(p.name):
                 self.newline(node)
-                self.write('VarInfo v%s = new CompositeStrategyVarInfo(_%s, "%s");'%(n,j,p.name))
+                self.write('VarInfo v%s = new CompositeStrategyVarInfo(_%s, "%s");'%(n,j["modu"],p.name))
                 self.newline(node)
                 self.write("_parameters0_0.Add(v%s);"%n)
                 n = n+1
@@ -1157,7 +1157,8 @@ using CRA.AgroManagement;
 
 
 
-    def visit_module(self, node): 
+    def visit_module(self, node):
+        self.init = False
         self.usingBioma()
         self.newline(node)
         self.write("using %s%s.DomainClass;"%(self.customer,self.model.name))
@@ -1190,10 +1191,11 @@ using CRA.AgroManagement;
         self.visit(node.body)
         self.newline(extra=1)
         self.newline(node)
-        if not self.model.initialization:
+        '''
+        if not self.init:
             self.newline(1)
             self.initcomposition(node)
-            self.newline(extra=1)
+            self.newline(extra=1)   '''
         self.copy_Constructor(self.node_param)
         self.newline(node)
         self.newline(node)
@@ -1217,6 +1219,7 @@ using CRA.AgroManagement;
     def visit_assignment(self, node):
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
+            name = [m.name for m in self.model.model if m.name.lower() == name][0]
             self.write("_%s.Estimate(s,s1, r, a, ex);"%(name))
             self.newline(node)
         else:

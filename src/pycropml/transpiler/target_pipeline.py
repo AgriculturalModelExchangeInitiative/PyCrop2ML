@@ -41,7 +41,7 @@ class TargetPipeline:
 
         topology = Topology(context.package_name, context.package)
         context.composition = topology.model
-        context.component_name = topology.model.name
+        context.component_name = nameconvention.signature2_from_name(topology.model.name)
 
         self.target.generate_domain_classes(context)
         self.target.generate_wrapper(context)

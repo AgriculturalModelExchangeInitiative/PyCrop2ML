@@ -280,6 +280,10 @@ class CsharpGenerator(CodeGenerator,CsharpRules):
         self.newline(node)
         if "function" in dir(node.value) and node.value.function.split('_')[0]=="model":
             name  = node.value.function.split('model_')[1]
+            for m in self.model.model:
+                if name.lower() == signature2(m).lower():
+                    name = signature2(m)
+                    break
             self.write("_%s.CalculateModel(s,s1, r, a, ex);"%(name))
         else:
             if node.target.type=="index" and node.target.sequence.pseudo_type[0]=="list":

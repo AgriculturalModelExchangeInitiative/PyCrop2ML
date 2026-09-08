@@ -12,7 +12,7 @@ from pycropml.transpiler.interface import middleware
 from pycropml.transpiler.Parser import parser
 from pycropml.transpiler.ast_transform import AstTransformer, transform_to_syntax_tree
 from pycropml.transpiler.antlr_py.api_declarations import Middleware
-from pycropml.nameconvention import signature2
+from pycropml.nameconvention import signature2, signature2_from_name
 from pycropml.composition import ModelComposition
 
 
@@ -254,23 +254,37 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.write(u"]")
 
     def visit_sliceindex(self, node):
-        self.visit(node.receiver)
-        self.write(u"[")
-        if node.message=="sliceindex_from":
-            self.visit(node.args)
-            self.write(u":")
-        if node.message=="sliceindex_to":
-            self.write(u":")
-            self.visit(node.args)
-        if node.message=="sliceindex":
+        # Java has no slice syntax: translate a[from:to] into a value-producing
+        # copy, since the target/target-only cases (a[from:to] = ...) are
+        # already special-cased with System.arraycopy in visit_assignment.
+        is_list = isinstance(node.pseudo_type, list) and node.pseudo_type[0] == "list"
+        if is_list:
+            self.visit(node.receiver)
+            self.write(".subList(")
+        else:
+            self.write("Arrays.copyOfRange(")
+            self.visit(node.receiver)
+            self.write(", ")
+        if node.message in ("sliceindex", "sliceindex_from"):
             self.visit(node.args[0])
-            self.write(u":")
+        else:
+            self.write("0")
+        self.write(", ")
+        if node.message == "sliceindex":
             self.visit(node.args[1])
-        self.write(u"]")
+        elif node.message == "sliceindex_to":
+            self.visit(node.args[0])
+        else:
+            self.visit(node.receiver)
+            self.write(".size()" if is_list else ".length")
+        self.write(")")
     
     def visit_assignment(self, node):
         if node.value.type == "binary_op" and node.value.left.type == "list":
-            self.write("Arrays.fill(")
+            # e.g. up_depth = [0] * n -> refill the already-allocated backing
+            # store; List and array need their own idiomatic "fill" call.
+            is_list = isinstance(node.target.pseudo_type, list) and node.target.pseudo_type[0] == "list"
+            self.write("Collections.fill(" if is_list else "Arrays.fill(")
             self.visit(node.target)
             self.write(", ")
             self.visit(node.value.left.elements[0])
@@ -341,6 +355,16 @@ class JavaGenerator(CodeGenerator,JavaRules):
                 self.visit(node.value)
                 self.write(");")
                 self.newline(node)     
+            elif node.value.type=="array" and "elts" in dir(node.value) and \
+                    isinstance(node.target.pseudo_type, list) and node.target.pseudo_type[0] == "list":
+                # e.g. up_depth.allocate(n) rewritten to up_depth = array(elts=[n]);
+                # the target is really a List, not a Java array.
+                java_zero = {"int": "0", "float": "0.0", "bool": "false"}.get(node.target.pseudo_type[1], "null")
+                self.visit(node.target)
+                self.write(" = new ArrayList<>(Collections.nCopies(")
+                self.visit(node.value.elts[0])
+                self.write(", %s));"%java_zero)
+                self.newline(node)
             elif node.value.type=="array" and "elements" in dir(node.value):
                 if "right" in dir(node.value.elements):
                     self.visit(node.target)
@@ -357,8 +381,8 @@ class JavaGenerator(CodeGenerator,JavaRules):
                     self.write("Arrays.fill(")
                     self.visit(node.target)
                     self.write(", ")
-                    self.visit(node.value.elements.left.elements[0])  
-                    self.write(");")  
+                    self.visit(node.value.elements.left.elements[0])
+                    self.write(");")
                 else:
                     self.write(u'{')
                     self.comma_separated_list(node.value.elements)
@@ -563,7 +587,7 @@ class JavaGenerator(CodeGenerator,JavaRules):
             self.newline(node)      
             self.write("public void ")
             self.write(" Calculate_Model(") if not node.name.startswith("init_") else self.write("Init(")
-            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%(self.name, self.name,self.name, self.name, self.name))
+            self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a,  %sExogenous ex)'%((self.name,)*5))
             self.newline(node)
             self.write('{') 
             self.newline(node)
@@ -1372,7 +1396,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         else:
             self.write("Init(")
             self.init=True
-        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%(self.name,self.name,self.name,self.name,self.name))
+        self.write('%sState s, %sState s1, %sRate r, %sAuxiliary a, %sExogenous ex)'%((signature2(self.model),)*5))
         self.newline(node)
         self.write('{') 
         self.newline(node)
@@ -1385,7 +1409,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         self.newline(node)
         if not node.name.startswith("init_"):
             self.private(self.node_param)
-            typ = self.model.name+"Component"
+            typ = "%sComponent"%signature2(self.model)
             self.write(self.copy_constr_compo%(typ,typ))###### copy constructor 
             self.copyconstructor(self.node_param)
             self.newline(extra=1)
@@ -1500,7 +1524,7 @@ class JavaCompo(JavaTrans, JavaGenerator):
         listmo=[]
         for inp in self.model.inputlink:
             var = inp["source"]
-            mod = inp["target"].split(".")[0]
+            mod = signature2_from_name(inp["target"].split(".")[0])
             modvar = inp["target"].split(".")[1]
             if var==varname:
                 listmo.append({mod:modvar})
