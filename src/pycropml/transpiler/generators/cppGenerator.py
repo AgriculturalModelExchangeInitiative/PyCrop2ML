@@ -906,7 +906,7 @@ class CppGenerator(CodeGenerator, CppRules):
                    '#include <tuple>\n')
         if self.model:
             self.write(f'#include "{self.model.name}.h"\n')
-        self.write(f"using namespace {Path(self.model.path).name};")
+        self.write(f"using namespace {Path(self.model.path).name.replace('-', '_')};")
 
         # self.write("using namespace std;\n")
         self.visit(node.body)
@@ -1903,7 +1903,7 @@ class CppCompo(CppTrans):
         self.name = modelt.name
         self.init = False
         self.write(f'#include "{self.name}Component.h"\n')
-        self.write(f"using namespace {modelt.path.name};\n")
+        self.write(f"using namespace {modelt.path.name.replace('-', '_')};\n")
         self.modeltparams = [pa.name for pa in self.modelt.inputs if "parametercategory" in dir(pa)]
         self.model2Node()
         self.statesName = [st.name for st in self.states]

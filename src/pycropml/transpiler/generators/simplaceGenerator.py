@@ -54,7 +54,7 @@ class SimplaceGenerator(JavaGenerator):
                 listvar.append(va.name)
 
     def visit_module(self, node):
-        package = Path(self.model.path).name
+        package = Path(self.model.path).name.replace("-", "_")
         self.module = node
         self.extfuncs = []
         self.write(f"package net.simplace.sim.components.{package};")
@@ -615,8 +615,8 @@ class Pl2Crop2ml(object):
     
     def run_simplace(self):
         md = self.md
-        package = Path(md.path).name
-        
+        package = Path(md.path).name.replace("-", "_")
+
         xml = ns.configuration(Class=f"net.simplace.sim.components.{package}.{md.name}")
         
         simg = ns.simgroup()
