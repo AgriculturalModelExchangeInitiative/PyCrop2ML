@@ -22,7 +22,7 @@ requirements:
     - antlr4-python3-runtime ==4.8
     - cython >=0.29.37,<3
     - xmlformatter
-    - numpy   >=2.0
+    - numpy
     - pyyaml
     - networkx
     - unyt
