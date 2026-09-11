@@ -34,8 +34,13 @@ jobs:
       - name: Install conda-build
         shell: bash -el {0}
         run: |
-          conda install -y -n build conda-build anaconda-client
+          conda install -y -n build conda-build anaconda-client conda-libmamba-solver
 
+      - name: Force classic solver
+        shell: bash -el {0}
+        run: |
+          conda config --set solver classic
+          conda config --show solver
 
       - name: Check conda-build
         shell: bash -el {0}
