@@ -134,8 +134,12 @@ def _load_external_target(entry_point):
 def discover_targets(force=False):
     """Discover external targets once and merge them into ``TARGETS``.
 
-    Built-in target names are reserved. Two external distributions cannot
-    register the same name.
+    Built-in target names are reserved: any external entry point reusing one
+    is rejected outright. Among external entry points, a name may legitimately
+    appear more than once (e.g. duplicate distribution metadata left behind
+    by an editable install) as long as every occurrence points at the same
+    ``module:attribute`` value; only entry points that share a name but
+    disagree on that value are treated as a genuine conflict.
     """
     global _discovery_complete
     if _discovery_complete and not force:
@@ -147,14 +151,26 @@ def discover_targets(force=False):
         _external_target_names.clear()
 
     discovered_targets = {}
+    seen_entry_points = {}
     for entry_point in _target_entry_points():
-        if (
-            entry_point.name in TARGETS
-            or entry_point.name in discovered_targets
-        ):
+        if entry_point.name in TARGETS:
             raise ValueError(
                 f"Target name {entry_point.name!r} is already registered"
             )
+
+        existing = seen_entry_points.get(entry_point.name)
+        if existing is not None:
+            if existing.value == entry_point.value:
+                # Same target advertised twice (e.g. a stray .egg-info left
+                # next to an editable install's .dist-info) — harmless.
+                continue
+            raise ValueError(
+                f"Target name {entry_point.name!r} is already registered "
+                f"with a different implementation ({existing.value!r} vs "
+                f"{entry_point.value!r})"
+            )
+
+        seen_entry_points[entry_point.name] = entry_point
         target = _load_external_target(entry_point)
         discovered_targets[target.name] = target
 
