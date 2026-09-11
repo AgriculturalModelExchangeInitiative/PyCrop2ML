@@ -3,6 +3,7 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 import xml.etree.ElementTree as ET
+from typing import Optional
 
 import yaml
 
@@ -29,8 +30,8 @@ class CompositionSemanticError(ValueError):
 class PortDefinition:
     name: str
     datatype: str
-    unit: str | None = None
-    category: str | None = None
+    unit: Optional[str] = None
+    category: Optional[str] = None
 
 
 @dataclass(frozen=True)

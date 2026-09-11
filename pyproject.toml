@@ -17,7 +17,7 @@ authors = [
   { name = "Christophe Pradal", email="christophe.pradal@cirad.fr" },
 ]
 description = "A Python library to generate components from Crop2ML declarative language"
-license-files = ["LICEN[CS]E*"]
+license = {file = "LICENSE"}
 requires-python = ">=3.8,<3.13"
 classifiers = [
   "Intended Audience :: Science/Research",

@@ -370,6 +370,49 @@ L'objet ``target`` exposé par ``mon_plugin.platform`` peut être directement un
         api_version="1",
     )
 
+Vue architecturale de l'extension par plugin::
+
+    Coeur PyCropML (package ``pycropml``)          Distribution tierce installée
+    ------------------------------------           -------------------------------
+    cyml.transpile_package()
+           |
+           v
+    TargetPipeline.run()
+           |
+           v
+    target_registry.get_target(nom)
+           |
+           +--> TARGETS (dict intégré)
+           |
+           +--> discover_targets()
+                      |
+                      | importlib.metadata.entry_points(
+                      |     group="pycropml.targets")
+                      |
+                      |        <-- frontière du paquet -->
+                      v
+                 entry point "ma_plateforme"
+                      |
+                      v
+                 mon_plugin.platform:target -----> TargetPlatform(...)
+                                                           |
+                                                           v
+                                                    mon_plugin.generator
+                                                      .ModelUnitGenerator
+                                                      .CompositionGenerator
+
+Le coeur ne connaît jamais ``mon_plugin`` à l'avance : ``discover_targets()``
+interroge uniquement le groupe d'entry points ``pycropml.targets`` exposé par
+l'environnement Python d'exécution (tous les paquets installés, pas seulement
+PyCropML), construit un ``TargetPlatform`` à partir de ce qu'il trouve, et le
+pipeline traite ensuite cet objet exactement comme n'importe quelle cible
+intégrée — ``TargetPipeline`` et ``target.py`` ne contiennent aucune branche
+conditionnelle spécifique à un plugin. Le seul couplage entre les deux mondes
+est le contrat lui-même et sa version (``api_version``) : tant que le plugin
+respecte ``TargetPlatform`` et la version d'API attendue, le coeur peut
+charger, invoquer et faire évoluer indépendamment n'importe quelle cible
+tierce.
+
 L'entry point peut également exposer une fabrique sans argument qui retourne
 cet objet. Après installation du package tiers, ``available_targets()`` réunit
 les cibles intégrées et les cibles découvertes. La nouvelle cible apparaît
