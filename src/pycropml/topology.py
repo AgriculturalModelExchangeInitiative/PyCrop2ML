@@ -3,6 +3,7 @@ import sys
 from copy import copy
 from collections import defaultdict
 import importlib
+import warnings
 
 from pathlib import Path
 import pandas as pd
@@ -193,13 +194,41 @@ class Topology:
         return edge_inout
     
     def topologicalSort(self):
-        if not self.model.internallink:
-            print(self.model.model[0].name)
-            self.model.ord = [self.model.model[0].name]
-            return 
-        ordV = list(nx.topological_sort(self.createGraph()))
-        self.model.ord = ordV
-        return ordV
+        """Order the model units so that every unit follows the units it reads from.
+
+        The declaration order of the units is kept whenever the internal links
+        allow it, and units without links are always included. A cycle keeps
+        the remaining units in declaration order.
+        """
+        names = [mod.name for mod in self.model.model]
+        requires = {name: set() for name in names}
+        for inter in self.model.internallink:
+            source = inter["source"].split(".")[0]
+            target = inter["target"].split(".")[0]
+            if source != target and source in requires and target in requires:
+                requires[target].add(source)
+
+        ordered, done, remaining = [], set(), list(names)
+        while remaining:
+            ready = next((n for n in remaining if requires[n] <= done), None)
+            if ready is None:
+                warnings.warn(
+                    f"Cyclic internal links in {self.model.name}; "
+                    f"keeping declaration order for {remaining}"
+                )
+                ordered.extend(remaining)
+                break
+            ordered.append(ready)
+            done.add(ready)
+            remaining.remove(ready)
+
+        if ordered != names:
+            warnings.warn(
+                f"Units of {self.model.name} reordered from {names} to {ordered} "
+                "to follow the internal links"
+            )
+        self.model.ord = ordered
+        return ordered
 
     def info_minout(self):
         inout = {}
@@ -259,8 +288,7 @@ class Topology:
 
     def algorithm(self):
         code = ""
-        W = [mod.name for mod in self.model.model]
-        self.model.ord = W
+        W = self.topologicalSort()
         edge = self.create_edgeInOut()
         for v in W:
             res = ', '.join(self.minout()[v][1])
