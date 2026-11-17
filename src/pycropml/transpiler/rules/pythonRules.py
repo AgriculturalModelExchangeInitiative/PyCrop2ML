@@ -36,7 +36,12 @@ class PythonRules(GeneralRule):
                  "!=": "!=",
                  "%":"%",
                  "is_not":"is not",
-                 "is":"is"
+                 "is":"is",
+                 "|": "|",
+                 "&": "&",
+                 "^": "^",
+                 "<<": "<<",
+                 ">>": ">>"
                  }
 
     unary_op = {

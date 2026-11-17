@@ -13,6 +13,11 @@ from pycropml.transpiler.logger import get_logger
 
 logger = get_logger('transpiler.parser')
 
+# needed for changes in Cython 3
+from Cython.Compiler import Errors
+if "threadlocal" in Errors.__dir__() and not hasattr(Errors.threadlocal, 'cython_errors_count'):
+    Errors.init_thread()
+
 options_defaults = dict(
     show_version = 0,
     use_listing_file = 0,

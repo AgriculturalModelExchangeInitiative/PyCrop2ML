@@ -78,7 +78,10 @@ class CheckGenerator(CodeGenerator, PythonRules):
 
     def visit_str(self, node):
         self.write(node.value)
-    
+
+    def visit_constant(self, node):
+        self.write(node.name)
+
     def visit_tuple(self, node):
         pass
         
