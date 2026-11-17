@@ -215,8 +215,24 @@ def binary_and(l, r):
 def binary_or(l, r):
     if l == r == 'int' or l == r == 'Set':
         return [l, r, l]
+    elif l == 'bool' and r == 'bool':
+        return [l, r, 'bool']
     else:
         raise PseudoCythonTypeCheckError("wrong types for |: %s and %s" % (serialize_type(l), serialize_type(r)))
+
+def binary_xor(l, r):
+    if l == r == 'int':
+        return [l, r, l]
+    elif l == 'bool' and r == 'bool':
+        return [l, r, 'bool']
+    else:
+        raise PseudoCythonTypeCheckError("wrong types for ^: %s and %s" % (serialize_type(l), serialize_type(r)))
+
+def shift(l, r):
+    if l == r == 'int':
+        return [l, r, l]
+    else:
+        raise PseudoCythonTypeCheckError("wrong types for a shift: %s and %s" % (serialize_type(l), serialize_type(r)))
 
 
 
@@ -262,6 +278,9 @@ TYPED_API = {
         '%': mod,
         '&':   binary_and,
         '|':   binary_or,
+        '^':   binary_xor,
+        '<<':  shift,
+        '>>':  shift,
     },
     
     'list': {

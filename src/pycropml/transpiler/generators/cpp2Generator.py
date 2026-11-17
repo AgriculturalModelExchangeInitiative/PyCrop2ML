@@ -64,6 +64,15 @@ class Cpp2Generator(CodeGenerator, CppRules):
 
         op = node.op
         r= False
+        if op in ("|", "&", "^", "<<", ">>"):
+            # C/C++ rank comparisons above & ^ | (Python below them), and clang warns about
+            # arithmetic inside shifts: parenthesise the expression and its compound operands
+            self.write("(")
+            self.bitwise_operand(node.left)
+            self.write(f" {self.binary_op[op]} ")
+            self.bitwise_operand(node.right)
+            self.write(")")
+            return
         if op == "is_not":
             self.write("!(")
             self.visit(node.left)
@@ -106,6 +115,18 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.write(")")
             else: self.visit(node.right)
         self.operator_exit()
+
+    def bitwise_operand(self, node):
+        """Operand of a bitwise operator: compound expressions get their own parentheses."""
+        compound = node.type in ("binary_op", "comparison") and \
+            str(node.op) not in ("|", "&", "^", "<<", ">>")
+        if compound:
+            self.write("(")
+        self.precedence.append(0)  # the parentheses are written here, not by the operand
+        self.visit(node)
+        self.precedence.pop()
+        if compound:
+            self.write(")")
 
     def visit_constant(self, node):
         self.write(self.constant[node.library][node.name])
@@ -978,7 +999,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
         # if self.model:
         #    self.write(f'#ifndef _{self.model.name.upper()}_\n')
 
-        self.write('#define _USE_MATH_DEFINES\n'
+        self.write(#'#define _USE_MATH_DEFINES\n'
                    '#include <cmath>\n'
                    '#include <iostream>\n'
                    '#include <vector>\n'
@@ -1151,7 +1172,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
             else:
                 self.write('return ')
                 if node.value.type == "tuple":
-                    self.write("make_tuple(")
+                    self.write("std::make_tuple(")
                     self.comma_separated_list(node.value.elements)
                     self.write(")")
                 else:
@@ -1191,7 +1212,7 @@ class Cpp2Generator(CodeGenerator, CppRules):
         self.write(u')')
 
     def visit_tuple(self, node):
-        self.write("tie(")
+        self.write("std::tie(")
         self.comma_separated_list(node.elements)
         self.write(")")
 
@@ -1209,7 +1230,9 @@ class Cpp2Generator(CodeGenerator, CppRules):
             dn = dir(n)
             self.newline(node)
             if 'value' not in dn and not isinstance(n.pseudo_type, list) and n.pseudo_type != "datetime":
-                if "feat" not in dn or ("feat" in dn and n.feat not in ("OUT", "INOUT")):
+                # OUT/INOUT variables of model/init functions live in the structs; in helper
+                # functions they are ordinary (returned) locals and need a declaration
+                if "feat" not in dn or n.feat not in ("OUT", "INOUT") or not is_init_or_model_func:
                     self.write(self.types[n.pseudo_type])
                     self.write(f' {n.name};')
             elif 'elements' not in dn and n.type in ("list", "array"):
@@ -1275,6 +1298,10 @@ class Cpp2Generator(CodeGenerator, CppRules):
                 self.write(" = {")
                 self.comma_separated_list(n.pairs)
                 self.write("};")
+            elif "value" in dn:
+                self.write(f"{self.types[n.pseudo_type]} {n.name} = ")
+                self.visit(n.value)
+                self.write(";")
 
         self.newline(node)
 

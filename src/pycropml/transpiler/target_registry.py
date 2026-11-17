@@ -33,6 +33,12 @@ TARGETS = {
         "Cpp2Generator", "Cpp2Compo", "cpp",
         domain_class_factory="to_struct_cpp2",
     ),
+    "odin": TargetPlatform(
+        "odin",
+        "pycropml.transpiler.generators.odinGenerator",
+        "OdinGenerator", "OdinCompo", "odin",
+        domain_class_factory="to_struct_odin",
+    ),
     "py": TargetPlatform(
         "py",
         "pycropml.transpiler.generators.pythonGenerator",

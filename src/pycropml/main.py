@@ -6,15 +6,12 @@ Created on Tue Mar 19 22:59:23 2019
 """
 # coding: utf8
 
-from __future__ import absolute_import
-from __future__ import print_function
+from __future__ import absolute_import, print_function
 
 from optparse import OptionParser
-
 from pathlib import Path
 
-from pycropml.cyml import transpile_file, transpile_package, transpile_component
-
+from pycropml.cyml import transpile_component, transpile_file, transpile_package
 from pycropml.transpiler.logger import configure_logging, get_logger
 from pycropml.transpiler.source_registry import SOURCES
 from pycropml.transpiler.target_registry import available_targets
@@ -26,8 +23,7 @@ def _validate_platforms(parser, requested, supported, kind):
     if unknown:
         available = ", ".join(sorted(supported))
         parser.error(
-            f"{unknown[0]} is not a supported {kind}. "
-            f"Supported {kind}s: {available}"
+            f"{unknown[0]} is not a supported {kind}. Supported {kind}s: {available}"
         )
     return list(dict.fromkeys(requested))
 
@@ -52,22 +48,44 @@ Available sources: {sources}
 
     parser = OptionParser(usage=usage)
 
-    parser.add_option("-f", "--file", dest="file", metavar="FILE",
-                      help="cyml source code FILE to transpile")
-    parser.add_option("-p", "--package", dest="package",
-                      help="package directory containing a crop2ml directory with algorithms.")
-    parser.add_option("-c", "--component", dest="component",
-                      help="framework model component directory")
-    parser.add_option("-l", "--languages", dest="languages", action="append",
-                      metavar="NAME",
-                      help="source or target name; may be repeated")
-    parser.add_option("--log-level", dest="log_level", default="WARNING",
-                      help="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: WARNING)")
+    parser.add_option(
+        "-f",
+        "--file",
+        dest="file",
+        metavar="FILE",
+        help="cyml source code FILE to transpile",
+    )
+    parser.add_option(
+        "-p",
+        "--package",
+        dest="package",
+        help="package directory containing a crop2ml directory with algorithms.",
+    )
+    parser.add_option(
+        "-c",
+        "--component",
+        dest="component",
+        help="framework model component directory",
+    )
+    parser.add_option(
+        "-l",
+        "--languages",
+        dest="languages",
+        action="append",
+        metavar="NAME",
+        help="source or target name; may be repeated",
+    )
+    parser.add_option(
+        "--log-level",
+        dest="log_level",
+        default="WARNING",
+        help="Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL (default: WARNING)",
+    )
 
     (opts, args) = parser.parse_args()
     configure_logging(opts.log_level)
-    cli_logger = get_logger('cli')
-    cli_logger.debug('CLI started with args=%s options=%s', args, opts)
+    cli_logger = get_logger("cli")
+    cli_logger.debug("CLI started with args=%s options=%s", args, opts)
 
     selected_modes = [opts.file, opts.package, opts.component]
     if sum(value is not None for value in selected_modes) > 1:
@@ -115,7 +133,7 @@ Available sources: {sources}
 
     if opts.component is not None:
         for language in langs:
-            cli_logger.info('Converting %s source component %s', language, sourcef)
+            cli_logger.info("Converting %s source component %s", language, sourcef)
             transpile_component(sourcef, newpackage, language)
     elif sourcef.is_file():
         # translate from cyml code
@@ -123,13 +141,13 @@ Available sources: {sources}
             parser.error("Source code %s is not a CyML file (.pyx extension)" % sourcef)
 
         for language in langs:
-            cli_logger.info('Transpiling file %s to %s', sourcef, language)
+            cli_logger.info("Transpiling file %s to %s", sourcef, language)
             transpile_file(sourcef, language)
     else:
         for language in langs:
-            cli_logger.info('Transpiling package %s to %s', sourcef, language)
+            cli_logger.info("Transpiling package %s to %s", sourcef, language)
             transpile_package(sourcef, language)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

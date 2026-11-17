@@ -315,7 +315,7 @@ anything beyond the Python process itself:
 ```bash
 $ cyml --help
 ...
-Available targets: r, cs, cpp, cpp2, py, f90, java, simplace, sirius,
+Available targets: r, cs, cpp, cpp2, odin, py, f90, java, simplace, sirius,
 openalea, check, apsim, record, dssat, stics, bioma, ecrops
 ```
 
